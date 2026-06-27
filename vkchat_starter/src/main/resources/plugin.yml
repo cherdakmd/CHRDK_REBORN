@@ -4,3 +4,9 @@ main: ru.example.vkchatstarter.VKChatStarterPlugin
 api-version: "1.16"
 depend: [VKChat]
 softdepend: [VKChatMobs, VKChatArtifacts]
+
+commands:
+  quest:
+    description: Показать текущий квест обучения
+    aliases: [квест, задание]
+    permission: vkchat.player

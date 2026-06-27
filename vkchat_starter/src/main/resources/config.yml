@@ -33,7 +33,7 @@ settings:
         - "DAMAGE_ALL;1"
         - "DURABILITY;3"
     pickaxe:
-      material: "STONE_PICKAXE"
+      material: "WOODEN_PICKAXE"
       amount: 1
       name: "&7[Обычный] &fКирка Скитальца"
       lore:
@@ -56,3 +56,127 @@ settings:
     torches:
       material: "TORCH"
       amount: 32
+
+# Цепочка квестов обучения
+quest:
+  enabled: true
+  reward-per-stage: 50
+  final-reward-rep: 1000
+  final-reward-items:
+    - "RUNE_TOKEN;1"
+    - "ARTIFACT_SHARD;1"
+  stages:
+    - id: 0
+      type: "break"
+      target: "_LOG"
+      amount: 5
+      name: "Срубить 5 дерева"
+      message: "&7Дерево: {progress}/5"
+    - id: 1
+      type: "craft"
+      target: "CRAFTING_TABLE"
+      amount: 1
+      name: "Скрафтить Верстак"
+    - id: 2
+      type: "craft"
+      target: "WOODEN_PICKAXE"
+      amount: 1
+      name: "Скрафтить Деревянную Кирку"
+    - id: 3
+      type: "break"
+      target: "STONE"
+      amount: 10
+      name: "Добыть 10 Камня"
+      message: "&7Камень: {progress}/10"
+    - id: 4
+      type: "craft"
+      target: "STONE_SWORD"
+      amount: 1
+      name: "Скрафтить Каменный Меч"
+    - id: 5
+      type: "kill"
+      target: "ZOMBIE"
+      amount: 1
+      name: "Убить Зомби"
+    - id: 6
+      type: "break"
+      target: "COAL_ORE"
+      amount: 1
+      name: "Добыть Уголь"
+    - id: 7
+      type: "craft"
+      target: "TORCH"
+      amount: 1
+      name: "Скрафтить Факелы"
+    - id: 8
+      type: "break"
+      target: "IRON_ORE"
+      amount: 3
+      name: "Добыть 3 Железной Руды"
+      message: "&7Железная руда: {progress}/3"
+    - id: 9
+      type: "pickup"
+      target: "IRON_INGOT"
+      amount: 1
+      name: "Переплавить Железный Слиток"
+    - id: 10
+      type: "kill"
+      target: "SKELETON"
+      amount: 1
+      name: "Убить Скелета"
+    - id: 11
+      type: "craft"
+      target: "SHIELD"
+      amount: 1
+      name: "Скрафтить Щит"
+    - id: 12
+      type: "break"
+      target: "GOLD_ORE"
+      amount: 1
+      name: "Добыть Золотую Руду"
+    - id: 13
+      type: "pickup"
+      target: "GOLD_INGOT"
+      amount: 1
+      name: "Выплавить Золотой Слиток"
+    - id: 14
+      type: "break"
+      target: "DIAMOND_ORE"
+      amount: 1
+      name: "Найти Алмаз"
+
+# Книга-руководство
+guide-book:
+  title: "Книга Скитальца"
+  author: "Администрация"
+  pages:
+    - "&1&l★ CHRDK REBORN ★\n\n&0Приветствуем тебя!\n\nПервым делом напиши:\n&9/vklink\n\n&0Связка с ВК подарит &61000 стартовой репутации&0!"
+    - "&2&l⛺ БЛОЧНЫЕ ПРИВАТЫ\n\n&0Приваты ставятся через блоки привата.\nКупить: &9/n buyclaim\n\n&0Питай приват ресурсами: &9/n feed"
+    - "&5&l🛡️ ЭВОЛЮЦИЯ & РУНЫ\n\n&0Усиливай снаряжение до &4+25&0!\nПокупай кристаллы и руны: &9/runes\n\n&0Цены динамические!"
+    - "&3&l🧬 ЛИЧНЫЕ МУТАЦИИ\n\n&0В меню &9/nation &0доступна Лаборатория.\n\n&05 мутаций по &61500 репутации&0 за каждую!"
+    - "&6&l💰 РЫНОК И ПОХОДЫ\n\n&0* Продавай ресурсы: &9/shop\n&0* Оффлайн-походы: &9!поход &0в ВК\n\n&8Группа: vk.com/chrdk_reborn"
+
+# Уведомления
+notifications:
+  progress-message: "&7{quest}: {progress}/{target}"
+  complete-message: "&a✔ Квест выполнен! Следующее задание: {next}"
+  final-message: "&6🎉 ОБУЧЕНИЕ ЗАВЕРШЕНО! +{reward} репутации ВК!"
+  title-complete: "&aКвест выполнен!"
+  title-final: "&6🌟 ОБУЧЕНИЕ ЗАВЕРШЕНО 🌟"
+
+# Достижения
+achievements:
+  enabled: true
+  list:
+    - id: "quest_complete"
+      name: "🎓 Выпускник"
+      description: "Завершить обучение"
+      reward-rep: 999
+    - id: "quest_speedrun"
+      name: "⚡ Спринтер"
+      description: "Завершить обучение за 10 минут"
+      reward-rep: 999
+    - id: "quest_no_death"
+      name: "🛡️ Безупречный"
+      description: "Завершить обучение без смертей"
+      reward-rep: 999
