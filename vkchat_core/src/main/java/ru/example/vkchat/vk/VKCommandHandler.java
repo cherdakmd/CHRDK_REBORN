@@ -55,7 +55,7 @@ public class VKCommandHandler {
                     " !помощь - Показать это меню";
             
             if (peer < 2000000000) {
-                plugin.getVkManager().sendKeyboard(peer, fromId, help);
+                plugin.getVkManager().sendKeyboard(peer, help, VKKeyboardBuilder.helpInlineKeyboard());
             } else {
                 plugin.getVkManager().sendMessage(peer, fromId, help);
             }

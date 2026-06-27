@@ -1,5 +1,6 @@
 package ru.example.vkchat.vk;
 
+import org.bukkit.Bukkit;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import ru.example.vkchat.VKChatPlugin;
@@ -258,7 +259,43 @@ public class VKLongPollManager {
         try {
             String type = update.getString("type");
             if ("message_new".equals(type)) {
-                // Здесь можно делегировать обработку в VKCommandHandler
+                JSONObject object = update.getJSONObject("object");
+                JSONObject message = object.optJSONObject("message");
+                if (message == null) message = object;
+                int peer = message.optInt("peer_id", 0);
+                int fromId = message.optInt("from_id", 0);
+                if (peer == 0 || fromId == 0) return;
+
+                String text = message.optString("text", "").trim();
+
+                // Обработка payload от кнопок (inline / callback / keyboard)
+                String payloadRaw = "";
+                if (message.has("payload")) {
+                    Object payloadObj = message.opt("payload");
+                    if (payloadObj instanceof String) {
+                        payloadRaw = (String) payloadObj;
+                    } else if (payloadObj instanceof JSONObject) {
+                        payloadRaw = payloadObj.toString();
+                    }
+                }
+
+                if (!payloadRaw.isEmpty()) {
+                    try {
+                        JSONObject payload = new JSONObject(payloadRaw);
+                        if (payload.has("cmd")) {
+                            text = payload.getString("cmd");
+                        } else if (payload.has("2fa_code")) {
+                            text = payload.getString("2fa_code");
+                        } else if (payload.has("2fa_block")) {
+                            text = "❌ БЛОКИРОВКА " + payload.getString("2fa_block");
+                        }
+                    } catch (Exception ignored) {}
+                }
+
+                if (!text.isEmpty()) {
+                    final String finalText = text;
+                    Bukkit.getScheduler().runTask(plugin, () -> VKCommandHandler.handle(plugin, finalText, fromId, peer));
+                }
             }
         } catch (Exception e) {
             plugin.getLogger().warning("[VK] Ошибка обработки обновления: " + e.getMessage());
@@ -583,10 +620,6 @@ public class VKLongPollManager {
 
     public void sendMessage(int peerId, int senderId, String message) {
         sendMessage(peerId, message);
-    }
-
-    public void sendKeyboard(int peerId, int senderId, String message) {
-        sendToMainChat(message);
     }
 
     // ==================== МЕТОДЫ УПРАВЛЕНИЯ КЭШЕМ БЕСЕД ====================
