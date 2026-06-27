@@ -40,6 +40,7 @@ public class WrathManager implements Listener {
     private String activeCataclysm = null;
     private int cataclysmTaskId = -1;
     private long cataclysmEndTime = 0;
+    private Location spontaneousCenter = null; // Центр спонтанного катаклизма (у игрока)
 
     public WrathManager(VKChatEventsPlugin plugin) {
         this.plugin = plugin;
@@ -57,6 +58,42 @@ public class WrathManager implements Listener {
                 }
             }
         }.runTaskTimer(plugin, interval * 20L, interval * 20L);
+
+        // Автоматический спавн катаклизмов возле игроков
+        int autoInterval = plugin.getConfig().getInt("wrath.cataclysms.auto-spawn.check-interval-seconds", 300);
+        int autoChance = plugin.getConfig().getInt("wrath.cataclysms.auto-spawn.chance-percent", 8);
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                if (activeCataclysm != null || isActive()) return;
+                if (Bukkit.getOnlinePlayers().isEmpty()) return;
+                if (random.nextInt(100) >= autoChance) return;
+
+                // Взвешенный выбор типа катаклизма
+                String[] allTypes = {"acid_rain", "earthquake", "tempest", "meteor_shower", "blizzard", "eclipse",
+                        "reputation_bloom", "angelic_grace", "star_shower", "geysers", "blood_moon_hunt",
+                        "treasure_comet", "station_fall", "fog_shadows", "plasma_storm", "gravity_anomaly"};
+                java.util.List<String> weighted = new java.util.ArrayList<>();
+                for (String t : allTypes) {
+                    double w = plugin.getConfig().getDouble("wrath.cataclysms.auto-spawn.weights." + t, 1.0);
+                    int count = (int) Math.max(1, Math.round(w * 10));
+                    for (int i = 0; i < count; i++) weighted.add(t);
+                }
+                String type = weighted.get(random.nextInt(weighted.size()));
+
+                // Выбираем случайного онлайн-игрока рядом с которым случится катаклизм
+                java.util.List<Player> online = new java.util.ArrayList<>(Bukkit.getOnlinePlayers());
+                Player target = online.get(random.nextInt(online.size()));
+                spontaneousCenter = target.getLocation().clone();
+
+                Bukkit.getScheduler().runTask(plugin, () -> {
+                    startCataclysm(type);
+                    String msg = "⚡ Стихия разражается вокруг " + target.getName() + "!";
+                    target.sendMessage(ChatColor.GOLD + "[Стихия] " + msg);
+                    target.playSound(target.getLocation(), org.bukkit.Sound.ENTITY_LIGHTNING_BOLT_THUNDER, 1.0f, 0.8f);
+                });
+            }
+        }.runTaskTimer(plugin, autoInterval * 20L, autoInterval * 20L);
     }
     
     public boolean isActive() {
@@ -77,6 +114,20 @@ public class WrathManager implements Listener {
 
     private boolean isLocationClaimed(Location loc) {
         return ClaimProtection.isLocationClaimed(loc);
+    }
+
+    /** Проверяет, попадает ли игрок в зону действия спонтанного катаклизма.
+     *  Если spontaneousCenter == null (глобальный запуск) — все игроки попадают. */
+    private boolean isPlayerInCataclysmZone(Player p) {
+        if (spontaneousCenter == null) return true;
+        if (!p.getWorld().equals(spontaneousCenter.getWorld())) return false;
+        int radius = plugin.getConfig().getInt("wrath.cataclysms.auto-spawn.radius", 64);
+        return p.getLocation().distanceSquared(spontaneousCenter) <= (long) radius * radius;
+    }
+
+    /** Комбинированная проверка: не на привате + в зоне катаклизма */
+    private boolean shouldAffectPlayer(Player p) {
+        return !isLocationClaimed(p.getLocation()) && isPlayerInCataclysmZone(p);
     }
 
     public void tryStartWrath() {
@@ -156,7 +207,7 @@ public class WrathManager implements Listener {
                 }
 
                 for (Player p : Bukkit.getOnlinePlayers()) {
-                    if (isLocationClaimed(p.getLocation())) continue;
+                    if (!shouldAffectPlayer(p)) continue;
                     if (p.getWorld().equals(world) && p.getLocation().getBlock().getY() >= world.getHighestBlockYAt(p.getLocation())) {
                         boolean hasArmor = false;
                         for (ItemStack armor : p.getInventory().getArmorContents()) {
@@ -197,7 +248,7 @@ public class WrathManager implements Listener {
                 }
 
                 for (Player p : Bukkit.getOnlinePlayers()) {
-                    if (isLocationClaimed(p.getLocation())) continue;
+                    if (!shouldAffectPlayer(p)) continue;
                     p.addPotionEffect(new PotionEffect(PotionEffectType.CONFUSION, 120, 1));
                     p.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, 120, 2));
                     p.playSound(p.getLocation(), org.bukkit.Sound.BLOCK_GRAVEL_BREAK, 1f, 0.5f);
@@ -261,7 +312,7 @@ public class WrathManager implements Listener {
 
                 // Частые удары молний вокруг игроков
                 for (Player p : Bukkit.getOnlinePlayers()) {
-                    if (isLocationClaimed(p.getLocation())) continue;
+                    if (!shouldAffectPlayer(p)) continue;
                     if (p.getWorld().equals(world)) {
                         if (random.nextInt(100) < 25) {
                             Location strikeLoc = p.getLocation().clone().add(random.nextInt(16) - 8, 0, random.nextInt(16) - 8);
@@ -297,7 +348,7 @@ public class WrathManager implements Listener {
                 }
 
                 for (Player p : Bukkit.getOnlinePlayers()) {
-                    if (isLocationClaimed(p.getLocation())) continue;
+                    if (!shouldAffectPlayer(p)) continue;
                     if (p.getWorld().equals(world) && random.nextInt(100) < 30) {
                         Location meteorLoc = p.getLocation().clone().add(random.nextInt(20) - 10, 15, random.nextInt(20) - 10);
                         org.bukkit.entity.LargeFireball fireball = (org.bukkit.entity.LargeFireball) world.spawnEntity(meteorLoc, EntityType.FIREBALL);
@@ -328,7 +379,7 @@ public class WrathManager implements Listener {
                 }
 
                 for (Player p : Bukkit.getOnlinePlayers()) {
-                    if (isLocationClaimed(p.getLocation())) continue;
+                    if (!shouldAffectPlayer(p)) continue;
                     if (p.getWorld().equals(world)) {
                         boolean nearHeat = false;
                         Location pLoc = p.getLocation();
@@ -382,7 +433,7 @@ public class WrathManager implements Listener {
                 world.setTime(18000); // Удерживаем ночь
 
                 for (Player p : Bukkit.getOnlinePlayers()) {
-                    if (isLocationClaimed(p.getLocation())) continue;
+                    if (!shouldAffectPlayer(p)) continue;
                     if (p.getWorld().equals(world)) {
                         p.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 100, 0));
                         
@@ -503,7 +554,7 @@ public class WrathManager implements Listener {
                 world.setTime(14000); // Удерживаем ночь
 
                 for (Player p : Bukkit.getOnlinePlayers()) {
-                    if (isLocationClaimed(p.getLocation())) continue;
+                    if (!shouldAffectPlayer(p)) continue;
                     Location pLoc = p.getLocation();
                     if (p.getWorld().equals(world) && pLoc.getBlock().getY() >= world.getHighestBlockYAt(pLoc)) {
                         // Игрок под открытым звездным небом! Шанс 40% на удар кометы
@@ -572,7 +623,7 @@ public class WrathManager implements Listener {
                 }
 
                 for (Player p : Bukkit.getOnlinePlayers()) {
-                    if (isLocationClaimed(p.getLocation())) continue;
+                    if (!shouldAffectPlayer(p)) continue;
                     if (p.getWorld().equals(world) && random.nextInt(100) < 35) {
                         Location geyserLoc = p.getLocation().clone().add(random.nextInt(14) - 7, 0, random.nextInt(14) - 7);
                         geyserLoc.setY(world.getHighestBlockYAt(geyserLoc));
@@ -645,7 +696,7 @@ public class WrathManager implements Listener {
                 }
                 EntityType[] mobs = {EntityType.ZOMBIE, EntityType.SKELETON, EntityType.SPIDER, EntityType.HUSK};
                 for (Player p : Bukkit.getOnlinePlayers()) {
-                    if (!p.getWorld().equals(world) || isLocationClaimed(p.getLocation())) continue;
+                    if (!p.getWorld().equals(world) || !shouldAffectPlayer(p)) continue;
                     if (random.nextInt(100) >= 35) continue;
                     Location spawn = p.getLocation().clone().add(random.nextInt(18) - 9, 0, random.nextInt(18) - 9);
                     spawn.setY(world.getHighestBlockYAt(spawn) + 1);
@@ -662,9 +713,15 @@ public class WrathManager implements Listener {
 
         } else if (type.equals("treasure_comet")) {
             cataclysmEndTime = System.currentTimeMillis() + 60000L;
-            Location chestLoc = ClaimProtection.findSafeWildernessLocation(world, plugin.getConfig().getInt("wrath.spawn-radius", 2000), 32, 80);
-            if (chestLoc == null) { stopCataclysm(); return; }
-            chestLoc.setY(world.getHighestBlockYAt(chestLoc) + 1);
+            Location chestLoc;
+            if (spontaneousCenter != null) {
+                chestLoc = spontaneousCenter.clone().add(random.nextInt(20) - 10, 0, random.nextInt(20) - 10);
+                chestLoc.setY(world.getHighestBlockYAt(chestLoc) + 1);
+            } else {
+                chestLoc = ClaimProtection.findSafeWildernessLocation(world, plugin.getConfig().getInt("wrath.spawn-radius", 2000), 32, 80);
+                if (chestLoc == null) { stopCataclysm(); return; }
+                chestLoc.setY(world.getHighestBlockYAt(chestLoc) + 1);
+            }
 
             String alert = "💎 Комета Сокровищ рассыпалась над Дикими Землями! Тайник появился на X: " + chestLoc.getBlockX() + " Z: " + chestLoc.getBlockZ() + ".";
             Bukkit.broadcastMessage(ChatColor.AQUA + alert);
@@ -708,13 +765,19 @@ public class WrathManager implements Listener {
                         cancel();
                         // Падение! Находим безопасную локацию
                         World world = Bukkit.getWorlds().get(0);
-                        int rRadius = plugin.getConfig().getInt("wrath.spawn-radius", 2000);
-                        Location spawnLoc = ClaimProtection.findSafeWildernessLocation(world, rRadius, 64, 80);
-                        if (spawnLoc == null) {
-                            stopCataclysm();
-                            return;
+                        Location spawnLoc;
+                        if (spontaneousCenter != null) {
+                            spawnLoc = spontaneousCenter.clone().add(random.nextInt(20) - 10, 0, random.nextInt(20) - 10);
+                            spawnLoc.setY(world.getHighestBlockYAt(spawnLoc.getBlockX(), spawnLoc.getBlockZ()));
+                        } else {
+                            int rRadius = plugin.getConfig().getInt("wrath.spawn-radius", 2000);
+                            spawnLoc = ClaimProtection.findSafeWildernessLocation(world, rRadius, 64, 80);
+                            if (spawnLoc == null) {
+                                stopCataclysm();
+                                return;
+                            }
+                            spawnLoc.setY(world.getHighestBlockYAt(spawnLoc.getBlockX(), spawnLoc.getBlockZ()));
                         }
-                        spawnLoc.setY(world.getHighestBlockYAt(spawnLoc.getBlockX(), spawnLoc.getBlockZ()));
 
                         // Взрыв и звук
                         world.spawnParticle(org.bukkit.Particle.EXPLOSION_HUGE, spawnLoc, 5);
@@ -830,7 +893,7 @@ public class WrathManager implements Listener {
                 int spawnChance = plugin.getConfig().getInt("wrath.cataclysms.fog_shadows.shadow-spawn-chance", 40);
 
                 for (Player p : Bukkit.getOnlinePlayers()) {
-                    if (isLocationClaimed(p.getLocation())) continue;
+                    if (!shouldAffectPlayer(p)) continue;
                     if (!p.getWorld().equals(world)) continue;
 
                     // Плотный туман: слепота и тошнота
@@ -877,7 +940,7 @@ public class WrathManager implements Listener {
                 double fireDmg = plugin.getConfig().getDouble("wrath.cataclysms.plasma_storm.fire-damage", 3.0);
 
                 for (Player p : Bukkit.getOnlinePlayers()) {
-                    if (isLocationClaimed(p.getLocation())) continue;
+                    if (!shouldAffectPlayer(p)) continue;
                     if (!p.getWorld().equals(world)) continue;
 
                     // Плазменные молнии
@@ -923,7 +986,7 @@ public class WrathManager implements Listener {
                 double launchForce = plugin.getConfig().getDouble("wrath.cataclysms.gravity_anomaly.launch-force", 2.5);
 
                 for (Player p : Bukkit.getOnlinePlayers()) {
-                    if (isLocationClaimed(p.getLocation())) continue;
+                    if (!shouldAffectPlayer(p)) continue;
                     if (!p.getWorld().equals(world)) continue;
 
                     // Случайный запуск в небо
@@ -965,6 +1028,7 @@ public class WrathManager implements Listener {
         world.setStorm(false);
         world.setThundering(false);
         activeCataclysm = null;
+        spontaneousCenter = null;
     }
 
     // ==========================================

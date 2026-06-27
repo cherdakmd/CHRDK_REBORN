@@ -176,6 +176,31 @@ wrath:
     # Глобальные настройки по умолчанию
     default-tick-interval: 40         # Интервал тика по умолчанию (2 сек)
 
+    # Автоматический спавн катаклизмов возле игроков
+    auto-spawn:
+      enabled: true
+      check-interval-seconds: 300     # Как часто проверять (каждые 5 минут)
+      chance-percent: 8               # Шанс запуска катаклизма за проверку (%)
+      radius: 64                      # Радиус действия спонтанного катаклизма вокруг игрока
+      # Весовые множители типов (больше = чаще). Значение по умолчанию: 1.0
+      weights:
+        acid_rain: 1.0
+        earthquake: 1.0
+        tempest: 1.0
+        meteor_shower: 0.8
+        blizzard: 1.0
+        eclipse: 0.7
+        reputation_bloom: 0.5
+        angelic_grace: 0.5
+        star_shower: 0.6
+        geysers: 1.0
+        blood_moon_hunt: 0.7
+        treasure_comet: 0.4
+        station_fall: 0.3
+        fog_shadows: 0.8
+        plasma_storm: 0.8
+        gravity_anomaly: 0.8
+
     acid_rain:
       duration-seconds: 180           # Длительность (сек)
       tick-interval: 60               # Интервал тика (тики = сек * 20)
