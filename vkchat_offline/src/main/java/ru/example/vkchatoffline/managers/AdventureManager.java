@@ -1625,6 +1625,76 @@ public class AdventureManager implements Listener {
         }
         if (allComplete) unlockAchievement(adv.vkId, "all_routes_complete", "Все маршруты пройдены!");
 
+        // === ДОПОЛНИТЕЛЬНЫЕ ДОСТИЖЕНИЯ (v2.1.0) ===
+
+        // Маршруты: повторные прохождения (x3)
+        int routeCount = data.getInt("stats." + adv.vkId + ".route_" + adv.route, 0) + 1;
+        data.set("stats." + adv.vkId + ".route_" + adv.route, routeCount);
+        if (routeCount >= 3) unlockAchievement(adv.vkId, adv.route + "_x3", adv.route + " x3");
+
+        // Маршруты: без смертей
+        if (data.getInt("stats." + adv.vkId + ".route_" + adv.route + "_deaths", 0) == 0) {
+            unlockAchievement(adv.vkId, adv.route + "_no_death", adv.route + " без смертей");
+        }
+
+        // Классы: уникальные прохождения
+        String playerClass = data.getString("class." + adv.vkId, "");
+        if (!playerClass.isEmpty()) {
+            unlockAchievement(adv.vkId, playerClass + "_only_run", "Только " + playerClass);
+        }
+
+        // Компаньоны: уникальные прохождения
+        String companion = data.getString("companion." + adv.vkId, "");
+        if (!companion.isEmpty()) {
+            unlockAchievement(adv.vkId, companion + "_companion_run", "С " + companion);
+        }
+
+        // Репутация за поход
+        if (rep >= 500) unlockAchievement(adv.vkId, "rep_500_single", "500 реп. за поход");
+        if (rep >= 1000) unlockAchievement(adv.vkId, "rep_1000_single", "1000 реп. за поход");
+        if (rep >= 2000) unlockAchievement(adv.vkId, "rep_2000_single", "2000 реп. за поход");
+        if (rep >= 5000) unlockAchievement(adv.vkId, "rep_5000_single", "5000 реп. за поход");
+        if (rep >= 10000) unlockAchievement(adv.vkId, "rep_10000_single", "10000 реп. за поход");
+
+        // Выживание: этапы подряд
+        if (adv.maxStages >= 3) unlockAchievement(adv.vkId, "survive_3_stages", "3 этапа подряд");
+        if (adv.maxStages >= 5) unlockAchievement(adv.vkId, "survive_5_stages", "5 этапов подряд");
+        if (adv.maxStages >= 7) unlockAchievement(adv.vkId, "survive_7_stages", "7 этапов подряд");
+        if (adv.maxStages >= 10) unlockAchievement(adv.vkId, "survive_10_stages", "10 этапов подряд");
+
+        // Прогрессия: уровень спутника
+        int compLevel = data.getInt("companion-level." + adv.vkId, 0);
+        if (compLevel >= 5) unlockAchievement(adv.vkId, "level_5_companion", "Спутник V уровня");
+        if (compLevel >= 10) unlockAchievement(adv.vkId, "level_10_companion", "Спутник X уровня");
+        if (compLevel >= 20) unlockAchievement(adv.vkId, "level_20_companion", "Спутник XX уровня");
+
+        // Скрытые достижения
+        if (data.getInt("stats." + adv.vkId + ".deaths", 0) >= 10) unlockAchievement(adv.vkId, "hidden_death_wish", "Желание смерти");
+        if (data.getInt("stats." + adv.vkId + ".kills", 0) == 0 && routeCount >= 5) unlockAchievement(adv.vkId, "hidden_pacifist", "Пацифист");
+        if (data.getInt("stats." + adv.vkId + ".gold_total", 0) >= 500) unlockAchievement(adv.vkId, "hidden_hoarder", "Скряга");
+
+        // Ежедневки
+        int dailyCount = data.getInt("stats." + adv.vkId + ".daily_total", 0) + 1;
+        data.set("stats." + adv.vkId + ".daily_total", dailyCount);
+        if (dailyCount >= 10) unlockAchievement(adv.vkId, "daily_complete_10", "10 ежедневок");
+        if (dailyCount >= 25) unlockAchievement(adv.vkId, "daily_complete_25", "25 ежедневок");
+        if (dailyCount >= 50) unlockAchievement(adv.vkId, "daily_complete_50", "50 ежедневок");
+        if (dailyCount >= 100) unlockAchievement(adv.vkId, "daily_complete_100", "100 ежедневок");
+
+        // Магазин
+        int buyCount = data.getInt("stats." + adv.vkId + ".buy_total", 0);
+        if (buyCount >= 10) unlockAchievement(adv.vkId, "buy_item_10", "10 покупок");
+        if (buyCount >= 25) unlockAchievement(adv.vkId, "buy_item_25", "25 покупок");
+        if (buyCount >= 50) unlockAchievement(adv.vkId, "buy_item_50", "50 покупок");
+
+        // Кампания
+        String[] chapters = {"1", "2", "3", "4", "5", "6"};
+        for (String ch : chapters) {
+            if (data.getBoolean("campaign." + adv.vkId + ".chapter_" + ch, false)) {
+                unlockAchievement(adv.vkId, "campaign_chapter_" + ch, "Глава " + ch);
+            }
+        }
+
         // === ИНТЕГРАЦИЯ С JOBS (v2.1.0) ===
         try {
             org.bukkit.plugin.Plugin jobsPlugin = org.bukkit.Bukkit.getPluginManager().getPlugin("VKChatJobs");
@@ -1667,6 +1737,7 @@ public class AdventureManager implements Listener {
         cooldowns.put(adv.vkId, now + plugin.getConfig().getLong("death-cooldown-hours", 4) * 3_600_000L);
         injuries.put(adv.vkId, now + plugin.getConfig().getLong("injury-hours", 12) * 3_600_000L);
         data.set("stats." + adv.vkId + ".deaths", data.getInt("stats." + adv.vkId + ".deaths", 0) + 1);
+        data.set("stats." + adv.vkId + ".route_" + adv.route + "_deaths", data.getInt("stats." + adv.vkId + ".route_" + adv.route + "_deaths", 0) + 1);
         addRandomTrauma(adv.vkId);
         changeSanity(adv.vkId, -25, null);
         setPhobia(adv.vkId, phobiaForRoute(adv.route));
@@ -1778,7 +1849,7 @@ public class AdventureManager implements Listener {
     }
 
     private void showAchievements(int vkId) {
-        StringBuilder sb = new StringBuilder("🏆 Достижения походника (45 шт. по 999 реп.)\n\n");
+        StringBuilder sb = new StringBuilder("🏆 Достижения походника (145 шт. по 999 реп.)\n\n");
         String[][] ach = {
                 // === ПРОХОЖДЕНИЕ МАРШРУТОВ (12) ===
                 {"forest_complete", "🌲 Пройден Лес"},
@@ -1826,7 +1897,135 @@ public class AdventureManager implements Listener {
                 {"rep_milestone_5000", "💎 5000 репутации"},
                 {"rep_milestone_10000", "💎 10000 репутации"},
                 {"perfect_run", "✨ Идеальный поход"},
-                {"legendary_loot", "🌟 Легендарная добыча"}
+                {"legendary_loot", "🌟 Легендарная добыча"},
+                // === МАРШРУТЫ: ПОВТОРНЫЕ ПРОХОЖДЕНИЯ (12) ===
+                {"forest_x3", "🌲 Лес x3"},
+                {"mine_x3", "⛏ Шахты x3"},
+                {"ruins_x3", "🏛 Руины x3"},
+                {"swamp_x3", "☠ Болота x3"},
+                {"castle_x3", "🏰 Замок x3"},
+                {"nether_x3", "🌋 Ад x3"},
+                {"mountain_x3", "⛰ Горы x3"},
+                {"underwater_x3", "🌊 Храм x3"},
+                {"desert_x3", "🏜 Пустыня x3"},
+                {"frozen_x3", "❄ Пики x3"},
+                {"volcanic_x3", "🌋 Вулканы x3"},
+                {"shadow_x3", "🌑 Тени x3"},
+                // === МАРШРУТЫ: БЕЗ СМЕРТЕЙ (12) ===
+                {"forest_no_death", "🌲 Лес без смертей"},
+                {"mine_no_death", "⛏ Шахты без смертей"},
+                {"ruins_no_death", "🏛 Руины без смертей"},
+                {"swamp_no_death", "☠ Болота без смертей"},
+                {"castle_no_death", "🏰 Замок без смертей"},
+                {"nether_no_death", "🌋 Ад без смертей"},
+                {"mountain_no_death", "⛰ Горы без смертей"},
+                {"underwater_no_death", "🌊 Храм без смертей"},
+                {"desert_no_death", "🏜 Пустыня без смертей"},
+                {"frozen_no_death", "❄ Пики без смертей"},
+                {"volcanic_no_death", "🌋 Вулканы без смертей"},
+                {"shadow_no_death", "🌑 Тени без смертей"},
+                // === КЛАССЫ: УНИКАЛЬНЫЕ ПРОХОЖДЕНИЯ (7) ===
+                {"warrior_only_run", "⚔ Только Воин"},
+                {"scout_only_run", "🏹 Только Следопыт"},
+                {"mage_only_run", "🔮 Только Маг"},
+                {"cleric_only_run", "🕯 Только Жрец"},
+                {"rogue_only_run", "🗡 Только Разбойник"},
+                {"paladin_only_run", "🛡 Только Паладин"},
+                {"ranger_only_run", "🎯 Только Рейнджер"},
+                // === КОМПАНЬОНЫ: УНИКАЛЬНЫЕ ПРОХОЖДЕНИЯ (8) ===
+                {"wolf_companion_run", "🐺 С Волком"},
+                {"raven_companion_run", "🦅 С Вороном"},
+                {"alchemist_companion_run", "🧪 С Алхимиком"},
+                {"mule_companion_run", "🐴 С Мулом"},
+                {"dragon_companion_run", "🐲 С Драконом"},
+                {"bear_companion_run", "🐻 С Медведем"},
+                {"owl_companion_run", "🦉 С Совой"},
+                {"snake_companion_run", "🐍 Со Змеёй"},
+                // === НАВЫКИ: МАКСИМУМ (8) ===
+                {"skill_tough_max", "💪 Живучесть MAX"},
+                {"skill_sharp_max", "⚔ Клинок MAX"},
+                {"skill_trap_max", "🪤 Ловушки MAX"},
+                {"skill_lucky_max", "🍀 Удача MAX"},
+                {"skill_trader_max", "💰 Торговец MAX"},
+                {"skill_occult_max", "🔮 Оккультизм MAX"},
+                {"skill_herbalist_max", "🌿 Травник MAX"},
+                {"skill_packer_max", "🎒 Носильщик MAX"},
+                // === БОЕВЫЕ ДОСТИЖЕНИЯ (10) ===
+                {"kill_10_bosses", "⚔ 10 боссов"},
+                {"kill_25_bosses", "⚔ 25 боссов"},
+                {"kill_50_bosses", "⚔ 50 боссов"},
+                {"kill_100_bosses", "⚔ 100 боссов"},
+                {"survive_ambush_10", "🛡 10 засад"},
+                {"survive_ambush_25", "🛡 25 засад"},
+                {"survive_ambush_50", "🛡 50 засад"},
+                {"dodge_trap_10", "🪤 10 ловушек"},
+                {"dodge_trap_25", "🪤 25 ловушек"},
+                {"dodge_trap_50", "🪤 50 ловушек"},
+                // === ИССЛЕДОВАНИЕ (8) ===
+                {"find_treasure_10", "💰 10 тайников"},
+                {"find_treasure_25", "💰 25 тайников"},
+                {"find_treasure_50", "💰 50 тайников"},
+                {"find_treasure_100", "💰 100 тайников"},
+                {"discover_secret_5", "🔍 5 секретов"},
+                {"discover_secret_15", "🔍 15 секретов"},
+                {"discover_secret_30", "🔍 30 секретов"},
+                {"discover_secret_50", "🔍 50 секретов"},
+                // === КОЛЛЕКЦИИ (6) ===
+                {"collect_all_forest", "📦 Коллекция Леса"},
+                {"collect_all_mine", "📦 Коллекция Шахт"},
+                {"collect_all_ruins", "📦 Коллекция Руин"},
+                {"collect_all_swamp", "📦 Коллекция Болот"},
+                {"collect_all_castle", "📦 Коллекция Замка"},
+                {"collect_all_nether", "📦 Коллекция Ада"},
+                // === РЕПУТАЦИЯ (6) ===
+                {"rep_500_single", "💎 500 реп. за поход"},
+                {"rep_1000_single", "💎 1000 реп. за поход"},
+                {"rep_2000_single", "💎 2000 реп. за поход"},
+                {"rep_5000_single", "💎 5000 реп. за поход"},
+                {"rep_10000_single", "💎 10000 реп. за поход"},
+                {"rep_25000_total", "💎 25000 реп. всего"},
+                // === ВЫЖИВАНИЕ (6) ===
+                {"survive_3_stages", "🫡 3 этапа подряд"},
+                {"survive_5_stages", "🫡 5 этапов подряд"},
+                {"survive_7_stages", "🫡 7 этапов подряд"},
+                {"survive_10_stages", "🫡 10 этапов подряд"},
+                {"heal_ally_10", "💊 10 лечений"},
+                {"heal_ally_25", "💊 25 лечений"},
+                // === ПРОГРЕССИЯ (6) ===
+                {"level_5_companion", "🐾 Спутник V уровня"},
+                {"level_10_companion", "🐾 Спутник X уровня"},
+                {"level_20_companion", "🐾 Спутник XX уровня"},
+                {"max_morale", "😊 Макс. мораль"},
+                {"max_hunger", "🍖 Макс. сытость"},
+                {"max_sanity", "🧠 Макс. рассудок"},
+                // === ЕЖЕДНЕВКИ (6) ===
+                {"daily_complete_10", "📅 10 ежедневок"},
+                {"daily_complete_25", "📅 25 ежедневок"},
+                {"daily_complete_50", "📅 50 ежедневок"},
+                {"daily_complete_100", "📅 100 ежедневок"},
+                {"daily_streak_14", "📅 14 дней подряд"},
+                {"daily_streak_60", "📅 60 дней подряд"},
+                // === МАГАЗИН (6) ===
+                {"buy_item_10", "🛒 10 покупок"},
+                {"buy_item_25", "🛒 25 покупок"},
+                {"buy_item_50", "🛒 50 покупок"},
+                {"buy_all_equipment", "🛡 Всё снаряжение"},
+                {"buy_all_consumables", "🧪 Все расходники"},
+                {"spend_5000_rep", "💸 5000 реп. потрачено"},
+                // === КАМПАНИЯ (6) ===
+                {"campaign_chapter_1", "📖 Глава I"},
+                {"campaign_chapter_2", "📖 Глава II"},
+                {"campaign_chapter_3", "📖 Глава III"},
+                {"campaign_chapter_4", "📖 Глава IV"},
+                {"campaign_chapter_5", "📖 Глава V"},
+                {"campaign_chapter_6", "📖 Глава VI"},
+                // === СКРЫТЫЕ ДОСТИЖЕНИЯ (6) ===
+                {"hidden_death_wish", "💀 Желание смерти"},
+                {"hidden_pacifist", "🕊 Пацифист"},
+                {"hidden_hoarder", "📦 Скряга"},
+                {"hidden_speed_demon", "⚡ Демон скорости"},
+                {"hidden_lucky_streak", "🍀 Полоса удачи"},
+                {"hidden_unstoppable", "🔥 Неостановимый"}
         };
         for (String[] a : ach) sb.append(data.getBoolean("achievements." + vkId + "." + a[0], false) ? "✅ " : "⬜ ").append(a[1]).append("\n");
         api().sendKeyboard(vkId, sb.toString(), keyboardMain());

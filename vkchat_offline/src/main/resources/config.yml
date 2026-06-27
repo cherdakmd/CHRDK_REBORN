@@ -252,7 +252,7 @@ adventures:
         - "TOTEM_OF_UNDYING;1;1;10"
         - "NETHERITE_SCRAP;2;6;40"
 
-# Достижения за маршруты (45 достижений по 999 репутации)
+# Достижения за маршруты (145 достижений по 999 репутации)
 achievements:
   enabled: true
   reward-rep: 999
@@ -305,6 +305,151 @@ achievements:
     rep_milestone_10000: 999
     perfect_run: 999
     legendary_loot: 999
+
+    # === ДОПОЛНИТЕЛЬНЫЕ ДОСТИЖЕНИЯ (100) ===
+
+    # Маршруты: повторные прохождения (12)
+    forest_x3: 999
+    mine_x3: 999
+    ruins_x3: 999
+    swamp_x3: 999
+    castle_x3: 999
+    nether_x3: 999
+    mountain_x3: 999
+    underwater_x3: 999
+    desert_x3: 999
+    frozen_x3: 999
+    volcanic_x3: 999
+    shadow_x3: 999
+
+    # Маршруты: без смертей (12)
+    forest_no_death: 999
+    mine_no_death: 999
+    ruins_no_death: 999
+    swamp_no_death: 999
+    castle_no_death: 999
+    nether_no_death: 999
+    mountain_no_death: 999
+    underwater_no_death: 999
+    desert_no_death: 999
+    frozen_no_death: 999
+    volcanic_no_death: 999
+    shadow_no_death: 999
+
+    # Классы: уникальные прохождения (7)
+    warrior_only_run: 999
+    scout_only_run: 999
+    mage_only_run: 999
+    cleric_only_run: 999
+    rogue_only_run: 999
+    paladin_only_run: 999
+    ranger_only_run: 999
+
+    # Компаньоны: уникальные прохождения (8)
+    wolf_companion_run: 999
+    raven_companion_run: 999
+    alchemist_companion_run: 999
+    mule_companion_run: 999
+    dragon_companion_run: 999
+    bear_companion_run: 999
+    owl_companion_run: 999
+    snake_companion_run: 999
+
+    # Навыки: максимум (8)
+    skill_tough_max: 999
+    skill_sharp_max: 999
+    skill_trap_max: 999
+    skill_lucky_max: 999
+    skill_trader_max: 999
+    skill_occult_max: 999
+    skill_herbalist_max: 999
+    skill_packer_max: 999
+
+    # Боевые достижения (10)
+    kill_10_bosses: 999
+    kill_25_bosses: 999
+    kill_50_bosses: 999
+    kill_100_bosses: 999
+    survive_ambush_10: 999
+    survive_ambush_25: 999
+    survive_ambush_50: 999
+    dodge_trap_10: 999
+    dodge_trap_25: 999
+    dodge_trap_50: 999
+
+    # Исследование (8)
+    find_treasure_10: 999
+    find_treasure_25: 999
+    find_treasure_50: 999
+    find_treasure_100: 999
+    discover_secret_5: 999
+    discover_secret_15: 999
+    discover_secret_30: 999
+    discover_secret_50: 999
+
+    # Коллекции (6)
+    collect_all_forest: 999
+    collect_all_mine: 999
+    collect_all_ruins: 999
+    collect_all_swamp: 999
+    collect_all_castle: 999
+    collect_all_nether: 999
+
+    # Репутация (6)
+    rep_500_single: 999
+    rep_1000_single: 999
+    rep_2000_single: 999
+    rep_5000_single: 999
+    rep_10000_single: 999
+    rep_25000_total: 999
+
+    # Выживание (6)
+    survive_3_stages: 999
+    survive_5_stages: 999
+    survive_7_stages: 999
+    survive_10_stages: 999
+    heal_ally_10: 999
+    heal_ally_25: 999
+
+    # Прогрессия (6)
+    level_5_companion: 999
+    level_10_companion: 999
+    level_20_companion: 999
+    max_morale: 999
+    max_hunger: 999
+    max_sanity: 999
+
+    # Ежедневки (6)
+    daily_complete_10: 999
+    daily_complete_25: 999
+    daily_complete_50: 999
+    daily_complete_100: 999
+    daily_streak_14: 999
+    daily_streak_60: 999
+
+    # Магазин (6)
+    buy_item_10: 999
+    buy_item_25: 999
+    buy_item_50: 999
+    buy_all_equipment: 999
+    buy_all_consumables: 999
+    spend_5000_rep: 999
+
+    # Кампания (6)
+    campaign_chapter_1: 999
+    campaign_chapter_2: 999
+    campaign_chapter_3: 999
+    campaign_chapter_4: 999
+    campaign_chapter_5: 999
+    campaign_chapter_6: 999
+
+    # Скрытые достижения (6)
+    hidden_death_wish: 999
+    hidden_pacifist: 999
+    hidden_hoarder: 999
+    hidden_speed_demon: 999
+    hidden_lucky_streak: 999
+    hidden_unstoppable: 999
 
 # Дополнительные механики событий похода
 mechanics:
