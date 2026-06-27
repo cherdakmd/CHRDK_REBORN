@@ -1,4 +1,4 @@
-# 👑 CHRDK REBORN — База знаний VKChat Ultimate
+# CHRDK REBORN — База знаний VKChat Ultimate
 
 Добро пожаловать в вики **VKChat Ultimate** — RPG-экосистемы Minecraft ↔ ВКонтакте для сервера **CHRDK REBORN**.
 
@@ -48,14 +48,32 @@
 |---|---|
 | [Команды игрока](PLAYER_COMMANDS_GUIDE.md) | Minecraft и ВК-команды |
 | [Нации](NATIONS.md) | Совет, КГБ, Волхвы, Культ, Русь, Опричнина |
-| [Приваты](CLAIMS_UPGRADE.md) | 5 уровней защиты территории |
-| [Gear и руны](GEAR_AND_RUNES.md) | Кузня 2.0, слияние, дефекты, проки |
+| [Приваты](CLAIMS_UPGRADE.md) | 5 уровней защиты + 3 ивента защиты |
+| [Gear и руны](GEAR_AND_RUNES.md) | Кузня 2.0, mythical наборы, Ancient кристалл, +25 |
 | [Оффлайн-походы](OFFLINE_ADVENTURES.md) | DnD-походы через ЛС ВК |
 | [Профессии](JOBS_AND_SKILLS.md) | Jobs 2.0, ежедневки, специализации |
 | [DonatePay](DONATEPAY_INTEGRATION.md) | Месячные статусы и LuckPerms-группы |
 | [Админ-гайд](ADMIN_GUIDE.md) | Установка, конфиги, права, обслуживание |
 | [Модули](MODULES.md) | Список jar и назначение |
 | [Troubleshooting](TROUBLESHOOTING.md) | Частые проблемы и решения |
+| [Changelog](../CHANGELOG.md) | Полная история изменений |
+
+---
+
+## Что нового в 2.1.0
+
+- **5 Mythical наборов** в Gear: Костяной Доспех, Тень Клинка, Тлеющая Корона, Туман Чумы, Звёздная Ковка
+- **Ancient Crystal** (4-й тир кристаллов): HEART_OF_THE_SEA, +20–+25, 25% успех
+- **Максимальная заточка +25** (было +20)
+- **Стихия Света** в Mobs: +8 урона нежити, CONFUSION
+- **Архетип Охотника** в Mobs: SLOW + BLINDNESS, ловушки
+- **MobStorm** — мировое событие: 50 мобов в 3 волны
+- **ELEMENTAL контракт** — убить 20 мобов случайной стихии
+- **3 новых катаклизма**: Fog Shadows, Plasma Storm, Gravity Anomaly
+- **Автоспавн катаклизмов** вокруг игроков (каждые 5 мин, 8% шанс)
+- **ClaimDefenseManager** — 3 ивента защиты приватов: Рейд, Осада, Диверсия
+- **Защита приватов наций** от взрывов и спавна мобов
+- `/nation defend` — ручной запуск обороны привата
 
 ---
 
@@ -79,7 +97,13 @@
 | Актуальных jar-модулей | 13 |
 | Наций | 6 |
 | Уровней привата | 5 |
-| Максимум заточки | +20 |
+| Максимум заточки | +25 |
+| Mythical наборов | 5 |
+| Тиров кристаллов | 4 (Common/Rare/Legendary/Ancient) |
+| Стихий мобов | 6 (fire/frost/poison/storm/dark/light) |
+| Архетипов мобов | 6 (tank/assassin/archer/shaman/necromancer/hunter) |
+| Катаклизмов | 16 |
+| Ивентов защиты приватов | 3 (Рейд/Осада/Диверсия) |
 | Оффлайн-маршрутов | 6 |
 | DonatePay-статусов | 4 |
 | Основная валюта | Репутация ВК |
@@ -89,6 +113,6 @@
 ## Ссылки
 
 - [Главная страница](../index.html)
-- [GitHub](https://github.com/cherdakmd/VKChat_Ultimate)
+- [GitHub](https://github.com/cherdakmd/CHRDK_REBORN)
 - [ВКонтакте](https://vk.com/chrdk_reborn)
 - [Telegram](https://t.me/cherdakmd)

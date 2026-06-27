@@ -1,6 +1,7 @@
 - [🏠 База знаний](README.md)
 - [🎮 Команды игрока](PLAYER_COMMANDS_GUIDE.md)
 - [🧩 Модули](MODULES.md)
+- [📋 Changelog](../CHANGELOG.md)
 
 - **Игровые системы**
   - [👥 Нации](NATIONS.md)
