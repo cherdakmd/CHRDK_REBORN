@@ -346,6 +346,11 @@ public class NationCommand implements CommandExecutor, TabCompleter {
             }
             plugin.getNationManager().chargeWithReputation(p, vkId);
         }
+
+        else if (action.equals("defend") || action.equals("defense")) {
+            plugin.getClaimDefenseManager().startManualDefense(p);
+        }
+
         return true;
     }
 
@@ -358,7 +363,7 @@ public class NationCommand implements CommandExecutor, TabCompleter {
             List<String> subs = java.util.Arrays.asList(
                 "buyclaim", "buy", "feed", "feedclaim", "claim", "unclaim", "autoclaim",
                 "sethome", "home", "claims", "list", "tp", "teleport", "change", "reset",
-                "festival", "party", "trust", "untrust", "charge"
+                "festival", "party", "trust", "untrust", "charge", "defend", "defense"
             );
             completions.addAll(subs);
         } else if (args.length == 2) {

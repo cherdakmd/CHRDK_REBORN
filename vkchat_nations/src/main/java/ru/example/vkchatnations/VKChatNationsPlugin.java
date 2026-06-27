@@ -2,6 +2,7 @@ package ru.example.vkchatnations;
 
 import org.bukkit.plugin.java.JavaPlugin;
 import ru.example.vkchatnations.data.NationManager;
+import ru.example.vkchatnations.managers.ClaimDefenseManager;
 import ru.example.vkchatnations.listeners.NationGuiListener;
 import ru.example.vkchatnations.listeners.NationListener;
 import ru.example.vkchatnations.listeners.ClaimDefenseListener;
@@ -14,6 +15,7 @@ import ru.example.vkchatnations.commands.NationCommand;
 public class VKChatNationsPlugin extends JavaPlugin {
     private static VKChatNationsPlugin instance;
     private NationManager nationManager;
+    private ClaimDefenseManager claimDefenseManager;
     private MapGui mapGui;
     private ClaimGui claimGui;
     private NationGuiListener guiListener;
@@ -80,6 +82,7 @@ public class VKChatNationsPlugin extends JavaPlugin {
         }
 
         nationManager = new NationManager(this);
+        claimDefenseManager = new ClaimDefenseManager(this);
         mapGui = new MapGui(this);
         claimGui = new ClaimGui(this);
         new TaxTask(this).runTaskTimer(this, 1200L, 72000L);
@@ -111,6 +114,7 @@ public class VKChatNationsPlugin extends JavaPlugin {
 
     public static VKChatNationsPlugin getInstance() { return instance; }
     public NationManager getNationManager() { return nationManager; }
+    public ClaimDefenseManager getClaimDefenseManager() { return claimDefenseManager; }
     public MapGui getMapGui() { return mapGui; }
     public ClaimGui getClaimGui() { return claimGui; }
     public NationGuiListener getGuiListener() { return guiListener; }
