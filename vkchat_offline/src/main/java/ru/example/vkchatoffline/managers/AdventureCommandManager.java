@@ -1549,13 +1549,14 @@ public class AdventureCommandManager {
      */
     private int getPlayerLevel(UUID uuid) {
         try {
-            if (Bukkit.getPluginManager().getPlugin("VKChatJobs") != null) {
-                int miner = VKChatJobsPlugin.getInstance().getJobsDataManager().getLevel(uuid, "miner");
-                int wood = VKChatJobsPlugin.getInstance().getJobsDataManager().getLevel(uuid, "woodcutter");
-                int farmer = VKChatJobsPlugin.getInstance().getJobsDataManager().getLevel(uuid, "farmer");
+            VKChatJobsPlugin jobs = VKChatJobsPlugin.getInstance();
+            if (jobs != null && jobs.isEnabled()) {
+                int miner = jobs.getJobsDataManager().getLevel(uuid, "miner");
+                int wood = jobs.getJobsDataManager().getLevel(uuid, "woodcutter");
+                int farmer = jobs.getJobsDataManager().getLevel(uuid, "farmer");
                 return Math.max(1, Math.max(miner, Math.max(wood, farmer)));
             }
-        } catch (Exception ignored) {
+        } catch (Throwable ignored) {
         }
         return 1;
     }

@@ -35,6 +35,8 @@ public class VKChatTeleportPlugin extends JavaPlugin {
         getCommand("homes").setExecutor(commandExecutor);
         getCommand("delhome").setExecutor(commandExecutor);
         getCommand("delhome").setTabCompleter(commandExecutor);
+        getCommand("gateway").setExecutor(commandExecutor);
+        getCommand("gateway").setTabCompleter(commandExecutor);
 
         getServer().getPluginManager().registerEvents(new TeleportListener(this), this);
         getLogger().info("VKChatTeleport успешно запущен и инициализирован!");

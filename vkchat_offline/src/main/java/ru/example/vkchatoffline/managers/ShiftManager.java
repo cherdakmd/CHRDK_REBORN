@@ -139,7 +139,13 @@ public class ShiftManager {
         if (shift == null) return;
 
         String jobName = plugin.getConfig().getString("shifts." + shift.getShiftType() + ".job");
-        int level = VKChatJobsPlugin.getInstance().getJobsDataManager().getLevel(shift.getPlayerUuid(), jobName);
+        int level = 1;
+        try {
+            VKChatJobsPlugin jobs = VKChatJobsPlugin.getInstance();
+            if (jobs != null && jobs.isEnabled()) {
+                level = jobs.getJobsDataManager().getLevel(shift.getPlayerUuid(), jobName);
+            }
+        } catch (Throwable ignored) {}
 
         List<ItemStack> rewards = new ArrayList<>();
         List<String> itemsCfg = plugin.getConfig().getStringList("shifts." + shift.getShiftType() + ".items");
