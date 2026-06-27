@@ -43,8 +43,8 @@ public class HardcoreMobManager implements Listener {
 
     private final Map<UUID, Long> rewardCooldowns = new ConcurrentHashMap<>();
 
-    private static final String[] ARCHETYPES = {"tank", "assassin", "archer", "shaman", "necromancer", "hunter", "warlord", "berserker"};
-    private static final String[] ELEMENTS = {"fire", "frost", "poison", "storm", "dark", "light", "void", "nature"};
+    private static final String[] ARCHETYPES = {"tank", "assassin", "archer", "shaman", "necromancer", "hunter", "warlord", "berserker", "paladin", "ranger"};
+    private static final String[] ELEMENTS = {"fire", "frost", "poison", "storm", "dark", "light", "void", "nature", "ice", "blood"};
 
     public HardcoreMobManager(VKChatMobsPlugin plugin) {
         this.plugin = plugin;
@@ -132,6 +132,8 @@ public class HardcoreMobManager implements Listener {
         if (archetype.equals("tank")) mob.addPotionEffect(new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, Integer.MAX_VALUE, 0, true, false));
         if (archetype.equals("assassin")) mob.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, Integer.MAX_VALUE, 1, true, false));
         if (archetype.equals("shaman")) mob.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, Integer.MAX_VALUE, 0, true, false));
+        if (archetype.equals("paladin")) mob.addPotionEffect(new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, Integer.MAX_VALUE, 0, true, false));
+        if (archetype.equals("ranger")) mob.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, Integer.MAX_VALUE, 0, true, false));
 
         mob.setCustomName(formatName(tier, archetype, element, mob));
         mob.setCustomNameVisible(plugin.getConfig().getBoolean("hardcore-mobs.elites.show-name", true));
@@ -213,6 +215,25 @@ public class HardcoreMobManager implements Listener {
             dmg += bonus;
             p.getWorld().spawnParticle(Particle.REDSTONE, p.getLocation().add(0, 1, 0), 20, 0.5, 0.5, 0.5, 0.02, new Particle.DustOptions(org.bukkit.Color.RED, 1.0f));
         }
+        if (archetype.equals("paladin")) {
+            for (LivingEntity near : mob.getWorld().getNearbyEntities(mob.getLocation(), 10, 10, 10, e -> e instanceof Monster).stream().map(e -> (LivingEntity) e).collect(java.util.stream.Collectors.toList())) {
+                if (!near.equals(mob)) {
+                    double maxHp = near.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue();
+                    near.setHealth(Math.min(maxHp, near.getHealth() + 5));
+                }
+            }
+            p.getWorld().spawnParticle(Particle.HEART, mob.getLocation().add(0, 2, 0), 6, 1.0, 0.5, 1.0, 0);
+        }
+        if (archetype.equals("ranger")) {
+            Vector dir = p.getLocation().toVector().subtract(mob.getLocation().toVector()).normalize();
+            for (int i = -1; i <= 1; i++) {
+                Vector spread = dir.clone().rotateAroundY(Math.toRadians(i * 15));
+                org.bukkit.entity.Arrow arrow = mob.getWorld().spawn(mob.getLocation().add(0, 1.5, 0), org.bukkit.entity.Arrow.class);
+                arrow.setVelocity(spread.multiply(1.5).setY(0.3));
+                arrow.setDamage(dmg * 0.5);
+                arrow.setShooter(mob);
+            }
+        }
         p.damage(dmg, mob);
         switch (element) {
             case "fire": p.setFireTicks(100); break;
@@ -223,8 +244,8 @@ public class HardcoreMobManager implements Listener {
             case "light":
                 p.addPotionEffect(new PotionEffect(PotionEffectType.CONFUSION, 40, 0));
                 p.getWorld().spawnParticle(Particle.END_ROD, p.getLocation().add(0, 1, 0), 20, 0.5, 0.5, 0.5, 0.05);
-                if (p.getType() == EntityType.ZOMBIE || p.getType() == EntityType.SKELETON || p.getType() == EntityType.WITHER_SKELETON) {
-                    p.damage(8.0, mob);
+                if (mob.getType() == EntityType.ZOMBIE || mob.getType() == EntityType.SKELETON || mob.getType() == EntityType.WITHER_SKELETON) {
+                    mob.damage(8.0, p);
                 }
                 break;
             case "void":
@@ -236,6 +257,14 @@ public class HardcoreMobManager implements Listener {
                 mob.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, 100, 1));
                 p.addPotionEffect(new PotionEffect(PotionEffectType.POISON, 120, 1));
                 p.getWorld().spawnParticle(Particle.BLOCK_CRACK, p.getLocation().add(0, 0.5, 0), 30, 0.5, 0.5, 0.5, 0.02, org.bukkit.Material.OAK_LEAVES.createBlockData());
+                break;
+            case "ice":
+                p.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, 60, 3));
+                p.getWorld().spawnParticle(Particle.SNOW_SHOVEL, p.getLocation().add(0, 1, 0), 30, 0.5, 0.5, 0.5, 0.02);
+                break;
+            case "blood":
+                p.addPotionEffect(new PotionEffect(PotionEffectType.WITHER, 80, 1));
+                p.getWorld().spawnParticle(Particle.BLOCK_DUST, p.getLocation().add(0, 0.5, 0), 30, 0.5, 0.5, 0.5, 0.02, org.bukkit.Material.REDSTONE_BLOCK.createBlockData());
                 break;
         }
     }
@@ -260,7 +289,7 @@ public class HardcoreMobManager implements Listener {
             if (vkId != -1) VKChatPlugin.getInstance().getApi().addReputation(vkId, rep);
         } catch (Throwable ignored) {}
 
-        if (random.nextInt(100) < plugin.getConfig().getInt("hardcore-mobs.rewards.rune-token-chance." + tier, 10)) {
+        if (random.nextInt(100) < plugin.getConfig().getInt("hardcore-mobs.rewards.rune_token_chance." + tier, 10)) {
             e.getDrops().add(MobListener.getRuneToken());
         }
         if ((tier.equals("raid") || tier.equals("world")) && random.nextInt(100) < plugin.getConfig().getInt("hardcore-mobs.rewards.artifact-shard-chance." + tier, 20)) {
@@ -382,10 +411,10 @@ public class HardcoreMobManager implements Listener {
     }
 
     private String strip(String s) { return ChatColor.stripColor(s == null ? "" : s); }
-    private Particle particleFor(String e) { if (e.equals("fire")) return Particle.FLAME; if (e.equals("frost")) return Particle.SNOWBALL; if (e.equals("poison")) return Particle.SPELL_WITCH; if (e.equals("storm")) return Particle.CRIT_MAGIC; if (e.equals("light")) return Particle.END_ROD; return Particle.SMOKE_NORMAL; }
+    private Particle particleFor(String e) { if (e.equals("fire")) return Particle.FLAME; if (e.equals("frost")) return Particle.SNOWBALL; if (e.equals("poison")) return Particle.SPELL_WITCH; if (e.equals("storm")) return Particle.CRIT_MAGIC; if (e.equals("light")) return Particle.END_ROD; if (e.equals("ice")) return Particle.SNOW_SHOVEL; if (e.equals("blood")) return Particle.BLOCK_DUST; return Particle.SMOKE_NORMAL; }
     private String abilityName(String a, String e) { return archetypeName(a) + " / " + elementName(e); }
     private String formatName(String tier, String a, String e, LivingEntity mob) { return ChatColor.translateAlternateColorCodes('&', tierColor(tier) + "[" + tier.toUpperCase() + "] &f" + archetypeName(a) + " " + elementName(e)); }
     private String tierColor(String t) { if (t.equals("world")) return "&5&l"; if (t.equals("raid")) return "&4&l"; if (t.equals("mini")) return "&c&l"; return "&6"; }
-    private String archetypeName(String a) { switch (a) { case "tank": return "Танк"; case "assassin": return "Ассасин"; case "archer": return "Стрелок"; case "shaman": return "Шаман"; case "necromancer": return "Некромант"; case "hunter": return "Охотник"; default: return "Элита"; } }
-    private String elementName(String e) { switch (e) { case "fire": return "Огня"; case "frost": return "Льда"; case "poison": return "Яда"; case "storm": return "Бури"; case "dark": return "Тьмы"; case "light": return "Света"; default: return "Хаоса"; } }
+    private String archetypeName(String a) { switch (a) { case "tank": return "Танк"; case "assassin": return "Ассасин"; case "archer": return "Стрелок"; case "shaman": return "Шаман"; case "necromancer": return "Некромант"; case "hunter": return "Охотник"; case "warlord": return "Полководец"; case "berserker": return "Берсерк"; case "paladin": return "Паладин"; case "ranger": return "Рейнджер"; default: return "Элита"; } }
+    private String elementName(String e) { switch (e) { case "fire": return "Огня"; case "frost": return "Льда"; case "poison": return "Яда"; case "storm": return "Бури"; case "dark": return "Тьмы"; case "light": return "Света"; case "void": return "Бездны"; case "nature": return "Природы"; case "ice": return "Льда"; case "blood": return "Крови"; default: return "Хаоса"; } }
 }

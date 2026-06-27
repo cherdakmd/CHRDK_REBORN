@@ -23,6 +23,44 @@ scaling:
   affect-spawners: false
 
 # ==========================================
+#  СТИХИИ
+# ==========================================
+elements:
+  ice:
+    name: "Лёд"
+    color: "§b"
+    damage-bonus: 0.15
+    particle: SNOWFLAKE
+  blood:
+    name: "Кровь"
+    color: "§4"
+    damage-bonus: 0.20
+    particle: DAMAGE_INDICATOR
+
+# ==========================================
+#  АРХЕТИПЫ
+# ==========================================
+archetypes:
+  paladin:
+    name: "Паладин"
+    description: "Святой воин, карающий нежить"
+    bonus-health: 20
+    bonus-damage: 5
+    ability: "holy_smite"
+  ranger:
+    name: "Следопыт"
+    description: "Мастер дальнего боя и выживания"
+    bonus-health: 10
+    bonus-damage: 8
+    ability: "precision_shot"
+
+# ==========================================
+#  ОСАДА (SIEGE)
+# ==========================================
+siege:
+  enabled: true
+
+# ==========================================
 #  КРОВАВАЯ ЛУНА И МИНИ-БОССЫ
 # ==========================================
 blood_moon:
@@ -89,6 +127,29 @@ loot:
       - "TOTEM_OF_UNDYING;1;1;2" # 2% шанс
       - "SHULKER_BOX;1;1;3"     # 3% шанс
       - "BEACON;1;1;1"          # 1% шанс
+    void_walker:
+      guaranteed:
+        - "DIAMOND;5;10"
+        - "NETHERITE_INGOT;2;4"
+        - "END_CRYSTAL;1;2"
+      rare:
+        - "ELYTRA;1;1;1"        # 1% шанс
+        - "TOTEM_OF_UNDYING;1;1;3" # 3% шанс
+        - "SHULKER_BOX;1;1;5"   # 5% шанс
+
+# ==========================================
+#  КОНТРАКТЫ НА ОХОТУ
+# ==========================================
+contracts:
+  slayer:
+    name: "Истребитель"
+    description: "Убить 50 мобов любого типа"
+    required: 50
+    rep-reward: 400
+    rune-tokens: 3
+    artifact-shards: 2
+    unlock-completed: 15
+    unlock-hunter-level: 30
 
 # ==========================================
 # HARDCORE RPG MOBS
@@ -156,6 +217,11 @@ hardcore-mobs:
       - slavic_mage
       - soviet_engineer
       - assassin_cloak
+      - void_walker
+      - ice_guardian
+      - blood_mage
+      - storm_caller
+      - earth_shaper
     set-fragment-names:
       bogatyr: "Богатырь"
       sokol: "Ясный Сокол"
@@ -182,6 +248,11 @@ hardcore-mobs:
       slavic_mage: "Славянский Волхв"
       soviet_engineer: "Инженер"
       assassin_cloak: "Мантия Убийцы"
+      void_walker: "Странник Бездны"
+      ice_guardian: "Страж Льда"
+      blood_mage: "Кровавый Маг"
+      storm_caller: "Заклинатель Бурь"
+      earth_shaper: "Землеплет"
 
 # ==========================================
 # ШТОРМ МОБОВ — мировое событие

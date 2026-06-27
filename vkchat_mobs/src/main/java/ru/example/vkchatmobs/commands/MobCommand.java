@@ -207,6 +207,11 @@ public class MobCommand implements CommandExecutor, Listener, TabCompleter {
             }
         } else if (args.length == 3) {
             String sub = args[0].toLowerCase();
+            if (sub.equals("spawn")) {
+                completions.addAll(Arrays.asList("tank", "assassin", "archer", "shaman", "necromancer", "hunter", "warlord", "berserker", "paladin", "ranger"));
+            }
+        } else if (args.length == 4) {
+            String sub = args[0].toLowerCase();
             if (sub.equals("give")) {
                 for (Player online : Bukkit.getOnlinePlayers()) {
                     completions.add(online.getName());

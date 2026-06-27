@@ -42,7 +42,8 @@ public class ContractManager {
         ELITE("elite", "§dИстребитель Элиты", "Убить 10 мобов Ранга 6+", 10, 250, 2, 0),
         CHAMPION("champion", "§6Гроза Чемпионов", "Убить 3 Мини-Bossов", 3, 350, 1, 1),
         LEGENDARY("legendary", "§c☠ Легендарный Завоеватель ☠", "Убить 1 Мирового Супер-Босса", 1, 500, 3, 2),
-        ELEMENTAL("elemental", "§bЭлементальный Охотник", "Убить 20 мобов одного стихийного типа", 20, 300, 1, 1);
+        ELEMENTAL("elemental", "§bЭлементальный Охотник", "Убить 20 мобов одного стихийного типа", 20, 300, 1, 1),
+        SLAYER("slayer", "§4☠ Истребитель ☠", "Убить 50 мобов любого типа", 50, 400, 3, 2);
 
         private final String id;
         private final String displayName;
@@ -136,6 +137,7 @@ public class ContractManager {
         if (completed >= 10 || hunter >= 25) available.add(ContractType.CHAMPION);
         if (completed >= 25 || hunter >= 40) available.add(ContractType.LEGENDARY);
         if (completed >= 5 || hunter >= 15) available.add(ContractType.ELEMENTAL);
+        if (completed >= 15 || hunter >= 30) available.add(ContractType.SLAYER);
         ContractType selected = available.get(random.nextInt(available.size()));
 
         PersistentDataContainer pdc = p.getPersistentDataContainer();
@@ -144,7 +146,7 @@ public class ContractManager {
         pdc.set(requiredKey, PersistentDataType.INTEGER, selected.getRequired());
 
         if (selected == ContractType.ELEMENTAL) {
-            String[] elements = {"fire", "frost", "poison", "storm", "dark", "light"};
+            String[] elements = {"fire", "frost", "poison", "storm", "dark", "light", "void", "nature"};
             String element = elements[random.nextInt(elements.length)];
             pdc.set(contractElementKey, PersistentDataType.STRING, element);
             String elementName;
@@ -155,6 +157,8 @@ public class ContractManager {
                 case "storm": elementName = "Буря"; break;
                 case "dark": elementName = "Тьма"; break;
                 case "light": elementName = "Свет"; break;
+                case "void": elementName = "Бездна"; break;
+                case "nature": elementName = "Природа"; break;
                 default: elementName = element;
             }
             p.sendMessage("§fЗадача: §bУбить 20 мобов стихии §" + element.charAt(0) + elementName);
@@ -190,7 +194,7 @@ public class ContractManager {
         else if (contract == ContractType.ELEMENTAL && element != null) {
             String contractElement = p.getPersistentDataContainer().getOrDefault(contractElementKey, PersistentDataType.STRING, "");
             if (element.equalsIgnoreCase(contractElement)) qualifies = true;
-        }
+        } else if (contract == ContractType.SLAYER) qualifies = true; // Убийство любого моба засчитывается
 
         if (!qualifies) return;
 

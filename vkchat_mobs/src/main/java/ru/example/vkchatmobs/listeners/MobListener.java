@@ -53,7 +53,7 @@ public class MobListener implements Listener {
     private final Map<UUID, Long> farmResetTimes = new ConcurrentHashMap<>();
 
     // Таймеры для способностей супер-боссов
-    private final Map<UUID, Long> lastSpellTime = new ConcurrentHashMap<>();
+    private final Map<String, Long> lastSpellTime = new ConcurrentHashMap<>();
 
     public MobListener(VKChatMobsPlugin plugin) {
         this.plugin = plugin;
@@ -168,6 +168,9 @@ public class MobListener implements Listener {
                             world.spawnParticle(Particle.CRIT_MAGIC, mob.getLocation().add(0, 1.2, 0), 4, 0.3, 0.4, 0.3, 0.02);
                         } else if (bossType.equals("alchemist")) {
                             world.spawnParticle(Particle.SPELL_WITCH, mob.getLocation().add(0, 0.5, 0), 6, 0.5, 0.5, 0.5, 0.02);
+                        } else if (bossType.equals("void_walker")) {
+                            world.spawnParticle(Particle.REVERSE_PORTAL, mob.getLocation().add(0, 0.3, 0), 10, 0.6, 0.3, 0.6, 0.02);
+                            world.spawnParticle(Particle.DRAGON_BREATH, mob.getLocation().add(0, 1.0, 0), 4, 0.4, 0.4, 0.4, 0.01);
                         }
 
                         // 2. АКТИВНЫЕ СПОСОБНОСТИ (СПЕЛЛЫ) В БОЮ
@@ -180,12 +183,12 @@ public class MobListener implements Listener {
 
                         if (nearbyPlayers.isEmpty()) continue;
 
-                        long lastUsed = lastSpellTime.getOrDefault(mob.getUniqueId(), 0L);
+                        long lastUsed = lastSpellTime.getOrDefault(mob.getUniqueId().toString(), 0L);
 
                         if (bossType.equals("warlord")) {
                             // РАССЕКАЮЩИЙ УДАР (Spin Attack) — только во 2 фазе, раз в 8 сек
                             if (phase == 2 && now - lastUsed >= 8000L) {
-                                lastSpellTime.put(mob.getUniqueId(), now);
+                                lastSpellTime.put(mob.getUniqueId().toString(), now);
                                 mob.setCustomName("§c§l☠ Древний Воевода ☠ §e[ЯРОСТЬ]");
 
                                 Bukkit.broadcastMessage("§c[Древний Воевода] РАССЕКАЮЩИЙ УДАР КЛИНКА!");
@@ -204,7 +207,7 @@ public class MobListener implements Listener {
                             // УРАГАННЫЙ ПРИТЯГ (Tornado / Storm) — раз в 12 сек (Фаза 1) / 6 сек (Фаза 2)
                             long cd = phase == 2 ? 6000L : 12000L;
                             if (now - lastUsed >= cd) {
-                                lastSpellTime.put(mob.getUniqueId(), now);
+                                lastSpellTime.put(mob.getUniqueId().toString(), now);
 
                                 Bukkit.broadcastMessage("§b[Повелитель Бури] ПОДЧИНИТЕСЬ СИЛЕ УРАГАНА!");
                                 world.playSound(mob.getLocation(), Sound.ENTITY_ENDER_DRAGON_FLAP, 1.5f, 0.6f);
@@ -230,7 +233,7 @@ public class MobListener implements Listener {
                         } else if (bossType.equals("alchemist")) {
                             // ЯДОВИТАЯ КОЛБА + ЭЛИКСИР (раз в 9 сек во 2 фазе)
                             if (phase == 2 && now - lastUsed >= 9000L) {
-                                lastSpellTime.put(mob.getUniqueId(), now);
+                                lastSpellTime.put(mob.getUniqueId().toString(), now);
 
                                 // 1. Выстрел колбой в случайного игрока
                                 Player target = nearbyPlayers.get(random.nextInt(nearbyPlayers.size()));
@@ -253,6 +256,72 @@ public class MobListener implements Listener {
                                 world.playSound(mob.getLocation(), Sound.ENTITY_WITCH_DRINK, 1.2f, 1.0f);
                                 world.spawnParticle(Particle.SPELL_INSTANT, mob.getLocation().add(0, 1, 0), 20, 0.5, 0.8, 0.5, 0.05);
                                 updateNameplate(mob);
+                            }
+                        } else if (bossType.equals("void_walker")) {
+                            // СТРАННИК БЕЗДНЫ — способности фазы 2
+                            if (phase == 2) {
+                                // Телепортация (каждые 6 сек)
+                                if (now - lastUsed >= 6000L) {
+                                    lastSpellTime.put(mob.getUniqueId().toString(), now);
+
+                                    Bukkit.broadcastMessage("§5[Странник Бездны] ПРОСТРАНСТВО СКЛАДЫВАЕТСЯ ВОКРУГ МЕНЯ!");
+                                    world.playSound(mob.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1.5f, 0.5f);
+                                    world.spawnParticle(Particle.REVERSE_PORTAL, mob.getLocation(), 50, 1.0, 1.0, 1.0, 0.1);
+
+                                    // Телепорт на случайные 10 блоков
+                                    double tx = mob.getLocation().getX() + (random.nextDouble() * 20 - 10);
+                                    double tz = mob.getLocation().getZ() + (random.nextDouble() * 20 - 10);
+                                    double ty = mob.getWorld().getHighestBlockYAt((int) tx, (int) tz) + 1;
+                                    mob.teleport(new org.bukkit.Location(mob.getWorld(), tx, ty, tz));
+                                    world.spawnParticle(Particle.REVERSE_PORTAL, mob.getLocation(), 50, 1.0, 1.0, 1.0, 0.1);
+                                    world.playSound(mob.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1.5f, 0.8f);
+                                }
+
+                                // Взрыв Бездны (каждые 10 сек)
+                                long lastSpell2 = lastSpellTime.getOrDefault(mob.getUniqueId() + "_void_explosion", 0L);
+                                if (now - lastSpell2 >= 10000L) {
+                                    lastSpellTime.put(mob.getUniqueId() + "_void_explosion", now);
+
+                                    Bukkit.broadcastMessage("§5[Странник Бездны] БЕЗДНА ПОГЛОЩАЕТ ВСЁ!");
+                                    world.playSound(mob.getLocation(), Sound.ENTITY_ENDER_DRAGON_GROWL, 1.5f, 0.4f);
+                                    world.spawnParticle(Particle.DRAGON_BREATH, mob.getLocation(), 100, 5.0, 1.0, 5.0, 0.05);
+
+                                    for (Player p : nearbyPlayers) {
+                                        if (p.getLocation().distance(mob.getLocation()) <= 5.0) {
+                                            p.damage(12.0, mob);
+                                            p.addPotionEffect(new PotionEffect(PotionEffectType.WITHER, 100, 1));
+                                            p.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 60, 0));
+                                            p.sendMessage("§5☠ Взрыв Бездны нанёс вам 12 урона и наложил Иссушение!");
+                                        }
+                                    }
+                                }
+
+                                // Призыв 4 эндерменов (каждые 15 сек)
+                                long lastSpell3 = lastSpellTime.getOrDefault(mob.getUniqueId() + "_spawn_endermen", 0L);
+                                if (now - lastSpell3 >= 15000L) {
+                                    lastSpellTime.put(mob.getUniqueId() + "_spawn_endermen", now);
+
+                                    Bukkit.broadcastMessage("§5[Странник Бездны] МОИ СЛУГИ ПРИБЫВАЮТ ИЗ БЕЗДНЫ!");
+                                    world.playSound(mob.getLocation(), Sound.ENTITY_ENDERMAN_SCREAM, 1.5f, 0.6f);
+
+                                    for (int i = 0; i < 4; i++) {
+                                        org.bukkit.entity.Entity enderman = mob.getWorld().spawnEntity(
+                                            mob.getLocation().add(random.nextDouble() * 4 - 2, 0, random.nextDouble() * 4 - 2),
+                                            org.bukkit.entity.EntityType.ENDERMAN
+                                        );
+                                        if (enderman instanceof LivingEntity) {
+                                            LivingEntity em = (LivingEntity) enderman;
+                                            em.setCustomName("§5Слуга Бездны");
+                                            em.setCustomNameVisible(false);
+                                            AttributeInstance emHp = em.getAttribute(Attribute.GENERIC_MAX_HEALTH);
+                                            if (emHp != null) {
+                                                emHp.setBaseValue(20.0);
+                                                em.setHealth(20.0);
+                                            }
+                                        }
+                                    }
+                                    world.spawnParticle(Particle.REVERSE_PORTAL, mob.getLocation(), 80, 2.0, 1.0, 2.0, 0.1);
+                                }
                             }
                         }
                     }
@@ -392,7 +461,7 @@ public class MobListener implements Listener {
     }
 
     private void spawnSuperBoss(LivingEntity mob) {
-        int r = random.nextInt(3);
+        int r = random.nextInt(4);
         String name = "Древний Воевода";
         String bId = "warlord";
         double hpVal = 500.0;
@@ -405,6 +474,10 @@ public class MobListener implements Listener {
             name = "Проклятый Алхимик";
             bId = "alchemist";
             hpVal = 550.0;
+        } else if (r == 3) {
+            name = "Странник Бездны";
+            bId = "void_walker";
+            hpVal = 700.0;
         }
 
         mob.getPersistentDataContainer().set(isSuperBossKey, PersistentDataType.INTEGER, 1);
@@ -473,12 +546,13 @@ public class MobListener implements Listener {
         boolean isSuperBoss = mob.getPersistentDataContainer().has(isSuperBossKey, PersistentDataType.INTEGER);
         
         String plate;
-        if (isSuperBoss) {
-            String bType = mob.getPersistentDataContainer().get(superBossTypeKey, PersistentDataType.STRING);
-            String title = "СУПЕР-БОСС";
-            if ("warlord".equalsIgnoreCase(bType)) title = "ДРЕВНИЙ ВОЕВОДА";
-            else if ("storm".equalsIgnoreCase(bType)) title = "ПОВЕЛИТЕЛЬ БУРИ";
-            else if ("alchemist".equalsIgnoreCase(bType)) title = "ПРОКЛЯТЫЙ АЛХИМИК";
+            if (isSuperBoss) {
+                String bType = mob.getPersistentDataContainer().get(superBossTypeKey, PersistentDataType.STRING);
+                String title = "СУПЕР-БОСС";
+                if ("warlord".equalsIgnoreCase(bType)) title = "ДРЕВНИЙ ВОЕВОДА";
+                else if ("storm".equalsIgnoreCase(bType)) title = "ПОВЕЛИТЕЛЬ БУРИ";
+                else if ("alchemist".equalsIgnoreCase(bType)) title = "ПРОКЛЯТЫЙ АЛХИМИК";
+                else if ("void_walker".equalsIgnoreCase(bType)) title = "СТРАННИК БЕЗДНЫ";
             
             plate = org.bukkit.ChatColor.translateAlternateColorCodes('&', 
                 "&d&l☠ " + title + " ☠ &c❤ " + color + String.format("%.0f", currentHp) + "&8/&c" + String.format("%.0f", maxHp)
@@ -524,8 +598,8 @@ public class MobListener implements Listener {
             double nextHp = mob.getHealth() - e.getFinalDamage();
             int phase = mob.getPersistentDataContainer().getOrDefault(bossPhaseKey, PersistentDataType.INTEGER, 1);
 
-            if (nextHp > 0 && nextHp <= (maxHp * 0.5) && phase == 1) {
-                // Переход во 2 фазу!
+            if (nextHp > 0 && nextHp <= (maxHp * 0.4) && phase == 1) {
+                // Переход во 2 фазу! (void_walker at 40%, others at 50%)
                 mob.getPersistentDataContainer().set(bossPhaseKey, PersistentDataType.INTEGER, 2);
                 String bossType = mob.getPersistentDataContainer().get(superBossTypeKey, PersistentDataType.STRING);
                 if (bossType == null) return;
@@ -546,6 +620,25 @@ public class MobListener implements Listener {
                     Bukkit.broadcastMessage("§d[Проклятый Алхимик] ХА-ХА-ХА! МОИ СМЕРТЕЛЬНЫЕ РЕАГЕНТЫ ГОТОВЫ К РАСПЫЛЕНИЮ!");
                     mob.getWorld().playSound(mob.getLocation(), Sound.ENTITY_WITCH_CELEBRATE, 2.0f, 0.9f);
                     mob.getWorld().spawnParticle(Particle.SPELL_WITCH, mob.getLocation(), 100, 1.5, 1.5, 1.5, 0.1);
+                } else if (bossType.equals("void_walker")) {
+                    Bukkit.broadcastMessage("§5[Странник Бездны] БЕЗДНА ОТКРЫВАЕТСЯ! ПРОСТРАНСТВО РАЗРЫВАЕТСЯ!");
+                    mob.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 12000, 1));
+                    mob.addPotionEffect(new PotionEffect(PotionEffectType.INCREASE_DAMAGE, 12000, 1));
+                    mob.getWorld().playSound(mob.getLocation(), Sound.ENTITY_ENDER_DRAGON_GROWL, 2.0f, 0.4f);
+                    mob.getWorld().spawnParticle(Particle.REVERSE_PORTAL, mob.getLocation(), 150, 2.0, 2.0, 2.0, 0.1);
+                    mob.getWorld().spawnParticle(Particle.DRAGON_BREATH, mob.getLocation(), 100, 1.5, 1.5, 1.5, 0.05);
+                    // Призыв 4 эндерменов при входе во 2 фазу
+                    for (int i = 0; i < 4; i++) {
+                        org.bukkit.entity.Entity enderman = mob.getWorld().spawnEntity(
+                            mob.getLocation().add(random.nextDouble() * 4 - 2, 0, random.nextDouble() * 4 - 2),
+                            org.bukkit.entity.EntityType.ENDERMAN
+                        );
+                        if (enderman instanceof LivingEntity) {
+                            LivingEntity em = (LivingEntity) enderman;
+                            em.setCustomName("§5Слуга Бездны");
+                            em.setCustomNameVisible(false);
+                        }
+                    }
                 }
             }
         }
@@ -896,12 +989,29 @@ public class MobListener implements Listener {
         // --- [НОВОЕ] ВЫПАДЕНИЕ ДРЕВНИХ ЖЕТОНОВ И ОСКОЛКОВ ---
         if (killer != null) {
             if (isSuperBoss) {
-                // С супер-боссов 100% выпадает Осколок Артефакта и 1-2 Жетона Рун
+                String bossType = mob.getPersistentDataContainer().getOrDefault(superBossTypeKey, PersistentDataType.STRING, "");
+                // С супер-боссов 100% выпадает Осколок Артефакта и 2-3 Жетона Рун
                 mob.getWorld().dropItemNaturally(mob.getLocation(), getArtifactShard());
                 ItemStack rt = getRuneToken();
-                rt.setAmount(1 + random.nextInt(2));
+                rt.setAmount(2 + random.nextInt(2));
                 mob.getWorld().dropItemNaturally(mob.getLocation(), rt);
-                
+
+                // void_walker: редкие дропы — ELYTRA (1%), TOTEM (3%), SHULKER (5%)
+                if (bossType.equals("void_walker")) {
+                    if (random.nextInt(100) < 1) {
+                        mob.getWorld().dropItemNaturally(mob.getLocation(), new ItemStack(Material.ELYTRA));
+                        killer.sendMessage("§b✨ ЛЕГЕНДАРНЫЙ ДРОП! С Странника Бездны выпали КРЫЛЬЯ!");
+                    }
+                    if (random.nextInt(100) < 3) {
+                        mob.getWorld().dropItemNaturally(mob.getLocation(), new ItemStack(Material.TOTEM_OF_UNDYING));
+                        killer.sendMessage("§e✨ РЕДКИЙ ДРОП! С Странника Бездны выпал ТОТЕМ БЕССМЕРТИЯ!");
+                    }
+                    if (random.nextInt(100) < 5) {
+                        mob.getWorld().dropItemNaturally(mob.getLocation(), new ItemStack(Material.SHULKER_BOX));
+                        killer.sendMessage("§d✨ РЕДКИЙ ДРОП! С Странника Бездны выпала ШАЛКЕР-КОРОБКА!");
+                    }
+                }
+
                 killer.sendMessage("§d✨ ПРЕДОПРЕДЕЛЕННЫЙ ЛУТ! С поверженного Мирового Супер-Босса выпали древние жетоны сокровищ!");
             } else if (isMiniBoss) {
                 // С мини-боссов масштабируемый шанс: 5% + 3% за ранг, макс. 50%
