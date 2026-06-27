@@ -158,6 +158,8 @@ public class InvasionManager implements Listener {
         int highestY = spawnLoc.getWorld().getHighestBlockYAt(spawnLoc.getBlockX(), spawnLoc.getBlockZ());
         spawnLoc.setY(highestY + 1);
 
+        if (ClaimProtection.isLocationClaimed(spawnLoc)) return;
+
         int type = random.nextInt(3);
         LivingEntity mob;
         if (type == 0) {

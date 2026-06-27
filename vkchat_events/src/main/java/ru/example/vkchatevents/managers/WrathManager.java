@@ -10,8 +10,10 @@ import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDeathEvent;
+import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.potion.PotionEffect;
@@ -443,8 +445,10 @@ public class WrathManager implements Listener {
                             Location spawn = p.getLocation().clone().add(random.nextInt(10) - 5, 0, random.nextInt(10) - 5);
                             spawn.setY(world.getHighestBlockYAt(spawn) + 1);
                             
-                            world.spawnEntity(spawn, selectedMob);
-                            p.playSound(p.getLocation(), org.bukkit.Sound.ENTITY_ENDERMAN_TELEPORT, 0.5f, 0.5f);
+                            if (!isLocationClaimed(spawn)) {
+                                world.spawnEntity(spawn, selectedMob);
+                                p.playSound(p.getLocation(), org.bukkit.Sound.ENTITY_ENDERMAN_TELEPORT, 0.5f, 0.5f);
+                            }
                         }
                     }
                 }
@@ -1102,6 +1106,13 @@ public class WrathManager implements Listener {
             e.getEntity().getWorld().setStorm(false);
             e.getEntity().getWorld().setThundering(false);
         }
+    }
+
+    /** Отмена взрывов (метеориты, TNT и т.д.) в приватах наций */
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onExplosion(EntityExplodeEvent e) {
+        if (e.blockList().isEmpty()) return;
+        e.blockList().removeIf(block -> ClaimProtection.isLocationClaimed(block.getLocation()));
     }
 
     // ==========================================
