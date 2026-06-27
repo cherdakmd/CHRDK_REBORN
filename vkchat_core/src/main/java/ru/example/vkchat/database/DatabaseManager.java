@@ -116,16 +116,24 @@ public class DatabaseManager {
                     "vk_id INT, " +
                     "PRIMARY KEY (code, vk_id))";
 
+            // Таблица мутов
+            String mutesTable = "CREATE TABLE IF NOT EXISTS vkchat_mutes (" +
+                    "uuid VARCHAR(36) PRIMARY KEY, " +
+                    "expiry BIGINT, " +
+                    "reason TEXT)";
+
             try (PreparedStatement s1 = conn.prepareStatement(authTable);
                  PreparedStatement s2 = conn.prepareStatement(repTable);
                  PreparedStatement s3 = conn.prepareStatement(statsTable);
                  PreparedStatement s4 = conn.prepareStatement(promoTable);
-                 PreparedStatement s5 = conn.prepareStatement(activationsTable)) {
+                 PreparedStatement s5 = conn.prepareStatement(activationsTable);
+                 PreparedStatement s6 = conn.prepareStatement(mutesTable)) {
                 s1.execute();
                 s2.execute();
                 s3.execute();
                 s4.execute();
                 s5.execute();
+                s6.execute();
             }
         } catch (SQLException e) {
             plugin.getLogger().severe("Ошибка при создании таблиц в БД!");

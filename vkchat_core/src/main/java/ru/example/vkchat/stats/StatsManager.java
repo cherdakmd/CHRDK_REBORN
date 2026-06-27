@@ -12,6 +12,7 @@ import java.sql.SQLException;
 import java.util.*;
 
 public class StatsManager {
+    private static final java.util.Set<String> VALID_STATS = java.util.Set.of("kills", "deaths", "blocks", "achievements");
     private final VKChatPlugin plugin;
     
     // Временные счетчики для онлайна за сутки
@@ -41,7 +42,7 @@ public class StatsManager {
     public int getTodayJoins() { return todayJoins; }
     public int getTotalJoins() { return totalJoins; }
 
-    private boolean setupEconomy() {
+    public boolean setupEconomy() {
         if (plugin.getServer().getPluginManager().getPlugin("Vault") == null) return false;
         RegisteredServiceProvider<Economy> rsp = plugin.getServer().getServicesManager().getRegistration(Economy.class);
         if (rsp == null) return false;
@@ -57,6 +58,7 @@ public class StatsManager {
     public int getAchievements(UUID uuid) { return getStat(uuid, "achievements"); }
 
     private int getStat(UUID uuid, String stat) {
+        if (!VALID_STATS.contains(stat)) throw new IllegalArgumentException("Invalid stat: " + stat);
         try (Connection conn = plugin.getDatabaseManager().getConnection()) {
             PreparedStatement ps = conn.prepareStatement("SELECT " + stat + " FROM vkchat_stats WHERE uuid = ?");
             ps.setString(1, uuid.toString());

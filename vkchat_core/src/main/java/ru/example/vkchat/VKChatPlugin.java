@@ -44,11 +44,9 @@ public class VKChatPlugin extends JavaPlugin {
 
         configManager = new ConfigManager(this);
 
-        if (getConfig().getBoolean("settings.use-vault", false)) {
-            if (getServer().getPluginManager().getPlugin("Vault") != null) {
-                vaultEnabled = true;
-                getLogger().info("Vault найден! Экономика включена.");
-            }
+        if (getServer().getPluginManager().getPlugin("Vault") != null) {
+            vaultEnabled = true;
+            getLogger().info("Vault найден! Экономика включена.");
         }
 
         databaseManager = new DatabaseManager(this);
@@ -65,6 +63,8 @@ public class VKChatPlugin extends JavaPlugin {
         registerListeners();
         registerCommands();
 
+        if (coreManagers.getStatsManager() != null) coreManagers.getStatsManager().setupEconomy();
+
         if (getServer().getPluginManager().getPlugin("PlaceholderAPI") != null) {
             new VKChatExpansion(this).register();
             getLogger().info("PlaceholderAPI найден! Плейсхолдеры %vkchat_reputation% загружены.");
@@ -73,6 +73,8 @@ public class VKChatPlugin extends JavaPlugin {
         startTasks();
         vkLongPollManager.start();
         vkLongPollManager.sendToMainChat("✅ Сервер запущен!");
+
+        coreManagers.getAuthManager().startSessionTimeoutTask();
     }
 
     private void registerListeners() {
@@ -81,7 +83,7 @@ public class VKChatPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new StatsListener(this), this);
         getServer().getPluginManager().registerEvents(new MotdListener(this), this);
         getServer().getPluginManager().registerEvents(guiListener, this);
-        getServer().getPluginManager().registerEvents(new EventsListener(this), this);
+        // EventsListener removed — dead code
         getServer().getPluginManager().registerEvents(new RandomSpawnListener(this), this);
     }
 
@@ -257,5 +259,10 @@ public class VKChatPlugin extends JavaPlugin {
 
     public ru.example.vkchat.vk.RiddleManager getRiddleManager() {
         return vkFeaturesManager != null ? vkFeaturesManager.getRiddleManager() : null;
+    }
+
+    public void reloadAll() {
+        reloadConfig();
+        configManager = new ConfigManager(this);
     }
 }

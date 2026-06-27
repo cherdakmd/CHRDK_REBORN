@@ -513,6 +513,7 @@ public class MCCommands implements CommandExecutor, org.bukkit.command.TabComple
                 sender.sendMessage("/vkchat linked");
                 sender.sendMessage("/vkchat migrate - Перенести данные из YML в MySQL/SQLite");
                 sender.sendMessage("/vkchat economy - Создать аудит экономики");
+                sender.sendMessage("/vkchat reload - Перезагрузить конфигурацию");
                 return true;
             }
             if (args[0].equalsIgnoreCase("give") || args[0].equalsIgnoreCase("add")) {
@@ -564,7 +565,11 @@ public class MCCommands implements CommandExecutor, org.bukkit.command.TabComple
                 }
                 return true;
             }
-            if (args[0].equalsIgnoreCase("economy")) {
+            if (args[0].equalsIgnoreCase("reload")) {
+                plugin.reloadAll();
+                sender.sendMessage(org.bukkit.ChatColor.GREEN + "✓ VKChat конфигурация и сообщения успешно перезагружены!");
+                return true;
+            } else if (args[0].equalsIgnoreCase("economy")) {
                 if (!sender.hasPermission("vkchat.admin")) return true;
                 try {
                     java.io.File report = new java.io.File(plugin.getDataFolder(), "economy-report.md");
@@ -737,7 +742,7 @@ public class MCCommands implements CommandExecutor, org.bukkit.command.TabComple
                 break;
             case "vkchat":
                 if (args.length == 1) {
-                    completions.addAll(Arrays.asList("give", "add", "set", "wall", "promo", "linked", "unlink", "migrate", "economy", "stats"));
+                    completions.addAll(Arrays.asList("give", "add", "set", "wall", "promo", "linked", "unlink", "migrate", "economy", "stats", "reload"));
                 } else if (args.length == 2 && (args[0].equalsIgnoreCase("give") || args[0].equalsIgnoreCase("add") || args[0].equalsIgnoreCase("set") || args[0].equalsIgnoreCase("unlink"))) {
                     completions.addAll(getOnlinePlayerNames(last));
                 }

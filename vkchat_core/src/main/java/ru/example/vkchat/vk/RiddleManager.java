@@ -100,7 +100,7 @@ public class RiddleManager {
     public boolean checkAnswer(int vkId, String text) {
         if (!active || currentAnswer == null) return false;
         
-        if (text.toLowerCase().contains(currentAnswer.toLowerCase())) {
+        if (text.toLowerCase().trim().equals(currentAnswer.toLowerCase().trim())) {
             active = false; // Загадка разгадана
             int reward = plugin.getConfig().getInt("riddles.reward", 5);
             

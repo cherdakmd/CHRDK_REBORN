@@ -12,6 +12,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.HashMap;
 
 public class AuthManager {
     private final VKChatPlugin plugin;
@@ -23,6 +24,7 @@ public class AuthManager {
     private final Map<UUID, String> await2fa = new ConcurrentHashMap<>();
     private final Map<UUID, Integer> failedAttempts = new ConcurrentHashMap<>();
     private final Map<UUID, Long> lockouts = new ConcurrentHashMap<>();
+    private final Map<UUID, Long> lastActivity = new ConcurrentHashMap<>();
 
     public AuthManager(VKChatPlugin plugin) {
         this.plugin = plugin;
@@ -32,9 +34,35 @@ public class AuthManager {
         // SQL сохраняет данные в реальном времени, этот метод оставлен для совместимости с интерфейсом ядра
     }
 
+    public void updateLastActivity(UUID uuid) {
+        lastActivity.put(uuid, System.currentTimeMillis());
+    }
+
+    public void startSessionTimeoutTask() {
+        int timeoutMinutes = plugin.getConfig().getInt("auth.session-timeout-minutes", 30);
+        if (timeoutMinutes <= 0) return;
+        long checkInterval = 60 * 20L; // every 60 seconds
+        plugin.getServer().getScheduler().runTaskTimer(plugin, () -> {
+            long now = System.currentTimeMillis();
+            long timeoutMillis = timeoutMinutes * 60L * 1000L;
+            for (org.bukkit.entity.Player p : plugin.getServer().getOnlinePlayers()) {
+                UUID uuid = p.getUniqueId();
+                if (isLoggedIn(p) && lastActivity.containsKey(uuid)) {
+                    if (now - lastActivity.get(uuid) > timeoutMillis) {
+                        logout(p);
+                        lastActivity.remove(uuid);
+                        p.sendMessage(org.bukkit.ChatColor.RED + "❌ Вы были автоматически отключены из-за неактивности (" + timeoutMinutes + " мин.).");
+                        plugin.getLogger().info("[Session] Player " + p.getName() + " auto-logged out due to inactivity.");
+                    }
+                }
+            }
+        }, checkInterval, checkInterval);
+    }
+
     public void onJoin(Player player) {
         joinTimes.put(player.getUniqueId(), System.currentTimeMillis());
         loggedIn.put(player.getUniqueId(), false);
+        lastActivity.put(player.getUniqueId(), System.currentTimeMillis());
         await2fa.remove(player.getUniqueId());
 
         plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
@@ -132,6 +160,7 @@ public class AuthManager {
         joinTimes.remove(player.getUniqueId());
         loggedIn.remove(player.getUniqueId());
         linkCodes.remove(player.getUniqueId());
+        lastActivity.remove(player.getUniqueId());
     }
 
     public String generateLinkCode(Player player) {
@@ -255,6 +284,15 @@ public class AuthManager {
                              " !промо <код> - Активировать код\n" +
                              " !помощь - Это меню";
             plugin.getVkManager().sendMessage(replyPeer, helpMsg);
+
+            Player linkedPlayer = plugin.getServer().getPlayer(uuid);
+            if (linkedPlayer != null) {
+                try {
+                    ru.example.vkchat.api.events.VKPlayerLinkEvent event = new ru.example.vkchat.api.events.VKPlayerLinkEvent(linkedPlayer, vkId);
+                    org.bukkit.Bukkit.getPluginManager().callEvent(event);
+                } catch (Exception ignored) {}
+            }
+
             linkCodes.remove(uuid);
             codeToVk.remove(code);
             return true;

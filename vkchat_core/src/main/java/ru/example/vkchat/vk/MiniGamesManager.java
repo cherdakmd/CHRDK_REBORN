@@ -11,7 +11,7 @@ public class MiniGamesManager {
     private final Random random = new Random();
     
     // Рулетка
-    private long lastRouletteTime = 0;
+    private final Map<Integer, Long> lastRouletteTimes = new ConcurrentHashMap<>();
     
     // Кулдауны на ответы в загадках
     private final Map<Integer, Long> riddleCooldowns = new ConcurrentHashMap<>();
@@ -25,13 +25,14 @@ public class MiniGamesManager {
         int cooldown = plugin.getConfig().getInt("riddles.roulette-cooldown", 300);
         long now = System.currentTimeMillis();
         
-        if (now - lastRouletteTime < cooldown * 1000L) {
-            long left = (cooldown * 1000L - (now - lastRouletteTime)) / 1000L;
+        long lastTime = lastRouletteTimes.getOrDefault(vkId, 0L);
+        if (now - lastTime < cooldown * 1000L) {
+            long left = (cooldown * 1000L - (now - lastTime)) / 1000L;
             plugin.getVkManager().sendMessage(peer, "⏳ Барабан револьвера еще остывает... Подожди " + left + " сек.");
             return;
         }
 
-        lastRouletteTime = now;
+        lastRouletteTimes.put(vkId, now);
         int chance = random.nextInt(6); // 1 из 6 патронов
 
         int currentRep = plugin.getReputationManager().getPoints(vkId);

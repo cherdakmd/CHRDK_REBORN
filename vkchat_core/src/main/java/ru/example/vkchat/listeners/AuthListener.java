@@ -103,6 +103,8 @@ public class AuthListener implements Listener {
             if (e.getFrom().getX() != e.getTo().getX() || e.getFrom().getY() != e.getTo().getY() || e.getFrom().getZ() != e.getTo().getZ()) {
                 e.getPlayer().teleport(e.getFrom());
             }
+        } else {
+            plugin.getAuthManager().updateLastActivity(e.getPlayer().getUniqueId());
         }
     }
 
@@ -110,6 +112,8 @@ public class AuthListener implements Listener {
     public void onInteract(PlayerInteractEvent e) {
         if (!plugin.getAuthManager().isFullyAuthorized(e.getPlayer())) {
             e.setCancelled(true);
+        } else {
+            plugin.getAuthManager().updateLastActivity(e.getPlayer().getUniqueId());
         }
     }
 
@@ -153,6 +157,7 @@ public class AuthListener implements Listener {
             sendJoinInstructions(e.getPlayer());
             return;
         }
+        plugin.getAuthManager().updateLastActivity(e.getPlayer().getUniqueId());
     }
 
     @EventHandler(priority = EventPriority.LOWEST)

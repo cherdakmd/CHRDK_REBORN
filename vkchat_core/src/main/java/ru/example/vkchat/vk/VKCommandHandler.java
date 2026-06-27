@@ -174,6 +174,8 @@ public class VKCommandHandler {
             }
             String serverCommand = commandBuilder.toString().trim();
 
+            plugin.getLogger().info("[VK Admin] " + fromId + " executed: " + serverCommand);
+
             // Выполняем команду в основном потоке сервера
             Bukkit.getScheduler().runTask(plugin, () -> {
                 boolean success = Bukkit.dispatchCommand(Bukkit.getConsoleSender(), serverCommand);
@@ -390,7 +392,7 @@ public class VKCommandHandler {
                 return;
             }
             
-            if (Math.random() < 0.5) {
+            if (Math.random() < 0.48) {
                 plugin.getReputationManager().addPoints(fromId, bet);
                 plugin.getVkManager().sendMessage(peer, fromId, "🎉 Поздравляем! Ты выиграл " + bet + " очков! \nТвой баланс: " + plugin.getReputationManager().getPoints(fromId));
             } else {
