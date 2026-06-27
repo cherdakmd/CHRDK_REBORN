@@ -201,3 +201,41 @@ artifacts:
     mythic-announce-vk: "✨ ВЕЛИКОЕ СОБЫТИЕ! Игрок {player} выбил ЛЕГЕНДАРНЫЙ Артефакт без проклятий!"
     mythic-announce-mc: "&d&l✨ МИФИЧЕСКИЙ ДРОП! &fИгрок &d{player} &fвыбил Легендарный Артефакт!"
     artifact-break: "&c&l☠ Твой артефакт поглотило проклятие... Он рассыпался в пыль!"
+
+# ==========================================
+#  НОВЫЕ АРТЕФАКТЫ
+# ==========================================
+new-artifacts:
+  phoenix_feather:
+    name: "&6🪶 Перо Феникса"
+    description: "При смерти — возрождение с 50% HP (1 раз в 10 минут)"
+    rarity: "legendary"
+    drop-chance: 0.5
+    curse: true
+  abyssal_crown:
+    name: "&5👑 Корона Бездны"
+    description: "+10 к урону, невидимость 5 сек при HP < 30%"
+    rarity: "epic"
+    drop-chance: 1.5
+    curse: true
+  dragon_heart:
+    name: "&c❤ Сердце Дракона"
+    description: "+10 HP, регенерация II, +50% урон от огня"
+    rarity: "legendary"
+    drop-chance: 0.3
+    curse: true
+
+# ==========================================
+#  ALCHEMIST TIER АИРДРОПОВ
+# ==========================================
+alchemist-airdrop:
+  enabled: true
+  interval-seconds: 14400           # Раз в 4 часа
+  tier:
+    name: "&a🧪 Алхимический Тайник"
+    items:
+      - "EXPERIENCE_BOTTLE;16;32;100"
+      - "GOLDEN_APPLE;4;8;80"
+      - "ENCHANTED_GOLDEN_APPLE;1;2;30"
+      - "DRAGON_BREATH;2;4;25"
+      - "TOTEM_OF_UNDYING;1;1;10"

@@ -1,21 +1,47 @@
 # Модули VKChat Ultimate
 
-| Jar | Plugin name | Назначение | Обязателен |
+## Список jar-модулей (13)
+
+| # | Модуль | Файл | Назначение |
 |---|---|---|---|
-| `VKChat-2.0.0-all.jar` | VKChat | Ядро, ВК, авторизация, репутация, меню | Да |
-| `vkchat_nations-2.0.0.jar` | VKChatNations | Нации, приваты, мутации, защита приватов (Рейд/Осада/Диверсия) | Нет, но рекомендуется |
-| `vkchat_gear-2.0.0.jar` | VKChatGear | MMO Gear, Кузня, руны, 5 mythical наборов, Ancient Crystal, +25 | Нет, но рекомендуется |
-| `vkchat_offline-2.0.0.jar` | VKChatOffline | ВК-походы и stash | Нет |
-| `vkchat_jobs-2.0.0.jar` | VKChatJobs | Профессии и навыки | Нет |
-| `vkchat_market-2.0.0.jar` | VKChatMarket | Рынок ресурсов | Нет |
-| `vkchat_mobs-2.1.0.jar` | VKChatMobs | Элитные мобы, 6 стихий, 6 архетипов, контракты, MobStorm | Нет |
-| `vkchat_events-2.0.0.jar` | VKChatEvents | 16 катаклизмов, автоспавн, боссы, аирдропы, рейды, защита наций | Нет |
-| `vkchat_artifacts-2.0.0.jar` | VKChatArtifacts | Артефакты и расходники | Нет |
-| `vkchat_teleport-2.0.0.jar` | VKChatTeleport | RTP, home, TPA, gateway, portal | Нет |
-| `vkchat_starter-2.0.0.jar` | VKChatStarter | Стартовые подсказки | Нет |
-| `vkchat_announcer-2.0.0.jar` | VKChatAnnouncer | Автосообщения и викторины | Нет |
-| `vkchat_donatepay-2.0.0.jar` | VKChatDonatePay | DonatePay и месячные статусы | Нет |
+| 1 | **VKChat Core** | `VKChat.jar` | Ядро: авторизация, VK-интеграция, команды, репутация |
+| 2 | **VKChat Nations** | `VKChatNations.jar` | Нации, приваты, ClaimDefenseManager, фестивали |
+| 3 | **VKChat Gear** | `VKChatGear.jar` | Кузня 2.0, 22 набора, 5 Mythical, 4 тира кристаллов, +25, зачарования |
+| 4 | **VKChat Mobs** | `VKChatMobs.jar` | Хардкор- mob-система, 6 стихий, 6 архетипов, ELEMENTAL контракт |
+| 5 | **VKChat Events** | `VKChatEvents.jar` | 16 катаклизмов, автоспавн, ивенты, защита приватов |
+| 6 | **VKChat Jobs** | `VKChatJobs.jar` | 7 профессий, навыки, ежедневки, еженедельки, рейтинг |
+| 7 | **VKChat Artifacts** | `VKChatArtifacts.jar` | Артефакты с проклятиями, Mythic шанс, Алхимический тайник |
+| 8 | **VKChat Offline** | `VKChatOffline.jar` | DnD-походы через ЛС ВК, 6 маршрутов, классы, компаньоны |
+| 9 | **VKChat Market** | `VKChatMarket.jar` | Рынок с трендами, историей, лимитированными товарами |
+| 10 | **VKChat DonatePay** | `VKChatDonatePay.jar` | 4 статуса, VIP-команды, интеграция |
+| 11 | **VKChat Teleport** | `VKChatTeleport.jar` | Телепорт-система (rtp, home, tpa) |
+| 12 | **VKChat Announcer** | `VKChatAnnouncer.jar` | Объявления и уведомления |
+| 13 | **VKChat Starter** | `VKChatStarter.jar` | Базовый старт, регистрация |
 
-## Удалённые модули
+## Зависимости
 
-Старый медиа-модуль заявок/эфиров удалён и не входит в релиз. Если старый jar остался в `plugins/`, удалите его вручную.
+```
+VKChat Core ← все остальные модули
+VKChat Core ← VKChatAPI (библиотека)
+```
+
+## Конфиги
+
+Каждый модуль имеет свой `config.yml` в `src/main/resources/`:
+
+| Модуль | Файл конфига |
+|---|---|
+| Core | `config.yml` |
+| Nations | `config.yml` + `nations_data.yml` |
+| Gear | `config.yml` |
+| Mobs | `config.yml` |
+| Events | `config.yml` |
+| Jobs | `config.yml` + `jobs_data.yml` + `weekly_tasks.yml` + `ranking.yml` |
+| Artifacts | `config.yml` |
+| Offline | `config.yml` + `offline_data.yml` |
+| Market | `config.yml` |
+| DonatePay | `config.yml` |
+
+---
+
+*Версия: v2.1.0 — 35 обновлений*

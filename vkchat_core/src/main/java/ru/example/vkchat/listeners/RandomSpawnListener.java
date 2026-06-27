@@ -9,6 +9,8 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 import ru.example.vkchat.VKChatPlugin;
 
 import java.util.Random;
@@ -44,6 +46,11 @@ public class RandomSpawnListener implements Listener {
                 e.setRespawnLocation(loc);
             }
         }
+
+        // Респавн-бафф: Regeneration I на 5 сек + Absorption I на 10 сек
+        Player p = e.getPlayer();
+        p.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, 100, 0)); // 5 сек
+        p.addPotionEffect(new PotionEffect(PotionEffectType.ABSORPTION, 200, 0)); // 10 сек
     }
 
     private Location getRandomLocation() {

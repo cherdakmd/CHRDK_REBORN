@@ -563,3 +563,38 @@ market2:
     count: 2
   history:
     min-volume-log: 64
+
+# ==========================================
+# НОВЫЕ ТОРГУЕМЫЕ ПРЕДМЕТЫ
+# ==========================================
+new-items:
+  deepslate_diamond_ore:
+    base-price: 120
+    min-price: 60
+    drop-per-item: 1
+    recovery-amount: 5
+  netherite_scrap:
+    base-price: 350
+    min-price: 200
+    drop-per-item: 1
+    recovery-amount: 2
+  echo_shard:
+    base-price: 500
+    min-price: 300
+    drop-per-item: 1
+    recovery-amount: 1
+  ancient_debris:
+    base-price: 400
+    min-price: 250
+    drop-per-item: 1
+    recovery-amount: 1
+  heart_of_the_sea:
+    base-price: 2000
+    min-price: 1000
+    drop-per-item: 1
+    recovery-amount: 1
+  enchanted_golden_apple:
+    base-price: 1500
+    min-price: 800
+    drop-per-item: 1
+    recovery-amount: 1

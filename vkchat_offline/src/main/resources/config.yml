@@ -135,6 +135,37 @@ adventures:
         - "NETHERITE_SCRAP;2;5;45"
         - "ANCIENT_DEBRIS;1;2;18"
         - "ENCHANTED_GOLDEN_APPLE;1;1;8"
+  mountain:
+    name: "⛰ Горные Вершины"
+    default-unlocked: false
+    difficulty: 5
+    stages: 6
+    max-duration-minutes: 120
+    cost: 600
+    death-chance: 14
+    reward:
+      rep-min: 800
+      rep-max: 1800
+      keys: []
+      items:
+        - "IRON_INGOT;16;32;80"
+        - "GOLD_INGOT;8;16;70"
+        - "DIAMOND;1;3;25"
+        - "EMERALD;2;6;40"
+        - "POINTED_DRIPSTONE;4;8;55"
+
+# Достижения за маршруты
+achievements:
+  enabled: true
+  rewards:
+    forest_complete: 50
+    mine_complete: 75
+    ruins_complete: 100
+    swamp_complete: 125
+    castle_complete: 150
+    nether_complete: 200
+    mountain_complete: 175
+    all_routes_complete: 500
 
 # Дополнительные механики событий похода
 mechanics:
@@ -157,6 +188,7 @@ mmorpg:
     scout: "Следопыт: лучше против ловушек, выживания и сбора ресурсов"
     mage: "Маг: лучше против проклятий, загадок и святилищ"
     cleric: "Жрец: стабильный класс с меньшим общим уроном"
+    rogue: "Разбойник: криты x2,ypass ловушки, двойной лут из тайников"
   inspiration:
     auto-reroll: true
   death-saves:
@@ -167,6 +199,7 @@ mmorpg:
     raven: "Ворон: замечает ловушки, тайники и подсказки"
     alchemist: "Алхимик: лечит, помогает против проклятий и ядов"
     mule: "Мул: даёт больше припасов и спасает от голода"
+    dragon_whelp: "Детёныш Дракона: AoE урон огнём, страх перед врагами, +50% к наградам"
 
 # 100+ дополнительных DnD-событий для оффлайн-походов
 extra-events:

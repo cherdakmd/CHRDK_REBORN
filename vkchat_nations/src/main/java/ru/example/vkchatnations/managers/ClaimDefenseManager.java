@@ -159,6 +159,15 @@ public class ClaimDefenseManager {
         nationManager.broadcastToNationWithPrefix(claim.getNation(),
                 ChatColor.GOLD + "Защитите приват! Награда: +" + getReward(type) + " прочности");
 
+        // VK-уведомление
+        try {
+            ru.example.vkchat.VKChatPlugin vkPlugin = ru.example.vkchat.VKChatPlugin.getInstance();
+            if (vkPlugin != null && vkPlugin.getApi() != null) {
+                String vkMsg = typeRu + " на " + nationName + " приват! Координаты: " + claim.getX() + " " + claim.getZ();
+                vkPlugin.getApi().sendToMainChat(vkMsg);
+            }
+        } catch (Exception ignored) {}
+
         switch (type.toUpperCase()) {
             case "RAID" -> startRaid(target, claim);
             case "SIEGE" -> startSiege(target, claim);

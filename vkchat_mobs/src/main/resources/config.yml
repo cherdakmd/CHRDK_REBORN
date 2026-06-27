@@ -76,6 +76,19 @@ loot:
       - "DIAMOND;1;3"
       - "GOLDEN_APPLE;1;1"
       - "EMERALD;2;5"
+      - "NETHERITE_SCRAP;1;1"
+      - "HEART_OF_THE_SEA;1;1"
+      - "ENCHANTED_GOLDEN_APPLE;1;1"
+  boss-drops:
+    enabled: true
+    guaranteed:
+      - "DIAMOND;3;7"
+      - "NETHERITE_INGOT;1;2"
+    rare:
+      - "ELYTRA;1;1;0.5"       # 0.5% шанс
+      - "TOTEM_OF_UNDYING;1;1;2" # 2% шанс
+      - "SHULKER_BOX;1;1;3"     # 3% шанс
+      - "BEACON;1;1;1"          # 1% шанс
 
 # ==========================================
 # HARDCORE RPG MOBS
@@ -141,6 +154,9 @@ hardcore-mobs:
       - ember_crown
       - plague_mist
       - starforged
+      - slavic_mage
+      - soviet_engineer
+      - assassin_cloak
     set-fragment-names:
       bogatyr: "Богатырь"
       sokol: "Ясный Сокол"
@@ -164,6 +180,9 @@ hardcore-mobs:
       ember_crown: "Пепельная Корона"
       plague_mist: "Моровой Туман"
       starforged: "Звёздная Ковка"
+      slavic_mage: "Славянский Волхв"
+      soviet_engineer: "Инженер"
+      assassin_cloak: "Мантия Убийцы"
 
 # ==========================================
 # ШТОРМ МОБОВ — мировое событие

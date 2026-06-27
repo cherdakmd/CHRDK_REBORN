@@ -43,8 +43,8 @@ public class HardcoreMobManager implements Listener {
 
     private final Map<UUID, Long> rewardCooldowns = new ConcurrentHashMap<>();
 
-    private static final String[] ARCHETYPES = {"tank", "assassin", "archer", "shaman", "necromancer", "hunter"};
-    private static final String[] ELEMENTS = {"fire", "frost", "poison", "storm", "dark", "light"};
+    private static final String[] ARCHETYPES = {"tank", "assassin", "archer", "shaman", "necromancer", "hunter", "warlord", "berserker"};
+    private static final String[] ELEMENTS = {"fire", "frost", "poison", "storm", "dark", "light", "void", "nature"};
 
     public HardcoreMobManager(VKChatMobsPlugin plugin) {
         this.plugin = plugin;
@@ -202,6 +202,17 @@ public class HardcoreMobManager implements Listener {
             p.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 40, 0));
             p.getWorld().spawnParticle(Particle.SMOKE_LARGE, p.getLocation().add(0, 0.1, 0), 30, 1.0, 0.1, 1.0, 0.02);
         }
+        if (archetype.equals("warlord")) {
+            p.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, 100, 1));
+            p.addPotionEffect(new PotionEffect(PotionEffectType.WEAKNESS, 80, 0));
+            dmg += 2;
+        }
+        if (archetype.equals("berserker")) {
+            double healthPercent = mob.getHealth() / mob.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue();
+            double bonus = (1.0 - healthPercent) * 10;
+            dmg += bonus;
+            p.getWorld().spawnParticle(Particle.REDSTONE, p.getLocation().add(0, 1, 0), 20, 0.5, 0.5, 0.5, 0.02, new Particle.DustOptions(org.bukkit.Color.RED, 1.0f));
+        }
         p.damage(dmg, mob);
         switch (element) {
             case "fire": p.setFireTicks(100); break;
@@ -215,6 +226,16 @@ public class HardcoreMobManager implements Listener {
                 if (p.getType() == EntityType.ZOMBIE || p.getType() == EntityType.SKELETON || p.getType() == EntityType.WITHER_SKELETON) {
                     p.damage(8.0, mob);
                 }
+                break;
+            case "void":
+                p.teleport(p.getLocation().add(random.nextDouble() * 6 - 3, 0, random.nextDouble() * 6 - 3));
+                p.addPotionEffect(new PotionEffect(PotionEffectType.CONFUSION, 60, 1));
+                p.getWorld().spawnParticle(Particle.PORTAL, p.getLocation().add(0, 1, 0), 40, 0.5, 0.5, 0.5, 0.1);
+                break;
+            case "nature":
+                mob.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, 100, 1));
+                p.addPotionEffect(new PotionEffect(PotionEffectType.POISON, 120, 1));
+                p.getWorld().spawnParticle(Particle.BLOCK_CRACK, p.getLocation().add(0, 0.5, 0), 30, 0.5, 0.5, 0.5, 0.02, org.bukkit.Material.OAK_LEAVES.createBlockData());
                 break;
         }
     }

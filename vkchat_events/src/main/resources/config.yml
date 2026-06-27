@@ -281,6 +281,47 @@ wrath:
       launch-chance: 30               # Шанс запуска игрока в небо (%)
       launch-force: 2.5               # Сила подброса
       nausea-level: 1
+    soul_storm:
+      duration-seconds: 180
+      tick-interval: 40
+      soul-count: 15                  # Количество душ за ивент
+      soul-damage: 4.0                # Урон от душ
+      wither-chance: 20               # Шанс наложить Withers (%)
+    toxic_cloud:
+      duration-seconds: 120
+      tick-interval: 30
+      cloud-count: 8                  # Количество ядовитых облаков
+      poison-level: 2
+      poison-duration: 100
+      damage-per-tick: 1.0
+    crystal_rain:
+      duration-seconds: 150
+      tick-interval: 20
+      crystal-count: 20               # Количество кристаллов
+      crystal-damage: 6.0
+      explosion-radius: 3
+      shard-drop-chance: 30           # Шанс дропа осколков кристаллов (%)
+
+# --- НОВЫЕ ТИПЫ ИВЕНТОВ ---
+treasure-hunt:
+  enabled: true
+  interval-seconds: 7200              # Раз в 2 часа
+  clue-count: 5                       # Количество подсказок
+  reward-rep: 200                     # Награда за поиск
+  reward-items:
+    - "DIAMOND;3;5"
+    - "NETHERITE_SCRAP;1;2"
+    - "ENCHANTED_GOLDEN_APPLE;1;1"
+
+escort-mission:
+  enabled: true
+  interval-seconds: 10800             # Раз в 3 часа
+  npc-health: 50                      # Здоровье NPC
+  wave-count: 3                       # Количество волн охраны
+  reward-rep: 300
+  reward-items:
+    - "TOTEM_OF_UNDYING;1;1"
+    - "ELYTRA;1;1"
 
 
 # --- МЕТЕОРИТЫ ---

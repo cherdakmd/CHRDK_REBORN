@@ -288,6 +288,10 @@ public class NationManager {
         return nationClaims;
     }
 
+    public Map<UUID, String> getPlayerNations() {
+        return playerNations;
+    }
+
     public String getChunkOwner(Chunk chunk) {
         ChunkClaim claim = getChunkClaim(chunk);
         return claim != null ? claim.getNation() : null;

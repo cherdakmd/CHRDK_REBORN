@@ -21,6 +21,8 @@ public class VKChatJobsPlugin extends JavaPlugin {
     private JobsDataManager jobsDataManager;
     private SkillManager skillManager;
     private PlacedBlockTracker placedBlockTracker;
+    private WeeklyTaskManager weeklyTaskManager;
+    private RankingManager rankingManager;
 
     @Override
     public void onEnable() {
@@ -37,6 +39,8 @@ public class VKChatJobsPlugin extends JavaPlugin {
         jobsDataManager = new JobsDataManager(this);
         skillManager = new SkillManager(this);
         placedBlockTracker = new PlacedBlockTracker(this);
+        weeklyTaskManager = new WeeklyTaskManager(this);
+        rankingManager = new RankingManager(this);
         getServer().getPluginManager().registerEvents(placedBlockTracker, this);
         getServer().getPluginManager().registerEvents(new JobsListener(this), this);
         JobsCommand jobsCmd = new JobsCommand(this);
@@ -46,10 +50,12 @@ public class VKChatJobsPlugin extends JavaPlugin {
         getLogger().info("VKChatJobs успешно запущен!");
 
 
-        // Автосейв прогресса Jobs: ежедневки, специализации, усталость и уровни.
+        // Автосейв прогресса Jobs: ежедневки, специализации, усталость, уровни, неделя, рейтинг.
         Bukkit.getScheduler().runTaskTimerAsynchronously(this, () -> {
             if (jobsDataManager != null) jobsDataManager.saveAll();
         if (placedBlockTracker != null) placedBlockTracker.save();
+        if (weeklyTaskManager != null) weeklyTaskManager.save();
+        if (rankingManager != null) rankingManager.save();
         }, 6000L, 6000L);
         // Восстановление усталости раз в минуту
         int restPerMinute = getConfig().getInt("fatigue.rest-per-minute", 10);
@@ -80,8 +86,8 @@ public class VKChatJobsPlugin extends JavaPlugin {
                     if (dark && jobsDataManager.hasSkill(p.getUniqueId(), "miner", "miner_night")) {
                         p.addPotionEffect(new PotionEffect(PotionEffectType.NIGHT_VISION, 300, 0, true, false, false));
                     }
-                    if (jobsDataManager.hasSkill(p.getUniqueId(), "miner", "miner_saturation")) {
-                        p.addPotionEffect(new PotionEffect(PotionEffectType.SATURATION, 60, 0, true, false, false));
+                    if (dark && jobsDataManager.hasSkill(p.getUniqueId(), "miner", "miner_seism")) {
+                        p.addPotionEffect(new PotionEffect(PotionEffectType.GLOWING, 60, 0, true, false, false));
                     }
                 }
 
@@ -105,6 +111,9 @@ public class VKChatJobsPlugin extends JavaPlugin {
                     if (jobsDataManager.hasSkill(p.getUniqueId(), "farmer", "farm_speed")) {
                         p.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 60, 0, true, false, false));
                     }
+                    if (jobsDataManager.hasSkill(p.getUniqueId(), "farmer", "farm_harvest")) {
+                        p.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, 60, 0, true, false, false));
+                    }
                     if (jobsDataManager.hasSkill(p.getUniqueId(), "farmer", "farm_nature")) {
                         p.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, 60, 0, true, false, false));
                     }
@@ -119,6 +128,14 @@ public class VKChatJobsPlugin extends JavaPlugin {
                 }
             }
         }, 40L, 40L);
+
+        // Еженедельный сброс рейтинга и проверка бродкаста (раз в 10 минут)
+        Bukkit.getScheduler().runTaskTimer(this, () -> {
+            if (rankingManager != null) {
+                rankingManager.checkWeeklyReset();
+                rankingManager.tryBroadcast();
+            }
+        }, 12000L, 12000L);
     }
 
     private void updateConfigWithDefaults() {
@@ -137,10 +154,14 @@ public class VKChatJobsPlugin extends JavaPlugin {
     public void onDisable() {
         if (jobsDataManager != null) jobsDataManager.saveAll();
         if (placedBlockTracker != null) placedBlockTracker.save();
+        if (weeklyTaskManager != null) weeklyTaskManager.save();
+        if (rankingManager != null) rankingManager.save();
     }
 
     public static VKChatJobsPlugin getInstance() { return instance; }
     public JobsDataManager getJobsDataManager() { return jobsDataManager; }
     public SkillManager getSkillManager() { return skillManager; }
     public PlacedBlockTracker getPlacedBlockTracker() { return placedBlockTracker; }
+    public WeeklyTaskManager getWeeklyTaskManager() { return weeklyTaskManager; }
+    public RankingManager getRankingManager() { return rankingManager; }
 }

@@ -17,6 +17,7 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
+import org.bukkit.event.player.PlayerExpChangeEvent;
 import org.bukkit.event.block.Action;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
@@ -1053,6 +1054,19 @@ public class NationListener implements Listener {
             org.bukkit.Location target = new org.bukkit.Location(p.getWorld(), claim.getHomeX(), claim.getHomeY(), claim.getHomeZ());
             e.setRespawnLocation(target);
             p.sendMessage(ChatColor.GREEN + "🌟 [Оберег Нации] Вы успешно возродились в безопасности на точке вашего привата!");
+        }
+    }
+
+    // XP-бонус на территории нации (+25% опыта)
+    @EventHandler
+    public void onExpChange(PlayerExpChangeEvent e) {
+        Player p = e.getPlayer();
+        String nation = plugin.getNationManager().getPlayerNation(p);
+        if (nation == null) return;
+        ChunkClaim claim = plugin.getNationManager().getClaimAt(p.getLocation());
+        if (claim != null && claim.getNation().equals(nation)) {
+            int original = e.getAmount();
+            e.setAmount(original + original / 4); // +25%
         }
     }
 }

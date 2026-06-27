@@ -53,8 +53,8 @@ public class SkillManager {
                 new SkillDef("miner_night", "Ночное зрение", "Пассивное ночное зрение в шахте", 30, Material.GLOWSTONE, "miner_blast"),
                 new SkillDef("miner_vein", "Жила", "Автоматически ломает соседние блоки той же руды", 35, Material.DIAMOND_PICKAXE, "miner_night"),
                 new SkillDef("miner_fortune", "Удача Гномов", "+1 к эффекту Удачи при добыче руды", 40, Material.EMERALD, "miner_vein"),
-                new SkillDef("miner_saturation", "Сытость", "Шкала голода не падает при добыче", 45, Material.COOKED_BEEF, "miner_fortune"),
-                new SkillDef("miner_master", "Мастер глубин", "Иммунитет к урону от падения в шахтах", 50, Material.BEDROCK, "miner_saturation")
+                new SkillDef("miner_seism", "Сейсморазведчик", "Видеть руды сквозь стены (GLOWING 10 блоков)", 45, Material.CLOCK, "miner_fortune"),
+                new SkillDef("miner_master", "Мастер глубин", "Иммунитет к урону от падения в шахтах", 50, Material.BEDROCK, "miner_seism")
             );
         } else if (job.equals("woodcutter")) {
             return Arrays.asList(
@@ -65,8 +65,8 @@ public class SkillManager {
                 new SkillDef("wood_master", "Хозяин леса", "Не ломается топор при рубке", 30, Material.DIAMOND_AXE, "wood_regen"),
                 new SkillDef("wood_haste", "Пила", "Пассивная Спешка I с топором", 35, Material.GOLDEN_AXE, "wood_master"),
                 new SkillDef("wood_bird", "Птица", "Скорость II и прыжок II в лесу", 40, Material.FEATHER, "wood_haste"),
-                new SkillDef("wood_lumberjack", "Лесоруб", "Срубляет дерево до 8 блоков вверх", 45, Material.CHAINMAIL_CHESTPLATE, "wood_bird"),
-                new SkillDef("wood_forest", "Дух Леса", "Регенерация III и сопротивление в лесу", 50, Material.TOTEM_OF_UNDYING, "wood_lumberjack")
+                new SkillDef("wood_ancient", "Древний Лесник", "Автоматическая рубка дерева (3 блока вверх)", 45, Material.OAK_LOG, "wood_bird"),
+                new SkillDef("wood_forest", "Дух Леса", "Регенерация III и сопротивление в лесу", 50, Material.TOTEM_OF_UNDYING, "wood_ancient")
             );
         } else if (job.equals("farmer")) {
             return Arrays.asList(
@@ -77,8 +77,8 @@ public class SkillManager {
                 new SkillDef("farm_master", "Деметра", "При сборе урожая есть шанс получить алмаз", 30, Material.DIAMOND_HOE, "farm_feed"),
                 new SkillDef("farm_bone", "Костная мука", "Шанс получить костную муку при сборе", 35, Material.BONE_MEAL, "farm_master"),
                 new SkillDef("farm_speed", "Быстрый сбор", "Скорость I при ходьбе по грядкам", 40, Material.SUGAR_CANE, "farm_bone"),
-                new SkillDef("farm_demeter", "Щедрая Деметра", "20% шанс х2 урожая", 45, Material.GOLDEN_APPLE, "farm_speed"),
-                new SkillDef("farm_nature", "Природа", "Регенерация I рядом с посевами", 50, Material.ENCHANTED_GOLDEN_APPLE, "farm_demeter")
+                new SkillDef("farm_harvest", "Мастер Урожая", "Мгновенный рост посевов (33% шанс)", 45, Material.BONE_MEAL, "farm_speed"),
+                new SkillDef("farm_nature", "Природа", "Регенерация I рядом с посевами", 50, Material.ENCHANTED_GOLDEN_APPLE, "farm_harvest")
             );
         } else if (job.equals("alchemist")) {
             return Arrays.asList(
@@ -89,8 +89,8 @@ public class SkillManager {
                 new SkillDef("alch_master", "Философский камень", "Шанс сварить Зелье Неуязвимости", 30, Material.BLAZE_POWDER, "alch_resist"),
                 new SkillDef("alch_splash", "Всплеск", "Все сваренные зелья автоматически всплесковые", 35, Material.SPLASH_POTION, "alch_master"),
                 new SkillDef("alch_luck", "Удача алхимика", "Шанс найти редкие ингредиенты при варке", 40, Material.RABBIT_FOOT, "alch_splash"),
-                new SkillDef("alch_philosopher", "Магистр", "Шанс скрафтить Зелье Огнестойкости", 45, Material.MAGMA_CREAM, "alch_luck"),
-                new SkillDef("alch_immortality", "Бессмертие", "Шанс получить Тотем Бессмертия при варке", 50, Material.TOTEM_OF_UNDYING, "alch_philosopher")
+                new SkillDef("alch_high", "Алхимик Высшего Тира", "Двойные зелья при варке (25% шанс)", 45, Material.BREWING_STAND, "alch_luck"),
+                new SkillDef("alch_immortality", "Бессмертие", "Шанс получить Тотем Бессмертия при варке", 50, Material.TOTEM_OF_UNDYING, "alch_high")
             );
         } else if (job.equals("blacksmith")) {
             return Arrays.asList(
@@ -101,8 +101,8 @@ public class SkillManager {
                 new SkillDef("black_master", "Кузня Богов", "Шанс сразу скрафтить предмет с +1 к Заточке", 30, Material.NETHERITE_INGOT, "black_repair"),
                 new SkillDef("black_reforge", "Перековка", "Шанс улучшить редкость при крафте", 35, Material.LAVA_BUCKET, "black_master"),
                 new SkillDef("black_upgrade", "Инженер", "Снижает стоимость заточки в /runes", 40, Material.REDSTONE, "black_reforge"),
-                new SkillDef("black_godforge", "Божественная Кузня", "Шанс получить 2 предмета при крафте", 45, Material.NETHER_STAR, "black_upgrade"),
-                new SkillDef("black_perfection", "Совершенство", "Все созданные предметы получают +1 к базовым чарам", 50, Material.DIAMOND_BLOCK, "black_godforge")
+                new SkillDef("black_forge", "Мастер Ковки", "+10% к успеху заточки", 45, Material.ANVIL, "black_upgrade"),
+                new SkillDef("black_perfection", "Совершенство", "Все созданные предметы получают +1 к базовым чарам", 50, Material.DIAMOND_BLOCK, "black_forge")
             );
         } else if (job.equals("hunter")) {
             return Arrays.asList(
@@ -113,8 +113,8 @@ public class SkillManager {
                 new SkillDef("hunt_master", "Мясник", "Шанс мгновенно убить обычного моба при ХП < 20%", 30, Material.IRON_SWORD, "hunt_speed"),
                 new SkillDef("hunt_track", "Следопыт", "Видите следы мобов (частицы)", 35, Material.COMPASS, "hunt_master"),
                 new SkillDef("hunt_boss", "Убийца боссов", "+20% урона элитным мобам", 40, Material.DIAMOND_SWORD, "hunt_track"),
-                new SkillDef("hunt_stealth", "Незаметность", "Слабость I и невидимость при приседании", 45, Material.ENDER_PEARL, "hunt_boss"),
-                new SkillDef("hunt_legend", "Легенда охоты", "Шанс получить Осколок Артефакта с мобов", 50, Material.NETHER_STAR, "hunt_stealth")
+                new SkillDef("hunt_beast", "Повелитель Зверей", "Дружба с нейтральными мобами", 45, Material.LEAD, "hunt_boss"),
+                new SkillDef("hunt_legend", "Легенда охоты", "Шанс получить Осколок Артефакта с мобов", 50, Material.NETHER_STAR, "hunt_beast")
             );
         } else if (job.equals("fisherman")) {
             return Arrays.asList(
@@ -125,8 +125,8 @@ public class SkillManager {
                 new SkillDef("fish_master", "Морской волк", "Шанс поймать редкую рыбу", 30, Material.TROPICAL_FISH, "fish_luck"),
                 new SkillDef("fish_salmon", "Речной мастер", "Шанс поймать лосося вместо трески", 35, Material.SALMON, "fish_master"),
                 new SkillDef("fish_neptune", "Дар Нептуна", "Дыхание под водой во время рыбалки", 40, Material.PUFFERFISH, "fish_salmon"),
-                new SkillDef("fish_catch", "Ловец", "Шанс поймать полезный предмет", 45, Material.BUCKET, "fish_neptune"),
-                new SkillDef("fish_god", "Бог рыбалки", "Шанс поймать Незеритовый обломок", 50, Material.NETHERITE_SCRAP, "fish_catch")
+                new SkillDef("fish_wolf", "Морской Волк", "Удвоенный лут из сундуков на кораблях", 45, Material.CHEST, "fish_neptune"),
+                new SkillDef("fish_god", "Бог рыбалки", "Шанс поймать Незеритовый обломок", 50, Material.NETHERITE_SCRAP, "fish_wolf")
             );
         }
         return Collections.emptyList();

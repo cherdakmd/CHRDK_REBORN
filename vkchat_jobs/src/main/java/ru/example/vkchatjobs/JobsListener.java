@@ -99,6 +99,8 @@ public class JobsListener implements Listener {
                 plugin.getJobsDataManager().addExp(p, "miner", 50);
                 plugin.getJobsDataManager().addDailyProgress(p, "miner", 1);
                 plugin.getJobsDataManager().addActionReputation(p, "miner", m.name(), 1);
+                if (plugin.getWeeklyTaskManager() != null) plugin.getWeeklyTaskManager().addProgress(p, "mine", 1);
+                if (plugin.getRankingManager() != null) plugin.getRankingManager().addWeeklyRep(p.getUniqueId(), 1);
                 Block b = e.getBlock();
                 ItemStack tool = p.getInventory().getItemInMainHand();
 
@@ -165,6 +167,8 @@ public class JobsListener implements Listener {
                 plugin.getJobsDataManager().addExp(p, "woodcutter", 20);
                 plugin.getJobsDataManager().addDailyProgress(p, "woodcutter", 1);
                 plugin.getJobsDataManager().addActionReputation(p, "woodcutter", m.name(), 1);
+                if (plugin.getWeeklyTaskManager() != null) plugin.getWeeklyTaskManager().addProgress(p, "mine", 1);
+                if (plugin.getRankingManager() != null) plugin.getRankingManager().addWeeklyRep(p.getUniqueId(), 1);
                 Block b = e.getBlock();
 
                 if (plugin.getJobsDataManager().hasSkill(p.getUniqueId(), "woodcutter", "wood_double")) {
@@ -203,6 +207,8 @@ public class JobsListener implements Listener {
                 plugin.getJobsDataManager().addExp(p, "farmer", 15);
                 plugin.getJobsDataManager().addDailyProgress(p, "farmer", 1);
                 plugin.getJobsDataManager().addActionReputation(p, "farmer", m.name(), 1);
+                if (plugin.getWeeklyTaskManager() != null) plugin.getWeeklyTaskManager().addProgress(p, "build", 1);
+                if (plugin.getRankingManager() != null) plugin.getRankingManager().addWeeklyRep(p.getUniqueId(), 1);
                 Block b = e.getBlock();
 
                 if (plugin.getJobsDataManager().hasSkill(p.getUniqueId(), "farmer", "farm_double")) {
@@ -250,6 +256,9 @@ public class JobsListener implements Listener {
             if (checkFatigue(p, "alchemist")) {
                 plugin.getJobsDataManager().addExp(p, "alchemist", 150);
                 plugin.getJobsDataManager().addDailyProgress(p, "alchemist", 1);
+                plugin.getJobsDataManager().addActionReputation(p, "alchemist", "BREW", 1);
+                if (plugin.getWeeklyTaskManager() != null) plugin.getWeeklyTaskManager().addProgress(p, "craft", 1);
+                if (plugin.getRankingManager() != null) plugin.getRankingManager().addWeeklyRep(p.getUniqueId(), 1);
 
                 if (plugin.getJobsDataManager().hasSkill(p.getUniqueId(), "alchemist", "alch_save")) {
                     if (Math.random() < 0.1) {
@@ -294,6 +303,8 @@ public class JobsListener implements Listener {
             if (checkFatigue(p, "blacksmith")) {
                 plugin.getJobsDataManager().addExp(p, "blacksmith", 100);
                 plugin.getJobsDataManager().addDailyProgress(p, "blacksmith", 1);
+                if (plugin.getWeeklyTaskManager() != null) plugin.getWeeklyTaskManager().addProgress(p, "craft", 1);
+                if (plugin.getRankingManager() != null) plugin.getRankingManager().addWeeklyRep(p.getUniqueId(), 1);
                 if (plugin.getJobsDataManager().hasSkill(p.getUniqueId(), "blacksmith", "black_save")) {
                     if (Math.random() < 0.1) {
                         for (ItemStack item : e.getInventory().getMatrix()) {
@@ -323,6 +334,8 @@ public class JobsListener implements Listener {
         if (checkFatigue(p, "hunter")) {
             plugin.getJobsDataManager().addDailyProgress(p, "hunter", 1);
             if (!isSpawnerMob(entity)) plugin.getJobsDataManager().addActionReputation(p, "hunter", entity.getType().name(), 1);
+            if (plugin.getWeeklyTaskManager() != null) plugin.getWeeklyTaskManager().addProgress(p, "kill", 1);
+            if (plugin.getRankingManager() != null) plugin.getRankingManager().addWeeklyRep(p.getUniqueId(), 1);
             int xp = 30;
             if (plugin.getJobsDataManager().hasSkill(p.getUniqueId(), "hunter", "hunt_exp")) {
                 xp = (int) (xp * 1.5);
@@ -370,6 +383,8 @@ public class JobsListener implements Listener {
             plugin.getJobsDataManager().addDailyProgress(p, "fisherman", 1);
             int xp = 40;
             plugin.getJobsDataManager().addExp(p, "fisherman", xp);
+            if (plugin.getWeeklyTaskManager() != null) plugin.getWeeklyTaskManager().addProgress(p, "fish", 1);
+            if (plugin.getRankingManager() != null) plugin.getRankingManager().addWeeklyRep(p.getUniqueId(), 1);
             String caughtKey = "FISH";
             if (e.getCaught() instanceof org.bukkit.entity.Item) {
                 ItemStack caughtStack = ((org.bukkit.entity.Item)e.getCaught()).getItemStack();

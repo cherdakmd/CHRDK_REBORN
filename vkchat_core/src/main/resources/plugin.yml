@@ -82,6 +82,21 @@ commands:
     description: Очистить предупреждения игрока
     usage: /clearwarns <player>
     permission: vkchat.moderation.warn
+  bal:
+    description: Посмотреть баланс репутации ВКонтакте
+    usage: /bal
+    aliases: [balance, баланс]
+    permission: vkchat.player
+  online:
+    description: Посмотреть количество игроков онлайн
+    usage: /online
+    aliases: [онлайн, who]
+    permission: vkchat.player
+  lastseen:
+    description: Посмотреть когда игрок был последний раз
+    usage: /lastseen <игрок>
+    aliases: [был, seen]
+    permission: vkchat.player
 permissions:
   vkchat.player:
     description: Доступ к базовым командам игрока

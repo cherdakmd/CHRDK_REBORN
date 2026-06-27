@@ -129,3 +129,85 @@ jobs-reputation:
 anti-abuse:
   track-placed-blocks: true
   notify-placed-block: false
+
+# ==========================================
+# НОВЫЕ НАВЫКИ (уровень 45)
+# ==========================================
+advanced-skills:
+  miner:
+    level: 45
+    name: "Сейсморазведчик"
+    description: "Видеть руды сквозь стены (10 блоков)"
+    effect: "GLOWING на рудах附近"
+  woodcutter:
+    level: 45
+    name: "Древний Лесник"
+    description: "Автоматическая рубка дерева (3 блока)"
+    effect: "TREE_FELLING"
+  farmer:
+    level: 45
+    name: "Мастер Урожая"
+    description: "Мгновенный рост посевов (33% шанс)"
+    effect: "INSTANT_GROW"
+  alchemist:
+    level: 45
+    name: "Алхимик Высшего Тира"
+    description: "Двойные зелья при варке (25% шанс)"
+    effect: "DOUBLE_BREW"
+  blacksmith:
+    level: 45
+    name: "Мастер Ковки"
+    description: "+10% к успеху заточки"
+    effect: "FORGE_BONUS"
+  hunter:
+    level: 45
+    name: "Повелитель Зверей"
+    description: "Дружба с нейтральными мобами"
+    effect: "PASSIVE_MOBS"
+  fisherman:
+    level: 45
+    name: "Морской Волк"
+    description: "Удвоенный лут из сундуков на кораблях"
+    effect: "LOOT_BONUS"
+
+# ==========================================
+# ЕЖЕНЕДЕЛЬНЫЕ ЗАДАНИЯ
+# ==========================================
+weekly-tasks:
+  enabled: true
+  reset-day: 1                    # Понедельник
+  tasks-per-week: 3
+  bonus-rep: 500                  # Бонусная репутация за все 3 задания
+  tasks:
+    - type: "mine"
+      target: 500
+      description: "Добыть 500 блоков"
+      reward-rep: 150
+    - type: "kill"
+      target: 100
+      description: "Убить 100 мобов"
+      reward-rep: 200
+    - type: "craft"
+      target: 50
+      description: "Скрафтить 50 предметов"
+      reward-rep: 100
+    - type: "fish"
+      target: 30
+      description: "Поймать 30 рыб"
+      reward-rep: 120
+    - type: "build"
+      target: 200
+      description: "Поставить 200 блоков"
+      reward-rep: 80
+
+# ==========================================
+# РЕЙТИНГ ПРОФЕССИЙ
+# ==========================================
+ranking:
+  enabled: true
+  broadcast-interval: 86400        # Раз в сутки
+  top-count: 10
+  rewards:
+    1st: 300
+    2nd: 200
+    3rd: 100

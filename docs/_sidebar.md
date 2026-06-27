@@ -1,21 +1,28 @@
-- [🏠 База знаний](README.md)
-- [🎮 Команды игрока](PLAYER_COMMANDS_GUIDE.md)
-- [🧩 Модули](MODULES.md)
-- [📋 Changelog](../CHANGELOG.md)
+- [Главная](README.md)
 
 - **Игровые системы**
-  - [👥 Нации](NATIONS.md)
-  - [🛡 Приваты](CLAIMS_UPGRADE.md)
-  - [⚒ Gear, Кузня и руны](GEAR_AND_RUNES.md)
-  - [⛺ Оффлайн-походы](OFFLINE_ADVENTURES.md)
-  - [💼 Профессии](JOBS_AND_SKILLS.md)
-  - [⏳ Телепорты](TELEPORTS.md)
+  - [Команды](COMMANDS.md)
+  - [Модули](MODULES.md)
+  - [Нации](NATIONS.md)
+  - [Приваты](CLAIMS_UPGRADE.md)
+  - [Gear и Руны](GEAR_AND_RUNES.md)
+  - [Профессии](JOBS_AND_SKILLS.md)
+  - [События](EVENTS.md)
+  - [Телепорты](TELEPORTS.md)
+
+- **Прогрессия**
+  - [Оффлайн-походы](OFFLINE_ADVENTURES.md)
+  - [Артефакты](ARTIFACTS.md)
 
 - **Экономика**
-  - [💳 DonatePay](DONATEPAY_INTEGRATION.md)
-  - [🛒 Рынок](PLAYER_COMMANDS_GUIDE.md#рынок-market-20)
+  - [Рынок](MARKET.md)
+  - [DonatePay](DONATEPAY_INTEGRATION.md)
 
-- **Администратору**
-  - [⚙️ Админ-гайд](ADMIN_GUIDE.md)
-  - [🧪 Troubleshooting](TROUBLESHOOTING.md)
-  - [✅ Стабилизация](STABILIZATION_REPORT.md)
+- **Сообщество**
+  - [Ссылки](SOCIAL.md)
+
+- **Для админа**
+  - [Админ-гайд](ADMIN_GUIDE.md)
+  - [Troubleshooting](TROUBLESHOOTING.md)
+
+- [Changelog](../CHANGELOG.md)

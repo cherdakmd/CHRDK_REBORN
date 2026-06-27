@@ -342,7 +342,14 @@ public class MCCommands implements CommandExecutor, org.bukkit.command.TabComple
 
             int senderRep = plugin.getReputationManager().getPoints(senderVkId);
             if (senderRep < amount) {
-                p.sendMessage(org.bukkit.ChatColor.RED + "❌ Недостаточно репутации! У вас на балансе: " + senderRep + " реп. ВК.");
+                p.sendMessage(org.bukkit.ChatColor.RED + "Недостаточно репутации! У вас на балансе: " + senderRep + " реп. ВК.");
+                return true;
+            }
+
+            // Подтверждение для крупных сумм (>100 реп)
+            if (amount > 100 && !args[args.length - 1].equals("confirm")) {
+                p.sendMessage(org.bukkit.ChatColor.YELLOW + "Вы переводите " + amount + " реп. ВК игроку " + target.getName() + "!");
+                p.sendMessage(org.bukkit.ChatColor.YELLOW + "Для подтверждения введите: " + org.bukkit.ChatColor.GREEN + "/pay " + target.getName() + " " + amount + " confirm");
                 return true;
             }
 
@@ -414,6 +421,67 @@ public class MCCommands implements CommandExecutor, org.bukkit.command.TabComple
         if (name.equals("menu")) {
             if (sender instanceof Player) {
                 plugin.getGuiListener().openServerMenu((Player) sender);
+            }
+            return true;
+        }
+
+        if (name.equals("bal") || name.equals("balance")) {
+            if (!(sender instanceof Player)) return true;
+            Player p = (Player) sender;
+            int vkId = plugin.getAuthManager().getLinkedVkId(p);
+            if (vkId == -1) {
+                p.sendMessage(org.bukkit.ChatColor.RED + "Аккаунт не привязан к ВК!");
+                return true;
+            }
+            int rep = plugin.getReputationManager().getPoints(vkId);
+            p.sendMessage(org.bukkit.ChatColor.translateAlternateColorCodes('&',
+                    "&6Ваш баланс: &e" + rep + " &6реп. ВК"));
+            return true;
+        }
+
+        if (name.equals("online")) {
+            int count = plugin.getServer().getOnlinePlayers().size();
+            int max = plugin.getServer().getMaxPlayers();
+            sender.sendMessage(org.bukkit.ChatColor.translateAlternateColorCodes('&',
+                    "&aОнлайн: &e" + count + "&a/&e" + max));
+            return true;
+        }
+
+        if (name.equals("lastseen")) {
+            if (args.length < 1) {
+                sender.sendMessage(org.bukkit.ChatColor.RED + "Использование: /lastseen <игрок>");
+                return true;
+            }
+            Player target = plugin.getServer().getPlayer(args[0]);
+            if (target != null && target.isOnline()) {
+                sender.sendMessage(org.bukkit.ChatColor.GREEN + args[0] + " сейчас онлайн!");
+                return true;
+            }
+            // Ищем в базе данных последний вход
+            try {
+                Connection conn = plugin.getDatabaseManager().getConnection();
+                if (conn != null) {
+                    // Проверяем через auth_data
+                    PreparedStatement ps = conn.prepareStatement("SELECT last_login FROM auth_data WHERE username = ?");
+                    ps.setString(1, args[0]);
+                    java.sql.ResultSet rs = ps.executeQuery();
+                    if (rs.next()) {
+                        long lastLogin = rs.getLong("last_login");
+                        if (lastLogin > 0) {
+                            long diff = System.currentTimeMillis() - lastLogin;
+                            String timeAgo = formatTimeDiff(diff);
+                            sender.sendMessage(org.bukkit.ChatColor.YELLOW + args[0] + " был(а) последний раз: " + timeAgo + " назад");
+                        } else {
+                            sender.sendMessage(org.bukkit.ChatColor.GRAY + args[0] + " никогда не заходил(а).");
+                        }
+                    } else {
+                        sender.sendMessage(org.bukkit.ChatColor.GRAY + "Игрок " + args[0] + " не найден.");
+                    }
+                    rs.close();
+                    ps.close();
+                }
+            } catch (Exception e) {
+                sender.sendMessage(org.bukkit.ChatColor.RED + "Ошибка при поиске игрока.");
             }
             return true;
         }
@@ -650,7 +718,11 @@ public class MCCommands implements CommandExecutor, org.bukkit.command.TabComple
                 break;
             case "pay":
                 if (args.length == 1) completions.addAll(getOnlinePlayerNames(last));
-                else if (args.length == 2) completions.addAll(Arrays.asList("10", "25", "50", "100"));
+                else if (args.length == 2) completions.addAll(Arrays.asList("10", "25", "50", "100", "confirm"));
+                break;
+            case "lastseen":
+            case "был":
+                if (args.length == 1) completions.addAll(getOnlinePlayerNames(last));
                 break;
             case "vkchat":
                 if (args.length == 1) {
@@ -677,6 +749,17 @@ public class MCCommands implements CommandExecutor, org.bukkit.command.TabComple
         return completions.stream()
                 .filter(s -> s.toLowerCase().startsWith(prefix))
                 .collect(Collectors.toList());
+    }
+
+    private String formatTimeDiff(long ms) {
+        long sec = ms / 1000;
+        if (sec < 60) return sec + " сек";
+        long min = sec / 60;
+        if (min < 60) return min + " мин";
+        long hrs = min / 60;
+        if (hrs < 24) return hrs + " ч " + (min % 60) + " мин";
+        long days = hrs / 24;
+        return days + " д " + (hrs % 24) + " ч";
     }
 
 }

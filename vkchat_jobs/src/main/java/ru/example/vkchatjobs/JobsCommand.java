@@ -50,6 +50,25 @@ public class JobsCommand implements CommandExecutor, TabCompleter {
                 }
                 return true;
             }
+            if (sub.equals("weekly") || sub.equals("неделя")) {
+                if (args.length >= 2) {
+                    String sub2 = args[1].toLowerCase();
+                    if (sub2.equals("claim") || sub2.equals("забрать")) {
+                        if (args.length < 3) { p.sendMessage(ChatColor.YELLOW + "Используй: /jobs weekly claim <mine|kill|craft|fish|build>"); return true; }
+                        String taskType = args[2].toLowerCase();
+                        if (!plugin.getWeeklyTaskManager().claimReward(p, taskType)) {
+                            p.sendMessage(ChatColor.RED + "Задание не выполнено или уже забрано.");
+                        }
+                        return true;
+                    }
+                }
+                sendWeeklyText(p);
+                return true;
+            }
+            if (sub.equals("rank") || sub.equals("рейтинг")) {
+                sendRanking(p);
+                return true;
+            }
         }
         openMain(p);
         return true;
@@ -165,6 +184,45 @@ public class JobsCommand implements CommandExecutor, TabCompleter {
         p.sendMessage(ChatColor.YELLOW + "Пример: /jobs spec miner xp");
     }
 
+    private void sendWeeklyText(Player p) {
+        String[] tasks = {"mine", "kill", "craft", "fish", "build"};
+        String[] desc = {"Добыть 500 блоков", "Убить 100 мобов", "Скрафтить 50 предметов", "Поймать 30 рыб", "Поставить 200 блоков"};
+        int[] targets = {500, 100, 50, 30, 200};
+        int completed = plugin.getWeeklyTaskManager().getCompletedCount(p.getUniqueId());
+        int required = plugin.getConfig().getInt("weekly-tasks.tasks-per-week", 3);
+
+        p.sendMessage(ChatColor.AQUA + "═══ Еженедельные задания (" + completed + "/" + required + ") ═══");
+        for (int i = 0; i < tasks.length; i++) {
+            int prog = plugin.getWeeklyTaskManager().getProgress(p.getUniqueId(), tasks[i]);
+            boolean claimed = plugin.getWeeklyTaskManager().isClaimed(p.getUniqueId(), tasks[i]);
+            p.sendMessage(ChatColor.GRAY + desc[i] + ": " + ChatColor.YELLOW + prog + "/" + targets[i]
+                    + (claimed ? ChatColor.GREEN + " получено" : (prog >= targets[i] ? ChatColor.GOLD + " — /jobs weekly claim " + tasks[i] : "")));
+        }
+        if (completed >= required) {
+            p.sendMessage(ChatColor.GOLD + "🏆 Бонус за все задания: +" + plugin.getConfig().getInt("weekly-tasks.bonus-rep", 500) + " репутации!");
+        }
+    }
+
+    private void sendRanking(Player p) {
+        List<java.util.UUID> top = plugin.getRankingManager().getTopPlayers(10);
+        p.sendMessage(ChatColor.GOLD + "═══ Рейтинг Профессий (неделя) ═══");
+        if (top.isEmpty()) {
+            p.sendMessage(ChatColor.GRAY + "Пока нет данных за эту неделю.");
+            return;
+        }
+        int n = 0;
+        for (java.util.UUID uuid : top) {
+            int rep = plugin.getRankingManager().getWeeklyRep(uuid);
+            if (rep <= 0) continue;
+            String name = org.bukkit.Bukkit.getOfflinePlayer(uuid).getName();
+            if (name == null) name = uuid.toString().substring(0, 8);
+            ChatColor color = n == 0 ? ChatColor.GOLD : n == 1 ? ChatColor.WHITE : n == 2 ? ChatColor.YELLOW : ChatColor.GRAY;
+            String medal = n == 0 ? "🥇" : n == 1 ? "🥈" : n == 2 ? "🥉" : "  ";
+            p.sendMessage(color + medal + " #" + (n + 1) + " " + name + ChatColor.GRAY + " — " + ChatColor.AQUA + rep + " реп.");
+            n++;
+        }
+    }
+
     private String normalizeSpec(String spec) {
         if (spec.equals("опыт") || spec.equals("exp")) return "xp";
         if (spec.equals("выносливость") || spec.equals("усталость")) return "stamina";
@@ -236,18 +294,22 @@ public class JobsCommand implements CommandExecutor, TabCompleter {
         String last = args.length > 0 ? args[args.length - 1].toLowerCase() : "";
 
         if (args.length == 1) {
-            completions.addAll(Arrays.asList("daily", "дейлик", "top", "топ", "info", "инфо", "claim", "забрать", "spec", "спек"));
+            completions.addAll(Arrays.asList("daily", "дейлик", "top", "топ", "info", "инфо", "claim", "забрать", "spec", "спек", "weekly", "неделя", "rank", "рейтинг"));
         } else if (args.length == 2) {
             String sub = args[0].toLowerCase();
             if (sub.equals("spec") || sub.equals("спек")) {
                 completions.addAll(Arrays.asList("miner", "woodcutter", "farmer", "alchemist", "blacksmith", "hunter", "fisherman"));
             } else if (sub.equals("claim") || sub.equals("забрать")) {
                 completions.addAll(Arrays.asList("miner", "woodcutter", "farmer", "alchemist", "blacksmith", "hunter", "fisherman"));
+            } else if (sub.equals("weekly") || sub.equals("неделя")) {
+                completions.addAll(Arrays.asList("claim", "забрать"));
             }
         } else if (args.length == 3) {
             String sub = args[0].toLowerCase();
             if (sub.equals("spec") || sub.equals("спек")) {
                 completions.addAll(Arrays.asList("xp", "stamina", "reward"));
+            } else if (sub.equals("weekly") || sub.equals("неделя")) {
+                completions.addAll(Arrays.asList("mine", "kill", "craft", "fish", "build"));
             }
         }
 

@@ -105,6 +105,10 @@ public class VKChatPlugin extends JavaPlugin {
         getCommand("unwarn").setExecutor(mcCmds);
         getCommand("warn").setExecutor(mcCmds);
 
+        getCommand("bal").setExecutor(mcCmds);
+        getCommand("online").setExecutor(mcCmds);
+        getCommand("lastseen").setExecutor(mcCmds);
+
         getCommand("vklink").setTabCompleter(mcCmds);
         getCommand("vkunlink").setTabCompleter(mcCmds);
         getCommand("vkchat").setTabCompleter(mcCmds);
@@ -121,6 +125,9 @@ public class VKChatPlugin extends JavaPlugin {
         getCommand("warns").setTabCompleter(mcCmds);
         getCommand("unwarn").setTabCompleter(mcCmds);
         getCommand("warn").setTabCompleter(mcCmds);
+        getCommand("bal").setTabCompleter(mcCmds);
+        getCommand("online").setTabCompleter(mcCmds);
+        getCommand("lastseen").setTabCompleter(mcCmds);
     }
 
     private void startTasks() {

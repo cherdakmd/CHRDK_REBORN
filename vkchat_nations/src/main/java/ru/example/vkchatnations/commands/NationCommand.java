@@ -15,6 +15,7 @@ import ru.example.vkchat.VKChatPlugin;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 public class NationCommand implements CommandExecutor, TabCompleter {
@@ -351,6 +352,68 @@ public class NationCommand implements CommandExecutor, TabCompleter {
             plugin.getClaimDefenseManager().startManualDefense(p);
         }
 
+        else if (action.equals("info")) {
+            String nation = plugin.getNationManager().getPlayerNation(p);
+            if (nation == null) {
+                p.sendMessage(ChatColor.RED + "Вы не в нации!");
+                return true;
+            }
+            String nationName = plugin.getNationManager().getNationNamePublic(nation);
+            int bank = plugin.getNationManager().getBank(nation);
+            int claimCount = 0;
+            int memberCount = 0;
+            for (java.util.Map.Entry<String, ru.example.vkchatnations.data.ChunkClaim> entry : plugin.getNationManager().getNationClaims().entrySet()) {
+                if (entry.getValue().getNation().equals(nation)) claimCount++;
+            }
+            for (java.util.Map.Entry<UUID, String> entry : plugin.getNationManager().getPlayerNations().entrySet()) {
+                if (entry.getValue().equals(nation)) memberCount++;
+            }
+            p.sendMessage(ChatColor.GOLD + "=== " + nationName + " ===");
+            p.sendMessage(ChatColor.YELLOW + "Участники: " + ChatColor.WHITE + memberCount);
+            p.sendMessage(ChatColor.YELLOW + "Приваты: " + ChatColor.WHITE + claimCount);
+            p.sendMessage(ChatColor.YELLOW + "Казна: " + ChatColor.WHITE + bank + " реп.");
+            p.sendMessage(ChatColor.YELLOW + "Рейтинг: " + ChatColor.WHITE + getNationRank(plugin, nation));
+        }
+
+        else if (action.equals("top")) {
+            p.sendMessage(ChatColor.GOLD + "=== Топ наций по казне ===");
+            java.util.List<java.util.Map.Entry<String, Integer>> sorted = new java.util.ArrayList<>();
+            for (String n : plugin.getConfig().getConfigurationSection("nations").getKeys(false)) {
+                sorted.add(new java.util.AbstractMap.SimpleEntry<>(n, plugin.getNationManager().getBank(n)));
+            }
+            sorted.sort((a, b) -> b.getValue() - a.getValue());
+            int rank = 1;
+            for (java.util.Map.Entry<String, Integer> entry : sorted) {
+                String name = plugin.getNationManager().getNationNamePublic(entry.getKey());
+                ChatColor color = rank <= 3 ? ChatColor.GOLD : ChatColor.GRAY;
+                p.sendMessage(color + "#" + rank + " " + name + ": " + ChatColor.WHITE + entry.getValue() + " реп.");
+                rank++;
+            }
+        }
+
+        else if (action.equals("leave")) {
+            String nation = plugin.getNationManager().getPlayerNation(p);
+            if (nation == null) {
+                p.sendMessage(ChatColor.RED + "Вы не в нации!");
+                return true;
+            }
+            // Проверяем, есть ли приваты
+            boolean hasClaims = false;
+            for (java.util.Map.Entry<String, ru.example.vkchatnations.data.ChunkClaim> entry : plugin.getNationManager().getNationClaims().entrySet()) {
+                if (entry.getValue().getOwner().equals(p.getUniqueId())) {
+                    hasClaims = true;
+                    break;
+                }
+            }
+            if (hasClaims) {
+                p.sendMessage(ChatColor.RED + "Сначала удалите все приваты! (/nation claims)");
+                return true;
+            }
+            plugin.getNationManager().removePlayerNation(p.getUniqueId());
+            p.sendMessage(ChatColor.YELLOW + "Вы покинули нацию! Теперь выберите новую через /nation");
+            plugin.getGuiListener().openNationSelection(p);
+        }
+
         return true;
     }
 
@@ -363,7 +426,8 @@ public class NationCommand implements CommandExecutor, TabCompleter {
             List<String> subs = java.util.Arrays.asList(
                 "buyclaim", "buy", "feed", "feedclaim", "claim", "unclaim", "autoclaim",
                 "sethome", "home", "claims", "list", "tp", "teleport", "change", "reset",
-                "festival", "party", "trust", "untrust", "charge", "defend", "defense"
+                "festival", "party", "trust", "untrust", "charge", "defend", "defense",
+                "info", "top", "leave"
             );
             completions.addAll(subs);
         } else if (args.length == 2) {
@@ -376,5 +440,18 @@ public class NationCommand implements CommandExecutor, TabCompleter {
         }
 
         return completions.stream().filter(s -> last.isEmpty() || s.toLowerCase().startsWith(last)).collect(Collectors.toList());
+    }
+
+    private int getNationRank(VKChatNationsPlugin plugin, String nation) {
+        java.util.List<Integer> banks = new java.util.ArrayList<>();
+        for (String n : plugin.getConfig().getConfigurationSection("nations").getKeys(false)) {
+            banks.add(plugin.getNationManager().getBank(n));
+        }
+        banks.sort(java.util.Collections.reverseOrder());
+        int myBank = plugin.getNationManager().getBank(nation);
+        for (int i = 0; i < banks.size(); i++) {
+            if (banks.get(i) == myBank) return i + 1;
+        }
+        return banks.size();
     }
 }

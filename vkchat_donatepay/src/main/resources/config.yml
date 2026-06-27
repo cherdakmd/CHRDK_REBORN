@@ -139,6 +139,43 @@ donor-statuses:
         - "lp user {player} parent remove donate_star"
         - "lp user {player} parent remove donate_legend"
         - "lp user {player} parent addtemp donate_legend {duration}"
+        - "give {player} netherite_ingot 10"
+        - "give {player} diamond_block 5"
+        - "give {player} enchanted_golden_apple 5"
+        - "xp add {player} 200 levels"
+
+# ==========================================
+# VIP-КОМАНДЫ ДЛЯ ДОНАТЕРОВ
+# ==========================================
+vip-commands:
+  enabled: true
+  spark:
+    - "/fly 30"           # Полёт на 30 сек
+    - "/heal"             # Лечение
+    - "/feed"             # Насыщение
+  flame:
+    - "/fly 60"
+    - "/heal"
+    - "/feed"
+    - "/speed 2 30"       # Спешка на 30 сек
+    - "/enderchest"       # Эндер-чехст
+  star:
+    - "/fly 120"
+    - "/heal"
+    - "/feed"
+    - "/speed 2 60"
+    - "/enderchest"
+    - "/repair"           # Починка предмета в руке
+    - "/god 30"           # Неуязвимость на 30 сек
+  legend:
+    - "/fly unlimited"
+    - "/heal"
+    - "/feed"
+    - "/speed 3 unlimited"
+    - "/enderchest"
+    - "/repair all"       # Починка всего инвентаря
+    - "/god 60"
+    - "/broadcast"        # Объявление в чат (КД 1 час)
         - "give {player} netherite_scrap 40"
         - "give {player} enchanted_golden_apple 10"
         - "xp add {player} 250 levels"
