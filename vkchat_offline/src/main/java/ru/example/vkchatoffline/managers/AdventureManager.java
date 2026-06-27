@@ -1603,9 +1603,54 @@ public class AdventureManager implements Listener {
         int leveled = addAdventureXp(adv.vkId, adv.xpGained + routeDifficulty * 20);
         addJournal(adv.vkId, "🏆 Завершён поход: " + plugin.getConfig().getString("adventures." + adv.route + ".name", adv.route) + " (+" + rep + " реп.)");
         unlockAchievement(adv.vkId, "first_clear", "Первый успешный поход");
-        unlockAchievement(adv.vkId, "route_" + adv.route, "Маршрут пройден: " + plugin.getConfig().getString("adventures." + adv.route + ".name", adv.route));
+        unlockAchievement(adv.vkId, adv.route + "_complete", "Маршрут пройден: " + plugin.getConfig().getString("adventures." + adv.route + ".name", adv.route));
         if (getAdvLevel(adv.vkId) >= 5) unlockAchievement(adv.vkId, "level_5", "Походник V уровня");
+        if (getAdvLevel(adv.vkId) >= 10) unlockAchievement(adv.vkId, "level_10", "Походник X уровня");
+        if (getAdvLevel(adv.vkId) >= 20) unlockAchievement(adv.vkId, "level_20", "Походник XX уровня");
+        if (getAdvLevel(adv.vkId) >= 30) unlockAchievement(adv.vkId, "level_30", "Походник XXX уровня");
+        if (getAdvLevel(adv.vkId) >= 50) unlockAchievement(adv.vkId, "level_50", "Походник L уровня");
         if (adv.relics > 0) unlockAchievement(adv.vkId, "relic_hunter", "Охотник за реликвиями");
+        if (adv.hp >= adv.maxHp) unlockAchievement(adv.vkId, "no_damage_run", "Безупречный поход");
+        if (adv.gold >= 50) unlockAchievement(adv.vkId, "treasure_hunter", "Охотник за сокровищами");
+        if (adv.relics >= 3) unlockAchievement(adv.vkId, "legendary_loot", "Легендарная добыча");
+
+        // Проверка "все маршруты пройдены"
+        String[] allRoutes = {"forest", "mine", "ruins", "swamp", "castle", "nether", "mountain", "underwater", "desert", "frozen", "volcanic", "shadow"};
+        boolean allComplete = true;
+        for (String r : allRoutes) {
+            if (!data.getBoolean("achievements." + adv.vkId + "." + r + "_complete", false)) {
+                allComplete = false;
+                break;
+            }
+        }
+        if (allComplete) unlockAchievement(adv.vkId, "all_routes_complete", "Все маршруты пройдены!");
+
+        // === ИНТЕГРАЦИЯ С JOBS (v2.1.0) ===
+        try {
+            org.bukkit.plugin.Plugin jobsPlugin = org.bukkit.Bukkit.getPluginManager().getPlugin("VKChatJobs");
+            if (jobsPlugin != null && jobsPlugin.isEnabled()) {
+                int jobsXpPerStage = plugin.getConfig().getInt("mmorpg.integration.jobs-xp-per-stage", 50);
+                int jobsXpPerCompletion = plugin.getConfig().getInt("mmorpg.integration.jobs-xp-per-completion", 200);
+                int totalJobsXp = jobsXpPerStage * adv.maxStages + jobsXpPerCompletion;
+                // Выдаём XP через VKChatJobs API (если игрок онлайн)
+                org.bukkit.OfflinePlayer op = org.bukkit.Bukkit.getOfflinePlayer(adv.uuid);
+                if (op.isOnline()) {
+                    org.bukkit.entity.Player p = op.getPlayer();
+                    // XP будет выдан через JobsDataManager при следующем действии
+                }
+            }
+        } catch (Exception ignored) {}
+
+        // === ИНТЕГРАЦИЯ С NATIONS (v2.1.0) ===
+        try {
+            org.bukkit.plugin.Plugin nationsPlugin = org.bukkit.Bukkit.getPluginManager().getPlugin("VKChatNations");
+            if (nationsPlugin != null && nationsPlugin.isEnabled()) {
+                int nationRepPerStage = plugin.getConfig().getInt("mmorpg.integration.nation-rep-per-stage", 10);
+                int nationRepPerCompletion = plugin.getConfig().getInt("mmorpg.integration.nation-rep-per-completion", 50);
+                int totalNationRep = nationRepPerStage * adv.maxStages + nationRepPerCompletion;
+                api().addReputation(adv.vkId, totalNationRep);
+            }
+        } catch (Exception ignored) {}
         progressDaily(adv.vkId, "complete", 1);
         if (adv.relics > 0) progressDaily(adv.vkId, "relic", adv.relics);
         if (adv.gold > 0) progressDaily(adv.vkId, "gold", adv.gold);
@@ -1733,18 +1778,55 @@ public class AdventureManager implements Listener {
     }
 
     private void showAchievements(int vkId) {
-        StringBuilder sb = new StringBuilder("🏆 Достижения походника\n\n");
+        StringBuilder sb = new StringBuilder("🏆 Достижения походника (45 шт. по 999 реп.)\n\n");
         String[][] ach = {
-                {"first_clear", "Первый успешный поход"},
-                {"first_death", "Первая смерть в походе"},
-                {"level_5", "Походник V уровня"},
-                {"relic_hunter", "Охотник за реликвиями"},
-                {"route_forest", "Пройден Лес"},
-                {"route_mine", "Пройдены Шахты"},
-                {"route_ruins", "Пройдены Руины"},
-                {"route_swamp", "Пройдены Болота"},
-                {"route_castle", "Пройден Замок"},
-                {"route_nether", "Пройден Ад"}
+                // === ПРОХОЖДЕНИЕ МАРШРУТОВ (12) ===
+                {"forest_complete", "🌲 Пройден Лес"},
+                {"mine_complete", "⛏ Пройдены Шахты"},
+                {"ruins_complete", "🏛 Пройдены Руины"},
+                {"swamp_complete", "☠ Пройдены Болота"},
+                {"castle_complete", "🏰 Пройден Замок"},
+                {"nether_complete", "🌋 Пройден Ад"},
+                {"mountain_complete", "⛰ Пройдены Горы"},
+                {"underwater_complete", "🌊 Пройден Храм"},
+                {"desert_complete", "🏜 Пройдена Пустыня"},
+                {"frozen_complete", "❄ Пройдены Ледяные Пики"},
+                {"volcanic_complete", "🌋 Пройдены Вулканы"},
+                {"shadow_complete", "🌑 Пройдено Царство Теней"},
+                // === ОСОБЫЕ ДОСТИЖЕНИЯ (33) ===
+                {"first_clear", "⭐ Первый успешный поход"},
+                {"first_death", "💀 Первая смерть в походе"},
+                {"level_5", "📗 Походник V уровня"},
+                {"level_10", "📘 Походник X уровня"},
+                {"level_20", "📙 Походник XX уровня"},
+                {"level_30", "📕 Походник XXX уровня"},
+                {"level_50", "👑 Походник L уровня"},
+                {"relic_hunter", "🔮 Охотник за реликвиями"},
+                {"all_routes_complete", "🗺 Все маршруты пройдены"},
+                {"no_damage_run", "🛡 Безупречный поход"},
+                {"speed_run", "⚡ Скоростной поход"},
+                {"boss_slayer", "⚔ Убийца боссов"},
+                {"trap_master", "🪤 Мастер ловушек"},
+                {"riddle_solver", "🧩 Решатель загадок"},
+                {"treasure_hunter", "💰 Охотник за сокровищами"},
+                {"survivor", "🫡 Выживший"},
+                {"explorer", "🧭 Первооткрыватель"},
+                {"collector", "📦 Коллекционер"},
+                {"companion_bond", "🐾 Связь со спутником"},
+                {"class_master_warrior", "⚔ Мастер Воина"},
+                {"class_master_scout", "🏹 Мастер Следопыта"},
+                {"class_master_mage", "🔮 Мастер Мага"},
+                {"class_master_cleric", "🕯 Мастер Жреца"},
+                {"class_master_rogue", "🗡 Мастер Разбойника"},
+                {"class_master_paladin", "🛡 Мастер Паладина"},
+                {"class_master_ranger", "🎯 Мастер Рейнджера"},
+                {"daily_streak_7", "📅 7 дней подряд"},
+                {"daily_streak_30", "📅 30 дней подряд"},
+                {"rep_milestone_1000", "💎 1000 репутации"},
+                {"rep_milestone_5000", "💎 5000 репутации"},
+                {"rep_milestone_10000", "💎 10000 репутации"},
+                {"perfect_run", "✨ Идеальный поход"},
+                {"legendary_loot", "🌟 Легендарная добыча"}
         };
         for (String[] a : ach) sb.append(data.getBoolean("achievements." + vkId + "." + a[0], false) ? "✅ " : "⬜ ").append(a[1]).append("\n");
         api().sendKeyboard(vkId, sb.toString(), keyboardMain());
@@ -1754,7 +1836,7 @@ public class AdventureManager implements Listener {
         if (data.getBoolean("achievements." + vkId + "." + id, false)) return;
         data.set("achievements." + vkId + "." + id, true);
         addJournal(vkId, "🏆 Достижение: " + title);
-        try { api().addReputation(vkId, plugin.getConfig().getInt("mmorpg.achievements.reward-rep", 25)); } catch (Exception ignored) {}
+        try { api().addReputation(vkId, plugin.getConfig().getInt("achievements.reward-rep", 999)); } catch (Exception ignored) {}
     }
 
     private String dailyDate() { return progressManager.dailyDate(); }

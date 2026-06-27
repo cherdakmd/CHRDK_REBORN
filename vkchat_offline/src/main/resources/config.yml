@@ -146,7 +146,7 @@ adventures:
     reward:
       rep-min: 800
       rep-max: 1800
-      keys: []
+      keys: [underwater]
       items:
         - "IRON_INGOT;16;32;80"
         - "GOLD_INGOT;8;16;70"
@@ -154,18 +154,157 @@ adventures:
         - "EMERALD;2;6;40"
         - "POINTED_DRIPSTONE;4;8;55"
 
-# Достижения за маршруты
+  # === НОВЫЕ МАРШРУТЫ (v2.1.0) ===
+
+  underwater:
+    name: "🌊 Затонувший Храм"
+    default-unlocked: false
+    difficulty: 3
+    stages: 4
+    max-duration-minutes: 80
+    cost: 300
+    death-chance: 8
+    reward:
+      rep-min: 350
+      rep-max: 750
+      keys: [desert]
+      items:
+        - "HEART_OF_THE_SEA;1;1;15"
+        - "NAUTILUS_SHELL;2;4;50"
+        - "PRISMARINE_SHARD;8;24;80"
+        - "TRIDENT;1;1;5"
+        - "GOLD_INGOT;4;12;60"
+
+  desert:
+    name: "🏜 Пустынная Оазис"
+    default-unlocked: false
+    difficulty: 2
+    stages: 3
+    max-duration-minutes: 60
+    cost: 200
+    death-chance: 6
+    reward:
+      rep-min: 250
+      rep-max: 500
+      keys: [frozen]
+      items:
+        - "SAND;32;64;100"
+        - "GOLD_INGOT;4;12;65"
+        - "EMERALD;1;3;30"
+        - "CACTUS;8;16;70"
+        - "SADDLE;1;1;10"
+
+  frozen:
+    name: "❄ Ледяные Пики"
+    default-unlocked: false
+    difficulty: 4
+    stages: 5
+    max-duration-minutes: 100
+    cost: 400
+    death-chance: 11
+    reward:
+      rep-min: 500
+      rep-max: 1000
+      keys: [volcanic]
+      items:
+        - "ICE;16;48;100"
+        - "DIAMOND;1;3;25"
+        - "PACKED_ICE;8;24;60"
+        - "BLUE_ICE;4;12;40"
+        - "ENCHANTED_GOLDEN_APPLE;1;1;5"
+
+  volcanic:
+    name: "🌋 Вулканические Глубины"
+    default-unlocked: false
+    difficulty: 5
+    stages: 6
+    max-duration-minutes: 130
+    cost: 700
+    death-chance: 16
+    reward:
+      rep-min: 900
+      rep-max: 2000
+      keys: [shadow]
+      items:
+        - "MAGMA_CREAM;8;24;100"
+        - "OBSIDIAN;8;24;70"
+        - "NETHERITE_SCRAP;1;3;30"
+        - "ANCIENT_DEBRIS;1;1;12"
+        - "FIRE_CHARGE;4;8;50"
+
+  shadow:
+    name: "🌑 Царство Теней"
+    default-unlocked: false
+    difficulty: 6
+    stages: 7
+    max-duration-minutes: 160
+    cost: 1000
+    death-chance: 20
+    reward:
+      rep-min: 1500
+      rep-max: 3000
+      keys: []
+      items:
+        - "ENDER_PEARL;8;20;100"
+        - "ENDER_EYE;4;12;60"
+        - "SHULKER_SHELL;1;2;15"
+        - "ELYTRA;1;1;3"
+        - "TOTEM_OF_UNDYING;1;1;10"
+        - "NETHERITE_SCRAP;2;6;40"
+
+# Достижения за маршруты (45 достижений по 999 репутации)
 achievements:
   enabled: true
+  reward-rep: 999
   rewards:
-    forest_complete: 50
-    mine_complete: 75
-    ruins_complete: 100
-    swamp_complete: 125
-    castle_complete: 150
-    nether_complete: 200
-    mountain_complete: 175
-    all_routes_complete: 500
+    # === ПРОХОЖДЕНИЕ МАРШРУТОВ (12) ===
+    forest_complete: 999
+    mine_complete: 999
+    ruins_complete: 999
+    swamp_complete: 999
+    castle_complete: 999
+    nether_complete: 999
+    mountain_complete: 999
+    underwater_complete: 999
+    desert_complete: 999
+    frozen_complete: 999
+    volcanic_complete: 999
+    shadow_complete: 999
+
+    # === ОСОБЫЕ ДОСТИЖЕНИЯ (33) ===
+    first_clear: 999
+    first_death: 999
+    level_5: 999
+    level_10: 999
+    level_20: 999
+    level_30: 999
+    level_50: 999
+    relic_hunter: 999
+    all_routes_complete: 999
+    no_damage_run: 999
+    speed_run: 999
+    boss_slayer: 999
+    trap_master: 999
+    riddle_solver: 999
+    treasure_hunter: 999
+    survivor: 999
+    explorer: 999
+    collector: 999
+    companion_bond: 999
+    class_master_warrior: 999
+    class_master_scout: 999
+    class_master_mage: 999
+    class_master_cleric: 999
+    class_master_rogue: 999
+    class_master_paladin: 999
+    class_master_ranger: 999
+    daily_streak_7: 999
+    daily_streak_30: 999
+    rep_milestone_1000: 999
+    rep_milestone_5000: 999
+    rep_milestone_10000: 999
+    perfect_run: 999
+    legendary_loot: 999
 
 # Дополнительные механики событий похода
 mechanics:
@@ -188,7 +327,9 @@ mmorpg:
     scout: "Следопыт: лучше против ловушек, выживания и сбора ресурсов"
     mage: "Маг: лучше против проклятий, загадок и святилищ"
     cleric: "Жрец: стабильный класс с меньшим общим уроном"
-    rogue: "Разбойник: криты x2,ypass ловушки, двойной лут из тайников"
+    rogue: "Разбойник: криты x2, обход ловушек, двойной лут из тайников"
+    paladin: "Паладин: +30% HP, лечение себя, сопротивление проклятиям"
+    ranger: "Следопыт: +20% урона на расстоянии, отслеживание, выносливость"
   inspiration:
     auto-reroll: true
   death-saves:
@@ -200,6 +341,95 @@ mmorpg:
     alchemist: "Алхимик: лечит, помогает против проклятий и ядов"
     mule: "Мул: даёт больше припасов и спасает от голода"
     dragon_whelp: "Детёныш Дракона: AoE урон огнём, страх перед врагами, +50% к наградам"
+    bear: "Медведь: танк-компаньон, +40% защиты, урон по боссам"
+    owl: "Сова: разведка, +30% к обнаружению тайников и ловушек"
+    snake: "Змея: яд на врагов, +25% к урону от дебаффов"
+
+  # === НОВЫЕ НАВЫКИ (v2.1.0) ===
+  skills:
+    tough: "Живучесть: +20% максимального HP"
+    sharp: "Клинок: +15% к урону в боях"
+    trap_sense: "Ловушки: +25% к обнаружению ловушек"
+    lucky: "Удача: +10% к шансу редкого лута"
+    trader: "Торговец: -20% цены в магазине"
+    occult: "Оккультизм: +20% к сопротивлению проклятиям"
+    herbalist: "Травник: +30% к эффективности лечения"
+    packer: "Носильщик: +2 слота в сумке"
+    survivalist: "Выживальщик: +20% к регенерации HP между этапами"
+    treasure_hunter: "Охотник за сокровищами: +30% к шансу лута из тайников"
+    night_owl: "Сова: +15% ко всем проверкам в тёмных локациях"
+    swift_foot: "Быстрая нога: -20% к времени между этапами"
+    iron_will: "Железная воля: +30% к сопротивлению страху и потере рассудка"
+
+  # === НОВЫЕ ПРЕДМЕТЫ (v2.1.0) ===
+  shop-items:
+    grappling_hook:
+      name: "🪝 Крюк-кошка"
+      description: "Пропускает одну ловушку или опасный этап"
+      cost: 200
+      slot: "utility"
+    torch:
+      name: "🔦 Факел"
+      description: "Раскрывает скрытые пути и тайники"
+      cost: 150
+      slot: "utility"
+    map_fragment:
+      name: "🗺 Фрагмент карты"
+      description: "Показывает следующий этап маршрута"
+      cost: 180
+      slot: "utility"
+    antidote:
+      name: "🧪 Антидот"
+      description: "Снимает отравление и яд"
+      cost: 100
+      slot: "consumable"
+    scroll_escape:
+      name: "📜 Свиток побега"
+      description: "Мгновенный выход из похода без потери лута"
+      cost: 500
+      slot: "consumable"
+    bandage:
+      name: "🩹 Бинт"
+      description: "Лечит 25 HP мгновенно"
+      cost: 80
+      slot: "consumable"
+
+  # === НОВЫЕ МЕХАНИКИ (v2.1.0) ===
+  morale:
+    enabled: true
+    max: 100
+    start: 75
+    loss-per-death: 20
+    gain-per-victory: 10
+    gain-per-rest: 15
+    low-threshold: 30
+    low-penalty: "Все проверки -15% при низком морали"
+
+  hunger:
+    enabled: true
+    max: 100
+    start: 80
+    loss-per-stage: 10
+    loss-per-combat: 5
+    restore-per-food: 30
+    starvation-damage: 5
+    starvation-message: "Ты голоден! Потеряно {damage} HP."
+
+  # === БАЛАНС И ПРОГРЕССИЯ (v2.1.0) ===
+  progression:
+    difficulty-scaling: true
+    level-bonus-per-level: 0.02
+    max-level-bonus: 0.50
+    better-rewards-per-difficulty: 0.15
+    death-penalty-reduction-per-level: 0.01
+    max-death-penalty-reduction: 0.50
+
+  # === ИНТЕГРАЦИЯ (v2.1.0) ===
+  integration:
+    jobs-xp-per-stage: 50
+    jobs-xp-per-completion: 200
+    nation-rep-per-stage: 10
+    nation-rep-per-completion: 50
 
 # 100+ дополнительных DnD-событий для оффлайн-походов
 extra-events:

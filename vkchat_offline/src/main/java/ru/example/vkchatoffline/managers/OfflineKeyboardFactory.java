@@ -181,7 +181,8 @@ public final class OfflineKeyboardFactory {
         return keyboard(
                 row(btn("⚔ Воин", "!класс warrior", "negative"), btn("🏹 Следопыт", "!класс scout", "positive")),
                 row(btn("🔮 Маг", "!класс mage", "primary"), btn("🕯 Жрец", "!класс cleric", "secondary")),
-                row(btn("⛺ Походы", "!походы", "primary"))
+                row(btn("🗡 Разбойник", "!класс rogue", "negative"), btn("🛡 Паладин", "!класс paladin", "positive")),
+                row(btn("🎯 Рейнджер", "!класс ranger", "primary"), btn("⛺ Походы", "!походы", "secondary"))
         );
     }
 
@@ -189,7 +190,8 @@ public final class OfflineKeyboardFactory {
         return keyboard(
                 row(btn("🐺 Волк", "!спутник wolf", "negative"), btn("🦅 Ворон", "!спутник raven", "positive")),
                 row(btn("🧪 Алхимик", "!спутник alchemist", "primary"), btn("🐴 Мул", "!спутник mule", "secondary")),
-                row(btn("⛺ Походы", "!походы", "primary"))
+                row(btn("🐻 Медведь", "!спутник bear", "negative"), btn("🦉 Сова", "!спутник owl", "positive")),
+                row(btn("🐍 Змея", "!спутник snake", "primary"), btn("⛺ Походы", "!походы", "secondary"))
         );
     }
 
