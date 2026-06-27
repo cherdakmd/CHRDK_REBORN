@@ -23,13 +23,17 @@ import ru.example.vkchatartifacts.VKChatArtifactsPlugin;
 import ru.example.vkchatartifacts.items.ArtifactFactory;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.lang.reflect.Method;
 
 public class BossManager extends BukkitRunnable implements Listener {
     private final VKChatArtifactsPlugin plugin;
     private final Random random = new Random();
+    private final Map<java.util.UUID, Long> skillCooldowns = new HashMap<>();
+    private static final long SKILL_COOLDOWN_MS = 5000L;
     
     private LivingEntity activeBoss = null;
     private String activeBossId = null;
@@ -42,6 +46,7 @@ public class BossManager extends BukkitRunnable implements Listener {
         if (activeBoss != null && !activeBoss.isDead()) {
             activeBoss.remove();
         }
+        skillCooldowns.clear();
     }
 
     @Override
@@ -129,7 +134,13 @@ public class BossManager extends BukkitRunnable implements Listener {
         List<String> skills = bossConfig.getStringList("skills");
         if (skills.isEmpty()) return;
 
+        java.util.UUID bossUuid = activeBoss.getUniqueId();
+        long now = System.currentTimeMillis();
+        Long lastSkill = skillCooldowns.get(bossUuid);
+        if (lastSkill != null && (now - lastSkill) < SKILL_COOLDOWN_MS) return;
+
         if (random.nextInt(100) < 20) {
+            skillCooldowns.put(bossUuid, now);
             String skill = skills.get(random.nextInt(skills.size()));
             
             switch (skill) {
@@ -242,6 +253,7 @@ public class BossManager extends BukkitRunnable implements Listener {
             
             activeBoss = null;
             activeBossId = null;
+            skillCooldowns.clear();
         }
     }
     

@@ -208,22 +208,22 @@ artifacts:
 new-artifacts:
   phoenix_feather:
     name: "&6🪶 Перо Феникса"
+    buff: "REVIVAL"
+    level: 5
     description: "При смерти — возрождение с 50% HP (1 раз в 10 минут)"
-    rarity: "legendary"
     drop-chance: 0.5
-    curse: true
   abyssal_crown:
     name: "&5👑 Корона Бездны"
+    buff: "ABYSSAL_POWER"
+    level: 4
     description: "+10 к урону, невидимость 5 сек при HP < 30%"
-    rarity: "epic"
     drop-chance: 1.5
-    curse: true
   dragon_heart:
     name: "&c❤ Сердце Дракона"
+    buff: "DRAGON_BLOOD"
+    level: 5
     description: "+10 HP, регенерация II, +50% урон от огня"
-    rarity: "legendary"
     drop-chance: 0.3
-    curse: true
 
 # ==========================================
 #  ALCHEMIST TIER АИРДРОПОВ

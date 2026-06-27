@@ -294,6 +294,85 @@ public class ConsumablesListener implements Listener {
             p.playSound(p.getLocation(), Sound.ITEM_TOTEM_USE, 1.0f, 1.0f);
             p.sendMessage(ChatColor.GOLD + "✨ Тотем Укрепления привязал артефакт к твоей душе!");
         }
+        else if ("SYNTHESIS".equals(type)) {
+            ItemStack mainHand = p.getInventory().getItemInMainHand();
+            ItemStack offHand = p.getInventory().getItemInOffHand();
+
+            if (mainHand == null || mainHand.getType() == Material.AIR || !mainHand.hasItemMeta() ||
+                !mainHand.getItemMeta().getPersistentDataContainer().has(isArtifactKey, PersistentDataType.INTEGER)) {
+                p.sendMessage(ChatColor.RED + "Держите артефакт в основной руке!");
+                return;
+            }
+            if (offHand == null || offHand.getType() == Material.AIR || !offHand.hasItemMeta() ||
+                !offHand.getItemMeta().getPersistentDataContainer().has(isArtifactKey, PersistentDataType.INTEGER)) {
+                p.sendMessage(ChatColor.RED + "Положите второй артефакт в левую руку (Offhand)!");
+                return;
+            }
+
+            ItemMeta mainMeta = mainHand.getItemMeta();
+            ItemMeta offMeta = offHand.getItemMeta();
+
+            String mainBuff = mainMeta.getPersistentDataContainer().get(buffKey, PersistentDataType.STRING);
+            String offBuff = offMeta.getPersistentDataContainer().get(buffKey, PersistentDataType.STRING);
+            int mainLevel = mainMeta.getPersistentDataContainer().has(levelKey, PersistentDataType.INTEGER) ? mainMeta.getPersistentDataContainer().get(levelKey, PersistentDataType.INTEGER) : 1;
+            int offLevel = offMeta.getPersistentDataContainer().has(levelKey, PersistentDataType.INTEGER) ? offMeta.getPersistentDataContainer().get(levelKey, PersistentDataType.INTEGER) : 1;
+
+            if (mainBuff == null || offBuff == null) {
+                p.sendMessage(ChatColor.RED + "Ошибка: не удалось определить баффы артефактов!");
+                return;
+            }
+
+            item.setAmount(item.getAmount() - 1);
+            cooldowns.put(p.getUniqueId(), now);
+
+            if (mainBuff.equals(offBuff)) {
+                int newLevel = Math.min(mainLevel + 1, 5);
+                mainMeta.getPersistentDataContainer().set(levelKey, PersistentDataType.INTEGER, newLevel);
+
+                java.util.List<String> lore = mainMeta.getLore();
+                if (lore != null) {
+                    for (int i = 0; i < lore.size(); i++) {
+                        String line = lore.get(i);
+                        if (line.contains("➕")) {
+                            lore.set(i, ChatColor.GREEN + "➕ " + getBuffDescription(mainBuff, newLevel));
+                            break;
+                        }
+                    }
+                    mainMeta.setLore(lore);
+                }
+
+                mainHand.setItemMeta(mainMeta);
+                p.getInventory().setItemInOffHand(new ItemStack(Material.AIR));
+
+                p.getWorld().spawnParticle(Particle.ENCHANTMENT_TABLE, p.getLocation().add(0, 1, 0), 80, 0.5, 0.5, 0.5, 0.2);
+                p.playSound(p.getLocation(), Sound.BLOCK_ANVIL_USE, 1.0f, 1.5f);
+                p.sendMessage(ChatColor.GREEN + "✨ Свиток Синтеза усилил артефакт! Уровень: " + mainLevel + " → " + newLevel);
+            } else {
+                java.util.List<String> lore = mainMeta.getLore();
+                if (lore != null) {
+                    boolean found = false;
+                    for (int i = 0; i < lore.size(); i++) {
+                        if (lore.get(i).contains("➕") && !found) {
+                            found = true;
+                            continue;
+                        }
+                    }
+                    if (lore.size() > 2) {
+                        lore.add(2, ChatColor.GREEN + "➕ " + getBuffDescription(offBuff, offLevel));
+                    } else {
+                        lore.add(ChatColor.GREEN + "➕ " + getBuffDescription(offBuff, offLevel));
+                    }
+                    mainMeta.setLore(lore);
+                }
+
+                mainHand.setItemMeta(mainMeta);
+                p.getInventory().setItemInOffHand(new ItemStack(Material.AIR));
+
+                p.getWorld().spawnParticle(Particle.ENCHANTMENT_TABLE, p.getLocation().add(0, 1, 0), 80, 0.5, 0.5, 0.5, 0.2);
+                p.playSound(p.getLocation(), Sound.BLOCK_ANVIL_USE, 1.0f, 1.5f);
+                p.sendMessage(ChatColor.GREEN + "✨ Свиток Синтеза объединил баффы! Новый бафф: " + offBuff);
+            }
+        }
         else if ("DECAY_ANTIPODE".equals(type)) {
             ItemStack offhand = p.getInventory().getItemInOffHand();
             if (offhand == null || offhand.getType() == Material.AIR || !offhand.hasItemMeta()) {
@@ -373,5 +452,61 @@ public class ConsumablesListener implements Listener {
                 m.invoke(vkApi, msg);
             }
         } catch (Exception ignored) { }
+    }
+
+    private String getBuffDescription(String buff, int level) {
+        switch (buff) {
+            case "HEALTH": return "Максимальное Здоровье +" + (level * 2);
+            case "DAMAGE": return "Урон в ближнем бою +" + level;
+            case "SPEED": return "Скорость передвижения +" + (level * 10) + "%";
+            case "REGENERATION": return "Пассивная Регенерация " + level + " ур.";
+            case "VAMPIRISM": return "Вампиризм " + (level * 10) + "%";
+            case "THORNS": return "Отражение урона " + level + " ур.";
+            case "FIRE_RESISTANCE": return "Иммунитет к огню";
+            case "LEVITATION": return "Иммунитет к урону от падения";
+            case "CRITICAL": return "Шанс крита " + (level * 5) + "%";
+            case "ABSORPTION": return "Абсорбция " + level + " ур.";
+            case "NIGHT_VISION": return "Ночное зрение";
+            case "HASTE": return "Спешка " + level + " ур.";
+            case "WATER_BREATHING": return "Дыхание под водой";
+            case "JUMP_BOOST": return "Мощный прыжок " + level + " ур.";
+            case "LUCK": return "Удача " + level + " ур.";
+            case "WITHER_TOUCH": return "Касание Иссушителя " + level + " ур.";
+            case "POISON_STRIKE": return "Ядовитый Удар " + level + " ур.";
+            case "FREEZE_AURA": return "Ледяная Аура " + level + " ур.";
+            case "LIGHTNING_STRIKE": return "Удар Молнии " + level + " ур.";
+            case "GHOST_WALK": return "Призрачный Шаг (Невидимость)";
+            case "TRUE_STRIKE": return "Истинный Удар (Пробивание брони)";
+            case "STEEL_SKIN": return "Стальная Кожа (Броня +" + level + ")";
+            case "AQUATIC_SPEED": return "Скорость под водой " + level + " ур.";
+            case "FIRE_WALKER": return "Огненный Шаг (Хождение по лаве)";
+            case "XP_BOOST": return "Бонус к опыту +" + (level * 15) + "%";
+            case "REP_BOOST": return "Бонус к репутации ВК +" + (level * 5) + "%";
+            case "DOUBLE_JUMP": return "Двойной прыжок";
+            case "DODGE_CHANCE": return "Шанс уклонения " + (level * 5) + "%";
+            case "KNOCKBACK_RESIST": return "Сопротивление отбрасыванию " + (level * 30) + "%";
+            case "MAX_HEALTH_BOOST": return "Колоссальное здоровье +" + (level * 10);
+            case "HERO_OF_VILLAGE": return "Герой Деревни " + level + " ур.";
+            case "STRENGTH_BOOST": return "Сила " + level + " ур.";
+            case "RESISTANCE": return "Сопротивление " + level + " ур.";
+            case "SATURATION": return "Вечная сытость";
+            case "LUCK_OF_THE_SEA": return "Морская удача " + level + " ур.";
+            case "SOUL_DRAIN": return "Вытягивание души (лечит при убийстве) +" + level;
+            case "FROST_BITE": return "Морозный укус " + level + " ур.";
+            case "MANA_SHIELD": return "Мана-щит (поглощает " + (level * 10) + "% урона)";
+            case "TELEKINESIS": return "Телекинез (подбор предметов на расст.)";
+            case "ENDER_SHIFT": return "Эндер-сдвиг (телепорт ПКМ в воздухе)";
+            case "BERSERKER": return "Ярость " + level + " ур. (урон растет с потерей ХП)";
+            case "ARCANE_BURST": return "Магический взрыв " + level + " ур.";
+            case "SHADOW_STEP": return "Теневой шаг (ускорение после уклонения)";
+            case "LIFESTEAL_AURA": return "Аура вампиризма " + level + " ур.";
+            case "IRON_WILL": return "Железная воля " + level + " ур.";
+            case "TRAP_SENSE": return "Чувство ловушки " + level + " ур.";
+            case "TREASURE_HUNTER": return "Охотник за сокровищами +" + (level * 10) + "%";
+            case "FLAME_TONGUE": return "Пылающий язык " + level + " ур.";
+            case "WIND_WALKER": return "Шагающий по ветру " + level + " ур.";
+            case "ECHO_STRIKE": return "Удар-эхо " + level + " ур. (шанс двойного удара)";
+            default: return buff + " " + level + " ур.";
+        }
     }
 }

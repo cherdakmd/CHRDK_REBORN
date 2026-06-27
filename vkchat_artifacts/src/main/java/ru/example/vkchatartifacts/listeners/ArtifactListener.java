@@ -42,12 +42,16 @@ public class ArtifactListener implements Listener {
     private final NamespacedKey curseKey;
     private final NamespacedKey mythicKey;
     private final NamespacedKey expireKey;
+    private final NamespacedKey curseGrowthKey;
     private final Random random = new Random();
     private final Set<Integer> boostingIds = Collections.synchronizedSet(new HashSet<>());
+    private final java.util.Map<java.util.UUID, Long> revivalCooldowns = new java.util.concurrent.ConcurrentHashMap<>();
     private static final java.util.UUID ARTIFACT_HEALTH_UUID = java.util.UUID.fromString("7d4f6b7a-2f5a-4dbd-9c8c-0df91f5c1001");
     private static final java.util.UUID ARTIFACT_SPEED_UUID = java.util.UUID.fromString("7d4f6b7a-2f5a-4dbd-9c8c-0df91f5c1002");
     private static final java.util.UUID ARTIFACT_ARMOR_UUID = java.util.UUID.fromString("7d4f6b7a-2f5a-4dbd-9c8c-0df91f5c1003");
     private static final java.util.UUID ARTIFACT_KB_UUID = java.util.UUID.fromString("7d4f6b7a-2f5a-4dbd-9c8c-0df91f5c1004");
+    private static final java.util.UUID ARTIFACT_GREED_HP_UUID = java.util.UUID.fromString("7d4f6b7a-2f5a-4dbd-9c8c-0df91f5c1005");
+    private static final java.util.UUID ARTIFACT_DRAGON_HP_UUID = java.util.UUID.fromString("7d4f6b7a-2f5a-4dbd-9c8c-0df91f5c1006");
 
     public ArtifactListener(VKChatArtifactsPlugin plugin) {
         this.plugin = plugin;
@@ -57,8 +61,13 @@ public class ArtifactListener implements Listener {
         this.curseKey = new NamespacedKey(plugin, "curse_type");
         this.mythicKey = new NamespacedKey(plugin, "is_mythic");
         this.expireKey = new NamespacedKey(plugin, "expire_time");
+        this.curseGrowthKey = new NamespacedKey(plugin, "curse_growth");
         
         plugin.getServer().getScheduler().runTaskTimer(plugin, this::applyPassiveEffects, 40L, 20L);
+        if (plugin.getConfig().getBoolean("curse-growth.enabled", true)) {
+            long growthInterval = plugin.getConfig().getLong("curse-growth.interval", 60) * 20L;
+            plugin.getServer().getScheduler().runTaskTimer(plugin, this::processCurseGrowth, 100L, growthInterval);
+        }
     }
 
     private void applyPassiveEffects() {
@@ -70,6 +79,9 @@ public class ArtifactListener implements Listener {
             boolean hasDoubleJump = false;
             boolean hasEnderShift = false;
             boolean hasDecay = false;
+            boolean hasGreed = false;
+            boolean hasDragonBlood = false;
+            boolean hasAbyssalPower = false;
             
             double extraHealth = 0;
             double speedMult = 0;
@@ -166,6 +178,29 @@ public class ArtifactListener implements Listener {
                         }
                     } else if (buff.equals("ENDER_SHIFT")) {
                         hasEnderShift = true;
+                    } else if (buff.equals("SOUL_SHIELD")) {
+                        if (p.getHealth() < p.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue() * 0.3) {
+                            p.addPotionEffect(new PotionEffect(PotionEffectType.ABSORPTION, 100, 1, false, false));
+                        }
+                    } else if (buff.equals("FIRE_RESISTANCE_AURA")) {
+                        for (org.bukkit.entity.Entity near : p.getNearbyEntities(5, 5, 5)) {
+                            if (near instanceof Player && near != p) {
+                                ((Player) near).addPotionEffect(new PotionEffect(PotionEffectType.FIRE_RESISTANCE, 100, 0, false, false));
+                            }
+                        }
+                        p.addPotionEffect(new PotionEffect(PotionEffectType.FIRE_RESISTANCE, 100, 0, false, false));
+                    } else if (buff.equals("REVIVAL")) {
+                        // Handled in onPlayerDeath
+                    } else if (buff.equals("ABYSSAL_POWER")) {
+                        hasAbyssalPower = true;
+                        if (p.getHealth() < p.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue() * 0.3) {
+                            p.addPotionEffect(new PotionEffect(PotionEffectType.INVISIBILITY, 100, 0, false, false));
+                        }
+                    } else if (buff.equals("DRAGON_BLOOD")) {
+                        hasDragonBlood = true;
+                        extraHealth += 10;
+                        hasHealth = true;
+                        p.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, 100, 1, false, false));
                     }
                 }
 
@@ -191,6 +226,22 @@ public class ArtifactListener implements Listener {
                     if (curse.equals("HUNGER")) p.addPotionEffect(new PotionEffect(PotionEffectType.HUNGER, 100, 1, false, false));
                     if (curse.equals("BLINDNESS")) p.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 100, 0, false, false));
                     if (curse.equals("DECAY")) hasDecay = true;
+                    if (curse.equals("NIGHTMARE") && random.nextInt(100) < 1) {
+                        p.addPotionEffect(new PotionEffect(PotionEffectType.CONFUSION, 60, 0, false, false));
+                    }
+                    if (curse.equals("GREED")) {
+                        hasGreed = true;
+                    }
+                    if (curse.equals("CHAOS") && random.nextInt(100) < 10) {
+                        PotionEffectType[] chaosEffects = {
+                            PotionEffectType.SPEED, PotionEffectType.SLOW, PotionEffectType.INCREASE_DAMAGE,
+                            PotionEffectType.WEAKNESS, PotionEffectType.REGENERATION, PotionEffectType.POISON,
+                            PotionEffectType.FIRE_RESISTANCE, PotionEffectType.JUMP, PotionEffectType.BLINDNESS,
+                            PotionEffectType.NIGHT_VISION, PotionEffectType.DAMAGE_RESISTANCE, PotionEffectType.HUNGER
+                        };
+                        PotionEffectType chosen = chaosEffects[random.nextInt(chaosEffects.length)];
+                        p.addPotionEffect(new PotionEffect(chosen, 200, random.nextInt(2), false, false));
+                    }
                 } else if (curse != null && !curse.equals("NONE") && setAbsorbsCurses) {
                     // Сет полностью поглотил проклятие!
                     if (System.currentTimeMillis() % 10000 < 100) {
@@ -227,6 +278,8 @@ public class ArtifactListener implements Listener {
             applyManagedModifier(p.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED), ARTIFACT_SPEED_UUID, "vkchat_artifact_speed", hasSpeed ? speedMult * buffMult : 0.0);
             applyManagedModifier(p.getAttribute(Attribute.GENERIC_ARMOR), ARTIFACT_ARMOR_UUID, "vkchat_artifact_armor", hasArmor ? extraArmor * buffMult : 0.0);
             applyManagedModifier(p.getAttribute(Attribute.GENERIC_KNOCKBACK_RESISTANCE), ARTIFACT_KB_UUID, "vkchat_artifact_kb", hasKbResist ? kbResist * buffMult : 0.0);
+            applyManagedModifier(p.getAttribute(Attribute.GENERIC_MAX_HEALTH), ARTIFACT_GREED_HP_UUID, "vkchat_artifact_greed_hp", hasGreed ? -6.0 : 0.0);
+            applyManagedModifier(p.getAttribute(Attribute.GENERIC_MAX_HEALTH), ARTIFACT_DRAGON_HP_UUID, "vkchat_artifact_dragon_hp", hasDragonBlood ? 10.0 : 0.0);
             AttributeInstance hp = p.getAttribute(Attribute.GENERIC_MAX_HEALTH);
             if (hp != null && p.getHealth() > hp.getValue()) p.setHealth(Math.max(1.0, hp.getValue()));
 
@@ -283,6 +336,46 @@ public class ArtifactListener implements Listener {
                 attr.addModifier(new AttributeModifier(uuid, name, amount, AttributeModifier.Operation.ADD_NUMBER));
             }
         } catch (Exception ignored) {}
+    }
+
+    private void processCurseGrowth() {
+        int breakAt = plugin.getConfig().getInt("curse-growth.break-at", 100);
+        int warn50 = breakAt / 2;
+        int warn75 = (int) (breakAt * 0.75);
+        int warn90 = (int) (breakAt * 0.9);
+
+        for (Player p : plugin.getServer().getOnlinePlayers()) {
+            for (ItemStack item : p.getInventory().getContents()) {
+                if (item == null || !item.hasItemMeta()) continue;
+                ItemMeta meta = item.getItemMeta();
+                if (!meta.getPersistentDataContainer().has(isArtifactKey, PersistentDataType.INTEGER)) continue;
+
+                String curse = meta.getPersistentDataContainer().get(curseKey, PersistentDataType.STRING);
+                if (curse == null || curse.equals("NONE")) continue;
+
+                int growth = 0;
+                if (meta.getPersistentDataContainer().has(curseGrowthKey, PersistentDataType.INTEGER)) {
+                    growth = meta.getPersistentDataContainer().get(curseGrowthKey, PersistentDataType.INTEGER);
+                }
+                growth++;
+                meta.getPersistentDataContainer().set(curseGrowthKey, PersistentDataType.INTEGER, growth);
+
+                if (growth >= breakAt) {
+                    item.setAmount(0);
+                    p.sendMessage(org.bukkit.ChatColor.DARK_RED + "☠ Проклятие поглотило артефакт! Он рассыпался в прах!");
+                    p.getWorld().spawnParticle(org.bukkit.Particle.SMOKE_LARGE, p.getLocation().add(0, 1, 0), 20, 0.3, 0.3, 0.3, 0.05);
+                    p.playSound(p.getLocation(), org.bukkit.Sound.ENTITY_WITHER_DEATH, 0.5f, 1.5f);
+                } else if (growth == warn90) {
+                    p.sendMessage(org.bukkit.ChatColor.DARK_RED + "☠ Проклятие почти поглотило артефакт! (90%)");
+                } else if (growth == warn75) {
+                    p.sendMessage(org.bukkit.ChatColor.RED + "☠ Проклятие усиливается! (75%)");
+                } else if (growth == warn50) {
+                    p.sendMessage(org.bukkit.ChatColor.YELLOW + "☠ Проклятие медленно разъедает артефакт... (50%)");
+                }
+
+                item.setItemMeta(meta);
+            }
+        }
     }
 
     private boolean hasArtifactBuff(Player p, String buffName) {
@@ -344,6 +437,8 @@ public class ArtifactListener implements Listener {
                 int level = meta.getPersistentDataContainer().get(levelKey, PersistentDataType.INTEGER);
                 if ("XP_BOOST".equals(buff)) {
                     multiplier += (level * 0.15);
+                } else if ("XP_MAGNET".equals(buff)) {
+                    multiplier += (level * 0.5);
                 }
             }
         }
@@ -381,8 +476,11 @@ public class ArtifactListener implements Listener {
             if (meta.getPersistentDataContainer().has(isArtifactKey, PersistentDataType.INTEGER)) {
                 String buff = meta.getPersistentDataContainer().get(buffKey, PersistentDataType.STRING);
                 int level = meta.getPersistentDataContainer().get(levelKey, PersistentDataType.INTEGER);
+                String curseType = meta.getPersistentDataContainer().get(curseKey, PersistentDataType.STRING);
                 if ("REP_BOOST".equals(buff)) {
                     multiplier += (level * 0.05);
+                } else if ("GREED".equals(curseType)) {
+                    multiplier += 0.5;
                 }
             }
         }
@@ -460,6 +558,12 @@ public class ArtifactListener implements Listener {
                                 double heal = e.getDamage() * 0.15;
                                 ally.setHealth(Math.min(ally.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue(), ally.getHealth() + heal));
                             }
+                        }
+                    } else if ("ABYSSAL_POWER".equals(buff)) {
+                        e.setDamage(e.getDamage() + 10);
+                    } else if ("DRAGON_BLOOD".equals(buff) && e.getEntity() instanceof org.bukkit.entity.LivingEntity) {
+                        if (((org.bukkit.entity.LivingEntity) e.getEntity()).getFireTicks() > 0) {
+                            e.setDamage(e.getDamage() * 1.5);
                         }
                     }
                 }
@@ -556,6 +660,26 @@ public class ArtifactListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGH)
     public void onPlayerDeath(PlayerDeathEvent e) {
+        Player p = e.getEntity();
+        
+        // REVIVAL: revive with 50% HP (cooldown 10 min)
+        if (hasArtifactBuff(p, "REVIVAL")) {
+            Long lastUse = revivalCooldowns.get(p.getUniqueId());
+            if (lastUse == null || System.currentTimeMillis() - lastUse >= 600000) {
+                revivalCooldowns.put(p.getUniqueId(), System.currentTimeMillis());
+                e.setKeepInventory(true);
+                e.getDrops().clear();
+                double maxHp = p.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue();
+                p.setHealth(Math.max(1.0, maxHp * 0.5));
+                p.addPotionEffect(new PotionEffect(PotionEffectType.ABSORPTION, 200, 1, false, false));
+                p.addPotionEffect(new PotionEffect(PotionEffectType.FIRE_RESISTANCE, 200, 0, false, false));
+                p.getWorld().spawnParticle(org.bukkit.Particle.TOTEM, p.getLocation().add(0, 1, 0), 50, 0.5, 0.5, 0.5, 0.2);
+                p.getWorld().playSound(p.getLocation(), org.bukkit.Sound.ITEM_TOTEM_USE, 1.0f, 1.0f);
+                p.sendMessage(org.bukkit.ChatColor.GOLD + "✨ Перо Феникса спасло тебя от смерти!");
+                return;
+            }
+        }
+        
         Iterator<ItemStack> iter = e.getDrops().iterator();
         List<ItemStack> savedItems = new java.util.ArrayList<>();
 
@@ -600,6 +724,20 @@ public class ArtifactListener implements Listener {
             p.getWorld().spawnParticle(org.bukkit.Particle.SOUL, e.getEntity().getLocation().add(0, 1, 0), 10, 0.3, 0.3, 0.3, 0.1);
             p.getWorld().playSound(p.getLocation(), org.bukkit.Sound.ENTITY_WITHER_HURT, 0.5f, 1.5f);
         }
+        if (hasArtifactBuff(p, "LOOT_FIND")) {
+            int level = getArtifactBuffLevel(p, "LOOT_FIND");
+            if (random.nextInt(100) < (level * 25)) {
+                for (ItemStack drop : e.getDrops()) {
+                    if (drop != null && drop.getType() != Material.AIR) {
+                        ItemStack bonus = drop.clone();
+                        bonus.setAmount(1);
+                        e.getDrops().add(bonus);
+                        p.getWorld().spawnParticle(org.bukkit.Particle.VILLAGER_HAPPY, e.getEntity().getLocation().add(0, 1, 0), 10, 0.3, 0.3, 0.3, 0.1);
+                        break;
+                    }
+                }
+            }
+        }
     }
 
     @EventHandler
@@ -624,15 +762,24 @@ public class ArtifactListener implements Listener {
     public void onInteract(PlayerInteractEvent e) {
         Player p = e.getPlayer();
         if (e.getAction() != Action.RIGHT_CLICK_AIR && e.getAction() != Action.RIGHT_CLICK_BLOCK) return;
-        for (ItemStack item : p.getInventory().getContents()) {
-            if (item == null || !item.hasItemMeta()) continue;
-            if (item.getItemMeta().getPersistentDataContainer().has(isArtifactKey, PersistentDataType.INTEGER)) {
-                String curse = item.getItemMeta().getPersistentDataContainer().get(curseKey, PersistentDataType.STRING);
-                if ("SILENCE".equals(curse)) {
-                    e.setCancelled(true);
-                    p.sendMessage(org.bukkit.ChatColor.RED + "☠ Проклятие Молчания блокирует использование предметов!");
-                    return;
-                }
+
+        ItemStack mainHand = p.getInventory().getItemInMainHand();
+        if (mainHand != null && mainHand.hasItemMeta() && mainHand.getItemMeta().getPersistentDataContainer().has(isArtifactKey, PersistentDataType.INTEGER)) {
+            String curse = mainHand.getItemMeta().getPersistentDataContainer().get(curseKey, PersistentDataType.STRING);
+            if ("SILENCE".equals(curse)) {
+                e.setCancelled(true);
+                p.sendMessage(org.bukkit.ChatColor.RED + "☠ Проклятие Молчания блокирует использование этого артефакта!");
+                return;
+            }
+        }
+
+        ItemStack offHand = p.getInventory().getItemInOffHand();
+        if (offHand != null && offHand.hasItemMeta() && offHand.getItemMeta().getPersistentDataContainer().has(isArtifactKey, PersistentDataType.INTEGER)) {
+            String curse = offHand.getItemMeta().getPersistentDataContainer().get(curseKey, PersistentDataType.STRING);
+            if ("SILENCE".equals(curse)) {
+                e.setCancelled(true);
+                p.sendMessage(org.bukkit.ChatColor.RED + "☠ Проклятие Молчания блокирует использование этого артефакта!");
+                return;
             }
         }
     }

@@ -23,9 +23,10 @@ public class ArtifactFactory {
         "HERO_OF_VILLAGE", "STRENGTH_BOOST", "RESISTANCE", "SATURATION", "LUCK_OF_THE_SEA",
         "SOUL_DRAIN", "FROST_BITE", "MANA_SHIELD", "TELEKINESIS", "ENDER_SHIFT",
         "BERSERKER", "ARCANE_BURST", "SHADOW_STEP", "LIFESTEAL_AURA", "IRON_WILL",
-        "TRAP_SENSE", "TREASURE_HUNTER", "FLAME_TONGUE", "WIND_WALKER", "ECHO_STRIKE"
+        "TRAP_SENSE", "TREASURE_HUNTER", "FLAME_TONGUE", "WIND_WALKER", "ECHO_STRIKE",
+        "SOUL_SHIELD", "FIRE_RESISTANCE_AURA", "XP_MAGNET", "LOOT_FIND"
     };
-    public static final String[] CURSES = {"SLOWNESS", "WEAKNESS", "HUNGER", "FRAGILE", "BLINDNESS", "VULNERABILITY", "DECAY", "SILENCE", "BLOODLETTING", "ANCHOR"};
+    public static final String[] CURSES = {"SLOWNESS", "WEAKNESS", "HUNGER", "FRAGILE", "BLINDNESS", "VULNERABILITY", "DECAY", "SILENCE", "BLOODLETTING", "ANCHOR", "NIGHTMARE", "GREED", "CHAOS"};
 
     public static ItemStack generateArtifact(VKChatArtifactsPlugin plugin, boolean isMythic) {
         Material[] possibleMats = {Material.NETHER_STAR, Material.TOTEM_OF_UNDYING, Material.HEART_OF_THE_SEA, Material.DRAGON_BREATH, Material.GHAST_TEAR, Material.BLAZE_POWDER, Material.RABBIT_FOOT, Material.MAGMA_CREAM, Material.END_CRYSTAL, Material.CONDUIT, Material.SCUTE, Material.END_ROD, Material.CHORUS_FRUIT};
@@ -38,11 +39,47 @@ public class ArtifactFactory {
         String curse = isMythic ? "NONE" : CURSES[random.nextInt(CURSES.length)];
         int level = random.nextInt(3) + 1; 
         
-        if (isMythic) level = 5; 
+        if (isMythic) level = 5;
+
+        String specialArtifact = null;
+        if (isMythic) {
+            double roll = random.nextDouble() * 100;
+            if (roll < 0.3) {
+                specialArtifact = "DRAGON_HEART";
+                buff = "DRAGON_BLOOD";
+                mat = Material.DRAGON_BREATH;
+            } else if (roll < 0.8) {
+                specialArtifact = "PHOENIX_FEATHER";
+                buff = "REVIVAL";
+                mat = Material.TOTEM_OF_UNDYING;
+            } else if (roll < 2.3) {
+                specialArtifact = "ABYSSAL_CROWN";
+                buff = "ABYSSAL_POWER";
+                mat = Material.NETHER_STAR;
+            }
+        }
 
         String name = "";
         ChatColor color;
-        if (isMythic) {
+        if (specialArtifact != null) {
+            switch (specialArtifact) {
+                case "PHOENIX_FEATHER":
+                    name = "✨ Перо Феникса ✨";
+                    color = ChatColor.GOLD;
+                    break;
+                case "ABYSSAL_CROWN":
+                    name = "✨ Корона Бездны ✨";
+                    color = ChatColor.DARK_PURPLE;
+                    break;
+                case "DRAGON_HEART":
+                    name = "✨ Сердце Дракона ✨";
+                    color = ChatColor.RED;
+                    break;
+                default:
+                    name = "✨ МИФИЧЕСКАЯ РЕЛИКВИЯ ✨";
+                    color = ChatColor.LIGHT_PURPLE;
+            }
+        } else if (isMythic) {
             name = "✨ МИФИЧЕСКАЯ РЕЛИКВИЯ ✨";
             color = ChatColor.LIGHT_PURPLE;
         } else if (level == 3) {
@@ -115,6 +152,13 @@ public class ArtifactFactory {
             case "FLAME_TONGUE": lore.add(ChatColor.GREEN + "➕ Пылающий язык " + level + " ур."); break;
             case "WIND_WALKER": lore.add(ChatColor.GREEN + "➕ Шагающий по ветру " + level + " ур."); break;
             case "ECHO_STRIKE": lore.add(ChatColor.GREEN + "➕ Удар-эхо " + level + " ур. (шанс двойного удара)"); break;
+            case "SOUL_SHIELD": lore.add(ChatColor.GREEN + "➕ Щит Души (Абсорбция II при HP < 30%)"); break;
+            case "FIRE_RESISTANCE_AURA": lore.add(ChatColor.GREEN + "➕ Аура Огнестойкости (союзникам, 5 блоков)"); break;
+            case "XP_MAGNET": lore.add(ChatColor.GREEN + "➕ Магнит Опыта +" + (level * 50) + "%"); break;
+            case "LOOT_FIND": lore.add(ChatColor.GREEN + "➕ Поиск Добычи +" + (level * 25) + "% редких дропов"); break;
+            case "REVIVAL": lore.add(ChatColor.GOLD + "➕ Возрождение (50% HP при смерти, КД 10 мин)"); break;
+            case "ABYSSAL_POWER": lore.add(ChatColor.DARK_PURPLE + "➕ Сила Бездны (+10 урон, невидимость при HP < 30%)"); break;
+            case "DRAGON_BLOOD": lore.add(ChatColor.RED + "➕ Кровь Дракона (+10 HP, Регенерация II, +50% огненный урон)"); break;
         }
         
         if (!isMythic) {
@@ -129,6 +173,9 @@ public class ArtifactFactory {
                 case "SILENCE": lore.add(ChatColor.RED + "☠ Проклятие: Молчание (блок предметов)"); break;
                 case "BLOODLETTING": lore.add(ChatColor.RED + "☠ Проклятие: Кровопускание (потеря ХП)"); break;
                 case "ANCHOR": lore.add(ChatColor.RED + "☠ Проклятие: Якорь (нет телепорта)"); break;
+                case "NIGHTMARE": lore.add(ChatColor.RED + "☠ Проклятие: Кошмар (случайная тошнота)"); break;
+                case "GREED": lore.add(ChatColor.RED + "☠ Проклятие: Жадность (+50% золото/реп, -30% HP)"); break;
+                case "CHAOS": lore.add(ChatColor.RED + "☠ Проклятие: Хаос (случайные зелья каждые 10 сек)"); break;
             }
         } else {
             lore.add(ChatColor.AQUA + "✨ Эта реликвия не имеет проклятий.");
