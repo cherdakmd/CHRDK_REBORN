@@ -180,6 +180,8 @@ public class AdventureManager implements Listener {
                 .toLowerCase(Locale.ROOT);
 
         if (plain.equals("походы") || plain.equals("поход") || plain.equals("назад") || plain.equals("adventures")) { showMenuOrStatus(vkId); return true; }
+        if (plain.startsWith("вперёд")) { showMenuOrStatusPage(vkId, 1); return true; }
+        if (plain.startsWith("назад") && plain.contains("маршрут")) { showMenuOrStatusPage(vkId, 0); return true; }
         if (plain.equals("герой") || plain.equals("меню героя")) { showHeroMenu(vkId); return true; }
         if (plain.equals("лавка") || plain.equals("магазин")) { showOfflineShop(vkId, "main"); return true; }
         if (plain.equals("помощь") || plain.equals("вопрос")) { showQuestion(vkId, new String[]{"!вопрос"}); return true; }
@@ -326,7 +328,11 @@ public class AdventureManager implements Listener {
         }
 
         if (cmd.equals("!поход") || cmd.equals("!походы") || cmd.equals("!adventure") || cmd.equals("!adv") || cmd.equals("!офлайн") || cmd.equals("!offline")) {
-            showMenuOrStatus(sender);
+            int page = 0;
+            if (args.length >= 2) {
+                try { page = Integer.parseInt(args[1]); } catch (Exception ignored) {}
+            }
+            showMenuOrStatusPage(sender, page);
         } else if (cmd.equals("!герой")) {
             showHeroMenu(sender);
         } else if (cmd.equals("!пойти")) {
@@ -400,6 +406,10 @@ public class AdventureManager implements Listener {
     }
 
     private void showMenuOrStatus(int vkId) {
+        showMenuOrStatusPage(vkId, 0);
+    }
+
+    private void showMenuOrStatusPage(int vkId, int page) {
         if (active.containsKey(vkId)) { showStatus(vkId); return; }
         UUID uuid = api().getUuidByVkId(vkId);
         if (uuid == null) { api().sendMessage(vkId, "❌ Твой ВК не привязан к Minecraft аккаунту."); return; }
@@ -421,7 +431,7 @@ public class AdventureManager implements Listener {
             }
         }
         sb.append("\n👇 Выбери действие кнопкой ниже.");
-        api().sendKeyboard(vkId, sb.toString(), keyboardMain());
+        api().sendKeyboard(vkId, sb.toString(), keyboardMainPage(page));
     }
 
     private void startAdventure(int vkId, String[] args) {
@@ -2153,11 +2163,15 @@ public class AdventureManager implements Listener {
     private String keyboardHospital() { return OfflineKeyboardFactory.hospital(); }
 
     private String keyboardMain() {
+        return keyboardMainPage(0);
+    }
+
+    private String keyboardMainPage(int page) {
         List<String> labels = new ArrayList<>();
         List<String> ids = new ArrayList<>();
         ConfigurationSection sec = plugin.getConfig().getConfigurationSection("adventures");
         if (sec != null) for (String key : sec.getKeys(false)) { labels.add(routeButtonLabel(key)); ids.add(key); }
-        return OfflineKeyboardFactory.main(labels, ids);
+        return OfflineKeyboardFactory.mainPage(labels, ids, page);
     }
 
     private String keyboardHero() { return OfflineKeyboardFactory.hero(); }

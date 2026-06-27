@@ -1,5 +1,6 @@
 package ru.example.vkchatoffline.managers;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -37,22 +38,43 @@ public final class OfflineKeyboardFactory {
     }
 
     public static String main(List<String> routeLabels, List<String> routeIds) {
-        int routes = Math.min(routeLabels.size(), 6);
-        int rows = (routes + 1) / 2 + 2;
-        String[] r = new String[rows];
-        int ri = 0;
-        for (int i = 0; i < routes; i += 2) {
+        return mainPage(routeLabels, routeIds, 0);
+    }
+
+    public static String mainPage(List<String> routeLabels, List<String> routeIds, int page) {
+        int perPage = 6;
+        int total = routeLabels.size();
+        int totalPages = (total + perPage - 1) / perPage;
+        int start = page * perPage;
+        int end = Math.min(start + perPage, total);
+
+        List<String> rows = new ArrayList<>();
+
+        // Маршруты этой страницы (до 6 штук = 3 ряда)
+        for (int i = start; i < end; i += 2) {
             String a = btn(routeLabels.get(i), "!пойти " + routeIds.get(i), "primary");
-            String b = (i + 1 < routes) ? btn(routeLabels.get(i + 1), "!пойти " + routeIds.get(i + 1), "primary") : null;
-            r[ri++] = b != null ? row(a, b) : row(a);
+            String b = (i + 1 < end) ? btn(routeLabels.get(i + 1), "!пойти " + routeIds.get(i + 1), "primary") : null;
+            rows.add(b != null ? row(a, b) : row(a));
         }
-        r[ri++] = row(
+
+        // Навигация по страницам
+        if (totalPages > 1) {
+            List<String> nav = new ArrayList<>();
+            if (page > 0) nav.add(btn("◀ Назад", "!походы " + (page - 1), "secondary"));
+            nav.add(btn("📄 " + (page + 1) + "/" + totalPages, "!походы " + page, "secondary"));
+            if (page < totalPages - 1) nav.add(btn("Вперёд ▶", "!походы " + (page + 1), "secondary"));
+            rows.add(row(nav.toArray(new String[0])));
+        }
+
+        // Фиксированные кнопки
+        rows.add(row(
                 btn("👤 Герой", "!герой", "secondary"),
-                btn("🎒 Тайник", "!тайник 1", "positive"));
-        r[ri++] = row(
+                btn("🎒 Тайник", "!тайник 1", "positive")));
+        rows.add(row(
                 btn("🛒 Лавка", "!лавка", "positive"),
-                btn("❔ Помощь", "!вопрос", "primary"));
-        return keyboard(r);
+                btn("❔ Помощь", "!вопрос", "primary")));
+
+        return keyboard(rows.toArray(new String[0]));
     }
 
     public static String hero() {
