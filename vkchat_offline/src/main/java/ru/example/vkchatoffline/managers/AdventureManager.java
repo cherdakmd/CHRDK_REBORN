@@ -43,7 +43,7 @@ public class AdventureManager implements Listener {
 
     private static final Set<String> COMMANDS = new HashSet<>(Arrays.asList(
             "!поход", "!походы", "!пойти", "!выбор", "!статуспохода", "!забрать", "!тайник", "!stash",
-            "!adventure", "!adv", "!отменапоход", "!офлайн", "!offline", "!вопрос", "!открыть", "!класс", "!спутник", "!отдых", "!лечиться", "!лечение", "!госпиталь", "!психика", "!кампания", "!глава", "!коллекции", "!коллекция", "!отношения", "!магазин", "!лавка", "!купить", "!экипировка", "!снаряжение", "!использовать", "!юз", "!продатьтайник", "!продатьstash", "!навыки", "!навык", "!инвентарь", "!сумка", "!персонаж", "!профильпохода", "!дневник", "!журнал", "!ачивки", "!достижения", "!ежедневка", "!дейлик", "!офадмин"
+            "!adventure", "!adv", "!отменапоход", "!офлайн", "!offline", "!вопрос", "!открыть", "!класс", "!спутник", "!отдых", "!лечиться", "!лечение", "!госпиталь", "!психика", "!кампания", "!глава", "!коллекции", "!коллекция", "!отношения", "!магазин", "!лавка", "!купить", "!экипировка", "!снаряжение", "!использовать", "!юз", "!продатьтайник", "!продатьstash", "!навыки", "!навык", "!инвентарь", "!сумка", "!персонаж", "!профильпохода", "!дневник", "!журнал", "!ачивки", "!достижения", "!ежедневка", "!дейлик", "!офадмин", "!герой"
     ));
 
     public AdventureManager(VKChatOfflinePlugin plugin) {
@@ -146,12 +146,6 @@ public class AdventureManager implements Listener {
         }
     }
 
-    private boolean isSecurityAuthText(String text) {
-        if (text == null) return false;
-        String t = text.toLowerCase(Locale.ROOT);
-        return t.contains("войти:") || t.contains("блокировка") || t.contains("2fa") || t.matches(".*\\b\\d{4,6}\\b.*") && (t.contains("войти") || t.contains("код"));
-    }
-
     private boolean mightBeOfflineButton(String text) {
         if (text == null || text.trim().isEmpty()) return false;
         String plain = org.bukkit.ChatColor.stripColor(text)
@@ -159,124 +153,153 @@ public class AdventureManager implements Listener {
                 .replaceAll("^[^A-Za-zА-Яа-я0-9!]+", "")
                 .trim()
                 .toLowerCase(Locale.ROOT);
-        String[] labels = {
-                "походы", "поход", "adventures", "герой", "лавка", "помощь", "лес", "шахты", "руины", "болота", "замок", "ад",
+        if (plain.isEmpty()) return false;
+        String[] exact = {
+                "походы", "поход", "герой", "лавка", "помощь", "магазин",
                 "рискнуть", "ударить", "осторожно", "защита", "исследовать", "приём", "прием", "отступить", "статус", "тайник",
                 "персонаж", "класс", "спутник", "вопрос", "отмена", "отдых", "лечиться", "госпиталь", "психика", "кампания",
                 "коллекции", "отношения", "сумка", "дневник", "ачивки", "дейлик", "расходники", "навыки", "экипировка",
-                "воин", "следопыт", "маг", "жрец", "волк", "ворон", "алхимик", "мул",
-                "продать тайник", "лечение травм", "терапия рассудка", "снять фобию"
+                "воин", "следопыт", "жрец", "волк", "ворон", "алхимик", "мул",
+                "продать тайник", "лечение травм", "терапия рассудка", "снять фобию",
+                "назад", "использовать"
         };
-        for (String l : labels) if (plain.equals(l) || plain.startsWith(l + " ") || plain.contains(l)) return true;
+        for (String l : exact) if (plain.equals(l)) return true;
+        if (plain.startsWith("поход ") || plain.startsWith("тайник ") || plain.startsWith("глава ") || plain.startsWith("навык: ")) return true;
+        if (plain.startsWith("купить ")) return true;
+        if (plain.startsWith("использовать ")) return true;
+        if (plain.startsWith("открыть ")) return true;
         return false;
     }
 
     private boolean handlePrettyButton(int vkId, String text) {
-        if (text == null) return false;
-        text = text.trim();
-        String plain = org.bukkit.ChatColor.stripColor(text)
+        if (text == null || text.trim().isEmpty()) return false;
+        String plain = org.bukkit.ChatColor.stripColor(text.trim())
                 .replace("️", "")
                 .replaceAll("^[^A-Za-zА-Яа-я0-9!]+", "")
-                .trim();
-        // На разных клиентах ВК emoji у кнопки может отображаться/копироваться иначе.
-        // Поэтому важные кнопки дополнительно ловим по текстовой части.
-        if (plain.equalsIgnoreCase("Походы") || plain.equalsIgnoreCase("Поход") || plain.equalsIgnoreCase("Adventures") || plain.equalsIgnoreCase("Назад")) { showMenuOrStatus(vkId); return true; }
-        if (plain.equalsIgnoreCase("Герой") || plain.equalsIgnoreCase("Меню героя")) { showHeroMenu(vkId); return true; }
-        if (plain.equalsIgnoreCase("Лавка") || plain.equalsIgnoreCase("Магазин")) { showOfflineShop(vkId, "main"); return true; }
-        if (plain.equalsIgnoreCase("Помощь")) { showQuestion(vkId, new String[]{"!вопрос"}); return true; }
-        if (plain.equalsIgnoreCase("Воин")) { chooseClass(vkId, new String[]{"!класс", "warrior"}); return true; }
-        if (plain.equalsIgnoreCase("Следопыт")) { chooseClass(vkId, new String[]{"!класс", "scout"}); return true; }
-        if (plain.equalsIgnoreCase("Маг")) { chooseClass(vkId, new String[]{"!класс", "mage"}); return true; }
-        if (plain.equalsIgnoreCase("Жрец")) { chooseClass(vkId, new String[]{"!класс", "cleric"}); return true; }
-        String route = routeFromButton(text);
-        if (route == null) route = routeFromButton(plain);
+                .trim()
+                .toLowerCase(Locale.ROOT);
+
+        if (plain.equals("походы") || plain.equals("поход") || plain.equals("назад") || plain.equals("adventures")) { showMenuOrStatus(vkId); return true; }
+        if (plain.equals("герой") || plain.equals("меню героя")) { showHeroMenu(vkId); return true; }
+        if (plain.equals("лавка") || plain.equals("магазин")) { showOfflineShop(vkId, "main"); return true; }
+        if (plain.equals("помощь") || plain.equals("вопрос")) { showQuestion(vkId, new String[]{"!вопрос"}); return true; }
+        if (plain.equals("воин")) { chooseClass(vkId, new String[]{"!класс", "warrior"}); return true; }
+        if (plain.equals("следопыт")) { chooseClass(vkId, new String[]{"!класс", "scout"}); return true; }
+        if (plain.equals("маг")) { chooseClass(vkId, new String[]{"!класс", "mage"}); return true; }
+        if (plain.equals("жрец")) { chooseClass(vkId, new String[]{"!класс", "cleric"}); return true; }
+        String route = routeFromButton(plain);
         if (route != null) { startAdventure(vkId, new String[]{"!пойти", route}); return true; }
-        if (text.equals("⚔ Рискнуть") || text.equals("⚔ Ударить") || plain.equalsIgnoreCase("Рискнуть") || plain.equalsIgnoreCase("Ударить")) { handleChoice(vkId, new String[]{"!выбор", "1"}); return true; }
-        if (text.equals("🛡 Осторожно") || text.equals("🛡 Защита") || plain.equalsIgnoreCase("Осторожно") || plain.equalsIgnoreCase("Защита")) { handleChoice(vkId, new String[]{"!выбор", "2"}); return true; }
-        if (text.equals("🔍 Исследовать") || text.equals("✨ Приём") || plain.equalsIgnoreCase("Исследовать") || plain.equalsIgnoreCase("Приём") || plain.equalsIgnoreCase("Прием")) { handleChoice(vkId, new String[]{"!выбор", "3"}); return true; }
-        if (text.equals("🏃 Отступить") || plain.equalsIgnoreCase("Отступить")) { handleChoice(vkId, new String[]{"!выбор", "4"}); return true; }
-        if (text.equals("⏳ Статус") || plain.equalsIgnoreCase("Статус")) { showStatus(vkId); return true; }
-        if (text.equals("🎒 Тайник") || plain.equalsIgnoreCase("Тайник")) { showStash(vkId, new String[]{"!тайник", "1"}); return true; }
-        if (text.startsWith("◀ Тайник ") || text.startsWith("Тайник ")) {
-            String digits = text.replaceAll("\\D+", "");
+        if (plain.equals("рискнуть") || plain.equals("ударить")) { handleChoice(vkId, new String[]{"!выбор", "1"}); return true; }
+        if (plain.equals("осторожно") || plain.equals("защита")) { handleChoice(vkId, new String[]{"!выбор", "2"}); return true; }
+        if (plain.equals("исследовать") || plain.equals("приём") || plain.equals("прием")) { handleChoice(vkId, new String[]{"!выбор", "3"}); return true; }
+        if (plain.equals("отступить")) { handleChoice(vkId, new String[]{"!выбор", "4"}); return true; }
+        if (plain.equals("статус")) { showStatus(vkId); return true; }
+        if (plain.equals("тайник")) { showStash(vkId, new String[]{"!тайник", "1"}); return true; }
+        if (plain.startsWith("тайник ")) {
+            String digits = plain.replaceAll("\\D+", "");
             showStash(vkId, new String[]{"!тайник", digits.isEmpty() ? "1" : digits});
             return true;
         }
-        if (text.equals("👤 Персонаж") || plain.equalsIgnoreCase("Персонаж")) { showAdventureProfile(vkId); return true; }
-        if (text.equals("🧙 Класс") || plain.equalsIgnoreCase("Класс")) { chooseClass(vkId, new String[]{"!класс"}); return true; }
-        if (text.equals("🐾 Спутник") || plain.equalsIgnoreCase("Спутник")) { chooseCompanion(vkId, new String[]{"!спутник"}); return true; }
-        if (text.equals("❔ Вопрос") || plain.equalsIgnoreCase("Вопрос")) { showQuestion(vkId, new String[]{"!вопрос"}); return true; }
-        if (text.equals("🛑 Отмена") || plain.equalsIgnoreCase("Отмена")) { cancel(vkId); return true; }
-        if (text.startsWith("🔓 Открыть ") || plain.startsWith("Открыть ")) { unlockRoute(vkId, new String[]{"!открыть", routeFromOpenButton(text)}); return true; }
-        if (text.equals("⚔ Воин")) { chooseClass(vkId, new String[]{"!класс", "warrior"}); return true; }
-        if (text.equals("🏹 Следопыт")) { chooseClass(vkId, new String[]{"!класс", "scout"}); return true; }
-        if (text.equals("🔮 Маг")) { chooseClass(vkId, new String[]{"!класс", "mage"}); return true; }
-        if (text.equals("🕯 Жрец")) { chooseClass(vkId, new String[]{"!класс", "cleric"}); return true; }
-        if (text.equals("🐺 Волк")) { chooseCompanion(vkId, new String[]{"!спутник", "wolf"}); return true; }
-        if (text.equals("🦅 Ворон")) { chooseCompanion(vkId, new String[]{"!спутник", "raven"}); return true; }
-        if (text.equals("🧪 Алхимик")) { chooseCompanion(vkId, new String[]{"!спутник", "alchemist"}); return true; }
-        if (text.equals("🐴 Мул")) { chooseCompanion(vkId, new String[]{"!спутник", "mule"}); return true; }
-        if (text.equals("🔥 Отдых") || plain.equalsIgnoreCase("Отдых")) { takeRest(vkId); return true; }
-        if (text.equals("💚 Лечиться") || plain.equalsIgnoreCase("Лечиться")) { healSmart(vkId); return true; }
-        if (text.equals("🏥 Госпиталь") || plain.equalsIgnoreCase("Госпиталь")) { showHospital(vkId); return true; }
-        if (text.equals("🧠 Психика") || plain.equalsIgnoreCase("Психика")) { showPsyche(vkId); return true; }
-        if (text.equals("📖 Кампания") || plain.equalsIgnoreCase("Кампания")) { showCampaign(vkId); return true; }
-        if (text.equals("🏺 Коллекции") || plain.equalsIgnoreCase("Коллекции")) { showCollections(vkId); return true; }
-        if (text.equals("🤝 Отношения") || plain.equalsIgnoreCase("Отношения")) { showRelationships(vkId); return true; }
-        if (text.equals("✅ Лечение травм")) { useHospital(vkId, "trauma"); return true; }
-        if (text.equals("🧠 Терапия рассудка")) { useHospital(vkId, "sanity"); return true; }
-        if (text.equals("🕯 Снять фобию")) { useHospital(vkId, "fear"); return true; }
-        if (text.equals("🛒 Магазин")) { showOfflineShop(vkId, "main"); return true; }
-        if (text.equals("⚔ Экипировка")) { showOfflineEquipment(vkId); return true; }
-        if (text.equals("🌿 Расходники")) { showConsumables(vkId); return true; }
-        if (text.equals("🧠 Навыки")) { showOfflineSkills(vkId); return true; }
-        if (text.equals("💰 Продать тайник")) { previewSellStash(vkId); return true; }
-        if (text.equals("✅ Продать тайник")) { sellStash(vkId, true); return true; }
-        if (text.equals("🎲 Сумка") || plain.equalsIgnoreCase("Сумка")) { showAdventureInventory(vkId); return true; }
-        if (text.equals("📜 Дневник") || plain.equalsIgnoreCase("Дневник")) { showJournal(vkId); return true; }
-        if (text.equals("🏆 Ачивки") || plain.equalsIgnoreCase("Ачивки")) { showAchievements(vkId); return true; }
-        if (text.equals("📅 Дейлик") || plain.equalsIgnoreCase("Дейлик")) { showDaily(vkId); return true; }
-        if (text.equals("❓ Как начать")) { showQuestion(vkId, new String[]{"!вопрос", "1"}); return true; }
-        if (text.equals("🗺 Маршруты")) { showQuestion(vkId, new String[]{"!вопрос", "2"}); return true; }
-        if (text.equals("⏳ Статус похода")) { showQuestion(vkId, new String[]{"!вопрос", "3"}); return true; }
-        if (text.equals("🎒 Награды")) { showQuestion(vkId, new String[]{"!вопрос", "4"}); return true; }
-        if (text.equals("☠ Смерть")) { showQuestion(vkId, new String[]{"!вопрос", "5"}); return true; }
-        if (text.equals("🛑 Отмена похода")) { showQuestion(vkId, new String[]{"!вопрос", "6"}); return true; }
-        if (text.equals("🗡 Купить оружие")) { buyOfflineItem(vkId, "equip_weapon_iron"); return true; }
-        if (text.equals("🛡 Купить броню")) { buyOfflineItem(vkId, "equip_armor_chain"); return true; }
-        if (text.equals("🔮 Купить талисман")) { buyOfflineItem(vkId, "equip_talisman_sanity"); return true; }
-        if (text.equals("⛏ Купить инструмент")) { buyOfflineItem(vkId, "equip_tool_lockpick"); return true; }
-        if (text.equals("🎒 Купить рюкзак")) { buyOfflineItem(vkId, "equip_backpack_big"); return true; }
-        if (text.equals("❤️ Зелье лечения")) { buyOfflineItem(vkId, "potion_heal"); return true; }
-        if (text.equals("🧠 Зелье рассудка")) { buyOfflineItem(vkId, "potion_sanity"); return true; }
-        if (text.equals("☠ Антидот")) { buyOfflineItem(vkId, "potion_antidote"); return true; }
-        if (text.equals("📜 Свиток побега")) { buyOfflineItem(vkId, "scroll_escape"); return true; }
-        if (text.equals("🎲 Свиток переброса")) { buyOfflineItem(vkId, "scroll_reroll"); return true; }
-        if (text.equals("🕯 Свиток очищения")) { buyOfflineItem(vkId, "scroll_cleanse"); return true; }
-        if (text.equals("⛺ Набор лагеря")) { buyOfflineItem(vkId, "camp_kit"); return true; }
-        if (text.equals("Использовать ❤️")) { useConsumable(vkId, "potion_heal"); return true; }
-        if (text.equals("Использовать 🧠")) { useConsumable(vkId, "potion_sanity"); return true; }
-        if (text.equals("Использовать ☠")) { useConsumable(vkId, "potion_antidote"); return true; }
-        if (text.equals("Использовать 📜")) { useConsumable(vkId, "scroll_escape"); return true; }
-        if (text.equals("Использовать 🎲")) { useConsumable(vkId, "scroll_reroll"); return true; }
-        if (text.equals("Использовать 🕯")) { useConsumable(vkId, "scroll_cleanse"); return true; }
-        if (text.equals("Использовать ⛺")) { useConsumable(vkId, "camp_kit"); return true; }
-        if (text.equals("Навык: Живучесть")) { learnOfflineSkill(vkId, "tough"); return true; }
-        if (text.equals("Навык: Клинок")) { learnOfflineSkill(vkId, "sharp"); return true; }
-        if (text.equals("Навык: Ловушки")) { learnOfflineSkill(vkId, "trap_sense"); return true; }
-        if (text.equals("Навык: Удача")) { learnOfflineSkill(vkId, "lucky"); return true; }
-        if (text.equals("Навык: Торговец")) { learnOfflineSkill(vkId, "trader"); return true; }
-        if (text.equals("Навык: Оккультизм")) { learnOfflineSkill(vkId, "occult"); return true; }
-        if (text.equals("Навык: Травник")) { learnOfflineSkill(vkId, "herbalist"); return true; }
-        if (text.equals("Навык: Носильщик")) { learnOfflineSkill(vkId, "packer"); return true; }
-        if (text.equals("Глава I")) { startCampaignChapter(vkId, "1"); return true; }
-        if (text.equals("Глава II")) { startCampaignChapter(vkId, "2"); return true; }
-        if (text.equals("Глава III")) { startCampaignChapter(vkId, "3"); return true; }
-        if (text.equals("Глава IV")) { startCampaignChapter(vkId, "4"); return true; }
-        if (text.equals("Глава V")) { startCampaignChapter(vkId, "5"); return true; }
-        if (text.equals("Глава VI")) { startCampaignChapter(vkId, "6"); return true; }
-        if (text.equals("⛺ Походы")) { showMenuOrStatus(vkId); return true; }
+        if (plain.equals("персонаж")) { showAdventureProfile(vkId); return true; }
+        if (plain.equals("класс")) { chooseClass(vkId, new String[]{"!класс"}); return true; }
+        if (plain.equals("спутник")) { chooseCompanion(vkId, new String[]{"!спутник"}); return true; }
+        if (plain.equals("отмена")) { cancel(vkId); return true; }
+        if (plain.startsWith("открыть ")) { unlockRoute(vkId, new String[]{"!открыть", routeFromOpenButton(plain)}); return true; }
+        if (plain.equals("волк")) { chooseCompanion(vkId, new String[]{"!спутник", "wolf"}); return true; }
+        if (plain.equals("ворон")) { chooseCompanion(vkId, new String[]{"!спутник", "raven"}); return true; }
+        if (plain.equals("алхимик")) { chooseCompanion(vkId, new String[]{"!спутник", "alchemist"}); return true; }
+        if (plain.equals("мул")) { chooseCompanion(vkId, new String[]{"!спутник", "mule"}); return true; }
+        if (plain.equals("отдых")) { takeRest(vkId); return true; }
+        if (plain.equals("лечиться")) { healSmart(vkId); return true; }
+        if (plain.equals("госпиталь")) { showHospital(vkId); return true; }
+        if (plain.equals("психика")) { showPsyche(vkId); return true; }
+        if (plain.equals("кампания")) { showCampaign(vkId); return true; }
+        if (plain.equals("коллекции")) { showCollections(vkId); return true; }
+        if (plain.equals("отношения")) { showRelationships(vkId); return true; }
+        if (plain.equals("лечение травм")) { useHospital(vkId, "trauma"); return true; }
+        if (plain.equals("терапия рассудка")) { useHospital(vkId, "sanity"); return true; }
+        if (plain.equals("снять фобию")) { useHospital(vkId, "fear"); return true; }
+        if (plain.equals("экипировка")) { showOfflineEquipment(vkId); return true; }
+        if (plain.equals("расходники")) { showConsumables(vkId); return true; }
+        if (plain.equals("навыки")) { showOfflineSkills(vkId); return true; }
+        if (plain.equals("продать тайник")) { sellStash(vkId, true); return true; }
+        if (plain.equals("сумка")) { showAdventureInventory(vkId); return true; }
+        if (plain.equals("дневник")) { showJournal(vkId); return true; }
+        if (plain.equals("ачивки")) { showAchievements(vkId); return true; }
+        if (plain.equals("дейлик")) { showDaily(vkId); return true; }
+        if (plain.startsWith("купить ")) {
+            String id = buyIdFromLabel(plain);
+            if (id != null) { buyOfflineItem(vkId, id); return true; }
+        }
+        if (plain.startsWith("использовать ")) {
+            String id = useIdFromLabel(plain);
+            if (id != null) { useConsumable(vkId, id); return true; }
+        }
+        if (plain.startsWith("навык: ")) {
+            String id = skillIdFromLabel(plain);
+            if (id != null) { learnOfflineSkill(vkId, id); return true; }
+        }
+        if (plain.startsWith("глава ")) {
+            String num = plain.replace("глава ", "").trim();
+            String[] nums = {"i", "ii", "iii", "iv", "v", "vi"};
+            for (int i = 0; i < nums.length; i++) {
+                if (nums[i].equals(num)) { startCampaignChapter(vkId, String.valueOf(i + 1)); return true; }
+            }
+            if (num.matches("\\d+")) { startCampaignChapter(vkId, num); return true; }
+        }
+        if (plain.startsWith("как начать")) { showQuestion(vkId, new String[]{"!вопрос", "1"}); return true; }
+        if (plain.startsWith("маршруты")) { showQuestion(vkId, new String[]{"!вопрос", "2"}); return true; }
+        if (plain.startsWith("статус похода")) { showQuestion(vkId, new String[]{"!вопрос", "3"}); return true; }
+        if (plain.startsWith("награды")) { showQuestion(vkId, new String[]{"!вопрос", "4"}); return true; }
+        if (plain.startsWith("смерть")) { showQuestion(vkId, new String[]{"!вопрос", "5"}); return true; }
+        if (plain.startsWith("отмена похода")) { showQuestion(vkId, new String[]{"!вопрос", "6"}); return true; }
         return false;
+    }
+
+    private String buyIdFromLabel(String plain) {
+        if (plain.contains("оружие")) return "equip_weapon_iron";
+        if (plain.contains("броню") || plain.contains("броня")) return "equip_armor_chain";
+        if (plain.contains("талисман")) return "equip_talisman_sanity";
+        if (plain.contains("инструмент")) return "equip_tool_lockpick";
+        if (plain.contains("рюкзак")) return "equip_backpack_big";
+        if (plain.contains("зелье лечения") || plain.contains("лечени")) return "potion_heal";
+        if (plain.contains("зелье рассудка") || plain.contains("рассудок")) return "potion_sanity";
+        if (plain.contains("антидот")) return "potion_antidote";
+        if (plain.contains("свиток побега") || plain.contains("побег")) return "scroll_escape";
+        if (plain.contains("свиток переброса") || plain.contains("переброс")) return "scroll_reroll";
+        if (plain.contains("свиток очищения") || plain.contains("очищен")) return "scroll_cleanse";
+        if (plain.contains("набор лагеря") || plain.contains("набор")) return "camp_kit";
+        return null;
+    }
+
+    private String useIdFromLabel(String plain) {
+        if (plain.contains("❤") || plain.contains("лечени")) return "potion_heal";
+        if (plain.contains("🧠") || plain.contains("рассудок")) return "potion_sanity";
+        if (plain.contains("☠") || plain.contains("антидот")) return "potion_antidote";
+        if (plain.contains("📜") || plain.contains("побег")) return "scroll_escape";
+        if (plain.contains("🎲") || plain.contains("переброс")) return "scroll_reroll";
+        if (plain.contains("🕯") || plain.contains("очищен")) return "scroll_cleanse";
+        if (plain.contains("⛺") || plain.contains("лагер")) return "camp_kit";
+        return null;
+    }
+
+    private String skillIdFromLabel(String plain) {
+        if (plain.contains("живучесть")) return "tough";
+        if (plain.contains("клинок")) return "sharp";
+        if (plain.contains("ловушки")) return "trap_sense";
+        if (plain.contains("удача")) return "lucky";
+        if (plain.contains("торговец")) return "trader";
+        if (plain.contains("оккультизм")) return "occult";
+        if (plain.contains("травник")) return "herbalist";
+        if (plain.contains("носильщик")) return "packer";
+        return null;
+    }
+
+    private boolean isSecurityAuthText(String text) {
+        if (text == null) return false;
+        String t = text.toLowerCase(Locale.ROOT);
+        return t.contains("войти:") || t.contains("блокировка") || t.contains("2fa")
+                || (t.matches(".*\\b\\d{4,6}\\b.*") && (t.contains("войти") || t.contains("код")));
     }
 
     @EventHandler
@@ -304,6 +327,8 @@ public class AdventureManager implements Listener {
 
         if (cmd.equals("!поход") || cmd.equals("!походы") || cmd.equals("!adventure") || cmd.equals("!adv") || cmd.equals("!офлайн") || cmd.equals("!offline")) {
             showMenuOrStatus(sender);
+        } else if (cmd.equals("!герой")) {
+            showHeroMenu(sender);
         } else if (cmd.equals("!пойти")) {
             startAdventure(sender, args);
         } else if (cmd.equals("!выбор")) {
@@ -1848,9 +1873,10 @@ public class AdventureManager implements Listener {
 
     private String keyboardMain() {
         List<String> labels = new ArrayList<>();
+        List<String> ids = new ArrayList<>();
         ConfigurationSection sec = plugin.getConfig().getConfigurationSection("adventures");
-        if (sec != null) for (String key : sec.getKeys(false)) labels.add(routeButtonLabel(key));
-        return OfflineKeyboardFactory.main(labels);
+        if (sec != null) for (String key : sec.getKeys(false)) { labels.add(routeButtonLabel(key)); ids.add(key); }
+        return OfflineKeyboardFactory.main(labels, ids);
     }
 
     private String keyboardHero() { return OfflineKeyboardFactory.hero(); }
@@ -1944,12 +1970,11 @@ public class AdventureManager implements Listener {
     private String keyboardHeal() { return OfflineKeyboardFactory.heal(); }
     private String keyboardChoices() { return OfflineKeyboardFactory.choices(); }
     private String keyboardStatusOnly() { return OfflineKeyboardFactory.statusOnly(); }
-    private String keyboardUnlock(String route) { return OfflineKeyboardFactory.unlock(routeButtonLabel(route)); }
+    private String keyboardUnlock(String route) { return OfflineKeyboardFactory.unlock(routeButtonLabel(route), route); }
     private String keyboardStash(int page) { return OfflineKeyboardFactory.stash(page); }
     private String keyboardFaq() { return OfflineKeyboardFactory.faq(); }
     private String keyboardClasses() { return OfflineKeyboardFactory.classes(); }
     private String keyboardCompanions() { return OfflineKeyboardFactory.companions(); }
-    private String btn(String label, String color) { return OfflineKeyboardFactory.btn(label, color); }
 
     private String formatDuration(long ms) { long t = Math.max(0, ms / 1000); long h = t / 3600, m = (t % 3600) / 60, s = t % 60; return h > 0 ? h + "ч " + m + "м" : (m > 0 ? m + "м " + s + "с" : s + "с"); }
 
