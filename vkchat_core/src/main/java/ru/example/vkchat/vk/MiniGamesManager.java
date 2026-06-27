@@ -2,7 +2,7 @@ package ru.example.vkchat.vk;
 
 import ru.example.vkchat.VKChatPlugin;
 
-import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.Map;
 import java.util.Random;
 
@@ -14,7 +14,7 @@ public class MiniGamesManager {
     private long lastRouletteTime = 0;
     
     // Кулдауны на ответы в загадках
-    private final Map<Integer, Long> riddleCooldowns = new HashMap<>();
+    private final Map<Integer, Long> riddleCooldowns = new ConcurrentHashMap<>();
 
     public MiniGamesManager(VKChatPlugin plugin) {
         this.plugin = plugin;

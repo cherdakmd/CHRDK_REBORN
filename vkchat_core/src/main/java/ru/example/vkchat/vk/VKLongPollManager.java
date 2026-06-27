@@ -52,7 +52,7 @@ public class VKLongPollManager {
     private String ts;
 
     // Rate limiting
-    private long lastRequestTime = 0;
+    private volatile long lastRequestTime = 0;
     private static final long MIN_REQUEST_INTERVAL_MS = 350; // ~3 запроса в секунду
 
     // Reconnect

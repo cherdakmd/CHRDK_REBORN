@@ -6,8 +6,9 @@ import ru.example.vkchatmarket.VKChatMarketPlugin;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class MarketManager {
     private final VKChatMarketPlugin plugin;
@@ -15,10 +16,10 @@ public class MarketManager {
     private FileConfiguration data;
     
     // Хранит количество проданных предметов (сток). Чем больше сток - тем ниже цена.
-    private final Map<String, Integer> stock = new HashMap<>();
-    private final Map<String, Double> dailyTrends = new HashMap<>();
-    private final Map<String, Integer> dailyVolume = new HashMap<>();
-    private final java.util.List<String> history = new java.util.ArrayList<>();
+    private final Map<String, Integer> stock = new ConcurrentHashMap<>();
+    private final Map<String, Double> dailyTrends = new ConcurrentHashMap<>();
+    private final Map<String, Integer> dailyVolume = new ConcurrentHashMap<>();
+    private final java.util.List<String> history = new CopyOnWriteArrayList<>();
     private String trendDate = "";
     private final java.util.Random random = new java.util.Random();
 

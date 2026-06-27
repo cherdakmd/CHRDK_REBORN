@@ -12,6 +12,7 @@ import java.sql.PreparedStatement;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -457,28 +458,36 @@ public class MCCommands implements CommandExecutor, org.bukkit.command.TabComple
                 sender.sendMessage(org.bukkit.ChatColor.GREEN + args[0] + " сейчас онлайн!");
                 return true;
             }
-            // Ищем в базе данных последний вход
-            try {
-                Connection conn = plugin.getDatabaseManager().getConnection();
+            try (Connection conn = plugin.getDatabaseManager().getConnection()) {
                 if (conn != null) {
-                    // Проверяем через auth_data
-                    PreparedStatement ps = conn.prepareStatement("SELECT last_login FROM auth_data WHERE username = ?");
-                    ps.setString(1, args[0]);
-                    java.sql.ResultSet rs = ps.executeQuery();
-                    if (rs.next()) {
-                        long lastLogin = rs.getLong("last_login");
-                        if (lastLogin > 0) {
-                            long diff = System.currentTimeMillis() - lastLogin;
-                            String timeAgo = formatTimeDiff(diff);
-                            sender.sendMessage(org.bukkit.ChatColor.YELLOW + args[0] + " был(а) последний раз: " + timeAgo + " назад");
-                        } else {
-                            sender.sendMessage(org.bukkit.ChatColor.GRAY + args[0] + " никогда не заходил(а).");
+                    UUID targetUuid = null;
+                    try (PreparedStatement lookup = conn.prepareStatement("SELECT uuid FROM vkchat_auth WHERE uuid = ?")) {
+                        org.bukkit.OfflinePlayer offline = org.bukkit.Bukkit.getOfflinePlayer(args[0]);
+                        if (offline != null && offline.hasPlayedBefore()) {
+                            targetUuid = offline.getUniqueId();
                         }
-                    } else {
-                        sender.sendMessage(org.bukkit.ChatColor.GRAY + "Игрок " + args[0] + " не найден.");
                     }
-                    rs.close();
-                    ps.close();
+                    if (targetUuid == null) {
+                        sender.sendMessage(org.bukkit.ChatColor.GRAY + "Игрок " + args[0] + " не найден.");
+                        return true;
+                    }
+                    try (PreparedStatement ps = conn.prepareStatement("SELECT reg_date FROM vkchat_auth WHERE uuid = ?")) {
+                        ps.setString(1, targetUuid.toString());
+                        try (java.sql.ResultSet rs = ps.executeQuery()) {
+                            if (rs.next()) {
+                                long lastLogin = rs.getLong("reg_date");
+                                if (lastLogin > 0) {
+                                    long diff = System.currentTimeMillis() - lastLogin;
+                                    String timeAgo = formatTimeDiff(diff);
+                                    sender.sendMessage(org.bukkit.ChatColor.YELLOW + args[0] + " был(а) последний раз: " + timeAgo + " назад");
+                                } else {
+                                    sender.sendMessage(org.bukkit.ChatColor.GRAY + args[0] + " никогда не заходил(а).");
+                                }
+                            } else {
+                                sender.sendMessage(org.bukkit.ChatColor.GRAY + "Игрок " + args[0] + " не найден.");
+                            }
+                        }
+                    }
                 }
             } catch (Exception e) {
                 sender.sendMessage(org.bukkit.ChatColor.RED + "Ошибка при поиске игрока.");
@@ -594,25 +603,27 @@ public class MCCommands implements CommandExecutor, org.bukkit.command.TabComple
                         File statsFile = new File(plugin.getDataFolder(), "stats.yml");
                         FileConfiguration statsConf = YamlConfiguration.loadConfiguration(statsFile);
                         
-                        Connection conn = plugin.getDatabaseManager().getConnection();
+                        try (Connection conn = plugin.getDatabaseManager().getConnection()) {
                         
                         // Migrating auth
                         if (authConf.getKeys(false) != null) {
-                            PreparedStatement ps = conn.prepareStatement("INSERT INTO vkchat_auth (uuid, vk_id, password, last_ip, reg_date, is_donut) VALUES (?, ?, ?, ?, ?, ?)");
-                            for (String key : authConf.getKeys(false)) {
-                                if (key.length() < 30) continue;
-                                ps.setString(1, key);
-                                ps.setInt(2, authConf.getInt(key + ".vk_id", -1));
-                                ps.setString(3, authConf.getString(key + ".password", null));
-                                ps.setString(4, authConf.getString(key + ".last_ip", "127.0.0.1"));
-                                ps.setLong(5, authConf.getLong(key + ".reg_date", 0));
-                                ps.setBoolean(6, authConf.getBoolean(key + ".is_donut", false));
-                                ps.addBatch();
+                            try (PreparedStatement ps = conn.prepareStatement("INSERT INTO vkchat_auth (uuid, vk_id, password, last_ip, reg_date, is_donut) VALUES (?, ?, ?, ?, ?, ?)")) {
+                                for (String key : authConf.getKeys(false)) {
+                                    if (key.length() < 30) continue;
+                                    ps.setString(1, key);
+                                    ps.setInt(2, authConf.getInt(key + ".vk_id", -1));
+                                    ps.setString(3, authConf.getString(key + ".password", null));
+                                    ps.setString(4, authConf.getString(key + ".last_ip", "127.0.0.1"));
+                                    ps.setLong(5, authConf.getLong(key + ".reg_date", 0));
+                                    ps.setBoolean(6, authConf.getBoolean(key + ".is_donut", false));
+                                    ps.addBatch();
+                                }
+                                ps.executeBatch();
                             }
-                            ps.executeBatch();
                         }
                         
                         sender.sendMessage("Миграция успешно завершена!");
+                        }
                     } catch (Exception e) {
                         sender.sendMessage("Ошибка при миграции: " + e.getMessage());
                         e.printStackTrace();

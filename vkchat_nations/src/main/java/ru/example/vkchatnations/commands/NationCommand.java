@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
 
 public class NationCommand implements CommandExecutor, TabCompleter {
     private final VKChatNationsPlugin plugin;
-    private final java.util.Map<Player, Long> tpCooldowns = new java.util.HashMap<>();
+    private final java.util.Map<UUID, Long> tpCooldowns = new java.util.concurrent.ConcurrentHashMap<>();
 
     public NationCommand(VKChatNationsPlugin plugin) {
         this.plugin = plugin;
@@ -84,7 +84,7 @@ public class NationCommand implements CommandExecutor, TabCompleter {
                 return true;
             }
             
-            long last = tpCooldowns.getOrDefault(p, 0L);
+            long last = tpCooldowns.getOrDefault(p.getUniqueId(), 0L);
             if (System.currentTimeMillis() - last < 300000) {
                 long left = (300000 - (System.currentTimeMillis() - last)) / 1000;
                 p.sendMessage(ChatColor.RED + "Телепортация на кулдауне! Осталось: " + left + " сек.");
@@ -104,7 +104,7 @@ public class NationCommand implements CommandExecutor, TabCompleter {
             }
 
             VKChatPlugin.getInstance().getApi().takeReputation(vkId, cost);
-            tpCooldowns.put(p, System.currentTimeMillis());
+            tpCooldowns.put(p.getUniqueId(), System.currentTimeMillis());
             
             org.bukkit.Location target = new org.bukkit.Location(p.getWorld(), claim.getHomeX(), claim.getHomeY(), claim.getHomeZ(), p.getLocation().getYaw(), p.getLocation().getPitch());
             p.teleport(target);
@@ -175,7 +175,7 @@ public class NationCommand implements CommandExecutor, TabCompleter {
             }
 
             // Проверка кулдауна
-            long last = tpCooldowns.getOrDefault(p, 0L);
+            long last = tpCooldowns.getOrDefault(p.getUniqueId(), 0L);
             if (System.currentTimeMillis() - last < 300000) {
                 long left = (300000 - (System.currentTimeMillis() - last)) / 1000;
                 p.sendMessage(ChatColor.RED + "⏳ Телепортация на перезарядке! Подождите " + left + " сек.");
@@ -196,7 +196,7 @@ public class NationCommand implements CommandExecutor, TabCompleter {
 
             // Списываем репутацию и обновляем кулдаун
             VKChatPlugin.getInstance().getApi().takeReputation(vkId, cost);
-            tpCooldowns.put(p, System.currentTimeMillis());
+            tpCooldowns.put(p.getUniqueId(), System.currentTimeMillis());
 
             // Вычисляем безопасную точку приземления над блоком привата
             org.bukkit.Location target = new org.bukkit.Location(p.getWorld(), blockX + 0.5, blockY + 1.0, blockZ + 0.5, p.getLocation().getYaw(), p.getLocation().getPitch());

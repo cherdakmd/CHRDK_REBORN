@@ -8,7 +8,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
@@ -16,13 +16,13 @@ import java.util.concurrent.ThreadLocalRandom;
 public class AuthManager {
     private final VKChatPlugin plugin;
 
-    private final Map<UUID, String> linkCodes = new HashMap<>();
-    private final Map<String, Integer> codeToVk = new HashMap<>();
-    private final Map<UUID, Long> joinTimes = new HashMap<>();
-    private final Map<UUID, Boolean> loggedIn = new HashMap<>();
-    private final Map<UUID, String> await2fa = new HashMap<>();
-    private final Map<UUID, Integer> failedAttempts = new HashMap<>();
-    private final Map<UUID, Long> lockouts = new HashMap<>();
+    private final Map<UUID, String> linkCodes = new ConcurrentHashMap<>();
+    private final Map<String, Integer> codeToVk = new ConcurrentHashMap<>();
+    private final Map<UUID, Long> joinTimes = new ConcurrentHashMap<>();
+    private final Map<UUID, Boolean> loggedIn = new ConcurrentHashMap<>();
+    private final Map<UUID, String> await2fa = new ConcurrentHashMap<>();
+    private final Map<UUID, Integer> failedAttempts = new ConcurrentHashMap<>();
+    private final Map<UUID, Long> lockouts = new ConcurrentHashMap<>();
 
     public AuthManager(VKChatPlugin plugin) {
         this.plugin = plugin;

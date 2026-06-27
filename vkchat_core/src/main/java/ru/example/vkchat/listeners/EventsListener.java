@@ -7,6 +7,8 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
 import ru.example.vkchat.VKChatPlugin;
 
+// TODO: Этот класс — мёртвый код. onInteract не делает ничего полезного.
+// Если обработчик interact не нужен, удалите класс и регистрацию в VKChatPlugin.java:84.
 public class EventsListener implements Listener {
     private final VKChatPlugin plugin;
 
@@ -18,6 +20,7 @@ public class EventsListener implements Listener {
     public void onInteract(PlayerInteractEvent e) {
         if (e.getAction() == Action.RIGHT_CLICK_BLOCK) {
             Block b = e.getClickedBlock();
+            // Нет логики — заглушка
         }
     }
 }

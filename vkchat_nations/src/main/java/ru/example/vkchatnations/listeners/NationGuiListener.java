@@ -21,6 +21,7 @@ import ru.example.vkchat.VKChatPlugin;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 public class NationGuiListener implements Listener {
     private final VKChatNationsPlugin plugin;
@@ -31,7 +32,7 @@ public class NationGuiListener implements Listener {
     private final String CLAIM_FEED_TITLE = ChatColor.GOLD + "⚡ Питание блока привата";
     private final String CLAIM_UPGRADE_TITLE = ChatColor.DARK_PURPLE + "⬆ Прокачка привата";
     
-    private final java.util.Map<Player, ChunkClaim> activeFeedingClaims = new java.util.HashMap<>();
+    private final java.util.Map<UUID, ChunkClaim> activeFeedingClaims = new java.util.concurrent.ConcurrentHashMap<>();
 
     public NationGuiListener(VKChatNationsPlugin plugin) {
         this.plugin = plugin;
@@ -342,7 +343,7 @@ public class NationGuiListener implements Listener {
     }
 
     public void openClaimFeedGui(Player p, ChunkClaim claim) {
-        activeFeedingClaims.put(p, claim);
+        activeFeedingClaims.put(p.getUniqueId(), claim);
         Inventory inv = Bukkit.createInventory(null, 27, CLAIM_FEED_TITLE);
 
         ItemStack glass = new ItemStack(Material.GRAY_STAINED_GLASS_PANE);
@@ -430,7 +431,7 @@ public class NationGuiListener implements Listener {
     }
 
     public void openClaimUpgradeGui(Player p, ChunkClaim claim) {
-        activeFeedingClaims.put(p, claim);
+        activeFeedingClaims.put(p.getUniqueId(), claim);
         Inventory inv = Bukkit.createInventory(null, 27, CLAIM_UPGRADE_TITLE);
 
         ItemStack glass = new ItemStack(Material.GRAY_STAINED_GLASS_PANE);
@@ -802,7 +803,7 @@ public class NationGuiListener implements Listener {
         }
         else if (title.equals(CLAIM_FEED_TITLE)) {
             e.setCancelled(true);
-            ChunkClaim claim = activeFeedingClaims.get(p);
+            ChunkClaim claim = activeFeedingClaims.get(p.getUniqueId());
             if (claim == null) return;
 
             ItemStack clicked = e.getCurrentItem();
@@ -873,7 +874,7 @@ public class NationGuiListener implements Listener {
         }
         else if (title.equals(CLAIM_UPGRADE_TITLE)) {
             e.setCancelled(true);
-            ChunkClaim claim = activeFeedingClaims.get(p);
+            ChunkClaim claim = activeFeedingClaims.get(p.getUniqueId());
             if (claim == null) return;
 
             ItemStack clicked = e.getCurrentItem();

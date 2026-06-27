@@ -7,6 +7,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.UUID;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
@@ -16,19 +17,19 @@ public class JobsDataManager {
     private File file;
     private FileConfiguration data;
     
-    private final Map<UUID, Map<String, Integer>> expData = new HashMap<>();
-    private final Map<UUID, Map<String, Integer>> lvlData = new HashMap<>();
-    private final Map<UUID, Integer> fatigueData = new HashMap<>();
-    private final Map<UUID, Map<String, Integer>> skillPoints = new HashMap<>();
-    private final Map<UUID, Map<String, java.util.List<String>>> unlockedSkills = new HashMap<>();
-    private final Map<UUID, Map<String, String>> specializations = new HashMap<>();
-    private final Map<UUID, Map<String, Integer>> dailyProgress = new HashMap<>();
-    private final Map<UUID, Map<String, Boolean>> dailyClaimed = new HashMap<>();
-    private final Map<UUID, String> dailyDate = new HashMap<>();
-    private final Map<UUID, Map<String, Integer>> repEarned = new HashMap<>();
-    private final Map<UUID, Double> repFractions = new HashMap<>();
-    private final Map<UUID, Integer> pendingRepNotify = new HashMap<>();
-    private final Map<UUID, Long> lastRepNotify = new HashMap<>();
+    private final Map<UUID, Map<String, Integer>> expData = new ConcurrentHashMap<>();
+    private final Map<UUID, Map<String, Integer>> lvlData = new ConcurrentHashMap<>();
+    private final Map<UUID, Integer> fatigueData = new ConcurrentHashMap<>();
+    private final Map<UUID, Map<String, Integer>> skillPoints = new ConcurrentHashMap<>();
+    private final Map<UUID, Map<String, java.util.List<String>>> unlockedSkills = new ConcurrentHashMap<>();
+    private final Map<UUID, Map<String, String>> specializations = new ConcurrentHashMap<>();
+    private final Map<UUID, Map<String, Integer>> dailyProgress = new ConcurrentHashMap<>();
+    private final Map<UUID, Map<String, Boolean>> dailyClaimed = new ConcurrentHashMap<>();
+    private final Map<UUID, String> dailyDate = new ConcurrentHashMap<>();
+    private final Map<UUID, Map<String, Integer>> repEarned = new ConcurrentHashMap<>();
+    private final Map<UUID, Double> repFractions = new ConcurrentHashMap<>();
+    private final Map<UUID, Integer> pendingRepNotify = new ConcurrentHashMap<>();
+    private final Map<UUID, Long> lastRepNotify = new ConcurrentHashMap<>();
 
     public JobsDataManager(VKChatJobsPlugin plugin) {
         this.plugin = plugin;

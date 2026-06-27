@@ -32,8 +32,8 @@ import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import java.util.Random;
 import java.util.UUID;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -48,12 +48,12 @@ public class MobListener implements Listener {
     private final NamespacedKey elementKey;
 
     private final Random random = new Random();
-    private final Map<UUID, Long> minionCooldowns = new HashMap<>();
-    private final Map<UUID, Integer> farmedRepToday = new HashMap<>();
-    private final Map<UUID, Long> farmResetTimes = new HashMap<>();
+    private final Map<UUID, Long> minionCooldowns = new ConcurrentHashMap<>();
+    private final Map<UUID, Integer> farmedRepToday = new ConcurrentHashMap<>();
+    private final Map<UUID, Long> farmResetTimes = new ConcurrentHashMap<>();
 
     // Таймеры для способностей супер-боссов
-    private final Map<UUID, Long> lastSpellTime = new HashMap<>();
+    private final Map<UUID, Long> lastSpellTime = new ConcurrentHashMap<>();
 
     public MobListener(VKChatMobsPlugin plugin) {
         this.plugin = plugin;

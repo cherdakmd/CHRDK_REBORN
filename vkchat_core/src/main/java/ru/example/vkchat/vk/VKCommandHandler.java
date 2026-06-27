@@ -6,13 +6,13 @@ import org.bukkit.entity.Player;
 import ru.example.vkchat.VKChatPlugin;
 
 import java.util.Map;
-import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.lang.reflect.Method;
 
 public class VKCommandHandler {
-    private static final Map<Integer, Long> lastMessageTimes = new HashMap<>();
+    private static final Map<Integer, Long> lastMessageTimes = new ConcurrentHashMap<>();
 
     public static void handle(VKChatPlugin plugin, String text, int fromId, int peer) {
         String[] args = text.split(" ");

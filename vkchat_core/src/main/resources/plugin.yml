@@ -55,16 +55,16 @@ commands:
     aliases: [меню, servermenu, mainmenu]
     permission: vkchat.player
   mute:
-    description: Заблокировать игроку отправку сообщений в чаты
-    usage: /mute <player> <minutes>
-    permission: vkchat.admin
+    description: Замутить игрока
+    usage: /mute <ник> <минуты> [причина]
+    permission: vkchat.moderation.warn
   unmute:
-    description: Снять мут (разблокировать отправку сообщений) с игрока
-    usage: /unmute <player>
-    permission: vkchat.admin
+    description: Размутить игрока
+    usage: /unmute <ник>
+    permission: vkchat.moderation.warn
   ignore:
-    description: Добавить игрока в персональный черный список
-    usage: /ignore <player>
+    description: Игнорировать игрока
+    usage: /ignore <ник>
     permission: vkchat.player
   warn:
     description: Выдать предупреждение игроку

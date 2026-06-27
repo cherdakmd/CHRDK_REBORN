@@ -19,8 +19,8 @@ public class RiddleManager {
     private File riddlesFile;
     private FileConfiguration riddlesConfig;
     private Map<String, String> riddles = new HashMap<>();
-    private String currentAnswer = null;
-    private boolean active = false;
+    private volatile String currentAnswer = null;
+    private volatile boolean active = false;
     private Random random = new Random();
 
     public RiddleManager(VKChatPlugin plugin) {

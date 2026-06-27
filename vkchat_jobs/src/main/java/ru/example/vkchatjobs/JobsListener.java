@@ -250,42 +250,44 @@ public class JobsListener implements Listener {
 
     @EventHandler
     public void onBrew(BrewEvent e) {
-        if (e.getBlock().getWorld().getPlayers().isEmpty()) return;
-        Player p = e.getBlock().getWorld().getPlayers().get(0);
-        if (p.getLocation().distance(e.getBlock().getLocation()) < 10) {
-            if (checkFatigue(p, "alchemist")) {
-                plugin.getJobsDataManager().addExp(p, "alchemist", 150);
-                plugin.getJobsDataManager().addDailyProgress(p, "alchemist", 1);
-                plugin.getJobsDataManager().addActionReputation(p, "alchemist", "BREW", 1);
-                if (plugin.getWeeklyTaskManager() != null) plugin.getWeeklyTaskManager().addProgress(p, "craft", 1);
-                if (plugin.getRankingManager() != null) plugin.getRankingManager().addWeeklyRep(p.getUniqueId(), 1);
+        Player p = null;
+        double minDist = Double.MAX_VALUE;
+        for (Player pl : e.getBlock().getWorld().getPlayers()) {
+            double d = pl.getLocation().distanceSquared(e.getBlock().getLocation());
+            if (d < minDist && d < 100) { minDist = d; p = pl; }
+        }
+        if (p == null) return;
+        if (checkFatigue(p, "alchemist")) {
+            plugin.getJobsDataManager().addExp(p, "alchemist", 150);
+            plugin.getJobsDataManager().addDailyProgress(p, "alchemist", 1);
+            plugin.getJobsDataManager().addActionReputation(p, "alchemist", "BREW", 1);
+            if (plugin.getWeeklyTaskManager() != null) plugin.getWeeklyTaskManager().addProgress(p, "craft", 1);
+            if (plugin.getRankingManager() != null) plugin.getRankingManager().addWeeklyRep(p.getUniqueId(), 1);
 
-                if (plugin.getJobsDataManager().hasSkill(p.getUniqueId(), "alchemist", "alch_save")) {
-                    if (Math.random() < 0.1) {
-                        // Возвращаем случайный ингредиент (упрощенно: незерский нарост)
-                        p.getWorld().dropItemNaturally(e.getBlock().getLocation(), new ItemStack(Material.NETHER_WART));
-                        p.sendMessage(org.bukkit.ChatColor.AQUA + "✨ Экономия: ингредиент сохранился!");
-                    }
+            if (plugin.getJobsDataManager().hasSkill(p.getUniqueId(), "alchemist", "alch_save")) {
+                if (Math.random() < 0.1) {
+                    p.getWorld().dropItemNaturally(e.getBlock().getLocation(), new ItemStack(Material.NETHER_WART));
+                    p.sendMessage(org.bukkit.ChatColor.AQUA + "✨ Экономия: ингредиент сохранился!");
                 }
-                if (plugin.getJobsDataManager().hasSkill(p.getUniqueId(), "alchemist", "alch_double")) {
-                    if (Math.random() < 0.1) {
-                        Inventory inv = e.getContents();
-                        for (int i = 0; i < inv.getSize(); i++) {
-                            ItemStack item = inv.getItem(i);
-                            if (item != null && item.getType() != Material.AIR) {
-                                ItemStack extra = item.clone();
-                                extra.setAmount(1);
-                                p.getWorld().dropItemNaturally(e.getBlock().getLocation(), extra);
-                            }
+            }
+            if (plugin.getJobsDataManager().hasSkill(p.getUniqueId(), "alchemist", "alch_double")) {
+                if (Math.random() < 0.1) {
+                    Inventory inv = e.getContents();
+                    for (int i = 0; i < inv.getSize(); i++) {
+                        ItemStack item = inv.getItem(i);
+                        if (item != null && item.getType() != Material.AIR) {
+                            ItemStack extra = item.clone();
+                            extra.setAmount(1);
+                            p.getWorld().dropItemNaturally(e.getBlock().getLocation(), extra);
                         }
-                        p.sendMessage(org.bukkit.ChatColor.AQUA + "✨ Дополнительная порция!");
                     }
+                    p.sendMessage(org.bukkit.ChatColor.AQUA + "✨ Дополнительная порция!");
                 }
-                if (plugin.getJobsDataManager().hasSkill(p.getUniqueId(), "alchemist", "alch_master")) {
-                    if (Math.random() < 0.01) {
-                        p.getWorld().dropItemNaturally(e.getBlock().getLocation(), new ItemStack(Material.POTION));
-                        p.sendMessage(org.bukkit.ChatColor.GOLD + "✨ Философский камень создал зелье!");
-                    }
+            }
+            if (plugin.getJobsDataManager().hasSkill(p.getUniqueId(), "alchemist", "alch_master")) {
+                if (Math.random() < 0.01) {
+                    p.getWorld().dropItemNaturally(e.getBlock().getLocation(), new ItemStack(Material.POTION));
+                    p.sendMessage(org.bukkit.ChatColor.GOLD + "✨ Философский камень создал зелье!");
                 }
             }
         }

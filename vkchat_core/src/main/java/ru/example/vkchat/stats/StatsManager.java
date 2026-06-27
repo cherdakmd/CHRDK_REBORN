@@ -15,8 +15,8 @@ public class StatsManager {
     private final VKChatPlugin plugin;
     
     // Временные счетчики для онлайна за сутки
-    private int todayJoins = 0;
-    private int totalJoins = 0;
+    private volatile int todayJoins = 0;
+    private volatile int totalJoins = 0;
     private Economy econ = null;
 
     public StatsManager(VKChatPlugin plugin) {
@@ -133,7 +133,20 @@ public class StatsManager {
     }
 
     public int getRank(UUID targetUuid) {
-        // Упрощенный расчет рейтинга
+        try (Connection conn = plugin.getDatabaseManager().getConnection()) {
+            int myKills = getKills(targetUuid);
+            int myBlocks = getBlocks(targetUuid);
+            int myTotal = myKills + myBlocks;
+            PreparedStatement ps = conn.prepareStatement(
+                "SELECT COUNT(*) as rank FROM vkchat_stats WHERE (kills + blocks) > ?");
+            ps.setInt(1, myTotal);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getInt("rank") + 1;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
         return 1;
     }
 

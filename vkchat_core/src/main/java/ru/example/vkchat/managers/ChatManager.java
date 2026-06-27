@@ -2,11 +2,12 @@ package ru.example.vkchat.managers;
 
 import ru.example.vkchat.VKChatPlugin;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class ChatManager {
     private final VKChatPlugin plugin;
-    private final Map<UUID, Long> mutes = new HashMap<>();
-    private final Map<UUID, Set<UUID>> ignores = new HashMap<>();
+    private final Map<UUID, Long> mutes = new ConcurrentHashMap<>();
+    private final Map<UUID, Set<UUID>> ignores = new ConcurrentHashMap<>();
 
     public ChatManager(VKChatPlugin plugin) {
         this.plugin = plugin;

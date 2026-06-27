@@ -45,7 +45,7 @@ public class ForgeCommand implements CommandExecutor, Listener, TabCompleter {
     private static final int BACK_SLOT = 45;
     private static final int CLOSE_SLOT = 53;
 
-    private final Map<UUID, PendingOp> pending = new HashMap<>();
+    private final Map<UUID, PendingOp> pending = new java.util.concurrent.ConcurrentHashMap<>();
 
     private static class PendingOp {
         String action;
