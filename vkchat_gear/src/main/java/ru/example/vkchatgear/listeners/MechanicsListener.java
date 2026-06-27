@@ -144,6 +144,16 @@ public class MechanicsListener implements Listener {
                 p.getWorld().spawnParticle(org.bukkit.Particle.TOTEM, p.getLocation().add(0, 0.3, 0), 2, 0.2, 0.2, 0.2, 0.02);
             } else if (plugin.getGearManager().isWearingSet(p, "sokol")) {
                 p.getWorld().spawnParticle(org.bukkit.Particle.REDSTONE, p.getLocation().add(0, 0.2, 0), 5, 0.2, 0.2, 0.2, new org.bukkit.Particle.DustOptions(org.bukkit.Color.fromRGB(150, 0, 0), 1.0f));
+            } else if (plugin.getGearManager().isWearingSet(p, "bone_armor")) {
+                p.getWorld().spawnParticle(org.bukkit.Particle.SMOKE_LARGE, p.getLocation().add(0, 0.1, 0), 3, 0.2, 0.1, 0.2, 0.01);
+            } else if (plugin.getGearManager().isWearingSet(p, "shadow_blade")) {
+                p.getWorld().spawnParticle(org.bukkit.Particle.SPELL_WITCH, p.getLocation().add(0, 0.3, 0), 2, 0.2, 0.3, 0.2, 0.01);
+            } else if (plugin.getGearManager().isWearingSet(p, "ember_crown")) {
+                p.getWorld().spawnParticle(org.bukkit.Particle.FLAME, p.getLocation().add(0, 0.2, 0), 2, 0.15, 0.1, 0.15, 0.01);
+            } else if (plugin.getGearManager().isWearingSet(p, "plague_mist")) {
+                p.getWorld().spawnParticle(org.bukkit.Particle.SPELL_MOB, p.getLocation().add(0, 0.2, 0), 3, 0.3, 0.2, 0.3, 0.01);
+            } else if (plugin.getGearManager().isWearingSet(p, "starforged")) {
+                p.getWorld().spawnParticle(org.bukkit.Particle.ENCHANTMENT_TABLE, p.getLocation().add(0, 0.5, 0), 2, 0.3, 0.3, 0.3, 0.01);
             }
         }
 

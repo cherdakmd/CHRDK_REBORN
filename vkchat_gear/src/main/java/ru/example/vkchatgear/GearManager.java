@@ -847,6 +847,33 @@ public class GearManager {
                     // Пионер: Герой деревни + Удача II
                     p.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.HERO_OF_THE_VILLAGE, 1200, 0, true, false));
                     p.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.LUCK, 1200, 1, true, false));
+                } else if (set.equals("bone_armor")) {
+                    // Костяной Доспех: Сопротивление II + Увеличение здоровья II. Дебафф: Медлительность I
+                    p.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.DAMAGE_RESISTANCE, 1200, resAmp, true, false));
+                    p.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.HEALTH_BOOST, 1200, 1, true, false));
+                    p.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.SLOW, 1200, 0, true, false));
+                } else if (set.equals("shadow_blade")) {
+                    // Клинок Тени: Сила II + Скорость II. Дебафф: Слабость I
+                    p.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.INCREASE_DAMAGE, 1200, strAmp + 1, true, false));
+                    p.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.SPEED, 1200, speedAmp - 1, true, false));
+                    p.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.WEAKNESS, 1200, 0, true, false));
+                } else if (set.equals("ember_crown")) {
+                    // Пепельная Корона: Огнестойкость + Сила II. Дебафф: Утомление копания
+                    p.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.FIRE_RESISTANCE, 1200, 0, true, false));
+                    p.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.INCREASE_DAMAGE, 1200, strAmp + 1, true, false));
+                    p.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.SLOW_DIGGING, 1200, 1, true, false));
+                } else if (set.equals("plague_mist")) {
+                    // Моровой Туман: Яд AoE + Регенерация I. Дебафф: Медлительность II
+                    p.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.REGENERATION, 1200, 0, true, false));
+                    p.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.SLOW, 1200, 1, true, false));
+                } else if (set.equals("starforged")) {
+                    // Звёздная Ковка: Удача III + Прыгучесть III. Дебафф: Невидимость (только ночью)
+                    p.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.LUCK, 1200, 2, true, false));
+                    p.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.JUMP, 1200, jumpAmp, true, false));
+                    boolean isNight = p.getWorld().getTime() >= 13000 && p.getWorld().getTime() <= 23000;
+                    if (isNight) {
+                        p.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.INVISIBILITY, 1200, 0, true, false));
+                    }
                 }
             }
         }

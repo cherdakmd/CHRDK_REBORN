@@ -13,7 +13,7 @@ synthesis:
 settings:
   enabled: true
   prevent-vanilla-repair: true # Запретить починку на ванильной наковальне
-  max-upgrade-level: 20        # Максимальный уровень заточки (+20), хардкорный нерф
+  max-upgrade-level: 25        # Максимальный уровень заточки (+25), мифический нерф
 # Интеграция с Репутацией ВКонтакте
 reputation:
   rep_per_luck_point: 50
@@ -271,6 +271,22 @@ sets:
   gagarin:
     name: "Космонавт Гагарин"
     bonus: "&b&l[Бонус Сета: Прыгучесть IV, Плавное падение, Полет Ветра]"
+  # Мифические Сеты
+  bone_armor:
+    name: "Костяной Доспех"
+    bonus: "&5&l[Бонус Сета: Сопротивление II, Здоровье II, Щит при критическом ХП]"
+  shadow_blade:
+    name: "Клинок Тени"
+    bonus: "&5&l[Бонус Сета: Сила II, Скорость II, 15% Вампиризм]"
+  ember_crown:
+    name: "Пепельная Корона"
+    bonus: "&6&l[Бонус Сета: Огнестойкость, Сила II, Огненный урон при ударе]"
+  plague_mist:
+    name: "Моровой Туман"
+    bonus: "&2&l[Бонус Сета: Яд AoE, Регенерация I, Отравление врагов]"
+  starforged:
+    name: "Звёздная Ковка"
+    bonus: "&b&l[Бонус Сета: Удача III, Прыгучесть III, Регенерация в темноте]"
 names:
   slavic:
     - "Рунный"
@@ -378,12 +394,18 @@ hardcore-forging:
         from: 15
         to: 20
         success: 35
-  max-upgrade-level: 20        # Новый баланс заточки: максимум +20
+      ancient:
+        from: 20
+        to: 25
+        success: 25
+        downgrade-chance: 40
+  max-upgrade-level: 25        # Новый баланс заточки: максимум +25
   destroy-chance:
     craft: 2                   # шанс провала ковки при обычном крафте
     reforge: 8                 # шанс уничтожения предмета при /forge
     crystal-rare: 2            # шанс уничтожения при провале редкого кристалла
     crystal-legendary: 6       # шанс уничтожения при провале легендарного кристалла
+    crystal-ancient: 10        # шанс уничтожения при провале древнего кристалла
   blacksmith:
     discount-per-level: 0.01   # 1% скидки за уровень, ограничивается max-discount
     max-discount: 0.45
@@ -490,6 +512,9 @@ forge2:
     legendary:
       material: NETHERITE_SCRAP
       amount: 4
+    ancient:
+      material: NETHERITE_INGOT
+      amount: 2
   scrolls:
     chance_25:
       price: 2500

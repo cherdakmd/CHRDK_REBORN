@@ -179,6 +179,14 @@ public class VKChatGearPlugin extends JavaPlugin {
                     p.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, 60, 0, false, false, false));
                 }
 
+                // Звёздная Ковка - Регенерация в темноте (свет <= 7)
+                if (gearManager.isWearingSet(p, "starforged")) {
+                    int light = p.getLocation().getBlock().getLightLevel();
+                    if (light <= 7) {
+                        p.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, 60, 0, false, false, false));
+                    }
+                }
+
                 // Постоянно обновляем бонусы сетов: не зависит от движения игрока и не даёт "рывков" эффектов.
                 gearManager.checkSetBonus(p);
             }

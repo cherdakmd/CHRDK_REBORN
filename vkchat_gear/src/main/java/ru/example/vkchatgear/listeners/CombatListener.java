@@ -287,6 +287,32 @@ public class CombatListener implements Listener {
                     }
                 }
             }
+
+            // Костяной Доспех - Щит бессмертия при ХП < 20%
+            if (plugin.getGearManager().isWearingSet(victim, "bone_armor")) {
+                double hpPercent = victim.getHealth() / victim.getAttribute(org.bukkit.attribute.Attribute.GENERIC_MAX_HEALTH).getValue();
+                if (hpPercent <= 0.20) {
+                    long lastShield = 0;
+                    if (victim.hasMetadata("bone_armor_shield_cooldown")) {
+                        lastShield = victim.getMetadata("bone_armor_shield_cooldown").get(0).asLong();
+                    }
+                    if (System.currentTimeMillis() - lastShield >= 90000L) {
+                        victim.setMetadata("bone_armor_shield_cooldown", new org.bukkit.metadata.FixedMetadataValue(plugin, System.currentTimeMillis()));
+                        e.setCancelled(true);
+                        victim.addPotionEffect(new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, 100, 4));
+                        victim.sendMessage(org.bukkit.ChatColor.DARK_PURPLE + "🦴 [Костяной Щит] Ваше здоровье критическое! Доспех пробудил древний щит на 5 секунд!");
+                        victim.playSound(victim.getLocation(), org.bukkit.Sound.ITEM_SHIELD_BLOCK, 1.2f, 0.6f);
+                        victim.getWorld().spawnParticle(org.bukkit.Particle.SMOKE_LARGE, victim.getLocation(), 80, 0.8, 1.0, 0.8, 0.2);
+                        return;
+                    }
+                }
+            }
+
+            // Пепельная Корона - Поджигает атакующего при получении удара
+            if (plugin.getGearManager().isWearingSet(victim, "ember_crown") && attacker instanceof LivingEntity) {
+                attacker.setFireTicks(60);
+                victim.getWorld().spawnParticle(org.bukkit.Particle.FLAME, attacker.getLocation().add(0, 1, 0), 10, 0.3, 0.3, 0.3, 0.02);
+            }
             
             // Проверка Второго дыхания при смертельном ударе
             if (victim.getHealth() - e.getFinalDamage() <= 0) {
@@ -552,6 +578,34 @@ public class CombatListener implements Listener {
                 double heal = e.getFinalDamage() * 0.15;
                 p.setHealth(Math.min(p.getHealth() + heal, p.getAttribute(org.bukkit.attribute.Attribute.GENERIC_MAX_HEALTH).getValue()));
                 p.getWorld().spawnParticle(org.bukkit.Particle.HEART, p.getLocation().add(0, 1.5, 0), 3, 0.2, 0.2, 0.2);
+            }
+
+            // Клинок Тени - 15% вампиризм при ударе
+            if (plugin.getGearManager().isWearingSet(p, "shadow_blade") && random.nextInt(100) < 15) {
+                double heal = e.getFinalDamage() * 0.15;
+                p.setHealth(Math.min(p.getHealth() + heal, p.getAttribute(org.bukkit.attribute.Attribute.GENERIC_MAX_HEALTH).getValue()));
+                p.getWorld().spawnParticle(org.bukkit.Particle.SPELL_WITCH, p.getLocation().add(0, 1.5, 0), 5, 0.2, 0.2, 0.2);
+                p.sendMessage(org.bukkit.ChatColor.DARK_PURPLE + "🗡️ [Клинок Тени] Вы высосли жизнь из противника!");
+            }
+
+            // Пепельная Корона - Поджигает цель при атаке
+            if (plugin.getGearManager().isWearingSet(p, "ember_crown") && random.nextInt(100) < 25) {
+                target.setFireTicks(80);
+                target.getWorld().spawnParticle(org.bukkit.Particle.FLAME, target.getLocation().add(0, 1, 0), 15, 0.3, 0.3, 0.3, 0.02);
+                p.sendMessage(org.bukkit.ChatColor.GOLD + "🔥 [Пепельная Корона] Пламя обрушилось на врага!");
+            }
+
+            // Моровой Туман - AoE Poison II 5 блоков
+            if (plugin.getGearManager().isWearingSet(p, "plague_mist") && random.nextInt(100) < 20) {
+                for (org.bukkit.entity.Entity ent : target.getNearbyEntities(5, 5, 5)) {
+                    if (ent instanceof LivingEntity && ent != p) {
+                        LivingEntity le = (LivingEntity) ent;
+                        le.addPotionEffect(new PotionEffect(PotionEffectType.POISON, 100, 1));
+                    }
+                }
+                target.addPotionEffect(new PotionEffect(PotionEffectType.POISON, 100, 1));
+                target.getWorld().spawnParticle(org.bukkit.Particle.SPELL_MOB, target.getLocation().add(0, 1, 0), 30, 0.5, 0.5, 0.5, 0.05);
+                p.sendMessage(org.bukkit.ChatColor.GREEN + "☠️ [Моровой Туман] Ядовитый туман окурал врага!");
             }
 
             // 2. Ясный Сокол (Темная Империя) - Казнь при ХП < 25% (шанс 20%)

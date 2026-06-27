@@ -107,14 +107,18 @@ public class RuneListener implements Listener {
                     List<String> cLore = new ArrayList<>();
                     cLore.add("§7Позволяет затачивать снаряжение.");
                     cLore.add("");
-                    int from = plugin.getConfig().getInt("hardcore-forging.crystals.tiers." + tier + ".from", tier.equals("common") ? 0 : tier.equals("rare") ? 10 : 15);
-                    int to = plugin.getConfig().getInt("hardcore-forging.crystals.tiers." + tier + ".to", tier.equals("common") ? 10 : tier.equals("rare") ? 15 : 20);
-                    int success = plugin.getConfig().getInt("hardcore-forging.crystals.tiers." + tier + ".success", tier.equals("common") ? 90 : tier.equals("rare") ? 60 : 35);
+                    int from = plugin.getConfig().getInt("hardcore-forging.crystals.tiers." + tier + ".from",
+                        tier.equals("common") ? 0 : tier.equals("rare") ? 10 : tier.equals("legendary") ? 15 : 20);
+                    int to = plugin.getConfig().getInt("hardcore-forging.crystals.tiers." + tier + ".to",
+                        tier.equals("common") ? 10 : tier.equals("rare") ? 15 : tier.equals("legendary") ? 20 : 25);
+                    int success = plugin.getConfig().getInt("hardcore-forging.crystals.tiers." + tier + ".success",
+                        tier.equals("common") ? 90 : tier.equals("rare") ? 60 : tier.equals("legendary") ? 35 : 25);
                     cLore.add("§e• Диапазон заточки: §f+" + from + " ➔ +" + to);
                     cLore.add("§e• Шанс успеха: §a" + success + "%");
                     if (tier.equals("common")) cLore.add("§c• При провале: редко снижает заточку на -1");
                     else if (tier.equals("rare")) cLore.add("§c• При провале: может снизить заточку на -1, но не ниже +" + from);
-                    else cLore.add("§c• При провале: может снизить заточку на -1/-2, но не ниже +" + from);
+                    else if (tier.equals("legendary")) cLore.add("§c• При провале: может снизить заточку на -1/-2, но не ниже +" + from);
+                    else cLore.add("§4• При провале: может снизить заточку на -1/-3, но не ниже +" + from);
                     cLore.add("");
                     cLore.add("§7Перетащите этот кристалл на предмет");
                     cLore.add("§7в инвентаре для его заточки!");
@@ -231,13 +235,19 @@ public class RuneListener implements Listener {
                 ItemMeta targetMeta = current.getItemMeta();
                 int currentLvl = targetMeta.getPersistentDataContainer().getOrDefault(lvlKey, PersistentDataType.INTEGER, 0);
                 
-                int maxUpgrade = plugin.getConfig().getInt("hardcore-forging.max-upgrade-level", plugin.getConfig().getInt("settings.max-upgrade-level", 20));
+                int maxUpgrade = plugin.getConfig().getInt("hardcore-forging.max-upgrade-level", plugin.getConfig().getInt("settings.max-upgrade-level", 25));
                 int commonMax = Math.min(plugin.getConfig().getInt("hardcore-forging.crystals.tiers.common.to", 10), maxUpgrade);
                 int rareFrom = Math.min(plugin.getConfig().getInt("hardcore-forging.crystals.tiers.rare.from", commonMax), maxUpgrade);
                 int rareMax = Math.min(plugin.getConfig().getInt("hardcore-forging.crystals.tiers.rare.to", 15), maxUpgrade);
                 int legendaryFrom = Math.min(plugin.getConfig().getInt("hardcore-forging.crystals.tiers.legendary.from", rareMax), maxUpgrade);
-                int tierFrom = tier.equals("common") ? 0 : tier.equals("rare") ? rareFrom : legendaryFrom;
-                int tierTo = tier.equals("common") ? commonMax : tier.equals("rare") ? rareMax : maxUpgrade;
+                int legendaryMax = Math.min(plugin.getConfig().getInt("hardcore-forging.crystals.tiers.legendary.to", 20), maxUpgrade);
+                int ancientFrom = Math.min(plugin.getConfig().getInt("hardcore-forging.crystals.tiers.ancient.from", legendaryMax), maxUpgrade);
+                int tierFrom;
+                int tierTo;
+                if (tier.equals("common")) { tierFrom = 0; tierTo = commonMax; }
+                else if (tier.equals("rare")) { tierFrom = rareFrom; tierTo = rareMax; }
+                else if (tier.equals("legendary")) { tierFrom = legendaryFrom; tierTo = legendaryMax; }
+                else { tierFrom = ancientFrom; tierTo = maxUpgrade; }
                 if (currentLvl < tierFrom || currentLvl >= tierTo) {
                     p.sendMessage(ChatColor.RED + "Этот кристалл подходит только для заточки от +" + tierFrom + " до +" + tierTo + "!");
                     return;
@@ -250,7 +260,8 @@ public class RuneListener implements Listener {
                 }
 
                 int roll = new java.util.Random().nextInt(100);
-                int successChance = plugin.getConfig().getInt("hardcore-forging.crystals.tiers." + tier + ".success", tier.equals("common") ? 90 : tier.equals("rare") ? 60 : 35);
+                int successChance = plugin.getConfig().getInt("hardcore-forging.crystals.tiers." + tier + ".success",
+                    tier.equals("common") ? 90 : tier.equals("rare") ? 60 : tier.equals("legendary") ? 35 : 25);
                 boolean success = roll < successChance;
                 
                 e.setCancelled(true);
@@ -291,7 +302,11 @@ public class RuneListener implements Listener {
                         return;
                     }
 
-                    int destroyChance = tier.equals("legendary") ? plugin.getConfig().getInt("hardcore-forging.destroy-chance.crystal-legendary", 6) : (tier.equals("rare") ? plugin.getConfig().getInt("hardcore-forging.destroy-chance.crystal-rare", 2) : 0);
+                    int destroyChance;
+                    if (tier.equals("ancient")) destroyChance = plugin.getConfig().getInt("hardcore-forging.destroy-chance.crystal-ancient", 10);
+                    else if (tier.equals("legendary")) destroyChance = plugin.getConfig().getInt("hardcore-forging.destroy-chance.crystal-legendary", 6);
+                    else if (tier.equals("rare")) destroyChance = plugin.getConfig().getInt("hardcore-forging.destroy-chance.crystal-rare", 2);
+                    else destroyChance = 0;
                     if (destroyChance > 0 && new java.util.Random().nextInt(100) < destroyChance) {
                         e.setCurrentItem(null);
                         p.playSound(p.getLocation(), org.bukkit.Sound.BLOCK_ANVIL_BREAK, 1f, 0.5f);
@@ -316,6 +331,15 @@ public class RuneListener implements Listener {
                         if (downgradeRoll < 35) {
                             newLvl = Math.max(tierFrom, currentLvl - 2);
                             penaltyMsg = "Заточка резко снизилась до +" + newLvl + "!";
+                        } else {
+                            newLvl = Math.max(tierFrom, currentLvl - 1);
+                            penaltyMsg = "Заточка снизилась до +" + newLvl + "!";
+                        }
+                    } else if (tier.equals("ancient")) {
+                        int downgradeRoll = new java.util.Random().nextInt(100);
+                        if (downgradeRoll < 40) {
+                            newLvl = Math.max(tierFrom, currentLvl - 3);
+                            penaltyMsg = "Заточка была уничтожена! Снижение до +" + newLvl + "!";
                         } else {
                             newLvl = Math.max(tierFrom, currentLvl - 1);
                             penaltyMsg = "Заточка снизилась до +" + newLvl + "!";

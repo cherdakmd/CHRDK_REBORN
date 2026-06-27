@@ -93,6 +93,7 @@ public class RuneCommand implements CommandExecutor, TabCompleter {
         addCrystal(inv, 37, "Обычный [I-X]", "common", "crystal_common");
         addCrystal(inv, 38, "Редкий [XI-XV]", "rare", "crystal_rare");
         addCrystal(inv, 39, "Легендарный [XVI-XX]", "legendary", "crystal_legendary");
+        addCrystal(inv, 40, "Древний [XXI-XXV]", "ancient", "crystal_ancient");
         addSafetyScroll(inv, 40, "Свиток Сохранения", "safety_scroll");
         
         // Новые ультимативные руны
@@ -193,9 +194,12 @@ public class RuneCommand implements CommandExecutor, TabCompleter {
         List<String> lore = new ArrayList<>();
         lore.add("§7Позволяет затачивать снаряжение.");
         lore.add("");
-        int from = plugin.getConfig().getInt("hardcore-forging.crystals.tiers." + tier + ".from", tier.equals("common") ? 0 : tier.equals("rare") ? 10 : 15);
-        int to = plugin.getConfig().getInt("hardcore-forging.crystals.tiers." + tier + ".to", tier.equals("common") ? 10 : tier.equals("rare") ? 15 : 20);
-        int success = plugin.getConfig().getInt("hardcore-forging.crystals.tiers." + tier + ".success", tier.equals("common") ? 90 : tier.equals("rare") ? 60 : 35);
+        int from = plugin.getConfig().getInt("hardcore-forging.crystals.tiers." + tier + ".from",
+            tier.equals("common") ? 0 : tier.equals("rare") ? 10 : tier.equals("legendary") ? 15 : 20);
+        int to = plugin.getConfig().getInt("hardcore-forging.crystals.tiers." + tier + ".to",
+            tier.equals("common") ? 10 : tier.equals("rare") ? 15 : tier.equals("legendary") ? 20 : 25);
+        int success = plugin.getConfig().getInt("hardcore-forging.crystals.tiers." + tier + ".success",
+            tier.equals("common") ? 90 : tier.equals("rare") ? 60 : tier.equals("legendary") ? 35 : 25);
         lore.add("§e• Диапазон заточки: §f+" + from + " ➔ +" + to);
         lore.add("§e• Шанс успеха: §a" + success + "%");
         if (tier.equals("common")) {
@@ -206,6 +210,10 @@ public class RuneCommand implements CommandExecutor, TabCompleter {
         } else if (tier.equals("legendary")) {
             lore.add("§c• При провале: может снизить заточку на -1/-2, но не ниже +" + from);
             lore.add("§4• Есть небольшой шанс уничтожения без Свитка Сохранения");
+        } else if (tier.equals("ancient")) {
+            lore.add("§4• При провале: может снизить заточку на -1/-3, но не ниже +" + from);
+            lore.add("§4• Высокий шанс уничтожения без Свитка Сохранения!");
+            lore.add("§5• Древний кристалл для эндгейм-заточки");
         }
         lore.add("");
         lore.add("§7Перетащите этот кристалл на предмет");

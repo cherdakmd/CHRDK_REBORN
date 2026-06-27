@@ -66,6 +66,7 @@ public class RuneMarketManager {
         basePrices.put("crystal_common", 400);
         basePrices.put("crystal_rare", 900);
         basePrices.put("crystal_legendary", 1800);
+        basePrices.put("crystal_ancient", 3500);
         basePrices.put("safety_scroll", 1500);
     }
 

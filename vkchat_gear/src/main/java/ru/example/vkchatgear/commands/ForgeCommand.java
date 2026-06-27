@@ -639,6 +639,7 @@ public class ForgeCommand implements CommandExecutor, Listener, TabCompleter {
     private Material materialCostFor(String targetRarity) {
         String raw = plugin.getConfig().getString("forge2.resources." + targetRarity + ".material", null);
         if (raw != null) try { return Material.valueOf(raw); } catch (Exception ignored) {}
+        if (targetRarity.equals("ancient")) return Material.NETHERITE_INGOT;
         if (targetRarity.equals("legendary")) return Material.NETHERITE_SCRAP;
         if (targetRarity.equals("epic")) return Material.DIAMOND;
         if (targetRarity.equals("rare")) return Material.GOLD_INGOT;
@@ -648,6 +649,7 @@ public class ForgeCommand implements CommandExecutor, Listener, TabCompleter {
     private int materialAmountFor(String targetRarity) {
         int cfg = plugin.getConfig().getInt("forge2.resources." + targetRarity + ".amount", -1);
         if (cfg > 0) return cfg;
+        if (targetRarity.equals("ancient")) return 2;
         if (targetRarity.equals("legendary")) return 4;
         if (targetRarity.equals("epic")) return 8;
         if (targetRarity.equals("rare")) return 16;
