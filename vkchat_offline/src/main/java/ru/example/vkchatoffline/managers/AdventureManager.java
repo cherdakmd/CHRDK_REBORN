@@ -178,6 +178,7 @@ public class AdventureManager implements Listener {
                 .replaceAll("^[^A-Za-zА-Яа-я0-9!]+", "")
                 .trim()
                 .toLowerCase(Locale.ROOT);
+        if (plain.startsWith("!")) plain = plain.substring(1);
 
         if (plain.equals("походы") || plain.equals("поход") || plain.equals("назад") || plain.equals("adventures")) { showMenuOrStatus(vkId); return true; }
         if (plain.startsWith("вперёд")) {
