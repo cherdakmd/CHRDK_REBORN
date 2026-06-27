@@ -335,17 +335,22 @@ public class VKChatDonatePayPlugin extends JavaPlugin implements CommandExecutor
         int days = Math.max(1, getConfig().getInt("donor-statuses.levels." + newStatus + ".duration-days", 30));
         String duration = days + "d";
 
-        // Защита от понижения: меньший донат не трогает текущую более высокую категорию.
+        // Защита от понижения: меньший донат не трогает текущую более высокую категорию,
+        // но выдаётся бонусная группа младшего статуса (страховка / дополнительные дни).
         if (currentRank > newRank) {
-            String keepMsg = getConfig().getString("donor-statuses.keep-higher-message", "&e❤ У {player} уже активен более высокий статус {status}. Малый донат засчитан, статус не понижен.")
-                    .replace("{player}", playerName)
-                    .replace("{status}", getDonorStatusName(currentStatus))
-                    .replace("{new_status}", getDonorStatusName(newStatus))
-                    .replace("{duration}", duration)
-                    .replace("{price}", String.format(Locale.US, "%.2f", price));
-            if (online != null) online.sendMessage(color(keepMsg));
-            else if (getConfig().getBoolean("processing.queue-offline-messages", true)) queueMessage(playerName, color(keepMsg));
-            log("DONOR_STATUS_KEEP_HIGHER player=" + playerName + " current=" + currentStatus + " attempted=" + newStatus + " amount=" + amount);
+            if (getConfig().getBoolean("donor-statuses.lower-tier-bonuses.enabled", true)) {
+                addBonusTier(playerName, newStatus, days, id, amount, donator, comment);
+            } else {
+                String keepMsg = getConfig().getString("donor-statuses.keep-higher-message", "&e❤ У {player} уже активен более высокий статус {status}. Малый донат засчитан, статус не понижен.")
+                        .replace("{player}", playerName)
+                        .replace("{status}", getDonorStatusName(currentStatus))
+                        .replace("{new_status}", getDonorStatusName(newStatus))
+                        .replace("{duration}", duration)
+                        .replace("{price}", String.format(Locale.US, "%.2f", price));
+                if (online != null) online.sendMessage(color(keepMsg));
+                else if (getConfig().getBoolean("processing.queue-offline-messages", true)) queueMessage(playerName, color(keepMsg));
+                log("DONOR_STATUS_KEEP_HIGHER player=" + playerName + " current=" + currentStatus + " attempted=" + newStatus + " amount=" + amount);
+            }
             return;
         }
 
@@ -478,6 +483,7 @@ public class VKChatDonatePayPlugin extends JavaPlugin implements CommandExecutor
 
     @EventHandler
     public void onJoin(PlayerJoinEvent e) {
+        cleanupExpiredBonusTiers(e.getPlayer().getName());
         deliverPending(e.getPlayer());
     }
 
@@ -753,15 +759,79 @@ public class VKChatDonatePayPlugin extends JavaPlugin implements CommandExecutor
     }
 
     private String getHighestPermissionStatus(Player p) {
-        if (p.hasPermission("vkchat.donate.status.legend")) return "legend";
-        if (p.hasPermission("vkchat.donate.status.star")) return "star";
-        if (p.hasPermission("vkchat.donate.status.flame")) return "flame";
-        if (p.hasPermission("vkchat.donate.status.spark")) return "spark";
-        return getDonorStatus(p.getName());
+        String permissionStatus = "none";
+        if (p.hasPermission("vkchat.donate.status.legend")) permissionStatus = "legend";
+        else if (p.hasPermission("vkchat.donate.status.star")) permissionStatus = "star";
+        else if (p.hasPermission("vkchat.donate.status.flame")) permissionStatus = "flame";
+        else if (p.hasPermission("vkchat.donate.status.spark")) permissionStatus = "spark";
+        String fileStatus = getDonorStatus(p.getName());
+        if (statusRank(permissionStatus) >= statusRank(fileStatus)) return permissionStatus;
+        return fileStatus;
+    }
+
+    private String getEffectiveStatus(Player p) {
+        String main = getHighestPermissionStatus(p);
+        int mainRank = statusRank(main);
+        long now = System.currentTimeMillis();
+        String bestBonus = "none";
+        int bestBonusRank = 0;
+        if (data.contains("players." + p.getName().toLowerCase(Locale.ROOT) + ".bonus-tiers")) {
+            for (String key : data.getConfigurationSection("players." + p.getName().toLowerCase(Locale.ROOT) + ".bonus-tiers").getKeys(false)) {
+                long expires = data.getLong("players." + p.getName().toLowerCase(Locale.ROOT) + ".bonus-tiers." + key + ".expires", 0L);
+                if (expires > now) {
+                    int r = statusRank(key);
+                    if (r > bestBonusRank) {
+                        bestBonusRank = r;
+                        bestBonus = key;
+                    }
+                }
+            }
+        }
+        if (bestBonusRank > mainRank) return bestBonus;
+        return main;
+    }
+
+    private void cleanupExpiredBonusTiers(String playerName) {
+        String key = playerName.toLowerCase(Locale.ROOT);
+        String path = "players." + key + ".bonus-tiers";
+        if (!data.contains(path)) return;
+        long now = System.currentTimeMillis();
+        for (String tier : new ArrayList<>(data.getConfigurationSection(path).getKeys(false))) {
+            long expires = data.getLong(path + "." + tier + ".expires", 0L);
+            if (expires <= 0 || expires < now) data.set(path + "." + tier, null);
+        }
+    }
+
+    private void addBonusTier(String playerName, String tier, int days, int id, double amount, String donator, String comment) {
+        String key = playerName.toLowerCase(Locale.ROOT);
+        String path = "players." + key + ".bonus-tiers." + tier;
+        long now = System.currentTimeMillis();
+        long oldExpires = data.getLong(path + ".expires", 0L);
+        long base = Math.max(now, oldExpires);
+        long expires = base + days * 86400000L;
+        data.set(path + ".expires", expires);
+        data.set(path + ".granted", now);
+        data.set(path + ".amount", amount);
+
+        // Выдаём группу LuckPerms с accumulate — она останется даже если основной статус истечёт.
+        String lp = "lp user " + playerName + " parent addtemp donate_" + tier + " " + days + "d accumulate";
+        Bukkit.getScheduler().runTask(this, () -> Bukkit.dispatchCommand(Bukkit.getConsoleSender(), lp));
+
+        String msg = getConfig().getString("donor-statuses.lower-tier-bonus-message", "&e❤ {player} получил бонусы статуса {status}&e на {duration} (страховочная группа).")
+                .replace("{player}", playerName)
+                .replace("{status}", getDonorStatusName(tier))
+                .replace("{duration}", days + "d")
+                .replace("{amount}", String.format(Locale.US, "%.2f", amount))
+                .replace("{expires}", new Date(expires).toString());
+        Player online = Bukkit.getPlayerExact(playerName);
+        if (online != null) online.sendMessage(color(msg));
+        else if (getConfig().getBoolean("processing.queue-offline-messages", true)) queueMessage(playerName, color(msg));
+        log("DONOR_STATUS_LOWER_BONUS player=" + playerName + " tier=" + tier + " amount=" + amount + " expires=" + expires);
     }
 
     private void applyStatusPotions(Player p) {
-        String status = getHighestPermissionStatus(p);
+        cleanupExpiredBonusTiers(p.getName());
+        String status = getEffectiveStatus(p);
         if (status == null || status.equals("none")) return;
         for (String line : getConfig().getStringList("donor-statuses.levels." + status + ".effects.potion-effects")) {
             try {
@@ -777,7 +847,8 @@ public class VKChatDonatePayPlugin extends JavaPlugin implements CommandExecutor
     public void onBlockBreak(BlockBreakEvent e) {
         if (e.isCancelled()) return;
         Player p = e.getPlayer();
-        String status = getHighestPermissionStatus(p);
+        cleanupExpiredBonusTiers(p.getName());
+        String status = getEffectiveStatus(p);
         if (status == null || status.equals("none")) return;
         int chance = getConfig().getInt("donor-statuses.levels." + status + ".effects.mining-extra-drop-chance", 0);
         int copies = bonusCopiesFromPercent(chance);
@@ -795,7 +866,8 @@ public class VKChatDonatePayPlugin extends JavaPlugin implements CommandExecutor
     public void onEntityDeath(EntityDeathEvent e) {
         Player p = e.getEntity().getKiller();
         if (p == null) return;
-        String status = getHighestPermissionStatus(p);
+        cleanupExpiredBonusTiers(p.getName());
+        String status = getEffectiveStatus(p);
         if (status == null || status.equals("none")) return;
         int chance = getConfig().getInt("donor-statuses.levels." + status + ".effects.mob-extra-drop-chance", 0);
         int copies = bonusCopiesFromPercent(chance);
@@ -813,7 +885,8 @@ public class VKChatDonatePayPlugin extends JavaPlugin implements CommandExecutor
 
     @EventHandler
     public void onPlayerExp(PlayerExpChangeEvent e) {
-        String status = getHighestPermissionStatus(e.getPlayer());
+        cleanupExpiredBonusTiers(e.getPlayer().getName());
+        String status = getEffectiveStatus(e.getPlayer());
         if (status == null || status.equals("none")) return;
         double expMult = getConfig().getDouble("donor-statuses.levels." + status + ".effects.exp-multiplier", 1.0);
         if (expMult > 1.0) e.setAmount((int)Math.round(e.getAmount() * expMult));
@@ -821,7 +894,7 @@ public class VKChatDonatePayPlugin extends JavaPlugin implements CommandExecutor
 
     /**
      * Chance can be higher than 100 after x10 donate buff:
-     * 30 = 30% for one extra copy, 100 = one guaranteed copy,
+     * 100 = one guaranteed copy,
      * 150 = one guaranteed copy + 50% chance for the second one.
      */
     private int bonusCopiesFromPercent(int percent) {
