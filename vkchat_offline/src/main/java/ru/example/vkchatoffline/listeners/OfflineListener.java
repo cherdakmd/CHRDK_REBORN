@@ -54,32 +54,33 @@ public class OfflineListener implements Listener {
         // Команда смены
         if (msg.startsWith("!смена")) {
             handleShiftCommand(peer, sender, args);
+            e.setCancelled(true);
             return;
         }
 
         // Команда крафта
         if (msg.startsWith("!крафт")) {
             handleCraftCommand(peer, sender, args);
+            e.setCancelled(true);
             return;
         }
 
         // Команда спасения
         if (msg.startsWith("!спасти")) {
             getAdventureManager().handleRescueCommand(peer, sender, args);
+            e.setCancelled(true);
             return;
         }
 
         // Команда питомца
         if (msg.startsWith("!питомец")) {
             getAdventureManager().handlePetCommand(peer, sender, args);
+            e.setCancelled(true);
             return;
         }
 
-        // Команда похода
-        if (msg.equals("!поход")) {
-            getAdventureManager().handleExpeditionCommand(peer, sender, args);
-            return;
-        }
+        // Команда похода теперь обрабатывается новым AdventureManager через VKCommandEvent.
+        // Оставляем здесь только обработку состояния активной экспедиции (выбор локации / действие / загадка).
 
         Expedition exp = getAdventureManager().getExpedition(sender);
 

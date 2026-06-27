@@ -294,7 +294,25 @@ public class VKLongPollManager {
 
                 if (!text.isEmpty()) {
                     final String finalText = text;
-                    Bukkit.getScheduler().runTask(plugin, () -> VKCommandHandler.handle(plugin, finalText, fromId, peer));
+                    final int finalPeer = peer;
+                    final int finalFromId = fromId;
+
+                    // VKCommandEvent и VKMessageEvent асинхронные — fire должен быть НЕ с main thread.
+                    plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
+                        try {
+                            // 1. Сначала VKMessageEvent (кнопки-лейблы, старая экспедиция)
+                            ru.example.vkchat.api.VKMessageEvent messageEvent =
+                                    new ru.example.vkchat.api.VKMessageEvent(finalPeer, finalFromId, finalText);
+                            Bukkit.getPluginManager().callEvent(messageEvent);
+
+                            // 2. Если сообщение не обработано — запускаем командный обработчик
+                            if (!messageEvent.isCancelled()) {
+                                VKCommandHandler.handle(plugin, finalText, finalFromId, finalPeer);
+                            }
+                        } catch (Exception ex) {
+                            plugin.getLogger().warning("[VK] Ошибка обработки сообщения: " + ex.getMessage());
+                        }
+                    });
                 }
             }
         } catch (Exception e) {
