@@ -144,42 +144,6 @@ donor-statuses:
         - "give {player} enchanted_golden_apple 5"
         - "xp add {player} 200 levels"
 
-# ==========================================
-# VIP-КОМАНДЫ ДЛЯ ДОНАТЕРОВ
-# ==========================================
-vip-commands:
-  enabled: true
-  spark:
-    - "/fly 30"           # Полёт на 30 сек
-    - "/heal"             # Лечение
-    - "/feed"             # Насыщение
-  flame:
-    - "/fly 60"
-    - "/heal"
-    - "/feed"
-    - "/speed 2 30"       # Спешка на 30 сек
-    - "/enderchest"       # Эндер-чехст
-  star:
-    - "/fly 120"
-    - "/heal"
-    - "/feed"
-    - "/speed 2 60"
-    - "/enderchest"
-    - "/repair"           # Починка предмета в руке
-    - "/god 30"           # Неуязвимость на 30 сек
-  legend:
-    - "/fly unlimited"
-    - "/heal"
-    - "/feed"
-    - "/speed 3 unlimited"
-    - "/enderchest"
-    - "/repair all"       # Починка всего инвентаря
-    - "/god 60"
-    - "/broadcast"        # Объявление в чат (КД 1 час)
-        - "give {player} netherite_scrap 40"
-        - "give {player} enchanted_golden_apple 10"
-        - "xp add {player} 250 levels"
-
 rewards:
   # Репутация ВК за 1 рубль доната. Выдаётся только если игрок найден и привязан к ВК.
   reputation-per-rub: 10
