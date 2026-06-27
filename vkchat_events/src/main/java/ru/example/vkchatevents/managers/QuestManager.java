@@ -4,6 +4,8 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -13,21 +15,64 @@ import org.bukkit.inventory.ItemStack;
 import ru.example.vkchat.VKChatPlugin;
 import ru.example.vkchatevents.VKChatEventsPlugin;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.logging.Level;
 
 public class QuestManager implements Listener {
     private final VKChatEventsPlugin plugin;
-    // UUID -> (QuestKey -> Progress)
     private final Map<UUID, Map<String, Integer>> playerProgress = new HashMap<>();
+    private final File dataFile;
 
     public QuestManager(VKChatEventsPlugin plugin) {
         this.plugin = plugin;
+        this.dataFile = new File(plugin.getDataFolder(), "quest_progress.yml");
+        loadProgress();
     }
 
     public Map<String, Integer> getPlayerQuestProgress(UUID uuid) {
         return playerProgress.getOrDefault(uuid, java.util.Collections.emptyMap());
+    }
+
+    // --- Persistence ---
+    private void loadProgress() {
+        if (!dataFile.exists()) return;
+        try {
+            FileConfiguration cfg = YamlConfiguration.loadConfiguration(dataFile);
+            for (String uuidStr : cfg.getKeys(false)) {
+                try {
+                    UUID uuid = UUID.fromString(uuidStr);
+                    ConfigurationSection sec = cfg.getConfigurationSection(uuidStr);
+                    if (sec == null) continue;
+                    Map<String, Integer> quests = new HashMap<>();
+                    for (String qKey : sec.getKeys(false)) {
+                        quests.put(qKey, sec.getInt(qKey));
+                    }
+                    playerProgress.put(uuid, quests);
+                } catch (IllegalArgumentException ignored) {}
+            }
+            plugin.getLogger().info("Загружен прогресс квестов для " + playerProgress.size() + " игроков.");
+        } catch (Exception e) {
+            plugin.getLogger().log(Level.WARNING, "Ошибка загрузки quest_progress.yml: " + e.getMessage());
+        }
+    }
+
+    public void saveProgress() {
+        try {
+            FileConfiguration cfg = new YamlConfiguration();
+            for (Map.Entry<UUID, Map<String, Integer>> entry : playerProgress.entrySet()) {
+                ConfigurationSection sec = cfg.createSection(entry.getKey().toString());
+                for (Map.Entry<String, Integer> q : entry.getValue().entrySet()) {
+                    sec.set(q.getKey(), q.getValue());
+                }
+            }
+            cfg.save(dataFile);
+        } catch (IOException e) {
+            plugin.getLogger().log(Level.WARNING, "Ошибка сохранения quest_progress.yml: " + e.getMessage());
+        }
     }
 
     @EventHandler
@@ -116,6 +161,7 @@ public class QuestManager implements Listener {
                 
                 if (current >= required) {
                     playerProgress.get(p.getUniqueId()).remove(qKey);
+                    saveProgress();
                     int rep = q.getInt("reward_rep");
                     
                     int vkId = VKChatPlugin.getInstance().getApi().getLinkedVkId(p);
@@ -126,6 +172,7 @@ public class QuestManager implements Listener {
                     }
                 } else {
                     playerProgress.get(p.getUniqueId()).put(qKey, current);
+                    saveProgress();
                 }
             }
         }

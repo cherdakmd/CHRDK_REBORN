@@ -156,6 +156,107 @@ wrath:
   protected-radius: 48       # Боссы/катаклизмы выбирают только Дикие Земли и не ломают приваты
   vk-event-cost: 1500        # Стоимость запуска ивента через ВК (!ивент) за 1500 репутации ВК
 
+  # --- ПАРАМЕТРЫ БОССА ---
+  boss:
+    name: "&c&lАватар Гнева Богов"   # Имя босса
+    entity-type: "WITHER"             # Тип моба (WITHER, ENDER_DRAGON, etc.)
+    health: 1500                      # Максимальное HP
+    night-on-spawn: true              # Устанавливать ночь при спавне
+    storm-on-spawn: true              # Включать грозу при спавне
+    loot:
+      enabled: true
+      items:
+        - "NETHERITE_INGOT;3;5"
+        - "DIAMOND_BLOCK;2;4"
+        - "ENCHANTED_GOLDEN_APPLE;1;2"
+        - "TOTEM_OF_UNDYING;1;1"
+
+  # --- ПАРАМЕТРЫ КАТАКЛИЗМОВ ---
+  cataclysms:
+    # Глобальные настройки по умолчанию
+    default-tick-interval: 40         # Интервал тика по умолчанию (2 сек)
+
+    acid_rain:
+      duration-seconds: 180           # Длительность (сек)
+      tick-interval: 60               # Интервал тика (тики = сек * 20)
+      armor-damage: 1                 # Урон броне за тик
+      player-damage: 2.0              # Урон игроку без брони
+      poison-level: 0                 # Уровень отравления
+    earthquake:
+      duration-seconds: 60
+      tick-interval: 40
+      crack-chance: 15                # Шанс провала под ногами (%)
+      fissure-chance: 25              # Шанс трещины (%)
+      fissure-length-min: 6
+      fissure-length-max: 10
+      fissure-depth: 3
+    tempest:
+      duration-seconds: 120
+      tick-interval: 20
+      lightning-chance: 25            # Шанс молнии (%)
+      wind-push-force: 1.5            # Сила ураганного ветра
+    meteor_shower:
+      duration-seconds: 120
+      tick-interval: 40
+      meteor-chance: 30               # Шанс метеорита за тик (%)
+      explosion-yield: 2.0            # Мощность взрыва
+    blizzard:
+      duration-seconds: 120
+      tick-interval: 60
+      freeze-damage: 1.0              # Урон от обморожения
+      heat-check-radius: 3            # Радиус проверки источников тепла
+    eclipse:
+      duration-seconds: 120
+      tick-interval: 100
+      mob-spawn-chance: 30            # Шанс спавна моба (%)
+    reputation_bloom:
+      duration-seconds: 180
+      tick-interval: 40
+      market-multiplier: 1.5          # Множитель цен на бирже
+    angelic_grace:
+      duration-seconds: 180
+      tick-interval: 40
+    star_shower:
+      duration-seconds: 120
+      tick-interval: 100
+      comet-chance: 40                # Шанс падения кометы (%)
+      crater-radius: 4                # Радиус кратера
+    geysers:
+      duration-seconds: 120
+      tick-interval: 40
+      geyser-chance: 35               # Шанс гейзера за тик (%)
+      geyser-damage: 6.0              # Урон от кипятка
+      geyser-radius: 2                # Радиус воронки
+    blood_moon_hunt:
+      duration-seconds: 180
+      tick-interval: 80
+      mob-spawn-chance: 35            # Шанс спавна охотника (%)
+    treasure_comet:
+      duration-seconds: 60            # Мгновенное событие (сундук)
+    station_fall:
+      duration-seconds: 60
+      countdown-seconds: 10           # Обратный отсчет перед падением
+      crater-radius: 5                # Радиус кратера
+      droid-count: 3                  # Количество дроидов охраны
+    fog_shadows:
+      duration-seconds: 180
+      tick-interval: 60
+      shadow-spawn-chance: 40         # Шанс спавна тени (%)
+      blindness-level: 0
+      wither-level: 0
+    plasma_storm:
+      duration-seconds: 120
+      tick-interval: 20
+      lightning-chance: 40            # Шанс плазменного удара (%)
+      fire-damage: 3.0                # Урон от плазмы
+      speed-level: 1                  # Уровень ускорения мобов
+    gravity_anomaly:
+      duration-seconds: 150
+      tick-interval: 40
+      launch-chance: 30               # Шанс запуска игрока в небо (%)
+      launch-force: 2.5               # Сила подброса
+      nausea-level: 1
+
 
 # --- МЕТЕОРИТЫ ---
 meteor:

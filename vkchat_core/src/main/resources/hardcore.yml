@@ -35,6 +35,7 @@ hardcore:
   # Кровавая луна (Blood Moon)
   blood-moon:
     enabled: true
+    world: "world"      # Название мира, в котором действует Кровавая Луна
     chance: 10 # Шанс 10% каждую ночь
     mob-multiplier: 2.0 # Во сколько раз мобы бьют сильнее и имеют больше ХП
     reward-multiplier: 3.0 # Множитель лута (денег и репутации)

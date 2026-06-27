@@ -52,7 +52,7 @@ public class WrathManager implements Listener {
                 if (random.nextBoolean()) {
                     tryStartWrath();
                 } else {
-                    String[] cats = {"acid_rain", "earthquake", "tempest", "meteor_shower", "blizzard", "eclipse", "reputation_bloom", "angelic_grace", "star_shower", "geysers", "blood_moon_hunt", "treasure_comet", "station_fall"};
+                    String[] cats = {"acid_rain", "earthquake", "tempest", "meteor_shower", "blizzard", "eclipse", "reputation_bloom", "angelic_grace", "star_shower", "geysers", "blood_moon_hunt", "treasure_comet", "station_fall", "fog_shadows", "plasma_storm", "gravity_anomaly"};
                     startCataclysm(cats[random.nextInt(cats.length)]);
                 }
             }
@@ -87,25 +87,33 @@ public class WrathManager implements Listener {
         Location spawnLoc = ClaimProtection.findSafeWildernessLocation(world, radius, plugin.getConfig().getInt("wrath.protected-radius", 48), 80);
         if (spawnLoc == null) return;
 
-        activeBoss = (LivingEntity) world.spawnEntity(spawnLoc, EntityType.WITHER);
-        activeBoss.setCustomName(ChatColor.DARK_RED + "Аватар Гнева Богов");
+        String bossName = ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("wrath.boss.name", "&c&lАватар Гнева Богов"));
+        String bossTypeStr = plugin.getConfig().getString("wrath.boss.entity-type", "WITHER");
+        EntityType bossType;
+        try { bossType = EntityType.valueOf(bossTypeStr); } catch (Exception ex) { bossType = EntityType.WITHER; }
+        double bossHealth = plugin.getConfig().getDouble("wrath.boss.health", 1500.0);
+
+        activeBoss = (LivingEntity) world.spawnEntity(spawnLoc, bossType);
+        activeBoss.setCustomName(bossName);
         activeBoss.setCustomNameVisible(true);
         activeBoss.getPersistentDataContainer().set(new NamespacedKey(plugin, "wrath_boss"), PersistentDataType.BYTE, (byte)1);
         
         if (activeBoss.getAttribute(Attribute.GENERIC_MAX_HEALTH) != null) {
-            activeBoss.getAttribute(Attribute.GENERIC_MAX_HEALTH).setBaseValue(1500.0);
-            activeBoss.setHealth(1500.0);
+            activeBoss.getAttribute(Attribute.GENERIC_MAX_HEALTH).setBaseValue(bossHealth);
+            activeBoss.setHealth(bossHealth);
         }
         
         wrathActive = true;
 
-        String msg = "Боги в ярости! Аватар Гнева заспавнился на X: " + spawnLoc.getBlockX() + ", Z: " + spawnLoc.getBlockZ() + "!";
+        String msg = "Боги в ярости! " + ChatColor.stripColor(bossName) + " заспавнился на X: " + spawnLoc.getBlockX() + ", Z: " + spawnLoc.getBlockZ() + "!";
         for (Player p : Bukkit.getOnlinePlayers()) {
             p.sendMessage(ChatColor.DARK_RED + "[Гнев Богов] " + ChatColor.RED + msg);
             p.playSound(p.getLocation(), org.bukkit.Sound.ENTITY_WITHER_SPAWN, 1.0f, 0.5f);
-            world.setTime(18000); // Ночь
-            world.setStorm(true);
-            world.setThundering(true);
+            if (plugin.getConfig().getBoolean("wrath.boss.night-on-spawn", true)) world.setTime(18000);
+            if (plugin.getConfig().getBoolean("wrath.boss.storm-on-spawn", true)) {
+                world.setStorm(true);
+                world.setThundering(true);
+            }
         }
 
         if (Bukkit.getPluginManager().getPlugin("VKChat") != null) {
@@ -116,6 +124,14 @@ public class WrathManager implements Listener {
     // ==========================================
     // СИСТЕМА ПРИРОДНЫХ КАТАКЛИЗМОВ И БЛАГОСЛОВЕНИЙ
     // ==========================================
+
+    private int catDuration(String type, int defaultSec) {
+        return plugin.getConfig().getInt("wrath.cataclysms." + type + ".duration-seconds", defaultSec);
+    }
+    private int catTick(String type, int defaultTick) {
+        return plugin.getConfig().getInt("wrath.cataclysms." + type + ".tick-interval", defaultTick);
+    }
+
     public void startCataclysm(String type) {
         if (activeCataclysm != null) return;
         this.activeCataclysm = type;
@@ -746,11 +762,11 @@ public class WrathManager implements Listener {
                             org.bukkit.block.Chest chest = (org.bukkit.block.Chest) chestB.getState();
                             
                             // Кладем легендарные сокровища!
-                            ItemStack rt = ru.example.vkchatmobs.listeners.MobListener.getRuneToken();
+                            ItemStack rt = createRuneToken();
                             rt.setAmount(3);
                             chest.getInventory().addItem(rt);
                             
-                            ItemStack as = ru.example.vkchatmobs.listeners.MobListener.getArtifactShard();
+                            ItemStack as = createArtifactShard();
                             as.setAmount(2);
                             chest.getInventory().addItem(as);
                             
@@ -794,6 +810,145 @@ public class WrathManager implements Listener {
                     }
                 }
             }.runTaskTimer(plugin, 0L, 20L);
+        } else if (type.equals("fog_shadows")) {
+            // КАТАКЛИЗМ: ТУМАН ТЕНЕЙ
+            int dur = catDuration("fog_shadows", 180);
+            int tick = catTick("fog_shadows", 60);
+            cataclysmEndTime = System.currentTimeMillis() + dur * 1000L;
+            world.setStorm(true);
+            world.setThundering(false);
+            world.setTime(18000);
+
+            String alert = "🌫️ ВНИМАНИЕ! Над сервером навис Плотный Туман Теней! Из мрака материализуются призрачные охотники, а видимость падает до нуля!";
+            Bukkit.broadcastMessage(ChatColor.DARK_PURPLE + alert);
+            if (Bukkit.getPluginManager().getPlugin("VKChat") != null) {
+                VKChatPlugin.getInstance().getApi().sendToMainChat("🌫️ Туман Теней!\n" + ChatColor.stripColor(alert));
+            }
+
+            cataclysmTaskId = Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin, () -> {
+                if (System.currentTimeMillis() >= cataclysmEndTime) { stopCataclysm(); return; }
+                int spawnChance = plugin.getConfig().getInt("wrath.cataclysms.fog_shadows.shadow-spawn-chance", 40);
+
+                for (Player p : Bukkit.getOnlinePlayers()) {
+                    if (isLocationClaimed(p.getLocation())) continue;
+                    if (!p.getWorld().equals(world)) continue;
+
+                    // Плотный туман: слепота и тошнота
+                    p.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 80, 0));
+                    p.addPotionEffect(new PotionEffect(PotionEffectType.CONFUSION, 80, 1));
+
+                    // Спавн теней рядом с игроками
+                    if (random.nextInt(100) < spawnChance) {
+                        Location spawn = p.getLocation().clone().add(random.nextInt(12) - 6, 0, random.nextInt(12) - 6);
+                        spawn.setY(world.getHighestBlockYAt(spawn) + 1);
+                        if (!isLocationClaimed(spawn)) {
+                            EntityType[] shadowTypes = {EntityType.ENDERMAN, EntityType.WITHER_SKELETON, EntityType.VEX};
+                            LivingEntity shadow = (LivingEntity) world.spawnEntity(spawn, shadowTypes[random.nextInt(shadowTypes.length)]);
+                            shadow.setCustomName("§5§lТень");
+                            shadow.setCustomNameVisible(true);
+                            shadow.setGlowing(true);
+                            shadow.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, dur * 20, 2));
+                            shadow.addPotionEffect(new PotionEffect(PotionEffectType.INCREASE_DAMAGE, dur * 20, 1));
+                            shadow.getPersistentDataContainer().set(new NamespacedKey(plugin, "blood_moon_mob"), PersistentDataType.BYTE, (byte) 1);
+                        }
+                    }
+
+                    p.getWorld().spawnParticle(org.bukkit.Particle.SMOKE_NORMAL, p.getLocation().add(0, 1, 0), 20, 1.5, 0.5, 1.5, 0.02);
+                }
+            }, 0L, tick);
+
+        } else if (type.equals("plasma_storm")) {
+            // КАТАКЛИЗМ: ПЛАЗМЕННЫЙ ШТОРМ
+            int dur = catDuration("plasma_storm", 120);
+            int tick = catTick("plasma_storm", 20);
+            cataclysmEndTime = System.currentTimeMillis() + dur * 1000L;
+            world.setStorm(true);
+            world.setThundering(true);
+
+            String alert = "⚡ ВНИМАНИЕ! Начинается ПЛАЗМЕННЫЙ ШТОРМ! Электрические разряды пронзают небо, а все мобы получают ускорение и ярость!";
+            Bukkit.broadcastMessage(ChatColor.YELLOW + alert);
+            if (Bukkit.getPluginManager().getPlugin("VKChat") != null) {
+                VKChatPlugin.getInstance().getApi().sendToMainChat("⚡ Плазменный Шторм!\n" + ChatColor.stripColor(alert));
+            }
+
+            cataclysmTaskId = Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin, () -> {
+                if (System.currentTimeMillis() >= cataclysmEndTime) { stopCataclysm(); return; }
+                int lightningChance = plugin.getConfig().getInt("wrath.cataclysms.plasma_storm.lightning-chance", 40);
+                double fireDmg = plugin.getConfig().getDouble("wrath.cataclysms.plasma_storm.fire-damage", 3.0);
+
+                for (Player p : Bukkit.getOnlinePlayers()) {
+                    if (isLocationClaimed(p.getLocation())) continue;
+                    if (!p.getWorld().equals(world)) continue;
+
+                    // Плазменные молнии
+                    if (random.nextInt(100) < lightningChance) {
+                        Location strike = p.getLocation().clone().add(random.nextInt(12) - 6, 0, random.nextInt(12) - 6);
+                        world.strikeLightning(strike);
+                        // Обжигаем nearby
+                        for (org.bukkit.entity.Entity ent : world.getNearbyEntities(strike, 3, 3, 3)) {
+                            if (ent instanceof LivingEntity && !ent.equals(p)) {
+                                ((LivingEntity) ent).damage(fireDmg);
+                                ((LivingEntity) ent).setFireTicks(60);
+                            }
+                        }
+                    }
+
+                    // Электрические частицы
+                    p.getWorld().spawnParticle(org.bukkit.Particle.FIREWORKS_SPARK, p.getLocation().add(0, 2, 0), 10, 1.0, 1.0, 1.0, 0.1);
+
+                    // Ускоряем мобов рядом с игроком
+                    for (org.bukkit.entity.Entity ent : world.getNearbyEntities(p.getLocation(), 64, 32, 64)) {
+                        if (ent instanceof LivingEntity && !(ent instanceof Player)) {
+                            ((LivingEntity) ent).addPotionEffect(new PotionEffect(PotionEffectType.SPEED, tick + 10, 1));
+                        }
+                    }
+                }
+            }, 0L, tick);
+
+        } else if (type.equals("gravity_anomaly")) {
+            // КАТАКЛИЗМ: ИЗВРАЩЕНИЕ ГРАВИТАЦИИ
+            int dur = catDuration("gravity_anomaly", 150);
+            int tick = catTick("gravity_anomaly", 40);
+            cataclysmEndTime = System.currentTimeMillis() + dur * 1000L;
+
+            String alert = "🌀 ВНИМАНИЕ! Происходит Извращение Гравитации! Игроков随机 подбрасывает в воздух, а предметы летают хаотично!";
+            Bukkit.broadcastMessage(ChatColor.AQUA + alert);
+            if (Bukkit.getPluginManager().getPlugin("VKChat") != null) {
+                VKChatPlugin.getInstance().getApi().sendToMainChat("🌀 Извращение Гравитации!\n" + ChatColor.stripColor(alert));
+            }
+
+            cataclysmTaskId = Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin, () -> {
+                if (System.currentTimeMillis() >= cataclysmEndTime) { stopCataclysm(); return; }
+                int launchChance = plugin.getConfig().getInt("wrath.cataclysms.gravity_anomaly.launch-chance", 30);
+                double launchForce = plugin.getConfig().getDouble("wrath.cataclysms.gravity_anomaly.launch-force", 2.5);
+
+                for (Player p : Bukkit.getOnlinePlayers()) {
+                    if (isLocationClaimed(p.getLocation())) continue;
+                    if (!p.getWorld().equals(world)) continue;
+
+                    // Случайный запуск в небо
+                    if (random.nextInt(100) < launchChance) {
+                        p.setVelocity(new org.bukkit.util.Vector(
+                            (random.nextDouble() - 0.5) * 1.0,
+                            launchForce,
+                            (random.nextDouble() - 0.5) * 1.0
+                        ));
+                        p.addPotionEffect(new PotionEffect(PotionEffectType.CONFUSION, 60, 1));
+                        p.sendMessage(ChatColor.AQUA + "🌀 Гравитация захватила вас! Вы летите вверх!");
+                    }
+
+                    // Гравитационные частицы
+                    p.getWorld().spawnParticle(org.bukkit.Particle.PORTAL, p.getLocation().add(0, 0.5, 0), 15, 1.0, 0.5, 1.0, 0.3);
+                    p.getWorld().spawnParticle(org.bukkit.Particle.ENCHANTMENT_TABLE, p.getLocation().add(0, 2, 0), 10, 0.8, 0.3, 0.8, 0.1);
+
+                    // Подбрасываем мобов рядом с игроком
+                    for (org.bukkit.entity.Entity ent : world.getNearbyEntities(p.getLocation(), 48, 24, 48)) {
+                        if (ent instanceof LivingEntity && !(ent instanceof Player) && random.nextInt(100) < 15) {
+                            ent.setVelocity(new org.bukkit.util.Vector(0, 1.5, 0));
+                        }
+                    }
+                }
+            }, 0L, tick);
         }
     }
 
@@ -812,6 +967,33 @@ public class WrathManager implements Listener {
         activeCataclysm = null;
     }
 
+    // ==========================================
+    // ЛОКАЛЬНЫЕ ФАБРИКИ ТОКЕНОВ (без зависимости от vkchat_mobs)
+    // ==========================================
+    private ItemStack createRuneToken() {
+        ItemStack item = new ItemStack(Material.GOLD_NUGGET);
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName("§6§lДревний Жетон Рун");
+        java.util.List<String> lore = new java.util.ArrayList<>();
+        lore.add("§7Редкий трофей, добытый в тяжелом бою.");
+        lore.add("§eИспользование (ПКМ): +250 репутации ВК + случайная руна/кристалл!");
+        meta.setLore(lore);
+        item.setItemMeta(meta);
+        return item;
+    }
+
+    private ItemStack createArtifactShard() {
+        ItemStack item = new ItemStack(Material.PRISMARINE_SHARD);
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName("§d§lОсколок Древнего Артефакта");
+        java.util.List<String> lore = new java.util.ArrayList<>();
+        lore.add("§7Реликт забытой эпохи.");
+        lore.add("§eИспользование (ПКМ): +500 репутации ВК + шанс легендарной руны!");
+        meta.setLore(lore);
+        item.setItemMeta(meta);
+        return item;
+    }
+
     @EventHandler
     public void onBloodMoonMobDeath(EntityDeathEvent e) {
         if (e.getEntity().getPersistentDataContainer().has(new NamespacedKey(plugin, "blood_moon_mob"), PersistentDataType.BYTE)) {
@@ -828,12 +1010,29 @@ public class WrathManager implements Listener {
             Player killer = e.getEntity().getKiller();
             String killerName = killer != null ? killer.getName() : "Неизвестными героями";
             
-            String msg = "Аватар Гнева Богов успешно повержен кузнецом " + killerName + "!";
+            String msg = ChatColor.stripColor(plugin.getConfig().getString("wrath.boss.name", "Аватар Гнева Богов")) + " успешно повержен кузнецом " + killerName + "!";
             for (Player p : Bukkit.getOnlinePlayers()) {
                 p.sendMessage(ChatColor.GREEN + "[Гнев Богов] " + msg);
             }
             if (Bukkit.getPluginManager().getPlugin("VKChat") != null) {
                 VKChatPlugin.getInstance().getApi().sendToMainChat("☀️ " + msg);
+            }
+
+            // Конфигурируемый лут босса
+            if (plugin.getConfig().getBoolean("wrath.boss.loot.enabled", true)) {
+                java.util.List<String> lootItems = plugin.getConfig().getStringList("wrath.boss.loot.items");
+                for (String lootStr : lootItems) {
+                    String[] parts = lootStr.split(";");
+                    if (parts.length >= 2) {
+                        try {
+                            Material mat = Material.valueOf(parts[0]);
+                            int min = Integer.parseInt(parts[1]);
+                            int max = parts.length >= 3 ? Integer.parseInt(parts[2]) : min;
+                            int amount = min + random.nextInt(Math.max(1, max - min + 1));
+                            e.getDrops().add(new ItemStack(mat, amount));
+                        } catch (Exception ignored) {}
+                    }
+                }
             }
             
             e.getEntity().getWorld().setStorm(false);
@@ -857,7 +1056,7 @@ public class WrathManager implements Listener {
 
             if (args.length < 2) {
                 VKChatPlugin.getInstance().getApi().sendMessage(peer, 
-                        "⛏️ Использование: !ивент <дождь/земля/шторм/метеорит/буран/затмение/золото/благо/звезда/гейзер/луна/комета/станция/босс>\n" +
+                        "⛏️ Использование: !ивент <дождь/земля/шторм/метеорит/буран/затмение/золото/благо/звезда/гейзер/луна/комета/станция/туман/плазма/гравитация/босс>\n" +
                         "💰 Стоимость запуска любого события — " + cost + " репутации ВК!");
                 return;
             }
@@ -985,6 +1184,30 @@ public class WrathManager implements Listener {
                 VKChatPlugin.getInstance().getApi().takeReputation(vkId, cost);
                 Bukkit.getScheduler().runTask(plugin, () -> startCataclysm("station_fall"));
                 VKChatPlugin.getInstance().getApi().sendMessage(peer, "✅ Вы запустили событие 'Падение Космической Станции' за " + cost + " репутации!");
+            } else if (type.equals("туман") || type.equals("fog") || type.equals("fog_shadows") || type.equals("тени")) {
+                if (activeCataclysm != null) {
+                    VKChatPlugin.getInstance().getApi().sendMessage(peer, "❌ На сервере уже бушует катаклизм!");
+                    return;
+                }
+                VKChatPlugin.getInstance().getApi().takeReputation(vkId, cost);
+                Bukkit.getScheduler().runTask(plugin, () -> startCataclysm("fog_shadows"));
+                VKChatPlugin.getInstance().getApi().sendMessage(peer, "✅ Вы запустили катаклизм 'Туман Теней' за " + cost + " репутации!");
+            } else if (type.equals("плазма") || type.equals("plasma") || type.equals("plasma_storm")) {
+                if (activeCataclysm != null) {
+                    VKChatPlugin.getInstance().getApi().sendMessage(peer, "❌ На сервере уже бушует катаклизм!");
+                    return;
+                }
+                VKChatPlugin.getInstance().getApi().takeReputation(vkId, cost);
+                Bukkit.getScheduler().runTask(plugin, () -> startCataclysm("plasma_storm"));
+                VKChatPlugin.getInstance().getApi().sendMessage(peer, "✅ Вы запустили катаклизм 'Плазменный Шторм' за " + cost + " репутации!");
+            } else if (type.equals("гравитация") || type.equals("gravity") || type.equals("gravity_anomaly") || type.equals("гравитация")) {
+                if (activeCataclysm != null) {
+                    VKChatPlugin.getInstance().getApi().sendMessage(peer, "❌ На сервере уже бушует катаклизм!");
+                    return;
+                }
+                VKChatPlugin.getInstance().getApi().takeReputation(vkId, cost);
+                Bukkit.getScheduler().runTask(plugin, () -> startCataclysm("gravity_anomaly"));
+                VKChatPlugin.getInstance().getApi().sendMessage(peer, "✅ Вы запустили катаклизм 'Извращение Гравитации' за " + cost + " репутации!");
             } else if (type.equals("босс") || type.equals("boss")) {
                 if (isActive()) {
                     VKChatPlugin.getInstance().getApi().sendMessage(peer, "❌ Аватар Гнева Богов уже бродит по серверу!");
@@ -994,7 +1217,7 @@ public class WrathManager implements Listener {
                 Bukkit.getScheduler().runTask(plugin, this::tryStartWrath);
                 VKChatPlugin.getInstance().getApi().sendMessage(peer, "✅ Вы призвали Аватара Гнева Богов за " + cost + " репутации!");
             } else {
-                VKChatPlugin.getInstance().getApi().sendMessage(peer, "❌ Неверный тип катаклизма! Доступные: дождь, земля, шторм, метеорит, буран, затмение, золото, благо, звезда, гейзер, луна, комета, станция, босс.");
+                VKChatPlugin.getInstance().getApi().sendMessage(peer, "❌ Неверный тип катаклизма! Доступные: дождь, земля, шторм, метеорит, буран, затмение, золото, благо, звезда, гейзер, луна, комета, станция, туман, плазма, гравитация, босс.");
             }
         }
     }

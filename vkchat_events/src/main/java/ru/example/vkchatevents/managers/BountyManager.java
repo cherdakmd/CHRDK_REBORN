@@ -2,6 +2,9 @@ package ru.example.vkchatevents.managers;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -10,20 +13,56 @@ import ru.example.vkchat.VKChatPlugin;
 import ru.example.vkchat.api.VKMessageEvent;
 import ru.example.vkchatevents.VKChatEventsPlugin;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.logging.Level;
 
 public class BountyManager implements Listener {
     private final VKChatEventsPlugin plugin;
     private final Map<UUID, Integer> bounties = new HashMap<>();
+    private final File dataFile;
 
     public BountyManager(VKChatEventsPlugin plugin) {
         this.plugin = plugin;
+        this.dataFile = new File(plugin.getDataFolder(), "bounties.yml");
+        loadBounties();
     }
 
     public Map<UUID, Integer> getBounties() {
         return bounties;
+    }
+
+    // --- Persistence ---
+    private void loadBounties() {
+        if (!dataFile.exists()) return;
+        try {
+            FileConfiguration cfg = YamlConfiguration.loadConfiguration(dataFile);
+            for (String uuidStr : cfg.getKeys(false)) {
+                try {
+                    UUID uuid = UUID.fromString(uuidStr);
+                    int amount = cfg.getInt(uuidStr);
+                    if (amount > 0) bounties.put(uuid, amount);
+                } catch (IllegalArgumentException ignored) {}
+            }
+            plugin.getLogger().info("Загружены баунти для " + bounties.size() + " игроков.");
+        } catch (Exception e) {
+            plugin.getLogger().log(Level.WARNING, "Ошибка загрузки bounties.yml: " + e.getMessage());
+        }
+    }
+
+    public void saveBounties() {
+        try {
+            FileConfiguration cfg = new YamlConfiguration();
+            for (Map.Entry<UUID, Integer> entry : bounties.entrySet()) {
+                cfg.set(entry.getKey().toString(), entry.getValue());
+            }
+            cfg.save(dataFile);
+        } catch (IOException e) {
+            plugin.getLogger().log(Level.WARNING, "Ошибка сохранения bounties.yml: " + e.getMessage());
+        }
     }
 
     @EventHandler
@@ -58,6 +97,7 @@ public class BountyManager implements Listener {
             VKChatPlugin.getInstance().getApi().takeReputation(vkId, amount);
             int current = bounties.getOrDefault(target.getUniqueId(), 0);
             bounties.put(target.getUniqueId(), current + amount);
+            saveBounties();
             
             String bc = " ЗАКАЗ! На голову " + target.getName() + " добавлено " + amount + " репутации! (Всего: " + (current+amount) + ")";
             Bukkit.broadcastMessage(ChatColor.RED + bc);
@@ -72,6 +112,7 @@ public class BountyManager implements Listener {
         
         if (killer != null && killer != victim && bounties.containsKey(victim.getUniqueId())) {
             int reward = bounties.remove(victim.getUniqueId());
+            saveBounties();
             int killerVkId = VKChatPlugin.getInstance().getApi().getLinkedVkId(killer);
             
             if (killerVkId != -1) {

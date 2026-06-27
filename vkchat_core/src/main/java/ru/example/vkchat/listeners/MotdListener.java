@@ -116,6 +116,13 @@ public class MotdListener implements Listener {
         if (type.equals("reputation_bloom")) return "Золотой Век";
         if (type.equals("angelic_grace")) return "Ангельская Благодать";
         if (type.equals("star_shower")) return "Звездопад Желаний";
+        if (type.equals("geysers")) return "Раскаленные Гейзеры";
+        if (type.equals("blood_moon_hunt")) return "Кровавая Луна";
+        if (type.equals("treasure_comet")) return "Комета Сокровищ";
+        if (type.equals("station_fall")) return "Падение Космической Станции";
+        if (type.equals("fog_shadows")) return "Туман Теней";
+        if (type.equals("plasma_storm")) return "Плазменный Шторм";
+        if (type.equals("gravity_anomaly")) return "Извращение Гравитации";
         return type;
     }
 }

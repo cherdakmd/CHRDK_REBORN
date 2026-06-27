@@ -22,7 +22,7 @@ public class BloodMoonManager extends BukkitRunnable {
     public void run() {
         if (!plugin.getConfigManager().getHardcoreConfig().getBoolean("hardcore.blood-moon.enabled", true)) return;
 
-        World world = Bukkit.getWorld("world"); // Главный мир
+        World world = Bukkit.getWorld(plugin.getConfigManager().getHardcoreConfig().getString("hardcore.blood-moon.world", "world"));
         if (world == null) return;
 
         long time = world.getTime();
