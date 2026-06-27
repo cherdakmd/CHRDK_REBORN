@@ -47,7 +47,8 @@ public class CraftListener implements Listener {
             }
 
             ItemStack modified = plugin.getGearManager().generateGear(result, p, false);
-            if (new java.util.Random().nextInt(100) < plugin.getConfig().getInt("hardcore-forging.defects.chance-on-craft-fail", 70) && new java.util.Random().nextInt(100) < 10) {
+            int defectChance = plugin.getConfig().getInt("hardcore-forging.defects.chance-on-craft-fail", 7);
+            if (new java.util.Random().nextInt(100) < defectChance) {
                 plugin.getGearManager().applyRandomDefect(modified);
                 p.sendMessage(ChatColor.YELLOW + "⚠ Предмет сковался с дефектом. Его можно очистить через /forge cleanse за репутацию ВК.");
             }

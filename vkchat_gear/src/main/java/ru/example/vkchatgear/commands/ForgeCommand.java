@@ -22,12 +22,13 @@ import org.bukkit.persistence.PersistentDataType;
 import ru.example.vkchat.VKChatPlugin;
 import ru.example.vkchatgear.VKChatGearPlugin;
 
+import org.bukkit.command.TabCompleter;
 import java.io.File;
 import java.io.FileWriter;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
-public class ForgeCommand implements CommandExecutor, Listener {
+public class ForgeCommand implements CommandExecutor, Listener, TabCompleter {
     private final VKChatGearPlugin plugin;
     private final Random random = new Random();
 
@@ -816,4 +817,9 @@ public class ForgeCommand implements CommandExecutor, Listener {
     }
 
     private void fill(Inventory inv, Material mat) { ItemStack filler = item(mat, " "); for (int i = 0; i < inv.getSize(); i++) inv.setItem(i, filler); }
+
+    @Override
+    public List<String> onTabComplete(CommandSender sender, Command command, String label, String[] args) {
+        return Collections.emptyList();
+    }
 }

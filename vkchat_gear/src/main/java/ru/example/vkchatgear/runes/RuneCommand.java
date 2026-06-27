@@ -12,12 +12,14 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.NamespacedKey;
+import org.bukkit.command.TabCompleter;
 import ru.example.vkchatgear.VKChatGearPlugin;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
-public class RuneCommand implements CommandExecutor {
+public class RuneCommand implements CommandExecutor, TabCompleter {
     private final VKChatGearPlugin plugin;
 
     public RuneCommand(VKChatGearPlugin plugin) {
@@ -260,5 +262,10 @@ public class RuneCommand implements CommandExecutor {
         item.setItemMeta(meta);
         
         inv.setItem(slot, item);
+    }
+
+    @Override
+    public List<String> onTabComplete(CommandSender sender, Command command, String label, String[] args) {
+        return Collections.emptyList();
     }
 }

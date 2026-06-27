@@ -343,6 +343,10 @@ public class RuneListener implements Listener {
                 
                 String enchantName = cursor.getItemMeta().getPersistentDataContainer().get(key, PersistentDataType.STRING);
                 String enchantId = getEnchantIdByName(enchantName);
+                if (enchantId == null) {
+                    e.getWhoClicked().sendMessage(ChatColor.RED + "❌ Неизвестная руна: " + enchantName);
+                    return;
+                }
                 List<String> available = plugin.getGearManager().getAvailableCustomEnchants(current.getType());
                 
                 if (!available.contains(enchantId)) {
@@ -376,7 +380,7 @@ public class RuneListener implements Listener {
                     }
                 }
                 
-                String formattedEnchant = ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("custom_enchants." + getEnchantIdByName(enchantName) + ".name", "&d✨ " + enchantName));
+                String formattedEnchant = ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("custom_enchants." + enchantId + ".name", "&d✨ " + enchantName));
                 targetLore.add(1, formattedEnchant);
                 targetMeta.setLore(targetLore);
                 current.setItemMeta(targetMeta);
@@ -425,6 +429,6 @@ public class RuneListener implements Listener {
         if (name.equals("Магматический Шаг")) return "magma_walker";
         if (name.equals("Метеоритный Дождь")) return "meteor_shower";
         
-        return "vampirism";
+        return null;
     }
 }

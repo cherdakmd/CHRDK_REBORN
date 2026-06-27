@@ -467,8 +467,8 @@ public class GearManager {
                         if (appliedKey.contains(conflict.toLowerCase())) {
                             conflictFound = true;
                             break;
-                        }
-                    }
+    }
+}
                     if (conflictFound) break;
                 }
                 

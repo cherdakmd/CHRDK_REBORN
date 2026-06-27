@@ -19,14 +19,16 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
 import ru.example.vkchatgear.VKChatGearPlugin;
 import ru.example.vkchat.VKChatPlugin;
+import org.bukkit.command.TabCompleter;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-public class SalvageCommand implements CommandExecutor, Listener {
+public class SalvageCommand implements CommandExecutor, Listener, TabCompleter {
     private final VKChatGearPlugin plugin;
     public static final String GUI_TITLE = ChatColor.DARK_GREEN + "♻️ Утилизация снаряжения";
 
@@ -416,5 +418,10 @@ public class SalvageCommand implements CommandExecutor, Listener {
             }
             p.sendMessage(ChatColor.YELLOW + "⚠ Снаряжение из слотов утилизации возвращено в инвентарь.");
         }
+    }
+
+    @Override
+    public List<String> onTabComplete(CommandSender sender, Command command, String label, String[] args) {
+        return Collections.emptyList();
     }
 }

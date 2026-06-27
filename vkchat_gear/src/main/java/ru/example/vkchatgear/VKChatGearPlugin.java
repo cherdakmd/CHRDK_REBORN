@@ -82,13 +82,20 @@ public class VKChatGearPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new SynthesisListener(this), this);
         ForgeCommand forgeCommand = new ForgeCommand(this);
         getCommand("forge").setExecutor(forgeCommand);
+        getCommand("forge").setTabCompleter(forgeCommand);
         getServer().getPluginManager().registerEvents(forgeCommand, this);
         
-        getCommand("gearadmin").setExecutor(new GearAdminCommand(this));
-        getCommand("runes").setExecutor(new RuneCommand(this));
+        GearAdminCommand gearAdminCmd = new GearAdminCommand(this);
+        getCommand("gearadmin").setExecutor(gearAdminCmd);
+        getCommand("gearadmin").setTabCompleter(gearAdminCmd);
+
+        RuneCommand runeCmd = new RuneCommand(this);
+        getCommand("runes").setExecutor(runeCmd);
+        getCommand("runes").setTabCompleter(runeCmd);
         
         ru.example.vkchatgear.commands.SalvageCommand salvageCmd = new ru.example.vkchatgear.commands.SalvageCommand(this);
         getCommand("salvage").setExecutor(salvageCmd);
+        getCommand("salvage").setTabCompleter(salvageCmd);
         getServer().getPluginManager().registerEvents(salvageCmd, this);
         
         getServer().getPluginManager().registerEvents(new RuneListener(this), this);

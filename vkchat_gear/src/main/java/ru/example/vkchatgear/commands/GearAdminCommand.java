@@ -7,13 +7,19 @@ import org.bukkit.NamespacedKey;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
 import ru.example.vkchatgear.VKChatGearPlugin;
 
-public class GearAdminCommand implements CommandExecutor {
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
+
+public class GearAdminCommand implements CommandExecutor, TabCompleter {
     private final VKChatGearPlugin plugin;
 
     public GearAdminCommand(VKChatGearPlugin plugin) {
@@ -139,5 +145,52 @@ public class GearAdminCommand implements CommandExecutor {
         if (n.endsWith("_LEGGINGS")) return "Поножи";
         if (n.endsWith("_BOOTS")) return "Сапоги";
         return "Броня";
+    }
+
+    @Override
+    public List<String> onTabComplete(CommandSender sender, Command command, String label, String[] args) {
+        if (!sender.hasPermission("vkchat.gear.admin")) return new ArrayList<>();
+
+        if (args.length == 1) {
+            List<String> options = new ArrayList<>(Arrays.asList("fragment"));
+            for (Player p : Bukkit.getOnlinePlayers()) options.add(p.getName());
+            return filterPartial(args[0], options);
+        }
+
+        if (args.length == 2) {
+            if (args[0].equalsIgnoreCase("fragment")) {
+                return filterPartial(args[1], getOnlinePlayers());
+            }
+            return filterPartial(args[1], getOnlinePlayers());
+        }
+
+        if (args.length == 3) {
+            if (args[0].equalsIgnoreCase("fragment")) {
+                return filterPartial(args[2], getSetNames());
+            }
+            return filterPartial(args[2], getSetNames());
+        }
+
+        if (args.length == 4) {
+            if (args[0].equalsIgnoreCase("fragment")) {
+                return filterPartial(args[3], Arrays.asList("1", "2", "3", "4", "5", "10", "16", "32", "64"));
+            }
+            return filterPartial(args[3], Arrays.asList("DIAMOND", "NETHERITE", "IRON", "GOLD", "LEATHER"));
+        }
+
+        return new ArrayList<>();
+    }
+
+    private List<String> getOnlinePlayers() {
+        return Bukkit.getOnlinePlayers().stream().map(Player::getName).collect(Collectors.toList());
+    }
+
+    private List<String> getSetNames() {
+        return new ArrayList<>(plugin.getConfig().getConfigurationSection("sets").getKeys(false));
+    }
+
+    private List<String> filterPartial(String input, List<String> options) {
+        String lower = input.toLowerCase();
+        return options.stream().filter(s -> s.toLowerCase().startsWith(lower)).collect(Collectors.toList());
     }
 }
