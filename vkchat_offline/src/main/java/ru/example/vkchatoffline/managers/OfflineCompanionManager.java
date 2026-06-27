@@ -69,51 +69,51 @@ public final class OfflineCompanionManager {
         if ("wolf".equals(comp) && (type.equals("combat") || type.equals("boss")) && random.nextInt(100) < 35) {
             int extra = 8 + random.nextInt(12);
             VKChatPlugin.getInstance().getApi().addReputation(adv.vkId, extra);
-            msg.append("🐺 Волк добил цель: +").append(extra).append(" репутации\\n");
+            msg.append("🐺 Волк добил цель: +").append(extra).append(" репутации\n");
         } else if ("raven".equals(comp) && (type.equals("treasure") || type.equals("trap")) && random.nextInt(100) < 35) {
-            msg.append("🦅 Ворон заметил скрытый знак. Риск следующих ловушек ниже.\\n");
+            msg.append("🦅 Ворон заметил скрытый знак. Риск следующих ловушек ниже.\n");
             adv.morale = Math.min(100, adv.morale + 5);
         } else if ("alchemist".equals(comp) && random.nextInt(100) < 30) {
             int heal = 5 + random.nextInt(8);
             adv.hp = Math.min(adv.maxHp, adv.hp + heal);
-            msg.append("🧪 Алхимик дал эликсир: +").append(heal).append(" HP\\n");
+            msg.append("🧪 Алхимик дал эликсир: +").append(heal).append(" HP\n");
         } else if ("mule".equals(comp) && random.nextInt(100) < 28) {
             adv.supplies++;
-            msg.append("🐴 Мул донёс запас: припасы +1\\n");
+            msg.append("🐴 Мул донёс запас: припасы +1\n");
         } else if ("dragon_whelp".equals(comp) && (type.equals("combat") || type.equals("boss")) && random.nextInt(100) < 40) {
             int fireDmg = 10 + random.nextInt(15);
             VKChatPlugin.getInstance().getApi().addReputation(adv.vkId, fireDmg);
-            msg.append("🐲 Детёныш Дракона дыхнул огнём: +").append(fireDmg).append(" репутации\\n");
+            msg.append("🐲 Детёныш Дракона дыхнул огнём: +").append(fireDmg).append(" репутации\n");
         } else if ("bear".equals(comp) && (type.equals("combat") || type.equals("boss")) && random.nextInt(100) < 35) {
             int tankDmg = 6 + random.nextInt(10);
             VKChatPlugin.getInstance().getApi().addReputation(adv.vkId, tankDmg);
-            msg.append("🐻 Медведь сбил врага с ног: +").append(tankDmg).append(" репутации\\n");
+            msg.append("🐻 Медведь сбил врага с ног: +").append(tankDmg).append(" репутации\n");
         } else if ("owl".equals(comp) && (type.equals("treasure") || type.equals("riddle")) && random.nextInt(100) < 40) {
             adv.morale = Math.min(100, adv.morale + 10);
-            msg.append("🦉 Сова нашла скрытую подсказку: мораль +10\\n");
+            msg.append("🦉 Сова нашла скрытую подсказку: мораль +10\n");
         } else if ("snake".equals(comp) && type.equals("combat") && random.nextInt(100) < 30) {
             int poisonDmg = 5 + random.nextInt(8);
             VKChatPlugin.getInstance().getApi().addReputation(adv.vkId, poisonDmg);
-            msg.append("🐍 Змея укусила врага: +").append(poisonDmg).append(" репутации\\n");
+            msg.append("🐍 Змея укусила врага: +").append(poisonDmg).append(" репутации\n");
         }
     }
 
     public static void applyCompanionNegative(Random random, ActiveAdventure adv, String comp, String type, int choice, StringBuilder msg) {
         if ("wolf".equals(comp) && type.equals("ambush") && random.nextInt(100) < 25) {
             adv.hp = Math.min(adv.maxHp, adv.hp + 6);
-            msg.append("🐺 Волк отвлёк засаду: часть урона предотвращена.\\n");
+            msg.append("🐺 Волк отвлёк засаду: часть урона предотвращена.\n");
         } else if ("raven".equals(comp) && type.equals("trap") && random.nextInt(100) < 25) {
             adv.morale = Math.min(100, adv.morale + 8);
-            msg.append("🦅 Ворон предупредил об опасности слишком поздно, но спас мораль.\\n");
+            msg.append("🦅 Ворон предупредил об опасности слишком поздно, но спас мораль.\n");
         } else if ("mule".equals(comp) && adv.supplies <= 0 && random.nextInt(100) < 40) {
             adv.supplies = 1;
-            msg.append("🐴 Мул нашёл последний сухарь: припасы = 1\\n");
+            msg.append("🐴 Мул нашёл последний сухарь: припасы = 1\n");
         } else if ("bear".equals(comp) && type.equals("ambush") && random.nextInt(100) < 30) {
             adv.hp = Math.min(adv.maxHp, adv.hp + 10);
-            msg.append("🐻 Медведь прикрыл тебя от засады: +10 HP\\n");
+            msg.append("🐻 Медведь прикрыл тебя от засады: +10 HP\n");
         } else if ("owl".equals(comp) && type.equals("trap") && random.nextInt(100) < 35) {
             adv.morale = Math.min(100, adv.morale + 5);
-            msg.append("🦉 Сова предупредила о ловушке заранее: мораль +5\\n");
+            msg.append("🦉 Сова предупредила о ловушке заранее: мораль +5\n");
         }
     }
 
@@ -136,15 +136,15 @@ public final class OfflineCompanionManager {
     }
 
     public static String chooseText() {
-        return "🐾 Спутник походника\\n\\n" +
-                "Выбери спутника:\\n" +
-                "🐺 Волк — бой и боссы\\n" +
-                "🦅 Ворон — ловушки, тайники, загадки\\n" +
-                "🧪 Алхимик — лечение, проклятия, выживание\\n" +
-                "🐴 Мул — больше припасов\\n" +
-                "🐲 Детёныш Дракона — AoE огонь, страх, +50% наград\\n" +
-                "🐻 Медведь — танк, +40% защиты, урон по боссам\\n" +
-                "🦉 Сова — разведка, +30% к обнаружению тайников\\n" +
+        return "🐾 Спутник походника\n\n" +
+                "Выбери спутника:\n" +
+                "🐺 Волк — бой и боссы\n" +
+                "🦅 Ворон — ловушки, тайники, загадки\n" +
+                "🧪 Алхимик — лечение, проклятия, выживание\n" +
+                "🐴 Мул — больше припасов\n" +
+                "🐲 Детёныш Дракона — AoE огонь, страх, +50% наград\n" +
+                "🐻 Медведь — танк, +40% защиты, урон по боссам\n" +
+                "🦉 Сова — разведка, +30% к обнаружению тайников\n" +
                 "🐍 Змея — яд на врагов, +25% к урону от дебаффов";
     }
 }

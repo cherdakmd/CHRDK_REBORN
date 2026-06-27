@@ -180,7 +180,13 @@ public class AdventureManager implements Listener {
                 .toLowerCase(Locale.ROOT);
 
         if (plain.equals("походы") || plain.equals("поход") || plain.equals("назад") || plain.equals("adventures")) { showMenuOrStatus(vkId); return true; }
-        if (plain.startsWith("вперёд")) { showMenuOrStatusPage(vkId, 1); return true; }
+        if (plain.startsWith("вперёд")) {
+            int pg = 1;
+            String digits = plain.replaceAll("\\D+", "");
+            if (!digits.isEmpty()) try { pg = Integer.parseInt(digits); } catch (Exception ignored) {}
+            showMenuOrStatusPage(vkId, pg);
+            return true;
+        }
         if (plain.startsWith("назад") && plain.contains("маршрут")) { showMenuOrStatusPage(vkId, 0); return true; }
         if (plain.equals("герой") || plain.equals("меню героя")) { showHeroMenu(vkId); return true; }
         if (plain.equals("лавка") || plain.equals("магазин")) { showOfflineShop(vkId, "main"); return true; }
@@ -211,6 +217,13 @@ public class AdventureManager implements Listener {
         if (plain.equals("ворон")) { chooseCompanion(vkId, new String[]{"!спутник", "raven"}); return true; }
         if (plain.equals("алхимик")) { chooseCompanion(vkId, new String[]{"!спутник", "alchemist"}); return true; }
         if (plain.equals("мул")) { chooseCompanion(vkId, new String[]{"!спутник", "mule"}); return true; }
+        if (plain.equals("разбойник")) { chooseClass(vkId, new String[]{"!класс", "rogue"}); return true; }
+        if (plain.equals("паладин")) { chooseClass(vkId, new String[]{"!класс", "paladin"}); return true; }
+        if (plain.equals("рейнджер")) { chooseClass(vkId, new String[]{"!класс", "ranger"}); return true; }
+        if (plain.equals("медведь")) { chooseCompanion(vkId, new String[]{"!спутник", "bear"}); return true; }
+        if (plain.equals("сова")) { chooseCompanion(vkId, new String[]{"!спутник", "owl"}); return true; }
+        if (plain.equals("змея")) { chooseCompanion(vkId, new String[]{"!спутник", "snake"}); return true; }
+        if (plain.equals("детёныш") || plain.equals("дракон")) { chooseCompanion(vkId, new String[]{"!спутник", "dragon_whelp"}); return true; }
         if (plain.equals("отдых")) { takeRest(vkId); return true; }
         if (plain.equals("лечиться")) { healSmart(vkId); return true; }
         if (plain.equals("госпиталь")) { showHospital(vkId); return true; }
@@ -474,6 +487,7 @@ public class AdventureManager implements Listener {
         adv.maxHp = 100 + offlineEquipBonus(vkId, "hp");
         if (hasOfflineSkill(vkId, "tough")) adv.maxHp += 15;
         if ("alchemist".equals(getCompanion(vkId))) adv.maxHp += 10;
+        if ("paladin".equals(getPlayerClass(vkId))) adv.maxHp = (int)(adv.maxHp * 1.3);
         if (hasTrauma(vkId, "deep_wound")) adv.maxHp = Math.max(50, adv.maxHp - 12);
         adv.hp = injuries.getOrDefault(vkId, 0L) > now ? Math.min(75, adv.maxHp) : adv.maxHp;
         adv.supplies = plugin.getConfig().getInt("mmorpg.base-supplies", 3) + Math.max(0, getAdvLevel(vkId) / 5);
@@ -1227,7 +1241,7 @@ public class AdventureManager implements Listener {
         }
         String comp = OfflineCompanionManager.normalizeCompanion(args[1]);
         if (!OfflineCompanionManager.isValidCompanion(comp)) {
-            api().sendMessage(vkId, "❌ Неизвестный спутник. Доступно: wolf/raven/alchemist/mule");
+            api().sendMessage(vkId, "❌ Неизвестный спутник. Доступно: wolf/raven/alchemist/mule/dragon_whelp/bear/owl/snake");
             return;
         }
         data.set("stats." + vkId + ".companion", comp);
@@ -1313,7 +1327,7 @@ public class AdventureManager implements Listener {
         }
         String cls = OfflineClassManager.normalizeClass(args[1]);
         if (!OfflineClassManager.isValidClass(cls)) {
-            api().sendMessage(vkId, "❌ Неизвестный класс. Доступно: warrior/scout/mage/cleric");
+            api().sendMessage(vkId, "❌ Неизвестный класс. Доступно: warrior/scout/mage/cleric/rogue/paladin/ranger");
             return;
         }
         data.set("stats." + vkId + ".class", cls);
@@ -1536,7 +1550,7 @@ public class AdventureManager implements Listener {
     }
     private void showRelationships(int vkId) {
         StringBuilder sb = new StringBuilder("🤝 Отношения со спутниками\n\n");
-        for (String c: java.util.Arrays.asList("wolf","raven","alchemist","mule")) sb.append(companionName(c)).append(": ").append(companionRelation(vkId,c)).append("/100\n");
+        for (String c: java.util.Arrays.asList("wolf","raven","alchemist","mule","dragon_whelp","bear","owl","snake")) sb.append(companionName(c)).append(": ").append(companionRelation(vkId,c)).append("/100\n");
         sb.append("\nВысокая дружба помогает в событиях спутника и даёт моральные бонусы.");
         api().sendKeyboard(vkId, sb.toString(), keyboardMain());
     }
@@ -1648,13 +1662,13 @@ public class AdventureManager implements Listener {
         }
 
         // Классы: уникальные прохождения
-        String playerClass = data.getString("class." + adv.vkId, "");
+        String playerClass = data.getString("stats." + adv.vkId + ".class", "");
         if (!playerClass.isEmpty()) {
             unlockAchievement(adv.vkId, playerClass + "_only_run", "Только " + playerClass);
         }
 
         // Компаньоны: уникальные прохождения
-        String companion = data.getString("companion." + adv.vkId, "");
+        String companion = data.getString("stats." + adv.vkId + ".companion", "");
         if (!companion.isEmpty()) {
             unlockAchievement(adv.vkId, companion + "_companion_run", "С " + companion);
         }
@@ -2109,6 +2123,12 @@ public class AdventureManager implements Listener {
             case "swamp": return "☠ Болота";
             case "castle": return "🏰 Замок";
             case "nether": return "🌋 Ад";
+            case "mountain": return "⛰ Горные Вершины";
+            case "underwater": return "🌊 Затонущий Храм";
+            case "desert": return "🏜 Пустынная Оазис";
+            case "frozen": return "❄ Ледяные Пики";
+            case "volcanic": return "🌋 Вулканические Глубины";
+            case "shadow": return "🌑 Царство Теней";
             default: return routeEmoji(route) + " " + route;
         }
     }
@@ -2122,6 +2142,12 @@ public class AdventureManager implements Listener {
         if (text.equals("☠ Болота") || text.equalsIgnoreCase("Болота")) return "swamp";
         if (text.equals("🏰 Замок") || text.equalsIgnoreCase("Замок")) return "castle";
         if (text.equals("🌋 Ад") || text.equalsIgnoreCase("Ад")) return "nether";
+        if (text.equals("⛰ Горные Вершины") || text.equalsIgnoreCase("Горные Вершины") || text.equalsIgnoreCase("Горы")) return "mountain";
+        if (text.equals("🌊 Затонущий Храм") || text.equalsIgnoreCase("Затонущий Храм") || text.equalsIgnoreCase("Храм")) return "underwater";
+        if (text.equals("🏜 Пустынная Оазис") || text.equalsIgnoreCase("Пустынная Оазис") || text.equalsIgnoreCase("Пустыня")) return "desert";
+        if (text.equals("❄ Ледяные Пики") || text.equalsIgnoreCase("Ледяные Пики") || text.equalsIgnoreCase("Пики")) return "frozen";
+        if (text.equals("🌋 Вулканические Глубины") || text.equalsIgnoreCase("Вулканические Глубины") || text.equalsIgnoreCase("Вулканы")) return "volcanic";
+        if (text.equals("🌑 Царство Теней") || text.equalsIgnoreCase("Царство Теней") || text.equalsIgnoreCase("Тени")) return "shadow";
         return null;
     }
 
@@ -2131,6 +2157,12 @@ public class AdventureManager implements Listener {
         if (text.contains("Болота")) return "swamp";
         if (text.contains("Замок")) return "castle";
         if (text.contains("Ад")) return "nether";
+        if (text.contains("Горы") || text.contains("Вершины")) return "mountain";
+        if (text.contains("Храм") || text.contains("Затонувший")) return "underwater";
+        if (text.contains("Пустын") || text.contains("Оазис")) return "desert";
+        if (text.contains("Ледяные") || text.contains("Пики")) return "frozen";
+        if (text.contains("Вулкан")) return "volcanic";
+        if (text.contains("Тени") || text.contains("Царство")) return "shadow";
         return "mine";
     }
 

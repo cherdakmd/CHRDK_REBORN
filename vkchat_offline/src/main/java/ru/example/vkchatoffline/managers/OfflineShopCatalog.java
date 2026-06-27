@@ -61,10 +61,9 @@ public final class OfflineShopCatalog {
         m.put("torch", new ShopItem("torch", "🔦 Факел", "consumable", "utility", 150, 0, 0, 0, 0, 0, 0));
         m.put("map_fragment", new ShopItem("map_fragment", "🗺 Фрагмент карты", "consumable", "utility", 180, 0, 0, 0, 0, 0, 0));
         m.put("bandage", new ShopItem("bandage", "🩹 Бинт", "consumable", "", 80, 25, 0, 0, 0, 0, 0));
-        m.put("antidote_v2", new ShopItem("antidote_v2", "🧪 Антидот", "consumable", "", 100, 0, 0, 0, 0, 0, 0));
         m.put("morale_banner", new ShopItem("morale_banner", "🏴 Знамя отряда", "consumable", "utility", 250, 0, 0, 0, 0, 0, 0));
         m.put("rations", new ShopItem("rations", "🍖 Сухой паёк", "consumable", "", 120, 0, 0, 0, 0, 1, 0));
-        m.put("lucky_charm", new ShopItem("lucky_charm", "🍀 Талисман удачи", "consumable", "talisman", 300, 0, 2, 0, 0, 0, 0));
+        m.put("lucky_charm", new ShopItem("lucky_charm", "🍀 Талисман удачи", "equipment", "talisman", 300, 0, 2, 0, 0, 0, 0));
         m.put("reinforced_armor", new ShopItem("reinforced_armor", "🛡 Усиленная броня", "equipment", "armor", 1200, 20, 0, 5, 0, 0, 0));
         m.put("enchanted_sword", new ShopItem("enchanted_sword", "⚔ Зачарованный меч", "equipment", "weapon", 1100, 0, 3, 0, 0, 0, 0));
         return m;

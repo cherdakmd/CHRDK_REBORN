@@ -195,7 +195,8 @@ public final class OfflineKeyboardFactory {
         return keyboard(
                 row(btn("❓ Как начать", "!вопрос 1", "primary"), btn("🗺 Маршруты", "!вопрос 2", "primary")),
                 row(btn("⏳ Статус похода", "!вопрос 3", "secondary"), btn("🎒 Награды", "!вопрос 4", "positive")),
-                row(btn("☠ Смерть", "!вопрос 5", "negative"), btn("🛑 Отмена похода", "!вопрос 6", "secondary"))
+                row(btn("☠ Смерть", "!вопрос 5", "negative"), btn("🛑 Отмена похода", "!вопрос 6", "secondary")),
+                row(btn("⛺ Походы", "!походы", "primary"))
         );
     }
 
@@ -213,7 +214,8 @@ public final class OfflineKeyboardFactory {
                 row(btn("🐺 Волк", "!спутник wolf", "negative"), btn("🦅 Ворон", "!спутник raven", "positive")),
                 row(btn("🧪 Алхимик", "!спутник alchemist", "primary"), btn("🐴 Мул", "!спутник mule", "secondary")),
                 row(btn("🐻 Медведь", "!спутник bear", "negative"), btn("🦉 Сова", "!спутник owl", "positive")),
-                row(btn("🐍 Змея", "!спутник snake", "primary"), btn("⛺ Походы", "!походы", "secondary"))
+                row(btn("🐍 Змея", "!спутник snake", "primary"), btn("🐲 Детёныш Дракона", "!спутник dragon_whelp", "negative")),
+                row(btn("⛺ Походы", "!походы", "secondary"))
         );
     }
 
