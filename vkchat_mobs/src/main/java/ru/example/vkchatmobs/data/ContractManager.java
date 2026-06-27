@@ -12,6 +12,8 @@ import ru.example.vkchatmobs.VKChatMobsPlugin;
 import ru.example.vkchatmobs.listeners.MobListener;
 import ru.example.vkchat.VKChatPlugin;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Random;
 
 public class ContractManager {
@@ -23,6 +25,7 @@ public class ContractManager {
     private final NamespacedKey requiredKey;
     private final NamespacedKey cooldownKey;
     private final NamespacedKey completedKey;
+    private final NamespacedKey contractElementKey;
 
     public ContractManager(VKChatMobsPlugin plugin) {
         this.plugin = plugin;
@@ -31,13 +34,15 @@ public class ContractManager {
         this.requiredKey = new NamespacedKey(plugin, "mobs_contract_required");
         this.cooldownKey = new NamespacedKey(plugin, "mobs_contract_last_reset");
         this.completedKey = new NamespacedKey(plugin, "mobs_contracts_completed");
+        this.contractElementKey = new NamespacedKey(plugin, "mobs_contract_element");
     }
 
     public enum ContractType {
         RECRUIT("recruit", "§aОхотник на Новобранцев", "Убить 15 мобов Ранга 3+", 15, 150, 1, 0),
         ELITE("elite", "§dИстребитель Элиты", "Убить 10 мобов Ранга 6+", 10, 250, 2, 0),
         CHAMPION("champion", "§6Гроза Чемпионов", "Убить 3 Мини-Bossов", 3, 350, 1, 1),
-        LEGENDARY("legendary", "§c☠ Легендарный Завоеватель ☠", "Убить 1 Мирового Супер-Босса", 1, 500, 3, 2);
+        LEGENDARY("legendary", "§c☠ Легендарный Завоеватель ☠", "Убить 1 Мирового Супер-Босса", 1, 500, 3, 2),
+        ELEMENTAL("elemental", "§bЭлементальный Охотник", "Убить 20 мобов одного стихийного типа", 20, 300, 1, 1);
 
         private final String id;
         private final String displayName;
@@ -126,21 +131,41 @@ public class ContractManager {
         ContractType[] types = ContractType.values();
         int completed = getCompletedContracts(p);
         int hunter = getHunterJobLevel(p);
-        int maxIndex = 0;
-        if (completed >= 3 || hunter >= 10) maxIndex = 1;
-        if (completed >= 10 || hunter >= 25) maxIndex = 2;
-        if (completed >= 25 || hunter >= 40) maxIndex = 3;
-        ContractType selected = types[random.nextInt(Math.min(types.length, maxIndex + 1))];
+        List<ContractType> available = new java.util.ArrayList<>(Arrays.asList(ContractType.RECRUIT));
+        if (completed >= 3 || hunter >= 10) available.add(ContractType.ELITE);
+        if (completed >= 10 || hunter >= 25) available.add(ContractType.CHAMPION);
+        if (completed >= 25 || hunter >= 40) available.add(ContractType.LEGENDARY);
+        if (completed >= 5 || hunter >= 15) available.add(ContractType.ELEMENTAL);
+        ContractType selected = available.get(random.nextInt(available.size()));
 
         PersistentDataContainer pdc = p.getPersistentDataContainer();
         pdc.set(contractTypeKey, PersistentDataType.STRING, selected.getId());
         pdc.set(progressKey, PersistentDataType.INTEGER, 0);
         pdc.set(requiredKey, PersistentDataType.INTEGER, selected.getRequired());
 
+        if (selected == ContractType.ELEMENTAL) {
+            String[] elements = {"fire", "frost", "poison", "storm", "dark", "light"};
+            String element = elements[random.nextInt(elements.length)];
+            pdc.set(contractElementKey, PersistentDataType.STRING, element);
+            String elementName;
+            switch (element) {
+                case "fire": elementName = "Огонь"; break;
+                case "frost": elementName = "Лёд"; break;
+                case "poison": elementName = "Яд"; break;
+                case "storm": elementName = "Буря"; break;
+                case "dark": elementName = "Тьма"; break;
+                case "light": elementName = "Свет"; break;
+                default: elementName = element;
+            }
+            p.sendMessage("§fЗадача: §bУбить 20 мобов стихии §" + element.charAt(0) + elementName);
+        }
+
         p.sendMessage(" ");
         p.sendMessage("§8================§e [КОНТРАКТЫ НА ОХОТУ] §8================");
         p.sendMessage("§fВы получили новый контракт: " + selected.getDisplayName());
-        p.sendMessage("§fЗадача: §b" + selected.getDescription());
+        if (selected != ContractType.ELEMENTAL) {
+            p.sendMessage("§fЗадача: §b" + selected.getDescription());
+        }
         p.sendMessage("§fНаграда:");
         p.sendMessage("§a• +" + selected.getRepReward() + " репутации ВК");
         if (selected.getRuneTokens() > 0) p.sendMessage("§6• " + selected.getRuneTokens() + "x Древний Жетон Рун");
@@ -150,6 +175,10 @@ public class ContractManager {
     }
 
     public void handleMobKill(Player p, int rank, boolean isMiniBoss, boolean isSuperBoss) {
+        handleMobKill(p, rank, isMiniBoss, isSuperBoss, null);
+    }
+
+    public void handleMobKill(Player p, int rank, boolean isMiniBoss, boolean isSuperBoss, String element) {
         ContractType contract = getActiveContract(p);
         if (contract == null) return;
 
@@ -158,6 +187,10 @@ public class ContractManager {
         else if (contract == ContractType.ELITE && rank >= 6) qualifies = true;
         else if (contract == ContractType.CHAMPION && isMiniBoss) qualifies = true;
         else if (contract == ContractType.LEGENDARY && isSuperBoss) qualifies = true;
+        else if (contract == ContractType.ELEMENTAL && element != null) {
+            String contractElement = p.getPersistentDataContainer().getOrDefault(contractElementKey, PersistentDataType.STRING, "");
+            if (element.equalsIgnoreCase(contractElement)) qualifies = true;
+        }
 
         if (!qualifies) return;
 

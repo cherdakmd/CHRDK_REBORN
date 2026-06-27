@@ -1,6 +1,12 @@
 package ru.example.vkchatmobs;
 
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
+import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.java.JavaPlugin;
 import ru.example.vkchatmobs.data.ContractManager;
 import ru.example.vkchatmobs.siege.SiegeManager;
@@ -8,6 +14,12 @@ import ru.example.vkchatmobs.commands.MobCommand;
 import ru.example.vkchatmobs.listeners.MobListener;
 import ru.example.vkchatmobs.managers.HardcoreMobManager;
 import ru.example.vkchatmobs.managers.MobsEvents2Manager;
+import ru.example.vkchatmobs.managers.MobStormManager;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Random;
 
 
 public class VKChatMobsPlugin extends JavaPlugin {
@@ -16,6 +28,8 @@ public class VKChatMobsPlugin extends JavaPlugin {
     private SiegeManager siegeManager;
     private HardcoreMobManager hardcoreMobManager;
     private MobsEvents2Manager events2Manager;
+    private MobStormManager mobStormManager;
+    private static final Random random = new Random();
     
 
     private void migrateConfigDefaults() {
@@ -76,7 +90,9 @@ public class VKChatMobsPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(hardcoreMobManager, this);
         events2Manager = new MobsEvents2Manager(this);
         getServer().getPluginManager().registerEvents(events2Manager, this);
-        getLogger().info("VKChatMobs (Hardcore RPG Mobs + Осады + Контракты) успешно запущен!");
+        mobStormManager = new MobStormManager(this);
+        getServer().getPluginManager().registerEvents(mobStormManager, this);
+        getLogger().info("VKChatMobs (Hardcore RPG Mobs + Осады + Контракты + Шторм) успешно запущен!");
     }
 
     @Override
@@ -102,5 +118,25 @@ public class VKChatMobsPlugin extends JavaPlugin {
 
     public MobsEvents2Manager getEvents2Manager() {
         return events2Manager;
+    }
+
+    public MobStormManager getMobStormManager() {
+        return mobStormManager;
+    }
+
+    public static ItemStack createSetFragment(VKChatMobsPlugin plugin) {
+        org.bukkit.plugin.Plugin gear = Bukkit.getPluginManager().getPlugin("VKChatGear");
+        if (gear == null) return null;
+        List<String> sets = new ArrayList<>(plugin.getConfig().getStringList("hardcore-mobs.rewards.set-fragments"));
+        if (sets.isEmpty()) sets.addAll(Arrays.asList("bogatyr", "sokol", "volhv", "koshchey", "tankist", "udarnik"));
+        String set = sets.get(random.nextInt(sets.size()));
+        ItemStack item = new ItemStack(Material.PAPER);
+        ItemMeta meta = item.getItemMeta();
+        String setName = plugin.getConfig().getString("hardcore-mobs.rewards.set-fragment-names." + set, set);
+        meta.setDisplayName(ChatColor.GOLD + "Фрагмент сета: " + setName);
+        meta.setLore(Arrays.asList(ChatColor.GRAY + "Трофей элитной охоты.", ChatColor.GRAY + "Используется при ковке брони в VKChatGear."));
+        meta.getPersistentDataContainer().set(new NamespacedKey(gear, "set_fragment"), PersistentDataType.STRING, set);
+        item.setItemMeta(meta);
+        return item;
     }
 }

@@ -45,6 +45,7 @@ public class MobListener implements Listener {
     private final NamespacedKey isSuperBossKey;
     private final NamespacedKey superBossTypeKey;
     private final NamespacedKey bossPhaseKey;
+    private final NamespacedKey elementKey;
 
     private final Random random = new Random();
     private final Map<UUID, Long> minionCooldowns = new HashMap<>();
@@ -62,6 +63,7 @@ public class MobListener implements Listener {
         this.isSuperBossKey = new NamespacedKey(plugin, "is_super_boss");
         this.superBossTypeKey = new NamespacedKey(plugin, "super_boss_type");
         this.bossPhaseKey = new NamespacedKey(plugin, "boss_phase");
+        this.elementKey = new NamespacedKey(plugin, "hardcore_element");
         
         startRegenerationTask();
         startBossAbilitiesTask();
@@ -724,7 +726,8 @@ public class MobListener implements Listener {
 
         // Начисление контракта
         if (killer != null && plugin.getContractManager() != null) {
-            plugin.getContractManager().handleMobKill(killer, rank, isMiniBoss, isSuperBoss);
+            String element = mob.getPersistentDataContainer().getOrDefault(elementKey, PersistentDataType.STRING, null);
+            plugin.getContractManager().handleMobKill(killer, rank, isMiniBoss, isSuperBoss, element);
         }
 
         // Начисление репутации ВК за убийство монстра
@@ -820,7 +823,7 @@ public class MobListener implements Listener {
             org.bukkit.plugin.Plugin gearPlugin = Bukkit.getPluginManager().getPlugin("VKChatGear");
             if (gearPlugin != null && gearPlugin.isEnabled()) {
                 ItemStack dropToGive = null;
-                int itemRoll = random.nextInt(3);
+                int itemRoll = random.nextInt(6);
                 if (itemRoll == 0) {
                     // Свиток сохранения
                     dropToGive = new ItemStack(Material.PAPER);
@@ -844,7 +847,7 @@ public class MobListener implements Listener {
                     cMeta.getPersistentDataContainer().set(new NamespacedKey(gearPlugin, "crystal_name"), PersistentDataType.STRING, "Редкий [XI-XV]");
                     cMeta.getPersistentDataContainer().set(new NamespacedKey(gearPlugin, "crystal_price"), PersistentDataType.INTEGER, 900);
                     dropToGive.setItemMeta(cMeta);
-                } else {
+                } else if (itemRoll == 2) {
                     // Обычный кристалл
                     dropToGive = new ItemStack(Material.EMERALD);
                     ItemMeta cMeta = dropToGive.getItemMeta();
@@ -855,6 +858,31 @@ public class MobListener implements Listener {
                     cMeta.getPersistentDataContainer().set(new NamespacedKey(gearPlugin, "crystal_tier"), PersistentDataType.STRING, "common");
                     cMeta.getPersistentDataContainer().set(new NamespacedKey(gearPlugin, "crystal_name"), PersistentDataType.STRING, "Обычный [I-X]");
                     cMeta.getPersistentDataContainer().set(new NamespacedKey(gearPlugin, "crystal_price"), PersistentDataType.INTEGER, 400);
+                    dropToGive.setItemMeta(cMeta);
+                } else if (itemRoll == 3) {
+                    // Легендарный кристалл
+                    dropToGive = new ItemStack(Material.NETHER_STAR);
+                    ItemMeta cMeta = dropToGive.getItemMeta();
+                    cMeta.setDisplayName("§5💎 Кристалл Заточки: Легендарный [XVI-XX]");
+                    List<String> cLore = new ArrayList<>();
+                    cLore.add("§7Позволяет затачивать снаряжение.");
+                    cMeta.setLore(cLore);
+                    cMeta.getPersistentDataContainer().set(new NamespacedKey(gearPlugin, "crystal_tier"), PersistentDataType.STRING, "legendary");
+                    cMeta.getPersistentDataContainer().set(new NamespacedKey(gearPlugin, "crystal_name"), PersistentDataType.STRING, "Легендарный [XVI-XX]");
+                    cMeta.getPersistentDataContainer().set(new NamespacedKey(gearPlugin, "crystal_price"), PersistentDataType.INTEGER, 1500);
+                    dropToGive.setItemMeta(cMeta);
+                } else if (itemRoll == 4 && rank >= 10) {
+                    // Древний кристалл (только ранг 10, шанс 1/6 из 5% = ~0.83%)
+                    dropToGive = new ItemStack(Material.HEART_OF_THE_SEA);
+                    ItemMeta cMeta = dropToGive.getItemMeta();
+                    cMeta.setDisplayName("§c💎 Кристалл Заточки: Древний [XXI-XXV]");
+                    List<String> cLore = new ArrayList<>();
+                    cLore.add("§7Позволяет затачивать снаряжение до +25.");
+                    cLore.add("§cВысочайшая ступень мастерства.");
+                    cMeta.setLore(cLore);
+                    cMeta.getPersistentDataContainer().set(new NamespacedKey(gearPlugin, "crystal_tier"), PersistentDataType.STRING, "ancient");
+                    cMeta.getPersistentDataContainer().set(new NamespacedKey(gearPlugin, "crystal_name"), PersistentDataType.STRING, "Древний [XXI-XXV]");
+                    cMeta.getPersistentDataContainer().set(new NamespacedKey(gearPlugin, "crystal_price"), PersistentDataType.INTEGER, 2500);
                     dropToGive.setItemMeta(cMeta);
                 }
                 
@@ -876,8 +904,9 @@ public class MobListener implements Listener {
                 
                 killer.sendMessage("§d✨ ПРЕДОПРЕДЕЛЕННЫЙ ЛУТ! С поверженного Мирового Супер-Босса выпали древние жетоны сокровищ!");
             } else if (isMiniBoss) {
-                // С мини-боссов шанс 25% на Жетон Рун
-                if (random.nextInt(100) < 25) {
+                // С мини-боссов масштабируемый шанс: 5% + 3% за ранг, макс. 50%
+                int runeChance = Math.min(50, 5 + rank * 3);
+                if (random.nextInt(100) < runeChance) {
                     mob.getWorld().dropItemNaturally(mob.getLocation(), getRuneToken());
                     killer.sendMessage("§6✨ НАХОДКА! С мини-босса выпал Древний Жетон Рун!");
                 }

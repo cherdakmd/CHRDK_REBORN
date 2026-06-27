@@ -1,147 +1,114 @@
 # ==========================================
 #  ДИНАМИЧЕСКОЕ УСИЛЕНИЕ МОБОВ (VKChat Mobs)
 # ==========================================
-# Этот аддон усиливает монстров в зависимости от крутости игрока, 
-# который находится рядом в момент спавна моба.
-
 settings:
   enabled: true
-  # Максимальный радиус поиска игрока от точки спавна моба
   search-radius: 64.0
 
 # ==========================================
-#  ФОРМУЛА СЛОЖНОСТИ (Зависит от профессий VKChatJobs)
+#  ФОРМУЛА СЛОЖНОСТИ
 # ==========================================
-# Сложность рассчитывается как сумма всех уровней работ игрока (Шахтер, Лесоруб и т.д.)
-# Максимальный уровень работ = 250.
-# Ранг моба вычисляется как: (Сумма Уровней Работ / rank-divider) + 1.
-
 difficulty:
-  rank-divider: 25.0       # Каждые 25 уровней работ повышают Ранг моба на 1
-  
-  # Максимальный множитель, чтобы мобы не стали бессмертными (Например, макс x10)
+  rank-divider: 25.0
   max-multiplier: 10.0
-  
-  # Показывать ли полоску здоровья над мобом (Голограмма в имени)?
   show-health-nameplate: true
 
 # ==========================================
 # ⚔ ХАРАКТЕРИСТИКИ УСИЛЕНИЯ
 # ==========================================
 scaling:
-  health: true             # Увеличивать ли ХП мобов?
-  damage: true             # Увеличивать ли урон мобов?
-  speed: false             # Увеличивать ли скорость? (Осторожно, мобы могут начать "летать")
-  
-  # Разрешать ли усиление мобов из спавнеров (Качалок)?
+  health: true
+  damage: true
+  speed: false
   affect-spawners: false
 
 # ==========================================
 #  КРОВАВАЯ ЛУНА И МИНИ-БОССЫ
 # ==========================================
 blood_moon:
-  # На сколько умножаются статы мобов во время Кровавой Луны
   stat-multiplier: 1.5
-  # Давать ли мобам свечение во время Кровавой Луны?
   glowing: true
 
 mini_bosses:
-  # Шанс спавна мини-босса вместо обычного моба (в процентах)
   spawn-chance: 5
-  # Шанс спавна мини-босса во время Кровавой Луны
   blood-moon-spawn-chance: 15
-  # Множитель ХП и Урона мини-босса
   stat-multiplier: 2.0
-  # Гарантированный дроп за убийство мини-босса
   guaranteed-loot:
     - "DIAMOND;2;5"
     - "GOLDEN_APPLE;1;2"
     - "EMERALD;3;8"
 
 # ==========================================
-#  СПОСОБНОСТИ ЭЛИТНЫХ МОБОВ (Ранг >= 3)
+#  СПОСОБНОСТИ ЭЛИТНЫХ МОБОВ
 # ==========================================
 abilities:
   regeneration:
     enabled: true
     min-rank: 3
-    heal-amount: 1.5       # Сколько ХП регенерирует моб раз в 3 секунды
+    heal-amount: 1.5
   fire_strike:
     enabled: true
     min-rank: 4
-    chance: 25             # Шанс поджечь игрока при ударе (в процентах)
+    chance: 25
     duration-seconds: 4
   web_weaver:
     enabled: true
     min-rank: 5
-    chance: 15             # Шанс наложить замедление и паутину при ударе
+    chance: 15
     slowness-duration-seconds: 5
   minion_summon:
     enabled: true
     min-rank: 6
-    chance: 10             # Шанс призвать прислужников при получении урона
+    chance: 10
     cooldown-seconds: 15
 
 # ==========================================
 #  ЛУТ И НАГРАДЫ
 # ==========================================
 loot:
-  multiply-exp: true       # Умножать выпадающий опыт?
-  multiply-items: true     # Умножать количество выпадающего дропа (кости, плоть, порох)?
-  
-  # Особые награды за убийство ОЧЕНЬ сильных мобов
+  multiply-exp: true
+  multiply-items: true
   extra-rewards:
     enabled: true
-    min-multiplier: 3.0    # Множитель сложности моба, начиная с которого может выпасть этот лут
-    chance: 15             # Шанс выпадения (в процентах)
-    items:                 # Материал;Минимум;Максимум
+    min-multiplier: 3.0
+    chance: 15
+    items:
       - "DIAMOND;1;3"
       - "GOLDEN_APPLE;1;1"
       - "EMERALD;2;5"
 
 # ==========================================
-#  ЛИМИТЫ НАЧИСЛЕНИЯ РЕПУТАЦИИ (АНТИ-ФАРМ)
-# ==========================================
-reputation:
-  # Максимальное количество репутации, которое игрок может получить за убийство мобов в час
-  # (Защита от авто-макросов и гипер-гринда)
-  max-farm-per-hour: 300
-
-# ==========================================
-# HARDCORE RPG MOBS — новая надстройка
+# HARDCORE RPG MOBS
 # ==========================================
 hardcore-mobs:
   enabled: true
   elites:
-    natural-spawn-chance: 2.0       # редкий natural-spawn
-    night-cave-bonus: 3.0           # бонус шанса ночью/в пещерах
-    event-bonus: 8.0                # бонус во время Кровавой Луны ядра
+    natural-spawn-chance: 2.0
+    night-cave-bonus: 3.0
+    event-bonus: 8.0
     show-name: true
   scaling:
     per-nearby-player: 0.20
-    per-progress-point: 0.004       # gear/jobs/rep игрока повышают сложность
+    per-progress-point: 0.004
     night-cave: 0.25
     max: 5.0
   abilities:
     enabled: true
     cooldown-ms: 8000
-    telegraph-ticks: 30             # задержка между телеграфом и ударом
+    telegraph-ticks: 30
     zone-damage: 5.0
   anti-farm:
     max-elites-per-world: 35
     reward-cooldown-ms: 2500
-    no-spawner-rare-rewards: true
   rewards:
     rep:
       elite: 8
       mini: 25
       raid: 80
       world: 180
-    rune-token-chance:
-      elite: 8
-      mini: 25
-      raid: 60
-      world: 100
+    rune-token-base-chance: 5
+    rune-token-chance-per-rank: 3
+    rune-token-max-chance: 50
     artifact-shard-chance:
       raid: 30
       world: 80
@@ -157,6 +124,23 @@ hardcore-mobs:
       - koshchey
       - tankist
       - udarnik
+      - leshy
+      - volhv
+      - proletarian
+      - cosmonaut
+      - pioneer
+      - red_cat
+      - dragon_slayer
+      - el_carpo
+      - shadow_monarch
+      - perun
+      - chernobog
+      - gagarin
+      - bone_armor
+      - shadow_blade
+      - ember_crown
+      - plague_mist
+      - starforged
     set-fragment-names:
       bogatyr: "Богатырь"
       sokol: "Ясный Сокол"
@@ -164,12 +148,46 @@ hardcore-mobs:
       koshchey: "Бессмертный"
       tankist: "Танкист"
       udarnik: "Ударник Труда"
+      leshy: "Леший"
+      proletarian: "Пролетарий"
+      cosmonaut: "Космонавт"
+      pioneer: "Пионер"
+      red_cat: "РЫЖИЙ КОТ"
+      dragon_slayer: "Драконоборец"
+      el_carpo: "EL CARPO"
+      shadow_monarch: "Теневой Монарх"
+      perun: "Грозовой Доспех"
+      chernobog: "Чернобог"
+      gagarin: "Космонавт Гагарин"
+      bone_armor: "Костяной Доспех"
+      shadow_blade: "Клинок Тени"
+      ember_crown: "Пепельная Корона"
+      plague_mist: "Моровой Туман"
+      starforged: "Звёздная Ковка"
+
+# ==========================================
+# ШТОРМ МОБОВ — мировое событие
+# ==========================================
+mob-storm:
+  enabled: true
+  trigger-chance-percent: 10
+  total-mobs: 50
+  waves:
+    - count: 10
+      delay-ticks: 0
+    - count: 15
+      delay-ticks: 200
+    - count: 25
+      delay-ticks: 400
+  duration-seconds: 30
+  mob-rank: 5
+  mob-multiplier: 2.0
+  broadcast: true
 
 # ==========================================
 # Mobs / Events 2.0 — контракты, рейды, мировые угрозы
 # ==========================================
 events2:
-  effects-level: balanced # low / balanced / cinematic
   announcements:
     chat: true
     vk: true
@@ -181,7 +199,6 @@ events2:
     phase-seconds: 45
     safe-search-radius: 80
     protected-radius: 48
-    allow-wilderness-block-damage: false
   raid:
     rewards:
       participant-rep: 120

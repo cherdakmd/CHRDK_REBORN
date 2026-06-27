@@ -277,7 +277,7 @@ public class MobsEvents2Manager implements Listener {
         if (r == 0) reward = MobListener.getRuneToken();
         else if (r == 1) reward = MobListener.getArtifactShard();
         else if (r == 2) reward = createForgeScroll(random.nextBoolean() ? "chance_25" : "anti_defect");
-        else reward = createSetFragment();
+        else reward = VKChatMobsPlugin.createSetFragment(plugin);
         if (reward != null) { safeGive(p, reward); incrementRareDaily(p); p.sendMessage(ChatColor.LIGHT_PURPLE + "✨ Редкая рейд-награда: " + reward.getItemMeta().getDisplayName()); }
     }
 
@@ -304,21 +304,6 @@ public class MobsEvents2Manager implements Listener {
         meta.getPersistentDataContainer().set(new NamespacedKey(gear, "forge_scroll_type"), PersistentDataType.STRING, type);
         it.setItemMeta(meta);
         return it;
-    }
-
-    private ItemStack createSetFragment() {
-        org.bukkit.plugin.Plugin gear = Bukkit.getPluginManager().getPlugin("VKChatGear");
-        if (gear == null) return null;
-        List<String> sets = plugin.getConfig().getStringList("hardcore-mobs.rewards.set-fragments");
-        if (sets.isEmpty()) sets = Arrays.asList("bogatyr", "sokol", "volhv", "koshchey");
-        String set = sets.get(random.nextInt(sets.size()));
-        ItemStack item = new ItemStack(Material.PAPER);
-        ItemMeta meta = item.getItemMeta();
-        meta.setDisplayName(ChatColor.GOLD + "Фрагмент сета: " + plugin.getConfig().getString("hardcore-mobs.rewards.set-fragment-names." + set, set));
-        meta.setLore(Arrays.asList(ChatColor.GRAY + "Рейдовый трофей.", ChatColor.GRAY + "Используется при ковке брони."));
-        meta.getPersistentDataContainer().set(new NamespacedKey(gear, "set_fragment"), PersistentDataType.STRING, set);
-        item.setItemMeta(meta);
-        return item;
     }
 
     private void giveRep(Player p, int rep) { try { int vk = VKChatPlugin.getInstance().getApi().getLinkedVkId(p); if (vk != -1) VKChatPlugin.getInstance().getApi().addReputation(vk, rep); } catch (Throwable ignored) {} }
