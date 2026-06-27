@@ -54,10 +54,10 @@ public class GearManager {
 
     private double getDonateDiscount(Player p) {
         if (p == null) return 0.0;
-        if (p.hasPermission("vkchat.donate.gear.legend") || p.hasPermission("vkchat.donate.status.legend")) return plugin.getConfig().getDouble("forge2.donate-discount.legend", 2.00);
-        if (p.hasPermission("vkchat.donate.gear.star") || p.hasPermission("vkchat.donate.status.star")) return plugin.getConfig().getDouble("forge2.donate-discount.star", 1.20);
-        if (p.hasPermission("vkchat.donate.gear.flame") || p.hasPermission("vkchat.donate.status.flame")) return plugin.getConfig().getDouble("forge2.donate-discount.flame", 0.70);
-        if (p.hasPermission("vkchat.donate.gear.spark") || p.hasPermission("vkchat.donate.status.spark")) return plugin.getConfig().getDouble("forge2.donate-discount.spark", 0.30);
+        if (p.hasPermission("vkchat.donate.gear.legend") || p.hasPermission("vkchat.donate.status.legend")) return plugin.getConfig().getDouble("forge2.donate-discount.legend", 1.00);
+        if (p.hasPermission("vkchat.donate.gear.star") || p.hasPermission("vkchat.donate.status.star")) return plugin.getConfig().getDouble("forge2.donate-discount.star", 0.50);
+        if (p.hasPermission("vkchat.donate.gear.flame") || p.hasPermission("vkchat.donate.status.flame")) return plugin.getConfig().getDouble("forge2.donate-discount.flame", 0.25);
+        if (p.hasPermission("vkchat.donate.gear.spark") || p.hasPermission("vkchat.donate.status.spark")) return plugin.getConfig().getDouble("forge2.donate-discount.spark", 0.10);
         return 0.0;
     }
 
@@ -78,13 +78,14 @@ public class GearManager {
     }
 
     public int getRuneSlotLimit(String rarityKey) {
-        return plugin.getConfig().getInt("hardcore-forging.rune-slots." + rarityKey, rarityKey.equals("legendary") ? 3 : rarityKey.equals("epic") ? 2 : rarityKey.equals("rare") ? 1 : 0);
+        return plugin.getConfig().getInt("hardcore-forging.rune-slots." + rarityKey, rarityKey.equals("ancient") ? 4 : rarityKey.equals("legendary") ? 3 : rarityKey.equals("epic") ? 2 : rarityKey.equals("rare") ? 1 : 0);
     }
 
     public String getRarityKey(ItemStack item) {
         if (item == null || !item.hasItemMeta() || !item.getItemMeta().hasLore()) return "common";
         for (String line : item.getItemMeta().getLore()) {
             String stripped = ChatColor.stripColor(line).toLowerCase();
+            if (stripped.contains("древн")) return "ancient";
             if (stripped.contains("легендар")) return "legendary";
             if (stripped.contains("эпичес")) return "epic";
             if (stripped.contains("редкий")) return "rare";
@@ -114,6 +115,7 @@ public class GearManager {
             case "rare": return 0.05;
             case "epic": return 0.09;
             case "legendary": return 0.15;
+            case "ancient": return 0.20;
             default: return 0.0;
         }
     }
@@ -124,6 +126,7 @@ public class GearManager {
             case "rare": return 0.03;
             case "epic": return 0.06;
             case "legendary": return 0.10;
+            case "ancient": return 0.18;
             default: return 0.0;
         }
     }
@@ -239,12 +242,14 @@ public class GearManager {
             case "rare": return 2;
             case "epic": return 3;
             case "legendary": return 4;
+            case "ancient": return 5;
             default: return 0;
         }
     }
 
     private String rarityByIndex(int idx) {
-        if (idx >= 4) return "legendary";
+        if (idx >= 5) return "ancient";
+        if (idx == 4) return "legendary";
         if (idx == 3) return "epic";
         if (idx == 2) return "rare";
         if (idx == 1) return "uncommon";
@@ -268,7 +273,8 @@ public class GearManager {
         int rareLvl = plugin.getConfig().getInt("hardcore-forging.blacksmith.rare-unlock-level", 5);
         int epicLvl = plugin.getConfig().getInt("hardcore-forging.blacksmith.epic-unlock-level", 15);
         int legLvl = plugin.getConfig().getInt("hardcore-forging.blacksmith.legendary-unlock-level", 25);
-        int jobCap = blacksmithLvl >= legLvl ? 4 : blacksmithLvl >= epicLvl ? 3 : blacksmithLvl >= rareLvl ? 2 : 1;
+        int ancientLvl = plugin.getConfig().getInt("hardcore-forging.blacksmith.ancient-unlock-level", 35);
+        int jobCap = blacksmithLvl >= ancientLvl ? 5 : blacksmithLvl >= legLvl ? 4 : blacksmithLvl >= epicLvl ? 3 : blacksmithLvl >= rareLvl ? 2 : 1;
         return rarityByIndex(Math.min(rarityIndex(rolled), Math.min(capIdx, jobCap)));
     }
 
@@ -333,7 +339,7 @@ public class GearManager {
                 "wither_strike", "armor_piercing", "soul_reaper", "berserk", "disarm", "levitation_strike", 
                 "wither_burst", "thunder_strike", "poison_cloud", "critical_strike", "lifesteal_aura", 
                 "meteor_shower", "frozen_touch", "disintegration", "rarity_seal", "vampire_aoe",
-                "telekenesis", "experience_boost"
+                "telekenesis", "experience_boost", "soul_drain", "chain_lightning", "void_strike"
             ));
         } 
         // 2. ТОПОРЫ (Боевое оружие + Дровосек / Спешка)
@@ -343,7 +349,7 @@ public class GearManager {
                 "wither_strike", "armor_piercing", "soul_reaper", "berserk", "disarm", "levitation_strike", 
                 "wither_burst", "thunder_strike", "poison_cloud", "critical_strike", "lifesteal_aura", 
                 "meteor_shower", "frozen_touch", "disintegration", "rarity_seal", "vampire_aoe",
-                "telekenesis", "experience_boost", "haste", "timber"
+                "telekenesis", "experience_boost", "haste", "timber", "soul_drain", "chain_lightning", "void_strike"
             ));
         } 
         // 3. БРОНЯ (Шлемы, Нагрудники, Поножи, Сапоги)
@@ -351,7 +357,7 @@ public class GearManager {
             list.addAll(Arrays.asList(
                 "thorns", "dodge", "fire_aura", "shield", "health_boost", "reflect_magic", "second_wind", 
                 "heavy_weight", "magma_walker", "ender_shield", "wind_step", "golem_skin", "spider_reflexes", 
-                "healing_aura", "aquatic_life", "soul_bond", "wind_glide", "rarity_seal"
+                "healing_aura", "aquatic_life", "soul_bond", "wind_glide", "rarity_seal", "stone_skin", "life_link"
             ));
         } 
         // 4. КИРКИ (Шахтерские инструменты: Спешка, Телекинез, Опыт, Магнит руд, Автоплавка)
@@ -523,12 +529,18 @@ public class GearManager {
 
         item.setItemMeta(meta);
 
-        if (rarityKey.equals("legendary") || rarityKey.equals("epic")) {
+        if (rarityKey.equals("ancient") || rarityKey.equals("legendary") || rarityKey.equals("epic")) {
             crafter.getWorld().strikeLightningEffect(crafter.getLocation());
             crafter.playSound(crafter.getLocation(), org.bukkit.Sound.BLOCK_ANVIL_USE, 1f, 0.5f);
         }
 
-        if (rarityKey.equals("legendary")) {
+        if (rarityKey.equals("ancient")) {
+            String msg = " ДРЕВНЕЕ ПРОБУЖДЕНИЕ! Кузнец " + crafter.getName() + " сковал предмет запредельной силы: " + rarityName + " " + generatedName + "!";
+            Bukkit.broadcastMessage(ChatColor.DARK_PURPLE + msg);
+            try {
+                VKChatPlugin.getInstance().getApi().sendToMainChat(msg);
+            } catch (Exception ignored) {}
+        } else if (rarityKey.equals("legendary")) {
             String msg = " ВЕЛИКОЕ СОБЫТИЕ! Кузнец " + crafter.getName() + " сковал предмет мифической силы: " + rarityName + " " + generatedName + "!";
             Bukkit.broadcastMessage(ChatColor.GOLD + msg);
             try {
@@ -635,7 +647,9 @@ public class GearManager {
         String newRarityKey = null;
         
         // Определяем понижение
-        if (currentRarity.contains("ЛЕГЕНДАРНЫЙ")) {
+        if (currentRarity.contains("ДРЕВНИЙ")) {
+            newRarityKey = "legendary";
+        } else if (currentRarity.contains("ЛЕГЕНДАРНЫЙ")) {
             newRarityKey = "epic";
         } else if (currentRarity.contains("Эпический")) {
             newRarityKey = "rare";
@@ -661,7 +675,7 @@ public class GearManager {
         String displayName = meta.getDisplayName();
         String pureName = ChatColor.stripColor(displayName);
         // Убираем старую редкость из имени
-        pureName = pureName.replace("[ЛЕГЕНДАРНЫЙ] ", "").replace("[Эпический] ", "").replace("[Редкий] ", "").replace("[Необычный] ", "").replace("[Обычный] ", "");
+        pureName = pureName.replace("[ДРЕВНИЙ] ", "").replace("[ЛЕГЕНДАРНЫЙ] ", "").replace("[Эпический] ", "").replace("[Редкий] ", "").replace("[Необычный] ", "").replace("[Обычный] ", "");
         meta.setDisplayName(newRarityName + " " + ChatColor.WHITE + pureName);
         
         item.setItemMeta(meta);
@@ -693,6 +707,7 @@ public class GearManager {
     public void checkSetBonus(Player p) {
         if (p == null) return;
         Map<String, Integer> setCounts = new HashMap<>();
+        Map<String, java.util.Set<String>> setPieceTypes = new HashMap<>();
         int totalLvl = 0;
         int pieceCount = 0;
         for (ItemStack armor : p.getInventory().getArmorContents()) {
@@ -701,6 +716,8 @@ public class GearManager {
                 if (set != null) {
                     if (isLegalSetPiece(armor)) {
                         setCounts.put(set, setCounts.getOrDefault(set, 0) + 1);
+                        String pieceType = getArmorPieceType(armor.getType());
+                        setPieceTypes.computeIfAbsent(set, k -> new java.util.HashSet<>()).add(pieceType);
                         int lvl = armor.getItemMeta().getPersistentDataContainer().getOrDefault(new NamespacedKey(plugin, "upgrade_level"), PersistentDataType.INTEGER, 0);
                         totalLvl += lvl;
                         pieceCount++;
@@ -711,9 +728,15 @@ public class GearManager {
             }
         }
         
-        int avgLvl = pieceCount >= 4 ? totalLvl / 4 : 0; // Средняя заточка только при полном комплекте (4 элемента)
+        int avgLvl = pieceCount >= 4 ? totalLvl / 4 : 0;
         
-        boolean hasFullSet = setCounts.values().stream().anyMatch(count -> count >= 4);
+        boolean hasFullSet = false;
+        for (Map.Entry<String, Integer> entry : setCounts.entrySet()) {
+            if (entry.getValue() >= 4 && setPieceTypes.getOrDefault(entry.getKey(), java.util.Collections.emptySet()).size() >= 4) {
+                hasFullSet = true;
+                break;
+            }
+        }
         if (!hasFullSet) {
             if (p.hasMetadata("vkchat_set_bonus_active")) {
                 removeSetPotionEffects(p);
@@ -727,7 +750,7 @@ public class GearManager {
         p.setMetadata("vkchat_set_bonus_active", new org.bukkit.metadata.FixedMetadataValue(plugin, true));
         
         for (Map.Entry<String, Integer> entry : setCounts.entrySet()) {
-            if (entry.getValue() >= 4) { // Фулл сет
+            if (entry.getValue() >= 4 && setPieceTypes.getOrDefault(entry.getKey(), java.util.Collections.emptySet()).size() >= 4) { // Фулл сет: 4 предмета и 4 разных слота
                 String set = entry.getKey();
                 
                 // Рассчитываем силу баффов в зависимости от средней заточки сета!
@@ -874,6 +897,21 @@ public class GearManager {
                     if (isNight) {
                         p.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.INVISIBILITY, 1200, 0, true, false));
                     }
+                } else if (set.equals("slavic_mage")) {
+                    // Славянский Волхв: Сила I + Скорость I. Дебафф: Слабость I
+                    p.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.INCREASE_DAMAGE, 1200, 0, true, false));
+                    p.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.SPEED, 1200, 0, true, false));
+                    p.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.WEAKNESS, 1200, 0, true, false));
+                } else if (set.equals("soviet_engineer")) {
+                    // Инженер: Спешка I + Сопротивление I. Дебафф: Медлительность I
+                    p.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.FAST_DIGGING, 1200, 0, true, false));
+                    p.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.DAMAGE_RESISTANCE, 1200, 0, true, false));
+                    p.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.SLOW, 1200, 0, true, false));
+                } else if (set.equals("assassin_cloak")) {
+                    // Мантия Убийцы: Скорость II + Прыгучесть II. Дебафф: Слабость I
+                    p.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.SPEED, 1200, 1, true, false));
+                    p.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.JUMP, 1200, 1, true, false));
+                    p.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.WEAKNESS, 1200, 0, true, false));
                 }
             }
         }
@@ -881,18 +919,32 @@ public class GearManager {
 
     public boolean isWearingSet(Player p, String setName) {
         int count = 0;
+        java.util.Set<String> pieceTypes = new java.util.HashSet<>();
         for (ItemStack armor : p.getInventory().getArmorContents()) {
             if (armor != null && armor.hasItemMeta()) {
                 String set = armor.getItemMeta().getPersistentDataContainer().get(
                     new NamespacedKey(plugin, "gear_set"), PersistentDataType.STRING
                 );
                 if (setName.equalsIgnoreCase(set)) {
-                    if (isLegalSetPiece(armor)) count++;
-                    else warnIllegalSetPiece(p, armor);
+                    if (isLegalSetPiece(armor)) {
+                        count++;
+                        pieceTypes.add(getArmorPieceType(armor.getType()));
+                    } else {
+                        warnIllegalSetPiece(p, armor);
+                    }
                 }
             }
         }
-        return count >= 4;
+        return count >= 4 && pieceTypes.size() >= 4;
+    }
+
+    private String getArmorPieceType(Material mat) {
+        String n = mat.name();
+        if (n.endsWith("_HELMET")) return "helmet";
+        if (n.endsWith("_CHESTPLATE")) return "chestplate";
+        if (n.endsWith("_LEGGINGS")) return "leggings";
+        if (n.endsWith("_BOOTS")) return "boots";
+        return n;
     }
 
     public void updateGearUpgradeLevel(ItemStack item, int newLvl) {
@@ -915,6 +967,44 @@ public class GearManager {
         }
         
         item.setItemMeta(meta);
+    }
+
+    public int calculateGearScore(Player p) {
+        if (p == null) return 0;
+        int totalScore = 0;
+        List<ItemStack> gear = new ArrayList<>();
+        for (ItemStack armor : p.getInventory().getArmorContents()) {
+            if (armor != null && armor.hasItemMeta()) gear.add(armor);
+        }
+        ItemStack hand = p.getInventory().getItemInMainHand();
+        if (hand != null && hand.hasItemMeta() && isGear(hand.getType())) gear.add(hand);
+
+        for (ItemStack item : gear) {
+            if (item == null || !item.hasItemMeta()) continue;
+            ItemMeta meta = item.getItemMeta();
+            int upgradeLvl = meta.getPersistentDataContainer().getOrDefault(
+                new NamespacedKey(plugin, "upgrade_level"), PersistentDataType.INTEGER, 0);
+            String rarityKey = getRarityKey(item);
+            int rarityBonus = 0;
+            switch (rarityKey) {
+                case "uncommon": rarityBonus = 10; break;
+                case "rare": rarityBonus = 25; break;
+                case "epic": rarityBonus = 50; break;
+                case "legendary": rarityBonus = 100; break;
+                default: rarityBonus = 0; break;
+            }
+            int enchantCount = countCustomRuneLines(item) + item.getEnchantments().size();
+            boolean isSetPiece = meta.getPersistentDataContainer().has(new NamespacedKey(plugin, "gear_set"), PersistentDataType.STRING);
+            int setBonus = (isSetPiece && isLegalSetPiece(item)) ? 1 : 0;
+            totalScore += (upgradeLvl * 10) + rarityBonus + (enchantCount * 5) + (setBonus * 20);
+        }
+        return totalScore;
+    }
+
+    public List<String> getGearScoreLore(int score) {
+        List<String> lore = new ArrayList<>();
+        lore.add(ChatColor.GOLD + "Gear Score: " + ChatColor.YELLOW + score);
+        return lore;
     }
 
     public void awakenMilestoneEnchant(ItemStack item, Player p, int newLvl) {

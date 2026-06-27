@@ -176,7 +176,44 @@ public class VKChatGearPlugin extends JavaPlugin {
                     if (gearManager.hasDefect(armor, "heavy")) { heavyDefect = true; break; }
                 }
                 if (heavyDefect) {
-                    p.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, 60, 0, false, false, false));
+                    long now = System.currentTimeMillis();
+                    long lastHeavy = p.hasMetadata("heavy_defect_last") ? p.getMetadata("heavy_defect_last").get(0).asLong() : 0;
+                    if (now - lastHeavy >= 5000) {
+                        p.setMetadata("heavy_defect_last", new org.bukkit.metadata.FixedMetadataValue(this, now));
+                        p.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, 120, 0, false, false, false));
+                    }
+                }
+
+                // Пассивные чары брони
+                boolean hasAquatic = false, hasMagma = false, hasWind = false, hasGolem = false, hasSpider = false, hasHealingAura = false;
+                for (ItemStack armor : p.getInventory().getArmorContents()) {
+                    if (armor != null && armor.hasItemMeta() && armor.getItemMeta().hasLore()) {
+                        for (String l : armor.getItemMeta().getLore()) {
+                            String stripped = org.bukkit.ChatColor.stripColor(l);
+                            if (stripped.contains("Подводная Жизнь")) hasAquatic = true;
+                            if (stripped.contains("Магматический Шаг")) hasMagma = true;
+                            if (stripped.contains("Поступь Ветра")) hasWind = true;
+                            if (stripped.contains("Кожа Голема")) hasGolem = true;
+                            if (stripped.contains("Рефлексы Паука")) hasSpider = true;
+                            if (stripped.contains("Аура Исцеления")) hasHealingAura = true;
+                        }
+                    }
+                }
+                if (hasAquatic) p.addPotionEffect(new PotionEffect(PotionEffectType.WATER_BREATHING, 60, 0, false, false, false));
+                if (hasMagma) p.addPotionEffect(new PotionEffect(PotionEffectType.FIRE_RESISTANCE, 60, 0, false, false, false));
+                if (hasWind) p.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 60, 1, false, false, false));
+                if (hasGolem) p.addPotionEffect(new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, 60, 0, false, false, false));
+                if (hasSpider) p.addPotionEffect(new PotionEffect(PotionEffectType.JUMP, 60, 1, false, false, false));
+                if (hasHealingAura) {
+                    long now = System.currentTimeMillis();
+                    long lastHeal = p.hasMetadata("healing_aura_last") ? p.getMetadata("healing_aura_last").get(0).asLong() : 0;
+                    if (now - lastHeal >= 3000) {
+                        p.setMetadata("healing_aura_last", new org.bukkit.metadata.FixedMetadataValue(this, now));
+                        double maxHp = p.getAttribute(org.bukkit.attribute.Attribute.GENERIC_MAX_HEALTH).getValue();
+                        if (p.getHealth() < maxHp) {
+                            p.setHealth(Math.min(p.getHealth() + 1.0, maxHp));
+                        }
+                    }
                 }
 
                 // Звёздная Ковка - Регенерация в темноте (свет <= 7)

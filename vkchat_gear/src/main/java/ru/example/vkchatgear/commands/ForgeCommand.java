@@ -38,6 +38,7 @@ public class ForgeCommand implements CommandExecutor, Listener, TabCompleter {
     private final String CLEANSE_TITLE = ChatColor.DARK_RED + "⚒ Кузня: Очищение";
     private final String REPAIR_TITLE = ChatColor.DARK_RED + "⚒ Кузня: Ремонт";
     private final String SCROLLS_TITLE = ChatColor.DARK_RED + "⚒ Кузня: Свитки";
+    private final String RUNE_CLEANSING_TITLE = ChatColor.DARK_RED + "⚒ Кузня: Очищение рун";
 
     private static final int[] FUSION_SLOTS = {20, 22, 24};
     private static final int CENTER_SLOT = 22;
@@ -104,6 +105,13 @@ public class ForgeCommand implements CommandExecutor, Listener, TabCompleter {
                 ChatColor.GRAY + "Свитки шанса, защиты, анти-дефекта и скидки.",
                 ChatColor.GRAY + "Используются автоматически из инвентаря.",
                 ChatColor.YELLOW + "Клик: открыть лавку"));
+
+        inv.setItem(31, item(Material.PURPUR_BLOCK, ChatColor.DARK_PURPLE + "💀 Очищение рун",
+                ChatColor.GRAY + "Снимает все кастомные чары с предмета.",
+                ChatColor.YELLOW + "Стоимость: " + plugin.getConfig().getInt("rune-cleansing.cost", 500) + " реп. ВК + " +
+                        plugin.getConfig().getInt("rune-cleansing.material-amount", 1) + "x " +
+                        plugin.getConfig().getString("rune-cleansing.material", "DIAMOND_BLOCK"),
+                ChatColor.YELLOW + "Клик: открыть раздел"));
 
         inv.setItem(37, item(Material.ENCHANTING_TABLE, ChatColor.LIGHT_PURPLE + "🔮 Руны",
                 ChatColor.GRAY + "Открыть /runes. Руны пока живут отдельно,",
@@ -196,6 +204,22 @@ public class ForgeCommand implements CommandExecutor, Listener, TabCompleter {
         p.openInventory(inv);
     }
 
+    private void openRuneCleansing(Player p) {
+        pending.remove(p.getUniqueId());
+        Inventory inv = Bukkit.createInventory(null, 54, RUNE_CLEANSING_TITLE);
+        fill(inv, Material.MAGENTA_STAINED_GLASS_PANE);
+        inv.setItem(CENTER_SLOT, null);
+        inv.setItem(4, item(Material.PURPUR_BLOCK, ChatColor.DARK_PURPLE + "💀 Очищение рун",
+                ChatColor.GRAY + "Положи предмет с кастомными чарами в центральный слот.",
+                ChatColor.GRAY + "Удаляет ВСЕ кастомные чары с предмета.",
+                ChatColor.YELLOW + "Стоимость: " + plugin.getConfig().getInt("rune-cleansing.cost", 500) + " реп. ВК",
+                ChatColor.YELLOW + "Ресурс: " + plugin.getConfig().getInt("rune-cleansing.material-amount", 1) + "x " +
+                        plugin.getConfig().getString("rune-cleansing.material", "DIAMOND_BLOCK")));
+        inv.setItem(CONFIRM_SLOT, item(Material.OAK_SIGN, ChatColor.YELLOW + "🔍 Предпросмотр очищения рун"));
+        nav(inv);
+        p.openInventory(inv);
+    }
+
     private void addScrollShopItem(Inventory inv, int slot, String type, Material mat, String name, String desc) {
         int price = plugin.getConfig().getInt("forge2.scrolls." + type + ".price", defaultScrollPrice(type));
         ItemStack it = item(mat, ChatColor.translateAlternateColorCodes('&', name),
@@ -248,6 +272,7 @@ public class ForgeCommand implements CommandExecutor, Listener, TabCompleter {
             else if (raw == 21) openReforge(p);
             else if (raw == 23) openCleanse(p);
             else if (raw == 25) openRepair(p);
+            else if (raw == 31) openRuneCleansing(p);
             else if (raw == 34) openScrolls(p);
             else if (raw == 37) { p.closeInventory(); p.performCommand("runes"); }
             else if (raw == 39) { p.closeInventory(); p.performCommand("salvage"); }
@@ -268,6 +293,7 @@ public class ForgeCommand implements CommandExecutor, Listener, TabCompleter {
             else if (title.equals(REFORGE_TITLE)) handleReforgeButton(p, top);
             else if (title.equals(CLEANSE_TITLE)) handleCleanseButton(p, top);
             else if (title.equals(REPAIR_TITLE)) handleRepairButton(p, top);
+            else if (title.equals(RUNE_CLEANSING_TITLE)) handleRuneCleansingButton(p, top);
         }
     }
 
@@ -315,6 +341,10 @@ public class ForgeCommand implements CommandExecutor, Listener, TabCompleter {
         op.targetRarity = next;
         int power = itemPower(center) + itemPower(left) / 2 + itemPower(right) / 2;
         int baseCost = plugin.getGearManager().getDiscountedCost(p, "hardcore-forging.rarity-upgrade-cost", 500);
+        // Ancient fusion requires 5000 rep minimum
+        if (next.equals("ancient")) {
+            baseCost = Math.max(baseCost, 5000);
+        }
         op.repCost = Math.max(1, baseCost + power * plugin.getConfig().getInt("forge2.cost.power-rep-multiplier", 18) + rarityIndex(next) * plugin.getConfig().getInt("forge2.cost.rarity-rep-step", 350));
         op.materialCost = materialCostFor(next);
         op.materialAmount = materialAmountFor(next) + Math.max(0, power / 12);
@@ -506,6 +536,95 @@ public class ForgeCommand implements CommandExecutor, Listener, TabCompleter {
         log(p, "REPAIR", itemName(item) + " cost=" + op.repCost + " material=" + op.materialCost + "x" + op.materialAmount);
     }
 
+    private void handleRuneCleansingButton(Player p, Inventory inv) {
+        PendingOp op = pending.get(p.getUniqueId());
+        if (op != null && op.action.equals("rune_cleansing") && System.currentTimeMillis() - op.created < 30000L) {
+            executeRuneCleansing(p, inv, op);
+            pending.remove(p.getUniqueId());
+            resetConfirmButton(RUNE_CLEANSING_TITLE, inv);
+            return;
+        }
+        ItemStack item = getCenterGear(p, inv);
+        if (item == null) return;
+        int enchantCount = plugin.getGearManager().countCustomRuneLines(item);
+        if (enchantCount == 0) {
+            p.sendMessage(ChatColor.YELLOW + "На этом предмете нет кастомных чар для удаления.");
+            return;
+        }
+        op = new PendingOp();
+        op.action = "rune_cleansing";
+        op.repCost = plugin.getConfig().getInt("rune-cleansing.cost", 500);
+        String matName = plugin.getConfig().getString("rune-cleansing.material", "DIAMOND_BLOCK");
+        op.materialCost = Material.valueOf(matName);
+        op.materialAmount = plugin.getConfig().getInt("rune-cleansing.material-amount", 1);
+
+        List<String> enchantNames = new ArrayList<>();
+        List<String> lore = item.getItemMeta().hasLore() ? item.getItemMeta().getLore() : new ArrayList<>();
+        List<String> allCustom = plugin.getGearManager().getAvailableCustomEnchants(item.getType());
+        for (String line : lore) {
+            String stripped = ChatColor.stripColor(line).toLowerCase();
+            for (String key : allCustom) {
+                String rawName = plugin.getConfig().getString("custom_enchants." + key + ".name", "");
+                String cfg = ChatColor.stripColor(ChatColor.translateAlternateColorCodes('&', rawName)).toLowerCase();
+                if (!cfg.isEmpty() && stripped.contains(cfg.split(" ")[0].toLowerCase())) {
+                    enchantNames.add(ChatColor.translateAlternateColorCodes('&', rawName));
+                    break;
+                }
+            }
+        }
+
+        op.summary = ChatColor.DARK_PURPLE + "Очищение рун\n" +
+                ChatColor.YELLOW + "Найдено чар: " + enchantCount + "\n" +
+                ChatColor.GRAY + "Удаляемые чары:\n" +
+                String.join("\n", enchantNames) + "\n" +
+                ChatColor.YELLOW + "Цена: " + op.repCost + " реп. ВК\n" +
+                ChatColor.YELLOW + "Ресурс: " + op.materialAmount + "x " + op.materialCost.name() + "\n" +
+                ChatColor.RED + "⚠ Все кастомные чары будут удалены!\n" +
+                ChatColor.GRAY + "Кликни ещё раз для подтверждения.";
+        pending.put(p.getUniqueId(), op);
+        inv.setItem(CONFIRM_SLOT, item(Material.LIME_CONCRETE, ChatColor.GREEN + "✅ Подтвердить очищение рун", op.summary.split("\n")));
+        p.sendMessage(ChatColor.DARK_PURPLE + "💀 Предпросмотр очищения рун готов. Проверь зелёную кнопку.");
+    }
+
+    private void executeRuneCleansing(Player p, Inventory inv, PendingOp op) {
+        ItemStack item = getCenterGear(p, inv);
+        if (item == null) return;
+        if (!plugin.getGearManager().takeVkReputation(p, op.repCost, "очищение рун")) return;
+        if (!takeMaterial(p, op.materialCost, op.materialAmount)) {
+            p.sendMessage(ChatColor.RED + "Не хватает ресурса: " + op.materialAmount + "x " + op.materialCost.name());
+            return;
+        }
+        removeCustomEnchants(item);
+        inv.setItem(CENTER_SLOT, item);
+        p.playSound(p.getLocation(), Sound.BLOCK_GRINDSTONE_USE, 1f, 0.5f);
+        p.getWorld().spawnParticle(org.bukkit.Particle.SPELL_WITCH, p.getLocation().add(0, 1, 0), 50, 0.5, 0.5, 0.5, 0.1);
+        p.sendMessage(ChatColor.DARK_PURPLE + "💀 Все кастомные чары были удалены с предмета.");
+        log(p, "RUNE_CLEANSING", itemName(item));
+    }
+
+    private void removeCustomEnchants(ItemStack item) {
+        if (item == null || !item.hasItemMeta()) return;
+        ItemMeta meta = item.getItemMeta();
+        if (!meta.hasLore()) return;
+        List<String> lore = meta.getLore();
+        List<String> allCustom = plugin.getGearManager().getAvailableCustomEnchants(item.getType());
+        List<String> toRemove = new ArrayList<>();
+        for (String line : lore) {
+            String stripped = ChatColor.stripColor(line).toLowerCase();
+            for (String key : allCustom) {
+                String rawName = plugin.getConfig().getString("custom_enchants." + key + ".name", "");
+                String cfg = ChatColor.stripColor(ChatColor.translateAlternateColorCodes('&', rawName)).toLowerCase();
+                if (!cfg.isEmpty() && stripped.contains(cfg.split(" ")[0].toLowerCase())) {
+                    toRemove.add(line);
+                    break;
+                }
+            }
+        }
+        lore.removeAll(toRemove);
+        meta.setLore(lore);
+        item.setItemMeta(meta);
+    }
+
     private Material repairMaterialFor(Material type) {
         String n = type.name();
         if (n.contains("NETHERITE")) return Material.NETHERITE_SCRAP;
@@ -695,6 +814,7 @@ public class ForgeCommand implements CommandExecutor, Listener, TabCompleter {
     }
 
     private List<String> defaultProcPool(String rarity) {
+        if (rarity.equals("ancient")) return Arrays.asList("&5Древнее Проклятие", "&5Бездна Хаоса", "&5Вечная Тьма", "&5Космический Удар");
         if (rarity.equals("legendary")) return Arrays.asList("&6Грозовой Импульс", "&6Багровый Резонанс", "&6Астральный Барьер", "&6Пламенный Контур");
         if (rarity.equals("epic")) return Arrays.asList("&5Критический жар", "&5Оберег", "&5Развеивание", "&5Похищение Жизни");
         if (rarity.equals("rare")) return Arrays.asList("&9Искра удачи", "&9Стальная кожа", "&9Резкий удар");
@@ -716,9 +836,11 @@ public class ForgeCommand implements CommandExecutor, Listener, TabCompleter {
     }
 
     private void announceIfNeeded(Player p, ItemStack result, String rarity) {
-        if (!(rarity.equals("epic") || rarity.equals("legendary"))) return;
+        if (!(rarity.equals("epic") || rarity.equals("legendary") || rarity.equals("ancient"))) return;
         String msg = "⚒ Реликтовый горн вспыхнул! " + p.getName() + " возвысил предмет до " + ChatColor.stripColor(rarityDisplay(rarity)) + ": " + ChatColor.stripColor(itemName(result));
-        Bukkit.broadcastMessage(rarity.equals("legendary") ? ChatColor.GOLD + msg : ChatColor.LIGHT_PURPLE + msg);
+        if (rarity.equals("ancient")) Bukkit.broadcastMessage(ChatColor.DARK_PURPLE + msg);
+        else if (rarity.equals("legendary")) Bukkit.broadcastMessage(ChatColor.GOLD + msg);
+        else Bukkit.broadcastMessage(ChatColor.LIGHT_PURPLE + msg);
         try { VKChatPlugin.getInstance().getApi().sendToMainChat(msg); } catch (Exception ignored) {}
     }
 
@@ -740,10 +862,11 @@ public class ForgeCommand implements CommandExecutor, Listener, TabCompleter {
         else if (title.equals(REFORGE_TITLE)) inv.setItem(CONFIRM_SLOT, item(Material.OAK_SIGN, ChatColor.YELLOW + "🔍 Предпросмотр перековки"));
         else if (title.equals(CLEANSE_TITLE)) inv.setItem(CONFIRM_SLOT, item(Material.OAK_SIGN, ChatColor.YELLOW + "🔍 Предпросмотр очищения"));
         else if (title.equals(REPAIR_TITLE)) inv.setItem(CONFIRM_SLOT, item(Material.OAK_SIGN, ChatColor.YELLOW + "🔍 Предпросмотр ремонта"));
+        else if (title.equals(RUNE_CLEANSING_TITLE)) inv.setItem(CONFIRM_SLOT, item(Material.OAK_SIGN, ChatColor.YELLOW + "🔍 Предпросмотр очищения рун"));
     }
 
-    private boolean isForgeTitle(String title) { return title.equals(HUB_TITLE) || title.equals(FUSION_TITLE) || title.equals(REFORGE_TITLE) || title.equals(CLEANSE_TITLE) || title.equals(REPAIR_TITLE) || title.equals(SCROLLS_TITLE); }
-    private boolean isWorkSlot(String title, int slot) { return title.equals(FUSION_TITLE) ? (slot == 20 || slot == 22 || slot == 24) : ((title.equals(REFORGE_TITLE) || title.equals(CLEANSE_TITLE) || title.equals(REPAIR_TITLE)) && slot == CENTER_SLOT); }
+    private boolean isForgeTitle(String title) { return title.equals(HUB_TITLE) || title.equals(FUSION_TITLE) || title.equals(REFORGE_TITLE) || title.equals(CLEANSE_TITLE) || title.equals(REPAIR_TITLE) || title.equals(SCROLLS_TITLE) || title.equals(RUNE_CLEANSING_TITLE); }
+    private boolean isWorkSlot(String title, int slot) { return title.equals(FUSION_TITLE) ? (slot == 20 || slot == 22 || slot == 24) : ((title.equals(REFORGE_TITLE) || title.equals(CLEANSE_TITLE) || title.equals(REPAIR_TITLE) || title.equals(RUNE_CLEANSING_TITLE)) && slot == CENTER_SLOT); }
     private boolean isEmpty(ItemStack item) { return item == null || item.getType() == Material.AIR; }
     private int firstFreeFusionSlot(Inventory inv) { for (int s : FUSION_SLOTS) if (isEmpty(inv.getItem(s))) return s; return -1; }
 
@@ -773,9 +896,9 @@ public class ForgeCommand implements CommandExecutor, Listener, TabCompleter {
         }
     }
 
-    private int defaultUpgradeChance(String targetRarity) { switch (targetRarity) { case "uncommon": return 85; case "rare": return 65; case "epic": return 40; case "legendary": return 20; default: return 50; } }
-    private String nextRarity(String rarity) { switch (rarity) { case "common": return "uncommon"; case "uncommon": return "rare"; case "rare": return "epic"; case "epic": return "legendary"; default: return null; } }
-    private int rarityIndex(String key) { switch (key) { case "uncommon": return 1; case "rare": return 2; case "epic": return 3; case "legendary": return 4; default: return 0; } }
+    private int defaultUpgradeChance(String targetRarity) { switch (targetRarity) { case "uncommon": return 85; case "rare": return 65; case "epic": return 40; case "legendary": return 20; case "ancient": return 8; default: return 50; } }
+    private String nextRarity(String rarity) { switch (rarity) { case "common": return "uncommon"; case "uncommon": return "rare"; case "rare": return "epic"; case "epic": return "legendary"; case "legendary": return "ancient"; default: return null; } }
+    private int rarityIndex(String key) { switch (key) { case "uncommon": return 1; case "rare": return 2; case "epic": return 3; case "legendary": return 4; case "ancient": return 5; default: return 0; } }
 
     private void applyRarity(ItemStack item, String rarityKey) {
         ItemMeta meta = item.getItemMeta();

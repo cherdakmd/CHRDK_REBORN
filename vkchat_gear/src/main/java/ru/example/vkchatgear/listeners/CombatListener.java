@@ -1,5 +1,6 @@
 package ru.example.vkchatgear.listeners;
 
+import org.bukkit.ChatColor;
 import org.bukkit.NamespacedKey;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
@@ -180,16 +181,10 @@ public class CombatListener implements Listener {
                         victim.addPotionEffect(new PotionEffect(PotionEffectType.ABSORPTION, 100, 1));
                     }
                     
-                    if (hasEnchant(lore, "Магматический Шаг")) victim.addPotionEffect(new PotionEffect(PotionEffectType.FIRE_RESISTANCE, 60, 0));
                     if (hasEnchant(lore, "Эндер Щит") && random.nextInt(100) < 5) {
                         org.bukkit.Location loc = victim.getLocation().add(random.nextInt(10)-5, 0, random.nextInt(10)-5);
                         victim.teleport(loc);
                     }
-                    if (hasEnchant(lore, "Поступь Ветра")) victim.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 60, 1));
-                    if (hasEnchant(lore, "Кожа Голема")) victim.addPotionEffect(new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, 60, 0));
-                    if (hasEnchant(lore, "Рефлексы Паука")) victim.addPotionEffect(new PotionEffect(PotionEffectType.JUMP, 60, 1));
-                    if (hasEnchant(lore, "Аура Исцеления") && random.nextInt(100) < 10) victim.setHealth(Math.min(victim.getHealth() + 2.0, victim.getAttribute(org.bukkit.attribute.Attribute.GENERIC_MAX_HEALTH).getValue()));
-                    if (hasEnchant(lore, "Подводная Жизнь")) victim.addPotionEffect(new PotionEffect(PotionEffectType.WATER_BREATHING, 60, 0));
 
                     if (hasEnchant(lore, "Зеркало") && random.nextInt(100) < 15) {
                         if (e.getCause() == EntityDamageByEntityEvent.DamageCause.MAGIC || e.getCause() == EntityDamageByEntityEvent.DamageCause.PROJECTILE) {
@@ -208,6 +203,38 @@ public class CombatListener implements Listener {
                         victim.sendMessage(org.bukkit.ChatColor.LIGHT_PURPLE + "🔮 [Связь Душ] Вы вернули " + String.format("%.1f", dmg) + " урона и исцелились!");
                         victim.getWorld().spawnParticle(org.bukkit.Particle.SPELL_WITCH, victim.getLocation().add(0, 1.0, 0), 25, 0.3, 0.3, 0.3);
                         attacker.getWorld().spawnParticle(org.bukkit.Particle.DAMAGE_INDICATOR, attacker.getLocation().add(0, 1.0, 0), 10);
+                    }
+
+                    // stone_skin: 12% chance, reduce damage by 40%, Slowness I to attacker for 3s
+                    if (hasEnchant(lore, "Каменная кожа") && random.nextInt(100) < 12) {
+                        e.setDamage(e.getDamage() * 0.60);
+                        attacker.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, 60, 0));
+                        victim.getWorld().spawnParticle(org.bukkit.Particle.CRIT, victim.getLocation().add(0, 1.0, 0), 15, 0.3, 0.5, 0.3, 0.1);
+                        victim.sendMessage(org.bukkit.ChatColor.GRAY + "🛡 [Каменная кожа] Урон снижен на 40%, атакующий замедлен!");
+                    }
+
+                    // life_link: 10% chance, redirect 20% damage to nearest ally (5 blocks)
+                    if (hasEnchant(lore, "Связь жизней") && random.nextInt(100) < 10) {
+                        double redirectDmg = e.getDamage() * 0.20;
+                        LivingEntity nearestAlly = null;
+                        double nearestDist = 5.0;
+                        for (org.bukkit.entity.Entity near : victim.getNearbyEntities(5, 5, 5)) {
+                            if (near instanceof Player && near != victim && near != attacker) {
+                                double dist = near.getLocation().distance(victim.getLocation());
+                                if (dist < nearestDist) {
+                                    nearestDist = dist;
+                                    nearestAlly = (LivingEntity) near;
+                                }
+                            }
+                        }
+                        if (nearestAlly != null) {
+                            nearestAlly.damage(redirectDmg, attacker);
+                            e.setDamage(e.getDamage() * 0.80);
+                            victim.sendMessage(org.bukkit.ChatColor.RED + "❤ [Связь жизней] 20% урона перенаправлено на ближайшего союзника!");
+                            nearestAlly.sendMessage(org.bukkit.ChatColor.RED + "❤ [Связь жизней] Вы приняли на себя часть урона союзника!");
+                            victim.getWorld().spawnParticle(org.bukkit.Particle.HEART, victim.getLocation().add(0, 1.5, 0), 5, 0.3, 0.3, 0.3);
+                            nearestAlly.getWorld().spawnParticle(org.bukkit.Particle.DAMAGE_INDICATOR, nearestAlly.getLocation().add(0, 1.0, 0), 5);
+                        }
                     }
 
                     String armorProc = getRarityProc(armor);
@@ -357,6 +384,13 @@ public class CombatListener implements Listener {
             Player p = (Player) e.getDamager();
             LivingEntity target = (LivingEntity) e.getEntity();
             ItemStack weapon = p.getInventory().getItemInMainHand();
+
+            int gearScore = plugin.getGearManager().calculateGearScore(p);
+            String actionBar = ChatColor.GOLD + "GS: " + ChatColor.YELLOW + gearScore +
+                    ChatColor.GRAY + " | " + ChatColor.RED + "DMG: " + ChatColor.WHITE +
+                    String.format("%.1f", e.getFinalDamage());
+            p.spigot().sendMessage(net.md_5.bungee.api.ChatMessageType.ACTION_BAR,
+                    net.md_5.bungee.api.chat.TextComponent.fromLegacyText(actionBar));
 
 
 
@@ -563,6 +597,50 @@ public class CombatListener implements Listener {
                             }
                             p.playSound(p.getLocation(), org.bukkit.Sound.ENTITY_BAT_DEATH, 1.0f, 0.5f);
                         }
+                    }
+
+                    // soul_drain: 15% chance, heal attacker 2 HP, damage target 3 HP, 8% Wither I 3s
+                    if (hasEnchant(lore, "Вытягивание душ") && random.nextInt(100) < 15) {
+                        target.damage(3.0, p);
+                        p.setHealth(Math.min(p.getHealth() + 2.0, p.getAttribute(org.bukkit.attribute.Attribute.GENERIC_MAX_HEALTH).getValue()));
+                        target.getWorld().spawnParticle(org.bukkit.Particle.SOUL, target.getLocation().add(0, 1.0, 0), 15, 0.3, 0.5, 0.3, 0.05);
+                        p.sendMessage(org.bukkit.ChatColor.DARK_PURPLE + "☠ [Вытягивание душ] Вы вытянули жизненную силу из цели!");
+                        if (random.nextInt(100) < 8) {
+                            target.addPotionEffect(new PotionEffect(PotionEffectType.WITHER, 60, 0));
+                            p.sendMessage(org.bukkit.ChatColor.DARK_PURPLE + "☠ [Вытягивание душ] Цель поражена Иссушением!");
+                        }
+                    }
+
+                    // chain_lightning: 10% chance, lightning on target + chain to 2 nearby (3 blocks) for 4 damage
+                    if (hasEnchant(lore, "Цепная молния") && random.nextInt(100) < 10) {
+                        target.getWorld().strikeLightningEffect(target.getLocation());
+                        target.damage(4.0, p);
+                        p.sendMessage(org.bukkit.ChatColor.AQUA + "⚡ [Цепная молния] Разряд поразил цель!");
+                        int chained = 0;
+                        for (org.bukkit.entity.Entity near : target.getNearbyEntities(3, 3, 3)) {
+                            if (chained >= 2) break;
+                            if (near instanceof LivingEntity && near != p && near != target) {
+                                LivingEntity enemy = (LivingEntity) near;
+                                enemy.getWorld().strikeLightningEffect(enemy.getLocation());
+                                enemy.damage(4.0, p);
+                                chained++;
+                            }
+                        }
+                        if (chained > 0) {
+                            p.sendMessage(org.bukkit.ChatColor.AQUA + "⚡ [Цепная молния] Молния перескочила на " + chained + " врагов!");
+                        }
+                    }
+
+                    // void_strike: 8% chance, teleport behind target (add 1 to Z), 1.5x damage
+                    if (hasEnchant(lore, "Удар Бездны") && random.nextInt(100) < 8) {
+                        org.bukkit.Location behind = target.getLocation().clone();
+                        behind.setZ(behind.getZ() + 1);
+                        behind.setDirection(target.getLocation().toVector().subtract(behind.toVector()));
+                        p.teleport(behind);
+                        e.setDamage(e.getDamage() * 1.5);
+                        target.getWorld().spawnParticle(org.bukkit.Particle.PORTAL, target.getLocation().add(0, 1.0, 0), 30, 0.3, 0.5, 0.3, 0.1);
+                        p.sendMessage(org.bukkit.ChatColor.DARK_GRAY + "⚔ [Удар Бездны] Вы телепортировались за спину врага!");
+                        target.sendMessage(org.bukkit.ChatColor.DARK_GRAY + "⚔ [Удар Бездны] Противник материализовался у вас за спиной!");
                     }
                 }
             }

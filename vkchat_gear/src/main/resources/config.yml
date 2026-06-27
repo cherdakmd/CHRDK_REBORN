@@ -50,6 +50,12 @@ rarities:
     vanilla_enchants: 5
     excellent_enchants: 3
     custom_enchants: 3
+  ancient:
+    chance: 0
+    name: "&5&l[ДРЕВНИЙ]"
+    vanilla_enchants: 6
+    excellent_enchants: 4
+    custom_enchants: 4
 # Доступные кастомные чары
 custom_enchants:
   # --- ОРУЖИЕ ---
@@ -215,21 +221,28 @@ custom_enchants:
   disintegration:
     name: "&4☠ Распад (Шанс 5% нанести двойной урон и повесить Иссушение III)"
     conflicts: ["wither", "decay"]
-  vampirism:
-    name: "&c🩸 Вампиризм (Шанс 12% восстановить 20% нанесённого урона)"
-    conflicts: ["lifesteal", "heal"]
-  thunderstrike:
-    name: "&e⚡ Громовой Удар (Шанс 8% вызвать молнию в цель)"
-    conflicts: ["lightning", "shock"]
-  frost_touch:
-    name: "&b❄ Ледяное Касание (Шанс 15% замедлить цель на 3 сек)"
-    conflicts: ["slow", "ice"]
   berserker_rage:
     name: "&4💢 Ярость Берсерка (Чем меньше HP, тем больше урон — до +50%)"
     conflicts: ["strength", "rage"]
   evasion:
     name: "&7💨 Уклонение (Шанс 10% полностью избежать урона)"
     conflicts: ["dodge", "miss"]
+  # --- НОВЫЕ ЧАРЫ ---
+  soul_drain:
+    name: "&5☠ Вытягивание душ"
+    conflicts: ["vampirism", "lifesteal_aura", "life_steal", "vampire_aoe"]
+  chain_lightning:
+    name: "&b⚡ Цепная молния"
+    conflicts: ["lightning", "thunder_strike"]
+  void_strike:
+    name: "&8⚔ Удар Бездны"
+    conflicts: []
+  stone_skin:
+    name: "&7🛡 Каменная кожа"
+    conflicts: ["golem_skin"]
+  life_link:
+    name: "&c❤ Связь жизней"
+    conflicts: ["soul_bond"]
 sets:
   # Славянские
   bogatyr:
@@ -401,6 +414,7 @@ hardcore-forging:
     rare: 65
     epic: 40
     legendary: 20
+    ancient: 8
   rarity-fusion-scroll:
     price: 10000
   cleanse-cost: 350            # Очистка дефекта через /forge cleanse
@@ -437,6 +451,7 @@ hardcore-forging:
     discount-per-level: 0.01   # 1% скидки за уровень, ограничивается max-discount
     max-discount: 0.45
     failure-reduction-per-level: 0.01
+    ancient-unlock-level: 35
     legendary-unlock-level: 25
     epic-unlock-level: 15
     rare-unlock-level: 5
@@ -448,7 +463,7 @@ hardcore-forging:
       GOLD: rare
       IRON: epic
       DIAMOND: epic
-      NETHERITE: legendary
+      NETHERITE: ancient
       OTHER: rare
   defects:
     chance-on-craft-fail: 70
@@ -466,6 +481,7 @@ hardcore-forging:
     rare: 1
     epic: 2
     legendary: 3
+    ancient: 4
   set-fragments:
     enabled: true
     consume-on-craft: true
@@ -510,6 +526,10 @@ rarity-properties:
     damage-bonus: 0.15
     defense-bonus: 0.10
     lore: "&6Свойство редкости: +15% урона / +10% защиты"
+  ancient:
+    damage-bonus: 0.20
+    defense-bonus: 0.18
+    lore: "&5Свойство редкости: +20% урона / +18% защиты"
 
 # ==========================================
 # КУЗНЯ 2.0 — мистическая MMO-кузня
@@ -522,10 +542,10 @@ forge2:
   blacksmith:
     max-chance-bonus: 10          # Максимальный бонус шанса от Jobs-Кузнеца
   donate-discount:
-    spark: 0.30
-    flame: 0.70
-    star: 1.20
-    legend: 2.00
+    spark: 0.10
+    flame: 0.25
+    star: 0.50
+    legend: 1.00
   resources:
     uncommon:
       material: IRON_INGOT
@@ -582,6 +602,11 @@ forge2:
       - "&6Багровый Резонанс"
       - "&6Астральный Барьер"
       - "&6Пламенный Контур"
+    ancient:
+      - "&5Древнее Проклятие"
+      - "&5Бездна Хаоса"
+      - "&5Вечная Тьма"
+      - "&5Космический Удар"
 
 # ==========================================
 # GEAR SCORE — оценка предмета
@@ -603,3 +628,9 @@ gear-score:
       epic: 50
       legendary: 100
       mythical: 200
+
+# Очищение рун — удаление всех кастомных чар с предмета
+rune-cleansing:
+  cost: 500
+  material: DIAMOND_BLOCK
+  material-amount: 1
