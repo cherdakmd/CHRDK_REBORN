@@ -1,0 +1,56 @@
+package ru.example.vkchat.hardcore;
+
+import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
+import org.bukkit.World;
+import org.bukkit.scheduler.BukkitRunnable;
+import ru.example.vkchat.VKChatPlugin;
+
+import java.util.Random;
+
+public class BloodMoonManager extends BukkitRunnable {
+    private final VKChatPlugin plugin;
+    private final Random random = new Random();
+    private boolean isBloodMoonActive = false;
+    private boolean nightHandled = false;
+
+    public BloodMoonManager(VKChatPlugin plugin) {
+        this.plugin = plugin;
+    }
+
+    @Override
+    public void run() {
+        if (!plugin.getConfigManager().getHardcoreConfig().getBoolean("hardcore.blood-moon.enabled", true)) return;
+
+        World world = Bukkit.getWorld("world"); // Главный мир
+        if (world == null) return;
+
+        long time = world.getTime();
+        
+        // Ночь начинается примерно с 13000, заканчивается в 23000
+        if (time > 13000 && time < 23000) {
+            if (!nightHandled) {
+                nightHandled = true;
+                int chance = plugin.getConfigManager().getHardcoreConfig().getInt("hardcore.blood-moon.chance", 10);
+                if (random.nextInt(100) < chance) {
+                    isBloodMoonActive = true;
+                    String msg = "&4&lКРОВАВАЯ ЛУНА ВЗОШЛА! &cМонстры стали свирепее, но лут богаче!";
+                    Bukkit.broadcastMessage(ChatColor.translateAlternateColorCodes('&', msg));
+                    plugin.getVkManager().sendToMainChat(" КРОВАВАЯ ЛУНА ВЗОШЛА НА СЕРВЕРЕ! Самое время зайти и пофармить х3 лут и репутацию!");
+                }
+            }
+        } else {
+            if (nightHandled) {
+                nightHandled = false;
+                if (isBloodMoonActive) {
+                    isBloodMoonActive = false;
+                    Bukkit.broadcastMessage(ChatColor.translateAlternateColorCodes('&', "&e&lКровавая луна зашла. Мир снова в безопасности."));
+                }
+            }
+        }
+    }
+
+    public boolean isActive() {
+        return isBloodMoonActive;
+    }
+}

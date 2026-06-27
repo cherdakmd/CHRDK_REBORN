@@ -1,0 +1,58 @@
+# ==========================================
+# Стартовый Набор (VKChat Starter)
+# ==========================================
+
+settings:
+  # Давать ли набор при первом заходе?
+  enabled: true
+  
+  # Сообщение, которое отправляется игроку при выдаче
+  welcome-message: "&e&l★ CHRDK REBORN ★ &7» &aДобро пожаловать! Мы подготовили для тебя стартовый комплект снаряжения, два кастомных артефакта и Книгу-Руководство в инвентарь. Начни прохождение квеста!"
+
+  # Настройки выдаваемой брони - УДАЛЕНО (выдается национальная броня)
+  armor:
+    helmet:
+      material: "AIR"
+    chestplate:
+      material: "AIR"
+    leggings:
+      material: "AIR"
+    boots:
+      material: "AIR"
+        
+  # Список предметов инвентаря
+  items:
+    sword:
+      material: "STONE_SWORD"
+      amount: 1
+      name: "&7[Обычный] &fМеч Скитальца"
+      lore:
+        - "&7Редкость: &7[Обычный]"
+        - "&8Оружие для первых сражений"
+      enchants:
+        - "DAMAGE_ALL;1"
+        - "DURABILITY;3"
+    pickaxe:
+      material: "STONE_PICKAXE"
+      amount: 1
+      name: "&7[Обычный] &fКирка Скитальца"
+      lore:
+        - "&7Редкость: &7[Обычный]"
+      enchants:
+        - "DIG_SPEED;1"
+        - "DURABILITY;3"
+    axe:
+      material: "STONE_AXE"
+      amount: 1
+      name: "&7[Обычный] &fТопор Скитальца"
+      lore:
+        - "&7Редкость: &7[Обычный]"
+      enchants:
+        - "DIG_SPEED;1"
+        - "DURABILITY;3"
+    food:
+      material: "BREAD"
+      amount: 16
+    torches:
+      material: "TORCH"
+      amount: 32

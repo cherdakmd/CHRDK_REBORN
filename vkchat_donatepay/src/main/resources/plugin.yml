@@ -1,0 +1,18 @@
+name: VKChatDonatePay
+version: 2.0.0
+main: ru.example.vkchatdonatepay.VKChatDonatePayPlugin
+api-version: "1.16"
+depend: [VKChat]
+commands:
+  donatepay:
+    description: Управление интеграцией DonatePay
+    usage: /donatepay <status|player|lpsetup|reload|check|top|goal|history|pending|test>
+    aliases: [dpay, donate, донат, донаты]
+permissions:
+  vkchat.donatepay.admin:
+    description: Админ-команды DonatePay-интеграции
+    default: op
+
+  vkchat.donatepay.player:
+    description: Просмотр DonatePay-статусов
+    default: true

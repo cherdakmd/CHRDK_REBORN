@@ -1,0 +1,15 @@
+name: VKChatOffline
+version: 2.0.0
+main: ru.example.vkchatoffline.VKChatOfflinePlugin
+api-version: "1.16"
+depend: [VKChat]
+softdepend: [VKChatJobs]
+commands:
+  stash:
+    description: Забрать накопленный за время офлайна лут из виртуального сейфа
+    aliases: [сейф, склад, тайник]
+    permission: vkchat.offline.player
+permissions:
+  vkchat.offline.player:
+    description: Доступ к использованию команды /stash для извлечения ресурсов
+    default: true

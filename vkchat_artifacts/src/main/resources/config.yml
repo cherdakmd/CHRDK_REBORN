@@ -1,0 +1,203 @@
+# ==========================================
+#  МИРОВЫЕ БОССЫ (Custom Bosses)
+# ==========================================
+bosses:
+  enabled: true
+  spawn-interval: 21600 # Каждые 6 часов (в секундах)
+  announce-before: 900  # За сколько секунд предупреждать в ВК о появлении босса
+  radius: 5000          # Радиус поиска места для спавна (от -5000 до 5000)
+  
+  list:
+    king_skeleton:
+      name: "&4&l☠ КОРОЛЬ СМЕРТИ (Скелет) ☠"
+      type: "SKELETON"
+      health: 3000.0
+      damage: 15.0
+      speed: 0.3
+      aggressive: true
+      skills:
+        - "MINIONS"      # Спавнит 5 обычных скелетов вокруг себя
+        - "LIGHTNING"    # Бьет молнией в ближайшего игрока
+      drop:
+        artifact-chance: 100
+    
+    blood_zombie:
+      name: "&4&l КРОВАВЫЙ ПАЛАЧ (Зомби) "
+      type: "ZOMBIE"
+      health: 4000.0
+      damage: 20.0
+      speed: 0.25
+      aggressive: true
+      skills:
+        - "PULL"         # Притягивает игроков к себе
+        - "EARTHQUAKE"   # Подбрасывает игроков в воздух
+      drop:
+        artifact-chance: 100
+        
+    spider_queen:
+      name: "&5&l КОРОЛЕВА ТЬМЫ (Паук) "
+      type: "SPIDER"
+      health: 2500.0
+      damage: 12.0
+      speed: 0.4
+      aggressive: true
+      skills:
+        - "POISON_CLOUD" # Облако отравления в радиусе 10 блоков
+        - "WEB_TRAP"     # Спавнит паутину под ногами игроков
+      drop:
+        artifact-chance: 100
+        
+    iron_titan:
+      name: "&7&l⚙ ЖЕЛЕЗНЫЙ ТИТАН (Голем) ⚙"
+      type: "IRON_GOLEM"
+      health: 6000.0
+      damage: 30.0
+      speed: 0.15
+      aggressive: false # Мирный, пока его не ударят
+      skills:
+        - "EARTHQUAKE"
+      drop:
+        artifact-chance: 100
+
+    mad_villager:
+      name: "&6&l БЕЗУМНЫЙ ТОРГОВЕЦ "
+      type: "VILLAGER"
+      health: 1500.0
+      damage: 5.0
+      speed: 0.4
+      aggressive: false # Убегает, но при получении урона может применять скиллы
+      skills:
+        - "TELEPORT"     # Случайно телепортируется при ударе
+        - "BLINDNESS"    # Ослепляет обидчика
+      drop:
+        artifact-chance: 100
+        
+    wither_mutant:
+      name: "&8&l МУТАНТ ИССУШИТЕЛЬ "
+      type: "WITHER_SKELETON"
+      health: 3500.0
+      damage: 18.0
+      speed: 0.3
+      aggressive: true
+      skills:
+        - "WITHER_SKULL" # Стреляет головами иссушителя
+      drop:
+        artifact-chance: 100
+        
+    frost_stray:
+      name: "&b&l❄ ЛЕДЯНОЙ БРОДЯГА ❄"
+      type: "STRAY"
+      health: 2800.0
+      damage: 14.0
+      speed: 0.28
+      aggressive: true
+      skills:
+        - "FREEZE"       # Сильное замедление на 5 сек
+      drop:
+        artifact-chance: 100
+        
+    fire_blaze:
+      name: "&6&l ПОВЕЛИТЕЛЬ ПЛАМЕНИ "
+      type: "BLAZE"
+      health: 2000.0
+      damage: 16.0
+      speed: 0.2
+      aggressive: true
+      skills:
+        - "FIRE_RING"    # Кольцо огня вокруг босса
+      drop:
+        artifact-chance: 100
+        
+    shadow_enderman:
+      name: "&5&l ТЕНЕВОЙ СТРАННИК "
+      type: "ENDERMAN"
+      health: 3200.0
+      damage: 22.0
+      speed: 0.35
+      aggressive: true
+      skills:
+        - "BLINDNESS"
+        - "TELEPORT"
+      drop:
+        artifact-chance: 100
+
+
+    slime_king:
+      name: "&a&l КОРОЛЬ СЛИЗНЕЙ "
+      type: "SLIME"
+      health: 3500.0
+      damage: 15.0
+      speed: 0.3
+      aggressive: true
+      skills:
+        - "MINIONS"      # Спавнит мелких слизней
+      drop:
+        artifact-chance: 100
+
+    swamp_witch:
+      name: "&2&l БОЛОТНАЯ ВЕДЬМА "
+      type: "WITCH"
+      health: 2200.0
+      damage: 10.0
+      speed: 0.25
+      aggressive: true
+      skills:
+        - "POISON_CLOUD"
+        - "BLINDNESS"
+      drop:
+        artifact-chance: 100
+
+    piglin_warlord:
+      name: "&6&l⚔ ВОЕНАЧАЛЬНИК ПИГЛИНОВ ⚔"
+      type: "PIGLIN_BRUTE"
+      health: 4500.0
+      damage: 25.0
+      speed: 0.35
+      aggressive: true
+      skills:
+        - "EARTHQUAKE"
+      drop:
+        artifact-chance: 100
+
+    drowned_sniper:
+      name: "&b&l ГЛУБИННЫЙ СНАЙПЕР "
+      type: "DROWNED"
+      health: 2800.0
+      damage: 18.0
+      speed: 0.2
+      aggressive: true
+      skills:
+        - "PULL"
+      drop:
+        artifact-chance: 100
+
+    phantom_dragon:
+      name: "&5&l ФАНТОМНЫЙ УЖАС "
+      type: "PHANTOM"
+      health: 3000.0
+      damage: 20.0
+      speed: 0.5
+      aggressive: true
+      skills:
+        - "TELEPORT"
+        - "LIGHTNING"
+      drop:
+        artifact-chance: 100
+
+# ==========================================
+#  СИСТЕМА АРТЕФАКТОВ
+# ==========================================
+artifacts:
+  # Настройки Мифических (Легендарных) артефактов без проклятий
+  mythic-chance: 0.1 # Шанс в процентах (0.1% = 1 из 1000)
+  
+  # Настройка накопления проклятий (Износ)
+  curse-growth:
+    enabled: true
+    interval: 3600 # Каждые 60 минут ношения артефакта проклятие усиливается на 1%
+    break-at: 100  # Если проклятие достигает 100% - артефакт разрушается навсегда
+    
+  messages:
+    mythic-announce-vk: "✨ ВЕЛИКОЕ СОБЫТИЕ! Игрок {player} выбил ЛЕГЕНДАРНЫЙ Артефакт без проклятий!"
+    mythic-announce-mc: "&d&l✨ МИФИЧЕСКИЙ ДРОП! &fИгрок &d{player} &fвыбил Легендарный Артефакт!"
+    artifact-break: "&c&l☠ Твой артефакт поглотило проклятие... Он рассыпался в пыль!"

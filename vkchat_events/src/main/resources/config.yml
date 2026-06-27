@@ -1,0 +1,164 @@
+
+# --- АИРДРОПЫ ---
+airdrops:
+  interval: 3600              # Попытка спавна каждый час
+  min-online: 3               # Минимальный онлайн для падения Аирдропа
+  capture-time: 30            # Время захвата в секундах
+  crater-radius: 3            # Радиус кратера при падении
+  protected-radius: 24        # Радиус проверки приватных территорий вокруг точки падения
+  prevent-nation-claims: true   # Запретить падение в приватах VKChatNations
+  reminder-interval: 300      # Интервал напоминания об активном Аирдропе в секундах (5 минут)
+  
+  # Интеграция с ВК
+  coord-fuzziness: 200        # Радиус размытия координат (Бесплатные координаты: "X: 100-300")
+  exact-coords-cost: 50       # Цена репутации ВК за точные координаты (!аирдроп)
+  
+  tiers:
+    medical:
+      name: "&c[Медицинский Груз]"
+      boss: "WITCH" 
+      mobs:
+        - "ZOMBIE;3"
+      items:
+        - "POTION;1;3"
+        - "GOLDEN_APPLE;2;5"
+        - "GLISTERING_MELON_SLICE;5;10"
+    military:
+      name: "&8[Оружейный Груз]"
+      boss: "PILLAGER" 
+      mobs:
+        - "VINDICATOR;2"
+      items:
+        - "DIAMOND;5;10"
+        - "IRON_INGOT;16;32"
+    legendary:
+      name: "&6&l[ЛЕГЕНДАРНЫЙ ГРУЗ]"
+      boss: "EVOKER"
+      mobs:
+        - "RAVAGER;1"
+        - "VINDICATOR;3"
+      items:
+        - "NETHERITE_INGOT;1;2"
+        - "TOTEM_OF_UNDYING;1;1"
+        - "ENCHANTED_GOLDEN_APPLE;1;1"
+    engineer:
+      name: "&b⚙ [Инженерный Контейнер]"
+      boss: "IRON_GOLEM"
+      mobs:
+        - "PILLAGER;2"
+        - "VINDICATOR;1"
+      items:
+        - "REDSTONE;24;48"
+        - "IRON_BLOCK;2;5"
+        - "OBSERVER;4;8"
+        - "EXPERIENCE_BOTTLE;12;24"
+    alchemist:
+      name: "&d⚗ [Алхимический Тайник]"
+      boss: "WITCH"
+      mobs:
+        - "WITCH;2"
+        - "SLIME;3"
+      items:
+        - "BLAZE_ROD;3;8"
+        - "GHAST_TEAR;1;3"
+        - "GOLDEN_CARROT;8;16"
+        - "EXPERIENCE_BOTTLE;16;32"
+    nether:
+      name: "&4🔥 [Адский Разлом]"
+      boss: "BLAZE"
+      mobs:
+        - "WITHER_SKELETON;2"
+        - "MAGMA_CUBE;3"
+      items:
+        - "NETHERITE_SCRAP;1;3"
+        - "BLAZE_ROD;8;16"
+        - "QUARTZ;32;64"
+    cursed:
+      name: "&5☠ [ПРОКЛЯТЫЙ ГРУЗ] ☠"
+      boss: "WITHER_SKELETON"
+      mobs:
+        - "PHANTOM;3"
+      items:
+        - "ROTTEN_FLESH;64;64"
+      # Открытие накладывает дебаффы на всех вокруг
+    fake:
+      name: "&e❓ [ПОДОЗРИТЕЛЬНЫЙ ГРУЗ] ❓"
+      boss: "CREEPER"
+      mobs: []
+      items: []
+      # При попытке захвата взрывается как супер-ТНТ
+
+# Радиация
+radiation:
+  enabled: true
+  radius: 20
+  damage: 2.0
+  safe_potion: "FIRE_RESISTANCE" # Если игрок выпил это зелье, он не получает урон
+# --- СЮЖЕТНЫЕ КВЕСТЫ (ЦЕПОЧКИ) ---
+quests:
+  chains:
+    miner_path:
+      req_job: "miner"
+      req_lvl: 5
+      desc: "Убить 50 зомби в шахте"
+      target: "ZOMBIE"
+      amount: 50
+      reward_rep: 200
+    blacksmith_path:
+      req_job: "blacksmith"
+      req_lvl: 10
+      desc: "Скрафтить 10 алмазных мечей"
+      target: "DIAMOND_SWORD"
+      amount: 10
+      reward_rep: 500
+    hunter_path:
+      req_job: "hunter"
+      req_lvl: 8
+      desc: "Убить 25 скелетов во время серверных охот"
+      target: "SKELETON"
+      amount: 25
+      reward_rep: 300
+    engineer_path:
+      req_job: "miner"
+      req_lvl: 12
+      desc: "Скрафтить 16 наблюдателей для инженерного заказа"
+      target: "OBSERVER"
+      amount: 16
+      reward_rep: 450
+
+# --- БАУНТИ (КОНТРАКТЫ) ---
+bounty:
+  min_rep: 100
+
+# --- ВТОРЖЕНИЕ ИЗ БЕЗДНЫ ---
+invasions:
+  interval: 7200             # Спавн вторжения (раз в 2 часа)
+  min-online: 2              # Минимальный онлайн для запуска
+  protected-radius: 32       # Разлом и волны не появляются в приватах
+  rift-hp: 100               # Здоровье разлома
+  spawn-radius: 1000         # Разлом появляется в пределах 1000 блоков от (0,0)
+  mobs-per-wave: 5           # Количество мобов за волну
+  wave-interval: 30          # Интервал между волнами (в секундах)
+  loot:
+    - "DIAMOND;10;20"
+    - "NETHERITE_SCRAP;2;5"
+    - "ENCHANTED_GOLDEN_APPLE;1;1"
+    - "EXPERIENCE_BOTTLE;32;64"
+
+# --- НАПОМИНАНИЯ ОБ АКТИВНЫХ СОБЫТИЯХ ---
+reminders:
+  interval: 600              # Интервал напоминания об активных событиях на сервере и в ВК в секундах (600 = 10 минут)
+
+# --- ГНЕВ БОГОВ И КАТАКЛИЗМЫ ---
+wrath:
+  interval: 28800            # Интервал автоматического запуска катаклизмов (28800 = 8 часов)
+  spawn-radius: 2000         # Радиус спавна Аватара Гнева и мировых находок
+  protected-radius: 48       # Боссы/катаклизмы выбирают только Дикие Земли и не ломают приваты
+  vk-event-cost: 1500        # Стоимость запуска ивента через ВК (!ивент) за 1500 репутации ВК
+
+
+# --- МЕТЕОРИТЫ ---
+meteor:
+  interval: 10800            # Раз в 3 часа
+  spawn-radius: 2500
+  protected-radius: 12       # Кратер не пересекает приватные территории

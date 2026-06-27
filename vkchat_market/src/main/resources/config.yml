@@ -1,0 +1,565 @@
+# ==========================================
+# ДИНАМИЧЕСКИЙ РЫНОК (VKChat Market)
+# ==========================================
+
+settings:
+  enabled: true
+  gui-title: "&8Динамический Рынок"
+  # Интервал (в секундах), за который "спрос" восстанавливается (биржа потребляет проданные ресурсы)
+  recovery-interval: 1200 # 20 минут
+
+items:
+  IRON_INGOT:
+    name: "&fЖелезный слиток"
+    base-price: 2.0
+    min-price: 0.2
+    drop-per-item: 0.005 # Цена падает на 0.005 за каждый проданный предмет
+    recovery-amount: 50  # Биржа сжигает 50 предметов из стока за каждый интервал (цена восстанавливается)
+  
+  GOLD_INGOT:
+    name: "&eЗолотой слиток"
+    base-price: 5.0
+    min-price: 0.5
+    drop-per-item: 0.01
+    recovery-amount: 20
+    
+  DIAMOND:
+    name: "&bАлмаз"
+    base-price: 15.0
+    min-price: 2.0
+    drop-per-item: 0.05
+    recovery-amount: 10
+
+  EMERALD:
+    name: "&aИзумруд"
+    base-price: 8.0
+    min-price: 1.0
+    drop-per-item: 0.02
+    recovery-amount: 15
+
+
+  NETHERITE_SCRAP:
+    name: "&cНезеритовый лом"
+    base-price: 35.0
+    min-price: 5.0
+    drop-per-item: 0.35
+    recovery-amount: 2
+
+  COAL:
+    name: "&8Уголь"
+    base-price: 1.5
+    min-price: 0.15
+    drop-per-item: 0.005
+    recovery-amount: 200
+
+  LAPIS_LAZULI:
+    name: "&9Лазурит"
+    base-price: 1.5
+    min-price: 0.15
+    drop-per-item: 0.005
+    recovery-amount: 150
+
+  REDSTONE:
+    name: "&cРедстоун"
+    base-price: 1.0
+    min-price: 0.1
+    drop-per-item: 0.003
+    recovery-amount: 150
+
+  GLOWSTONE_DUST:
+    name: "&eСветопыль"
+    base-price: 2.0
+    min-price: 0.2
+    drop-per-item: 0.008
+    recovery-amount: 100
+
+  SLIME_BALL:
+    name: "&aСлизь"
+    base-price: 4.0
+    min-price: 0.4
+    drop-per-item: 0.015
+    recovery-amount: 50
+
+  ENDER_PEARL:
+    name: "&5Жемчуг Края"
+    base-price: 5.0
+    min-price: 0.5
+    drop-per-item: 0.02
+    recovery-amount: 40
+
+  QUARTZ:
+    name: "&fКварц Нижнего Мира"
+    base-price: 1.5
+    min-price: 0.15
+    drop-per-item: 0.005
+    recovery-amount: 150
+    
+  ROTTEN_FLESH:
+    name: "&2Гнилая плоть"
+    base-price: 0.5
+    min-price: 0.01
+    drop-per-item: 0.001
+    recovery-amount: 500
+    
+  COBBLESTONE:
+    name: "&7Булыжник"
+    base-price: 0.1
+    min-price: 0.01
+    drop-per-item: 0.0005
+    recovery-amount: 1000
+
+  OAK_LOG:
+    name: "&6Дубовое бревно"
+    base-price: 0.5
+    min-price: 0.05
+    drop-per-item: 0.002
+    recovery-amount: 300
+
+  WHEAT:
+    name: "&eПшеница"
+    category: "Еда/ферма"
+    base-price: 0.6
+    min-price: 0.05
+    drop-per-item: 0.002
+    recovery-amount: 300
+
+  BREAD:
+    name: "&6Хлеб"
+    category: "Еда/ферма"
+    base-price: 1.2
+    min-price: 0.1
+    drop-per-item: 0.004
+    recovery-amount: 120
+
+  CARROT:
+    name: "&6Морковь"
+    category: "Еда/ферма"
+    base-price: 0.7
+    min-price: 0.05
+    drop-per-item: 0.002
+    recovery-amount: 250
+
+  POTATO:
+    name: "&eКартофель"
+    category: "Еда/ферма"
+    base-price: 0.7
+    min-price: 0.05
+    drop-per-item: 0.002
+    recovery-amount: 250
+
+  BEETROOT:
+    name: "&cСвёкла"
+    category: "Еда/ферма"
+    base-price: 0.6
+    min-price: 0.05
+    drop-per-item: 0.002
+    recovery-amount: 200
+
+  APPLE:
+    name: "&cЯблоко"
+    category: "Еда/ферма"
+    base-price: 1.0
+    min-price: 0.1
+    drop-per-item: 0.003
+    recovery-amount: 150
+
+  MELON_SLICE:
+    name: "&aЛомтик арбуза"
+    category: "Еда/ферма"
+    base-price: 0.3
+    min-price: 0.03
+    drop-per-item: 0.001
+    recovery-amount: 400
+
+  PUMPKIN:
+    name: "&6Тыква"
+    category: "Еда/ферма"
+    base-price: 1.0
+    min-price: 0.1
+    drop-per-item: 0.003
+    recovery-amount: 150
+
+  SUGAR_CANE:
+    name: "&aСахарный тростник"
+    category: "Еда/ферма"
+    base-price: 0.7
+    min-price: 0.05
+    drop-per-item: 0.002
+    recovery-amount: 300
+
+  BAMBOO:
+    name: "&aБамбук"
+    category: "Еда/ферма"
+    base-price: 0.3
+    min-price: 0.02
+    drop-per-item: 0.001
+    recovery-amount: 500
+
+  CACTUS:
+    name: "&2Кактус"
+    category: "Еда/ферма"
+    base-price: 0.5
+    min-price: 0.04
+    drop-per-item: 0.002
+    recovery-amount: 300
+
+  SPRUCE_LOG:
+    name: "&6Еловое бревно"
+    category: "Дерево"
+    base-price: 0.5
+    min-price: 0.05
+    drop-per-item: 0.002
+    recovery-amount: 300
+
+  BIRCH_LOG:
+    name: "&fБерёзовое бревно"
+    category: "Дерево"
+    base-price: 0.5
+    min-price: 0.05
+    drop-per-item: 0.002
+    recovery-amount: 300
+
+  JUNGLE_LOG:
+    name: "&aТропическое бревно"
+    category: "Дерево"
+    base-price: 0.55
+    min-price: 0.05
+    drop-per-item: 0.002
+    recovery-amount: 250
+
+  ACACIA_LOG:
+    name: "&6Акациевое бревно"
+    category: "Дерево"
+    base-price: 0.55
+    min-price: 0.05
+    drop-per-item: 0.002
+    recovery-amount: 250
+
+  DARK_OAK_LOG:
+    name: "&8Тёмное дубовое бревно"
+    category: "Дерево"
+    base-price: 0.6
+    min-price: 0.05
+    drop-per-item: 0.002
+    recovery-amount: 250
+
+  MANGROVE_LOG:
+    name: "&cМангровое бревно"
+    category: "Дерево"
+    base-price: 0.7
+    min-price: 0.06
+    drop-per-item: 0.003
+    recovery-amount: 200
+
+  STONE:
+    name: "&7Камень"
+    category: "Стройматериалы"
+    base-price: 0.15
+    min-price: 0.01
+    drop-per-item: 0.0005
+    recovery-amount: 1000
+
+  GRANITE:
+    name: "&cГранит"
+    category: "Стройматериалы"
+    base-price: 0.12
+    min-price: 0.01
+    drop-per-item: 0.0005
+    recovery-amount: 900
+
+  DIORITE:
+    name: "&fДиорит"
+    category: "Стройматериалы"
+    base-price: 0.12
+    min-price: 0.01
+    drop-per-item: 0.0005
+    recovery-amount: 900
+
+  ANDESITE:
+    name: "&7Андезит"
+    category: "Стройматериалы"
+    base-price: 0.12
+    min-price: 0.01
+    drop-per-item: 0.0005
+    recovery-amount: 900
+
+  DEEPSLATE:
+    name: "&8Глубинный сланец"
+    category: "Стройматериалы"
+    base-price: 0.18
+    min-price: 0.02
+    drop-per-item: 0.0006
+    recovery-amount: 700
+
+  BASALT:
+    name: "&8Базальт"
+    category: "Стройматериалы"
+    base-price: 0.2
+    min-price: 0.02
+    drop-per-item: 0.0007
+    recovery-amount: 600
+
+  BLACKSTONE:
+    name: "&8Чернит"
+    category: "Стройматериалы"
+    base-price: 0.25
+    min-price: 0.02
+    drop-per-item: 0.0008
+    recovery-amount: 500
+
+  OBSIDIAN:
+    name: "&5Обсидиан"
+    category: "Стройматериалы"
+    base-price: 3.0
+    min-price: 0.3
+    drop-per-item: 0.015
+    recovery-amount: 60
+
+  SAND:
+    name: "&eПесок"
+    category: "Стройматериалы"
+    base-price: 0.12
+    min-price: 0.01
+    drop-per-item: 0.0005
+    recovery-amount: 1000
+
+  GLASS:
+    name: "&fСтекло"
+    category: "Стройматериалы"
+    base-price: 0.25
+    min-price: 0.02
+    drop-per-item: 0.001
+    recovery-amount: 500
+
+  CLAY_BALL:
+    name: "&7Глина"
+    category: "Стройматериалы"
+    base-price: 0.25
+    min-price: 0.02
+    drop-per-item: 0.001
+    recovery-amount: 500
+
+  BRICK:
+    name: "&cКирпич"
+    category: "Стройматериалы"
+    base-price: 0.5
+    min-price: 0.05
+    drop-per-item: 0.002
+    recovery-amount: 250
+
+  COPPER_INGOT:
+    name: "&6Медный слиток"
+    category: "Руды/слитки"
+    base-price: 1.2
+    min-price: 0.1
+    drop-per-item: 0.004
+    recovery-amount: 120
+
+  RAW_IRON:
+    name: "&fСырое железо"
+    category: "Руды/слитки"
+    base-price: 1.5
+    min-price: 0.15
+    drop-per-item: 0.005
+    recovery-amount: 150
+
+  RAW_GOLD:
+    name: "&eСырое золото"
+    category: "Руды/слитки"
+    base-price: 3.5
+    min-price: 0.35
+    drop-per-item: 0.01
+    recovery-amount: 70
+
+  RAW_COPPER:
+    name: "&6Сырая медь"
+    category: "Руды/слитки"
+    base-price: 0.8
+    min-price: 0.08
+    drop-per-item: 0.003
+    recovery-amount: 200
+
+  AMETHYST_SHARD:
+    name: "&dОсколок аметиста"
+    category: "Магия"
+    base-price: 3.0
+    min-price: 0.3
+    drop-per-item: 0.012
+    recovery-amount: 70
+
+
+  BONE:
+    name: "&fКость"
+    category: "Мобы"
+    base-price: 0.6
+    min-price: 0.05
+    drop-per-item: 0.002
+    recovery-amount: 300
+
+  STRING:
+    name: "&fНить"
+    category: "Мобы"
+    base-price: 0.6
+    min-price: 0.05
+    drop-per-item: 0.002
+    recovery-amount: 300
+
+  SPIDER_EYE:
+    name: "&4Паучий глаз"
+    category: "Мобы"
+    base-price: 1.5
+    min-price: 0.15
+    drop-per-item: 0.006
+    recovery-amount: 120
+
+  GUNPOWDER:
+    name: "&8Порох"
+    category: "Мобы"
+    base-price: 2.0
+    min-price: 0.2
+    drop-per-item: 0.008
+    recovery-amount: 100
+
+  BLAZE_ROD:
+    name: "&6Огненный стержень"
+    category: "Мобы/магия"
+    base-price: 6.0
+    min-price: 0.6
+    drop-per-item: 0.025
+    recovery-amount: 35
+
+  GHAST_TEAR:
+    name: "&fСлеза гаста"
+    category: "Мобы/магия"
+    base-price: 15.0
+    min-price: 2.0
+    drop-per-item: 0.08
+    recovery-amount: 10
+
+  MAGMA_CREAM:
+    name: "&6Магмовый крем"
+    category: "Мобы/магия"
+    base-price: 4.0
+    min-price: 0.4
+    drop-per-item: 0.015
+    recovery-amount: 50
+
+  PHANTOM_MEMBRANE:
+    name: "&9Мембрана фантома"
+    category: "Мобы/магия"
+    base-price: 5.0
+    min-price: 0.5
+    drop-per-item: 0.02
+    recovery-amount: 40
+
+  PRISMARINE_SHARD:
+    name: "&bПризмариновый осколок"
+    category: "Мобы/магия"
+    base-price: 2.5
+    min-price: 0.25
+    drop-per-item: 0.01
+    recovery-amount: 80
+
+  PRISMARINE_CRYSTALS:
+    name: "&bПризмариновые кристаллы"
+    category: "Мобы/магия"
+    base-price: 4.0
+    min-price: 0.4
+    drop-per-item: 0.015
+    recovery-amount: 60
+
+  WHITE_WOOL:
+    name: "&fБелая шерсть"
+    category: "Декор"
+    base-price: 0.8
+    min-price: 0.08
+    drop-per-item: 0.002
+    recovery-amount: 200
+
+  BLACK_WOOL:
+    name: "&8Чёрная шерсть"
+    category: "Декор"
+    base-price: 0.9
+    min-price: 0.08
+    drop-per-item: 0.002
+    recovery-amount: 180
+
+  LEATHER:
+    name: "&6Кожа"
+    category: "Мобы"
+    base-price: 1.5
+    min-price: 0.15
+    drop-per-item: 0.005
+    recovery-amount: 120
+
+  FEATHER:
+    name: "&fПеро"
+    category: "Мобы"
+    base-price: 0.8
+    min-price: 0.08
+    drop-per-item: 0.003
+    recovery-amount: 180
+
+  INK_SAC:
+    name: "&8Чернильный мешок"
+    category: "Декор"
+    base-price: 1.2
+    min-price: 0.12
+    drop-per-item: 0.004
+    recovery-amount: 140
+
+  GLOW_INK_SAC:
+    name: "&bСветящийся чернильный мешок"
+    category: "Декор"
+    base-price: 3.0
+    min-price: 0.3
+    drop-per-item: 0.012
+    recovery-amount: 60
+
+
+
+  EXPERIENCE_BOTTLE:
+    name: "&aПузырёк опыта"
+    category: "Магия"
+    base-price: 2.0
+    min-price: 0.2
+    drop-per-item: 0.008
+    recovery-amount: 150
+
+# Лимитированные редкие товары: не отображаются в обычных категориях /shop.
+# Это дорогая витрина редкостей. Использовать осторожно.
+limited-items:
+  TOTEM_OF_UNDYING:
+    name: "&6Тотем бессмертия"
+    price: 5000
+    daily-limit: 1
+  ENCHANTED_GOLDEN_APPLE:
+    name: "&dЗачарованное золотое яблоко"
+    price: 8000
+    daily-limit: 1
+  ECHO_SHARD:
+    name: "&3Эхо-осколок"
+    price: 3500
+    daily-limit: 2
+
+# Market 2.0: дневные тренды, ротация редкостей и история экономики.
+market2:
+  donate:
+    sell-multiplier:
+      spark: 1.30
+      flame: 1.70
+      star: 2.20
+      legend: 3.00
+    buy-multiplier:
+      spark: 0.90
+      flame: 0.70
+      star: 0.40
+      legend: 0.00
+  trends:
+    min-multiplier: 0.75
+    max-multiplier: 1.35
+  limited-rotation:
+    enabled: true
+    count: 2
+  history:
+    min-volume-log: 64

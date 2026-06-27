@@ -1,0 +1,72 @@
+settings:
+  enabled: true
+  check-interval: 60
+
+# VK ID администраторов стримерского модуля.
+vk-admins: []
+
+approval:
+  auto-approve: false
+
+platforms:
+  priority: ["twitch", "vk"]
+  enabled: ["twitch", "vk", "youtube", "manual"]
+
+# API-гибрид. Если токены не указаны, используется ручной режим approved-стримеров.
+twitch:
+  enabled: true
+  client-id: "YOUR_TWITCH_CLIENT_ID"
+  client-secret: "YOUR_TWITCH_CLIENT_SECRET"
+
+vkvideo:
+  enabled: true
+  token: "YOUR_VK_SERVICE_TOKEN"
+
+youtube:
+  enabled: true
+  api-key: "YOUR_YOUTUBE_API_KEY"
+
+announcements:
+  minecraft: true
+  vk: true
+  interval: 30
+  template: |-
+    🎥 {streamer} LIVE на {platform}!
+    {title}
+    ▶ {link}
+    🎁 Промокоды для зрителей появляются на milestone 30/60/120 минут.
+
+anti-spam:
+  announce-cooldown-minutes: 30
+  min-live-minutes: 30
+
+rewards:
+  min-live-minutes: 30
+  milestones: [30, 60, 120]
+  streamer:
+    default: 50
+    milestone-30: 75
+    milestone-60: 150
+    milestone-120: 350
+  viewers:
+    promo-rep: 25
+    promo-uses: 25
+    lottery-chance: 10
+
+interactions:
+  auto-vote-on-milestone: true
+  vote-duration-seconds: 90
+  challenges:
+    pve:
+      - "Убей элитного моба VKChatMobs"
+      - "Закрой охотничий контракт"
+    craft:
+      - "Скуй или перекуй предмет в /forge"
+      - "Продай ресурсы на /market"
+    social:
+      - "Помоги новичку"
+      - "Проведи экскурсию по базе/нации"
+
+abuse:
+  manual-cooldown-minutes: 120
+  max-warnings-before-unapprove: 3

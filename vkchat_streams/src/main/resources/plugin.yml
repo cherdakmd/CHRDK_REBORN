@@ -1,0 +1,18 @@
+name: VKChatStreams
+version: "2.0.0"
+main: ru.example.vkchatstreams.VKChatStreamsPlugin
+api-version: "1.16"
+depend: [VKChat]
+commands:
+  stream:
+    description: Меню активных стримов и админ-команды VKChatStreams
+    usage: /stream
+    aliases: [streams, стрим, стримы]
+    permission: vkchat.streams.player
+permissions:
+  vkchat.streams.player:
+    description: Доступ к просмотру стримов
+    default: true
+  vkchat.streams.admin:
+    description: Админ-команды VKChatStreams
+    default: op

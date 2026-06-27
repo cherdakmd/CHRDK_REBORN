@@ -1,0 +1,131 @@
+settings:
+  enabled: true
+  max-level: 50
+  reputation-per-level: 20
+  # Очков навыков выдается каждые X уровней
+  skill-point-every-levels: 10
+
+# Настройки усталости (Fatigue)
+fatigue:
+  enabled: true
+  max-fatigue: 1000
+  fatigue-per-action: 3        # Усталость за одно действие
+  rest-per-minute: 20        # Сколько усталости отдыхает за минуту онлайна
+
+jobs:
+  miner:
+    name: "&7Шахтер"
+    exp-multiplier: 1.0
+  woodcutter:
+    name: "&6Лесоруб"
+    exp-multiplier: 1.0
+  farmer:
+    name: "&eФермер"
+    exp-multiplier: 1.0
+  alchemist:
+    name: "&dАлхимик"
+    exp-multiplier: 1.5
+  blacksmith:
+    name: "&8Кузнец"
+    exp-multiplier: 1.5
+  hunter:
+    name: "&cОхотник"
+    exp-multiplier: 1.0
+  fisherman:
+    name: "&bРыбак"
+    exp-multiplier: 1.0
+
+# Jobs 2.0: ежедневные задания профессий и специализации.
+daily:
+  enabled: true
+  default-target: 100
+  reward-reputation: 150
+  reward-item: EXPERIENCE_BOTTLE
+  reward-item-amount: 8
+  targets:
+    miner: 80
+    woodcutter: 100
+    farmer: 120
+    alchemist: 8
+    blacksmith: 20
+    hunter: 60
+    fisherman: 40
+
+specializations:
+  required-level: 20
+  # Одна специализация на профессию. Меняется только вручную админом через data-файл.
+  xp-bonus: 0.15
+  stamina-reduction: 0.25
+  reward-bonus: 0.20
+
+# Jobs 3.0: ванильные ранговые награды за уровни профессий.
+# Никаких NBT-предметов: только обычные vanilla items.
+rank-rewards:
+  enabled: true
+  items: {}
+
+# Jobs 3.1: репутация ВК за действия профессий.
+# Без дневных/часовых лимитов. Баланс держится малой базой, уровнем профессии и антиабузом.
+jobs-reputation:
+  enabled: true
+  message-mode: chat_batch # silent / actionbar / chat_batch
+  message-interval-seconds: 20
+  level-bonus-per-level: 0.01
+  max-level-bonus: 0.50
+  donate-multipliers:
+    spark: 2.50
+    flame: 4.50
+    star: 7.00
+    legend: 11.00
+  jobs:
+    miner:
+      enabled: true
+      base: 0.18
+    woodcutter:
+      enabled: true
+      base: 0.10
+    farmer:
+      enabled: true
+      base: 0.08
+    hunter:
+      enabled: true
+      base: 0.35
+    fisherman:
+      enabled: true
+      base: 0.22
+    alchemist:
+      enabled: false
+      base: 0.10
+    blacksmith:
+      enabled: false
+      base: 0.10
+  action-multipliers:
+    COAL_ORE: 1.3
+    DEEPSLATE_COAL_ORE: 1.5
+    IRON_ORE: 2.0
+    DEEPSLATE_IRON_ORE: 2.2
+    COPPER_ORE: 2.0
+    GOLD_ORE: 3.0
+    DEEPSLATE_GOLD_ORE: 3.3
+    REDSTONE_ORE: 3.0
+    LAPIS_ORE: 3.0
+    DIAMOND_ORE: 8.0
+    DEEPSLATE_DIAMOND_ORE: 9.0
+    EMERALD_ORE: 8.0
+    ANCIENT_DEBRIS: 14.0
+    ZOMBIE: 1.6
+    SKELETON: 1.6
+    CREEPER: 1.8
+    SPIDER: 1.5
+    ENDERMAN: 3.0
+    BLAZE: 3.0
+    WITHER_SKELETON: 4.0
+    COD: 1.2
+    SALMON: 1.2
+    PUFFERFISH: 2.0
+    TROPICAL_FISH: 2.0
+
+# Anti-abuse: блоки, поставленные игроками, не дают Jobs XP/репутацию для miner/woodcutter.
+anti-abuse:
+  track-placed-blocks: true
+  notify-placed-block: false
