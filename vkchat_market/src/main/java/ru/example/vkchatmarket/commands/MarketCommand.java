@@ -52,6 +52,20 @@ public class MarketCommand implements CommandExecutor, TabCompleter {
             for (String line : plugin.getMarketManager().getHistoryTail(10)) p.sendMessage(org.bukkit.ChatColor.GRAY + "• " + line);
         } else if (args.length > 0 && (args[0].equalsIgnoreCase("roulette") || args[0].equalsIgnoreCase("рулетка"))) {
             plugin.getMarketFun().spinRoulette(p);
+        } else if (args.length > 0 && args[0].equalsIgnoreCase("russian")) {
+            plugin.getMarketFun().spinRoulette(p, "russian");
+        } else if (args.length > 0 && args[0].equalsIgnoreCase("double")) {
+            plugin.getMarketFun().doubleOrNothing(p);
+        } else if (args.length > 0 && args[0].equalsIgnoreCase("gift") && args.length > 1) {
+            plugin.getMarketFun().giftSpin(p, args[1]);
+        } else if (args.length > 0 && args[0].equalsIgnoreCase("autospin")) {
+            plugin.getMarketFun().toggleAutoSpin(p);
+        } else if (args.length > 0 && args[0].equalsIgnoreCase("stats")) {
+            p.sendMessage(plugin.getMarketFun().getStats(p));
+        } else if (args.length > 0 && args[0].equalsIgnoreCase("spins")) {
+            showSpinHistory(p);
+        } else if (args.length > 0 && args[0].equalsIgnoreCase("top")) {
+            showLeaderboard(p);
         } else if (args.length > 0 && (args[0].equalsIgnoreCase("quest") || args[0].equalsIgnoreCase("квест"))) {
             showQuestInfo(p);
         } else if (args.length > 0 && (args[0].equalsIgnoreCase("flash") || args[0].equalsIgnoreCase("flashsale"))) {
@@ -91,13 +105,37 @@ public class MarketCommand implements CommandExecutor, TabCompleter {
         p.sendMessage(org.bukkit.ChatColor.GRAY + "Осталось: " + remaining + " сек.");
     }
 
+    private void showSpinHistory(Player p) {
+        var history = plugin.getMarketFun().getSpinHistory(p.getName());
+        p.sendMessage(org.bukkit.ChatColor.GOLD + "═══ 🎰 История рулетки ═══");
+        if (history.isEmpty()) {
+            p.sendMessage(org.bukkit.ChatColor.GRAY + "Пока пусто. Крути рулетку!");
+        } else {
+            for (int i = history.size() - 1; i >= Math.max(0, history.size() - 10); i--) {
+                p.sendMessage(org.bukkit.ChatColor.GRAY + "• " + history.get(i));
+            }
+        }
+    }
+
+    private void showLeaderboard(Player p) {
+        var lb = plugin.getMarketFun().getLeaderboard(10);
+        p.sendMessage(org.bukkit.ChatColor.GOLD + "═══ 🏆 Топ игроков рулетки ═══");
+        if (lb.isEmpty()) {
+            p.sendMessage(org.bukkit.ChatColor.GRAY + "Пока нет данных.");
+        } else {
+            for (String line : lb) p.sendMessage(org.bukkit.ChatColor.YELLOW + line);
+        }
+    }
+
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String label, String[] args) {
         List<String> completions = new ArrayList<>();
         String last = args.length > 0 ? args[args.length - 1].toLowerCase() : "";
 
         if (args.length == 1) {
-            completions.addAll(Arrays.asList("spawnnpc", "trends", "тренды", "history", "история", "roulette", "рулетка", "quest", "квест", "flash", "flashsale"));
+            completions.addAll(Arrays.asList("spawnnpc", "trends", "тренды", "history", "история",
+                "roulette", "рулетка", "russian", "double", "gift", "autospin", "stats", "spins", "top",
+                "quest", "квест", "flash", "flashsale"));
         }
 
         return completions.stream().filter(s -> last.isEmpty() || s.toLowerCase().startsWith(last)).collect(Collectors.toList());

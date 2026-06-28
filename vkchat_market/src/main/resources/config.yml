@@ -929,6 +929,7 @@ market2:
   roulette:
     cost: 500                # Стоимость крутки
     cooldown-ms: 300000      # Кулдаун 5 минут
+    gift-cost: 1000          # Стоимость подарка спина
   flash-sale:
     chance: 0.10             # 10% шанс каждые 10 минут
     duration-ms: 300000      # 5 минут
