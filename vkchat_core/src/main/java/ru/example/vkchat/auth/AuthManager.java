@@ -23,9 +23,19 @@ public class AuthManager {
     private final Map<UUID, Long> joinTimes = new ConcurrentHashMap<>();
     private final Map<UUID, Boolean> loggedIn = new ConcurrentHashMap<>();
     private final Map<UUID, String> await2fa = new ConcurrentHashMap<>();
+    private final Map<UUID, Long> await2faExpiry = new ConcurrentHashMap<>();      // 2FA код истекает через 5 минут
+    private final Map<UUID, Integer> await2faAttempts = new ConcurrentHashMap<>();  // Попытки ввода 2FA
     private final Map<UUID, Integer> failedAttempts = new ConcurrentHashMap<>();
     private final Map<UUID, Long> lockouts = new ConcurrentHashMap<>();
     private final Map<UUID, Long> lastActivity = new ConcurrentHashMap<>();
+    private final Map<UUID, Boolean> frozenAccounts = new ConcurrentHashMap<>();    // Замороженные аккаунты
+    private final Map<UUID, java.util.List<String>> loginHistory = new ConcurrentHashMap<>(); // История входов
+    private final Map<UUID, Long> trustedDevices = new ConcurrentHashMap<>();       // Доверенные устройства (IP hash -> expiry)
+
+    private static final long TWO_FA_EXPIRY_MS = 5 * 60 * 1000L; // 5 минут
+    private static final int MAX_2FA_ATTEMPTS = 5;
+    private static final int MAX_FAILED_LOGINS = 3;
+    private static final long LOCKOUT_DURATION_MS = 5 * 60 * 1000L; // 5 минут
 
     public AuthManager(VKChatPlugin plugin) {
         this.plugin = plugin;
@@ -100,6 +110,23 @@ public class AuthManager {
                         }
 
                         if (trigger2fa) {
+                            // Проверка заморозки аккаунта
+                            if (isAccountFrozen(player.getUniqueId())) {
+                                plugin.getServer().getScheduler().runTask(plugin, () -> {
+                                    player.kickPlayer(org.bukkit.ChatColor.RED + "🔒 Ваш аккаунт заморожен. Обратитесь к администрации.");
+                                });
+                                return;
+                            }
+
+                            // Проверка блокировки за неудачные попытки
+                            if (isAccountLocked(player.getUniqueId())) {
+                                long remaining = getLockoutRemaining(player.getUniqueId());
+                                plugin.getServer().getScheduler().runTask(plugin, () -> {
+                                    player.kickPlayer(org.bukkit.ChatColor.RED + "⏳ Аккаунт заблокирован на " + remaining + " сек. из-за неудачных попыток входа.");
+                                });
+                                return;
+                            }
+
                             int codeLength = plugin.getConfig().getInt("security.code-length", 4);
                             StringBuilder codeBuilder = new StringBuilder();
                             for (int i = 0; i < codeLength; i++) {
@@ -107,9 +134,11 @@ public class AuthManager {
                             }
                             String code = codeBuilder.toString();
                             await2fa.put(player.getUniqueId(), code);
+                            await2faExpiry.put(player.getUniqueId(), System.currentTimeMillis() + TWO_FA_EXPIRY_MS);
+                            await2faAttempts.put(player.getUniqueId(), 0);
 
                             int vkId = rs.getInt("vk_id");
-                            String msg = "🛡️ Блокировка безопасности!\nМы заметили вход с нового или локального IP-адреса.\n\nТвой одноразовый код (2FA) для подтверждения в игре: " + code + "\n\nНикому не сообщай этот код!";
+                            String msg = "🛡️ Блокировка безопасности!\nМы заметили вход с нового или локального IP-адреса.\n\nТвой одноразовый код (2FA) для подтверждения в игре: " + code + "\n\n⏱ Код действителен 5 минут.\nНикому не сообщай этот код!";
                             
                             String kbJson = ru.example.vkchat.vk.VKKeyboardBuilder.twoFaKeyboard(code);
                             plugin.getVkManager().sendKeyboard(vkId, msg, kbJson);
@@ -174,16 +203,31 @@ public class AuthManager {
             // Проверка на 2FA
             for (Map.Entry<UUID, String> entry : await2fa.entrySet()) {
                 if (entry.getValue().equals(code)) {
+                    // Проверка истечения кода
+                    if (is2faExpired(entry.getKey())) {
+                        await2fa.remove(entry.getKey());
+                        await2faExpiry.remove(entry.getKey());
+                        plugin.getVkManager().sendMessage(replyPeer, "❌ Код 2FA истёк (действителен 5 минут). Зайдите на сервер заново для получения нового кода.");
+                        return false;
+                    }
+
                     Player p = plugin.getServer().getPlayer(entry.getKey());
                     if (p != null) {
                         int linkedVk = getLinkedVkId(p);
                         if (linkedVk == vkId) {
-                            await2fa.remove(entry.getKey());
-                            loggedIn.put(entry.getKey(), true);
-                            saveIp(p);
+                            confirm2fa(entry.getKey());
                             plugin.getVkManager().sendMessage(replyPeer, plugin.getConfigManager().formatColor(plugin.getConfigManager().getMessage("auth_2fa_success")));
                             p.sendMessage(plugin.getConfigManager().formatColor(plugin.getConfigManager().getMessage("auth_2fa_success")));
                             return true;
+                        } else {
+                            // Неверный VK ID —.increment attempts
+                            boolean locked = increment2faAttempts(entry.getKey());
+                            if (locked) {
+                                plugin.getVkManager().sendMessage(replyPeer, "🔒 Слишком много неудачных попыток! Аккаунт заблокирован на 5 минут.");
+                            } else {
+                                int remaining = MAX_2FA_ATTEMPTS - await2faAttempts.getOrDefault(entry.getKey(), 0);
+                                plugin.getVkManager().sendMessage(replyPeer, "❌ Неверный код. Осталось попыток: " + remaining);
+                            }
                         }
                     }
                 }
@@ -299,29 +343,149 @@ public class AuthManager {
     }
 
     public boolean isWaiting2fa(Player p) {
-        return await2fa.containsKey(p.getUniqueId());
+        cleanupExpired2fa();
+        return await2fa.containsKey(p.getUniqueId()) && !is2faExpired(p.getUniqueId());
     }
 
     public boolean isWaiting2fa(UUID uuid) {
-        return await2fa.containsKey(uuid);
+        cleanupExpired2fa();
+        return await2fa.containsKey(uuid) && !is2faExpired(uuid);
     }
 
     public String getPending2faCode(UUID uuid) {
+        if (is2faExpired(uuid)) {
+            await2fa.remove(uuid);
+            await2faExpiry.remove(uuid);
+            return null;
+        }
         return await2fa.get(uuid);
     }
 
     public Iterable<Map.Entry<UUID, String>> getAwait2faEntries() {
+        cleanupExpired2fa();
         return new ArrayList<>(await2fa.entrySet());
     }
 
     public void confirm2fa(UUID uuid) {
         await2fa.remove(uuid);
+        await2faExpiry.remove(uuid);
+        await2faAttempts.remove(uuid);
         loggedIn.put(uuid, true);
         Player p = plugin.getServer().getPlayer(uuid);
         if (p != null) {
             saveIp(p);
+            addLoginHistory(uuid, p.getAddress().getAddress().getHostAddress());
         }
     }
+
+    // ==================== 2FA ИСТЕЧЕНИЕ И ОДНОРАЗОВОСТЬ ====================
+
+    /**
+     * Проверяет, истёк ли код 2FA (5 минут).
+     */
+    public boolean is2faExpired(UUID uuid) {
+        Long expiry = await2faExpiry.get(uuid);
+        if (expiry == null) return false;
+        return System.currentTimeMillis() > expiry;
+    }
+
+    /**
+     * Очищает истёкшие коды 2FA.
+     */
+    public void cleanupExpired2fa() {
+        long now = System.currentTimeMillis();
+        await2faExpiry.entrySet().removeIf(e -> now > e.getValue());
+        await2fa.entrySet().removeIf(e -> !await2faExpiry.containsKey(e.getKey()));
+    }
+
+    /**
+     * Увеличивает счётчик неудачных попыток 2FA.
+     * @return true если заблокирован (превышен лимит)
+     */
+    public boolean increment2faAttempts(UUID uuid) {
+        int attempts = await2faAttempts.getOrDefault(uuid, 0) + 1;
+        await2faAttempts.put(uuid, attempts);
+        if (attempts >= MAX_2FA_ATTEMPTS) {
+            await2fa.remove(uuid);
+            await2faExpiry.remove(uuid);
+            await2faAttempts.remove(uuid);
+            lockouts.put(uuid, System.currentTimeMillis() + LOCKOUT_DURATION_MS);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Проверяет, заблокирован ли аккаунт из-за неудачных попыток.
+     */
+    public boolean isAccountLocked(UUID uuid) {
+        Long lockoutExpiry = lockouts.get(uuid);
+        if (lockoutExpiry == null) return false;
+        if (System.currentTimeMillis() > lockoutExpiry) {
+            lockouts.remove(uuid);
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Получает оставшееся время блокировки в секундах.
+     */
+    public long getLockoutRemaining(UUID uuid) {
+        Long lockoutExpiry = lockouts.get(uuid);
+        if (lockoutExpiry == null) return 0;
+        long remaining = (lockoutExpiry - System.currentTimeMillis()) / 1000;
+        return Math.max(0, remaining);
+    }
+
+    // ==================== ЗАМОРОЗКА АККАУНТА ====================
+
+    /**
+     * Замораживает аккаунт (нельзя войти).
+     */
+    public void freezeAccount(UUID uuid) {
+        frozenAccounts.put(uuid, true);
+        Player p = plugin.getServer().getPlayer(uuid);
+        if (p != null && p.isOnline()) {
+            p.kickPlayer(org.bukkit.ChatColor.RED + "🔒 Ваш аккаунт заморожен администратором!");
+        }
+    }
+
+    /**
+     * Размораживает аккаунт.
+     */
+    public void unfreezeAccount(UUID uuid) {
+        frozenAccounts.remove(uuid);
+    }
+
+    /**
+     * Проверяет, заморожен ли аккаунт.
+     */
+    public boolean isAccountFrozen(UUID uuid) {
+        return frozenAccounts.getOrDefault(uuid, false);
+    }
+
+    // ==================== ИСТОРИЯ ВХОДОВ ====================
+
+    /**
+     * Добавляет запись в историю входов.
+     */
+    public void addLoginHistory(UUID uuid, String ip) {
+        loginHistory.putIfAbsent(uuid, new ArrayList<>());
+        java.util.List<String> history = loginHistory.get(uuid);
+        String entry = new java.text.SimpleDateFormat("dd.MM.yyyy HH:mm").format(new java.util.Date()) + " | " + ip;
+        history.add(0, entry);
+        if (history.size() > 10) history.remove(history.size() - 1);
+    }
+
+    /**
+     * Получает историю входов.
+     */
+    public java.util.List<String> getLoginHistory(UUID uuid) {
+        return loginHistory.getOrDefault(uuid, new ArrayList<>());
+    }
+
+    // ==================== БЛОКИРОВКА ВХОДА ====================
 
     public boolean blockLoginByCode(String code) {
         UUID victimUuid = null;
@@ -333,7 +497,9 @@ public class AuthManager {
         }
         if (victimUuid != null) {
             final UUID fUuid = victimUuid;
-            await2fa.remove(victimUuid); // Снимаем ожидание входа
+            await2fa.remove(victimUuid);
+            await2faExpiry.remove(victimUuid);
+            await2faAttempts.remove(victimUuid);
             
             // Кикаем игрока на главном потоке
             plugin.getServer().getScheduler().runTask(plugin, () -> {

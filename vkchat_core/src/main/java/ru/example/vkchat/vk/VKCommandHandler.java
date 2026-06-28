@@ -565,6 +565,107 @@ public class VKCommandHandler {
                     plugin.getVkManager().sendMessage(peer, fromId, "❌ Неверный код.");
                 }
             }
+        } else if (cmd.equals("!история") || cmd.equals("!history")) {
+            // История входов
+            java.util.UUID targetUuid = null;
+            try (java.sql.Connection conn = plugin.getDatabaseManager().getConnection()) {
+                java.sql.PreparedStatement ps = conn.prepareStatement("SELECT uuid FROM vkchat_auth WHERE vk_id = ?");
+                ps.setInt(1, fromId);
+                java.sql.ResultSet rs = ps.executeQuery();
+                if (rs.next()) {
+                    targetUuid = java.util.UUID.fromString(rs.getString("uuid"));
+                }
+            } catch (Exception ignored) {}
+
+            if (targetUuid != null) {
+                java.util.List<String> history = plugin.getAuthManager().getLoginHistory(targetUuid);
+                StringBuilder sb = new StringBuilder("📋 История входов\n\n");
+                if (history.isEmpty()) {
+                    sb.append("История пуста.");
+                } else {
+                    for (String entry : history) {
+                        sb.append("• ").append(entry).append("\n");
+                    }
+                }
+                if (peer < 2000000000) {
+                    plugin.getVkManager().sendKeyboard(peer, sb.toString(), VKKeyboardBuilder.accountMenu());
+                } else {
+                    plugin.getVkManager().sendMessage(peer, fromId, sb.toString());
+                }
+            } else {
+                plugin.getVkManager().sendMessage(peer, fromId, "❌ Аккаунт не привязан.");
+            }
+        } else if (cmd.equals("!безопасность") || cmd.equals("!security")) {
+            // Статус безопасности
+            StringBuilder sb = new StringBuilder("🛡️ Статус безопасности\n\n");
+            try (java.sql.Connection conn = plugin.getDatabaseManager().getConnection()) {
+                java.sql.PreparedStatement ps = conn.prepareStatement("SELECT * FROM vkchat_auth WHERE vk_id = ?");
+                ps.setInt(1, fromId);
+                java.sql.ResultSet rs = ps.executeQuery();
+                if (rs.next()) {
+                    String uuid = rs.getString("uuid");
+                    String lastIp = rs.getString("last_ip");
+                    long regDate = rs.getLong("reg_date");
+                    boolean isFrozen = plugin.getAuthManager().isAccountFrozen(java.util.UUID.fromString(uuid));
+
+                    sb.append("Статус: ").append(isFrozen ? "🔒 Заморожен" : "✅ Активен").append("\n");
+                    sb.append("UUID: ").append(uuid != null ? uuid.substring(0, 8) + "..." : "Н/Д").append("\n");
+                    sb.append("Последний IP: ").append(lastIp != null ? lastIp : "Н/Д").append("\n");
+                    sb.append("Последний вход: ").append(regDate > 0 ? new java.text.SimpleDateFormat("dd.MM.yyyy HH:mm").format(new java.util.Date(regDate)) : "Н/Д").append("\n\n");
+                    sb.append("Защита:\n");
+                    sb.append("• 2FA: ").append(plugin.getConfig().getBoolean("security.2fa-enabled", true) ? "✅ Включена" : "❌ Выключена").append("\n");
+                    sb.append("• Авто-вход: ").append(plugin.getConfig().getBoolean("auth.auto-login-ip", true) ? "✅ Включён" : "❌ Выключен").append("\n");
+                    sb.append("• Таймаут: ").append(plugin.getConfig().getInt("auth.session-timeout-minutes", 30)).append(" мин.\n");
+                } else {
+                    sb.append("Аккаунт не найден.");
+                }
+            } catch (Exception e) {
+                sb.append("Ошибка получения данных.");
+            }
+            if (peer < 2000000000) {
+                plugin.getVkManager().sendKeyboard(peer, sb.toString(), VKKeyboardBuilder.accountMenu());
+            } else {
+                plugin.getVkManager().sendMessage(peer, fromId, sb.toString());
+            }
+        } else if (cmd.equals("!отвязать") || cmd.equals("!unlink")) {
+            // Отвязка VK от MC
+            plugin.getVkManager().sendMessage(peer, fromId, "🔗 Для отвязки ВК от Minecraft используй команду в игре:\n/vkunlink\n\nПосле отвязки вы потеряете доступ к VK-функциям сервера.");
+        } else if (cmd.equals("!заморозить") || cmd.equals("!freeze")) {
+            // Заморозка аккаунта (админ)
+            java.util.List<Integer> admins = plugin.getConfig().getIntegerList("vk.admin-vk-ids");
+            if (!admins.contains(fromId)) {
+                plugin.getVkManager().sendMessage(peer, fromId, "❌ У вас нет прав.");
+                return;
+            }
+            if (args.length < 2) {
+                plugin.getVkManager().sendMessage(peer, fromId, "Использование: !заморозить <ник>");
+                return;
+            }
+            Player target = Bukkit.getPlayer(args[1]);
+            if (target != null) {
+                plugin.getAuthManager().freezeAccount(target.getUniqueId());
+                plugin.getVkManager().sendMessage(peer, fromId, "🔒 Аккаунт " + args[1] + " заморожен.");
+            } else {
+                plugin.getVkManager().sendMessage(peer, fromId, "❌ Игрок не найден.");
+            }
+        } else if (cmd.equals("!разморозить") || cmd.equals("!unfreeze")) {
+            // Разморозка аккаунта (админ)
+            java.util.List<Integer> admins = plugin.getConfig().getIntegerList("vk.admin-vk-ids");
+            if (!admins.contains(fromId)) {
+                plugin.getVkManager().sendMessage(peer, fromId, "❌ У вас нет прав.");
+                return;
+            }
+            if (args.length < 2) {
+                plugin.getVkManager().sendMessage(peer, fromId, "Использование: !разморозить <ник>");
+                return;
+            }
+            Player target = Bukkit.getPlayer(args[1]);
+            if (target != null) {
+                plugin.getAuthManager().unfreezeAccount(target.getUniqueId());
+                plugin.getVkManager().sendMessage(peer, fromId, "🔓 Аккаунт " + args[1] + " разморожен.");
+            } else {
+                plugin.getVkManager().sendMessage(peer, fromId, "❌ Игрок не найден.");
+            }
         } else {
             if (peer == mainChatId && plugin.getRiddleManager().checkAnswer(fromId, text)) {
                 return;
