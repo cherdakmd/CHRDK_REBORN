@@ -1,5 +1,6 @@
 package ru.example.vkchatstarter.listeners;
 
+import org.bukkit.ChatColor;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Sound;
 import org.bukkit.configuration.ConfigurationSection;
@@ -9,236 +10,370 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.EntityPickupItemEvent;
+import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.inventory.CraftItemEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
 import ru.example.vkchatstarter.VKChatStarterPlugin;
 import ru.example.vkchat.VKChatPlugin;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Обработчик квестов обучения нового игрока.
+ * Отслеживает действия игрока и выдаёт награды за выполнение заданий.
+ */
 public class QuestListener implements Listener {
     private final VKChatStarterPlugin plugin;
     private final NamespacedKey stageKey;
     private final NamespacedKey progKey;
+    private final NamespacedKey deathKey;
+    private final NamespacedKey startTimeKey;
 
     private final Map<Integer, QuestStage> stages = new HashMap<>();
-    private int rewardPerStage = 50;
-    private int finalRewardRep = 1000;
-    private List<String> finalRewardItems;
-    private String msgProgress;
-    private String msgComplete;
-    private String msgFinal;
-    private String titleComplete;
-    private String titleFinal;
+    private int rewardPerStage = 75;
+    private int finalRewardRep = 1500;
+    private List<String> finalRewardItems = new ArrayList<>();
+
+    // Шаблоны сообщений
+    private String msgProgress = "&7{quest}: &e{progress}/{target}";
+    private String msgComplete = "&a✔ Квест выполнен! &7Следующее: &e{next}";
+    private String msgFinal = "&6🎉 ОБУЧЕНИЕ ЗАВЕРШЕНО! &e+{reward} репутации ВК!";
+    private String titleComplete = "&aКвест выполнен!";
+    private String titleFinal = "&6🌟 ОБУЧЕНИЕ ЗАВЕРШЕНО 🌟";
 
     public QuestListener(VKChatStarterPlugin plugin) {
         this.plugin = plugin;
         this.stageKey = new NamespacedKey(plugin, "starter_quest_stage");
         this.progKey = new NamespacedKey(plugin, "starter_quest_progress");
+        this.deathKey = new NamespacedKey(plugin, "starter_quest_deaths");
+        this.startTimeKey = new NamespacedKey(plugin, "starter_quest_start_time");
         loadConfig();
     }
 
-    private void loadConfig() {
-        ConfigurationSection quest = plugin.getConfig().getConfigurationSection("quest");
-        if (quest == null) return;
-
-        rewardPerStage = quest.getInt("reward-per-stage", 50);
-        finalRewardRep = quest.getInt("final-reward-rep", 1000);
-        finalRewardItems = quest.getStringList("final-reward-items");
-
-        ConfigurationSection notif = plugin.getConfig().getConfigurationSection("notifications");
-        if (notif != null) {
-            msgProgress = notif.getString("progress-message", "&7{quest}: {progress}/{target}");
-            msgComplete = notif.getString("complete-message", "&a✔ Квест выполнен! Следующее задание: {next}");
-            msgFinal = notif.getString("final-message", "&6🎉 ОБУЧЕНИЕ ЗАВЕРШЕНО! +{reward} репутации ВК!");
-            titleComplete = notif.getString("title-complete", "&aКвест выполнен!");
-            titleFinal = notif.getString("title-final", "&6🌟 ОБУЧЕНИЕ ЗАВЕРШЕНО 🌟");
-        }
-
-        List<Map<?, ?>> stageList = quest.getMapList("stages");
-        for (Map<?, ?> raw : stageList) {
-            int id = (int) raw.get("id");
-            String type = (String) raw.get("type");
-            String target = (String) raw.get("target");
-            int amount = (int) raw.get("amount");
-            String name = (String) raw.get("name");
-            String message = raw.containsKey("message") ? (String) raw.get("message") : null;
-            stages.put(id, new QuestStage(id, type, target, amount, name, message));
-        }
-    }
-
-    public void reloadConfig() {
+    /**
+     * Загружает конфигурацию квестов.
+     */
+    public void loadConfig() {
         stages.clear();
-        loadConfig();
+        ConfigurationSection sec = plugin.getConfig().getConfigurationSection("quest");
+        if (sec == null) return;
+
+        rewardPerStage = sec.getInt("reward-per-stage", 75);
+        finalRewardRep = sec.getInt("final-reward-rep", 1500);
+        finalRewardItems = sec.getStringList("final-reward-items");
+
+        List<Map<?, ?>> stageList = sec.getMapList("stages");
+        for (Map<?, ?> map : stageList) {
+            int id = (int) map.get("id");
+            String type = (String) map.get("type");
+            String target = (String) map.get("target");
+            int amount = (int) map.get("amount");
+            String name = (String) map.get("name");
+            String message = map.containsKey("message") ? (String) map.get("message") : null;
+            String rewardMsg = map.containsKey("reward-message") ? (String) map.get("reward-message") : null;
+            stages.put(id, new QuestStage(id, type, target, amount, name, message, rewardMsg));
+        }
+
+        // Шаблоны уведомлений
+        ConfigurationSection notifSec = plugin.getConfig().getConfigurationSection("notifications");
+        if (notifSec != null) {
+            msgProgress = notifSec.getString("progress-message", msgProgress);
+            msgComplete = notifSec.getString("complete-message", msgComplete);
+            msgFinal = notifSec.getString("final-message", msgFinal);
+            titleComplete = notifSec.getString("title-complete", titleComplete);
+            titleFinal = notifSec.getString("title-final", titleFinal);
+        }
     }
 
+    /**
+     * Получает текущий этап квеста игрока.
+     */
     private int getStage(Player p) {
         return p.getPersistentDataContainer().getOrDefault(stageKey, PersistentDataType.INTEGER, 0);
     }
 
-    private void completeQuest(Player p, String nextGoal) {
+    /**
+     * Получает прогресс текущего этапа.
+     */
+    private int getProgress(Player p) {
+        return p.getPersistentDataContainer().getOrDefault(progKey, PersistentDataType.INTEGER, 0);
+    }
+
+    /**
+     * Проверяет, пропустил ли игрок квест (по конфигу или PDC).
+     */
+    private boolean isSkipped(Player p) {
+        return p.getPersistentDataContainer().getOrDefault(
+                new NamespacedKey(plugin, "starter_quest_skipped"),
+                PersistentDataType.INTEGER, 0) == 1;
+    }
+
+    /**
+     * Выполняет промежуточный этап квеста.
+     */
+    private void completeStage(Player p, String nextGoal) {
         int current = getStage(p);
         p.getPersistentDataContainer().set(stageKey, PersistentDataType.INTEGER, current + 1);
         p.getPersistentDataContainer().set(progKey, PersistentDataType.INTEGER, 0);
 
-        p.sendTitle(
-            org.bukkit.ChatColor.translateAlternateColorCodes('&', titleComplete),
-            org.bukkit.ChatColor.YELLOW + "Новое задание: " + nextGoal,
-            10, 70, 20
-        );
-        p.playSound(p.getLocation(), Sound.UI_TOAST_CHALLENGE_COMPLETE, 1f, 1f);
-
-        int vkId = VKChatPlugin.getInstance().getApi().getLinkedVkId(p);
+        // Награда за этап
+        int vkId = getVkId(p);
         if (vkId != -1) {
             VKChatPlugin.getInstance().getApi().addReputation(vkId, rewardPerStage);
-            p.sendMessage(org.bukkit.ChatColor.AQUA + "✨ Награда: +" + rewardPerStage + " репутации ВКонтакте!");
         }
+
+        // Уведомление
+        String completeMsg = ChatColor.translateAlternateColorCodes('&', msgComplete)
+                .replace("{next}", nextGoal)
+                .replace("{reward}", String.valueOf(rewardPerStage));
+        p.sendMessage(completeMsg);
+        p.sendTitle(
+                ChatColor.translateAlternateColorCodes('&', titleComplete),
+                ChatColor.YELLOW + "Следующее: " + nextGoal,
+                10, 70, 20
+        );
+        p.playSound(p.getLocation(), Sound.UI_TOAST_CHALLENGE_COMPLETE, 1f, 1f);
     }
 
+    /**
+     * Выполняет финальный этап квеста.
+     */
     private void completeFinalQuest(Player p) {
         int current = getStage(p);
         p.getPersistentDataContainer().set(stageKey, PersistentDataType.INTEGER, current + 1);
         p.getPersistentDataContainer().set(progKey, PersistentDataType.INTEGER, 0);
 
-        p.sendMessage(org.bukkit.ChatColor.translateAlternateColorCodes('&',
-            msgFinal.replace("{reward}", String.valueOf(finalRewardRep))));
-
-        int vkId = VKChatPlugin.getInstance().getApi().getLinkedVkId(p);
+        // Финальная награда
+        int vkId = getVkId(p);
         if (vkId != -1) {
             VKChatPlugin.getInstance().getApi().addReputation(vkId, finalRewardRep);
         }
 
-        for (String itemEntry : finalRewardItems) {
-            String[] parts = itemEntry.split(";");
-            if (parts.length == 2) {
+        // Предметы
+        for (String itemStr : finalRewardItems) {
+            String[] parts = itemStr.split(";");
+            if (parts.length >= 2) {
                 try {
-                    Class<?> mobListener = Class.forName("ru.example.vkchatmobs.listeners.MobListener");
-                    org.bukkit.inventory.ItemStack rewardItem = null;
-                    if (parts[0].equals("RUNE_TOKEN")) {
-                        rewardItem = (org.bukkit.inventory.ItemStack) mobListener.getMethod("getRuneToken").invoke(null);
-                    } else if (parts[0].equals("ARTIFACT_SHARD")) {
-                        rewardItem = (org.bukkit.inventory.ItemStack) mobListener.getMethod("getArtifactShard").invoke(null);
-                    }
-                    if (rewardItem != null) {
-                        rewardItem.setAmount(Integer.parseInt(parts[1]));
-                        p.getInventory().addItem(rewardItem);
-                    }
-                } catch (Throwable t) {
-                    plugin.getLogger().warning("VKChatMobs not available for quest reward: " + parts[0]);
-                }
+                    org.bukkit.Material mat = org.bukkit.Material.valueOf(parts[0].toUpperCase());
+                    int amount = Integer.parseInt(parts[1]);
+                    p.getInventory().addItem(new ItemStack(mat, amount));
+                } catch (Exception ignored) {}
             }
         }
 
+        // Уведомление
+        String finalMsg = ChatColor.translateAlternateColorCodes('&', msgFinal)
+                .replace("{reward}", String.valueOf(finalRewardRep));
+        p.sendMessage(finalMsg);
         p.sendTitle(
-            org.bukkit.ChatColor.translateAlternateColorCodes('&', titleFinal),
-            org.bukkit.ChatColor.GREEN + "Вы получили награды за обучение!",
-            10, 100, 20
+                ChatColor.translateAlternateColorCodes('&', titleFinal),
+                ChatColor.GREEN + "+" + finalRewardRep + " репутации ВК!",
+                20, 100, 20
         );
         p.playSound(p.getLocation(), Sound.UI_TOAST_CHALLENGE_COMPLETE, 1.5f, 0.8f);
+
+        // Проверка достижений
+        checkAchievements(p);
     }
 
+    /**
+     * Проверяет и выдаёт достижения.
+     */
+    private void checkAchievements(Player p) {
+        ConfigurationSection achSec = plugin.getConfig().getConfigurationSection("achievements");
+        if (achSec == null || !achSec.getBoolean("enabled", true)) return;
+
+        int vkId = getVkId(p);
+        if (vkId == -1) return;
+
+        // Выпускник
+        unlockAchievement(p, vkId, "quest_complete");
+
+        // Спринтер (за 10 минут)
+        long startTime = p.getPersistentDataContainer().getOrDefault(startTimeKey, PersistentDataType.LONG, 0L);
+        if (startTime > 0 && System.currentTimeMillis() - startTime < 600000) {
+            unlockAchievement(p, vkId, "quest_speedrun");
+        }
+
+        // Безупречный (без смертей)
+        int deaths = p.getPersistentDataContainer().getOrDefault(deathKey, PersistentDataType.INTEGER, 0);
+        if (deaths == 0) {
+            unlockAchievement(p, vkId, "quest_no_death");
+        }
+    }
+
+    /**
+     * Разблокирует достижение и выдаёт награду.
+     */
+    private void unlockAchievement(Player p, int vkId, String achievementId) {
+        NamespacedKey achKey = new NamespacedKey(plugin, "ach_" + achievementId);
+        if (p.getPersistentDataContainer().has(achKey, PersistentDataType.INTEGER)) return;
+
+        p.getPersistentDataContainer().set(achKey, PersistentDataType.INTEGER, 1);
+
+        // Награда из конфига
+        ConfigurationSection achSec = plugin.getConfig().getConfigurationSection("achievements");
+        if (achSec != null) {
+            List<Map<?, ?>> list = achSec.getMapList("list");
+            for (Map<?, ?> ach : list) {
+                if (achievementId.equals(ach.get("id"))) {
+                    int rep = ach.containsKey("reward-rep") ? ((Number) ach.get("reward-rep")).intValue() : 0;
+                    if (rep > 0) {
+                        VKChatPlugin.getInstance().getApi().addReputation(vkId, rep);
+                    }
+                    String name = ach.containsKey("name") ? (String) ach.get("name") : achievementId;
+                    p.sendMessage(ChatColor.GOLD + "🏆 Достижение: " + name + " (+" + rep + " реп.)");
+                    break;
+                }
+            }
+        }
+    }
+
+    /**
+     * Проверяет совпадение цели.
+     */
     private boolean matchesTarget(QuestStage stage, String typeName) {
         if (stage.target.startsWith("_")) {
-            return typeName.contains(stage.target);
+            return typeName.contains(stage.target.substring(1));
         }
         return typeName.equals(stage.target);
     }
 
+    /**
+     * Обрабатывает прогресс квеста.
+     */
     private void handleProgress(Player p, QuestStage stage, int currentProg) {
         int newProg = currentProg + 1;
         if (newProg >= stage.amount) {
-            int nextId = stage.id + 1;
-            QuestStage next = stages.get(nextId);
-            if (next != null) {
-                completeQuest(p, next.name);
-            } else {
+            // Этап завершён
+            int nextStage = stage.id + 1;
+            QuestStage next = stages.get(nextStage);
+            String nextName = next != null ? next.name : "Финал!";
+            if (next != null && next.id == stages.size() - 1) {
                 completeFinalQuest(p);
+            } else {
+                completeStage(p, nextName);
             }
         } else {
             p.getPersistentDataContainer().set(progKey, PersistentDataType.INTEGER, newProg);
+            // Прогресс-сообщение
             if (stage.message != null) {
-                p.sendMessage(org.bukkit.ChatColor.translateAlternateColorCodes('&',
-                    stage.message.replace("{progress}", String.valueOf(newProg)).replace("{target}", String.valueOf(stage.amount))));
+                String msg = ChatColor.translateAlternateColorCodes('&', stage.message)
+                        .replace("{progress}", String.valueOf(newProg))
+                        .replace("{target}", String.valueOf(stage.amount));
+                p.sendMessage(msg);
             }
         }
     }
+
+    /**
+     * Получает VK ID игрока.
+     */
+    private int getVkId(Player p) {
+        try {
+            return VKChatPlugin.getInstance().getApi().getLinkedVkId(p);
+        } catch (Exception e) {
+            return -1;
+        }
+    }
+
+    // ==================== ОБРАБОТЧИКИ СОБЫТИЙ ====================
 
     @EventHandler
     public void onBreak(BlockBreakEvent e) {
         if (e.isCancelled()) return;
         Player p = e.getPlayer();
+        if (isSkipped(p)) return;
+
         int stageId = getStage(p);
         QuestStage stage = stages.get(stageId);
         if (stage == null || !stage.type.equals("break")) return;
 
         if (matchesTarget(stage, e.getBlock().getType().name())) {
-            int prog = p.getPersistentDataContainer().getOrDefault(progKey, PersistentDataType.INTEGER, 0);
-            handleProgress(p, stage, prog);
+            handleProgress(p, stage, getProgress(p));
         }
     }
 
     @EventHandler
     public void onCraft(CraftItemEvent e) {
-        if (e.isCancelled()) return;
         if (!(e.getWhoClicked() instanceof Player)) return;
-        Player p = (Player) e.getWhoClicked();
         if (e.getCurrentItem() == null) return;
-        String type = e.getCurrentItem().getType().name();
+        Player p = (Player) e.getWhoClicked();
+        if (isSkipped(p)) return;
 
         int stageId = getStage(p);
         QuestStage stage = stages.get(stageId);
         if (stage == null || !stage.type.equals("craft")) return;
 
-        if (matchesTarget(stage, type)) {
-            completeQuest(p, stages.containsKey(stageId + 1) ? stages.get(stageId + 1).name : "Обучение завершено!");
+        if (matchesTarget(stage, e.getCurrentItem().getType().name())) {
+            handleProgress(p, stage, getProgress(p));
         }
     }
 
     @EventHandler
     public void onKill(EntityDeathEvent e) {
-        if (e.getEntity().getKiller() == null) return;
         Player p = e.getEntity().getKiller();
+        if (p == null) return;
+        if (isSkipped(p)) return;
+
         int stageId = getStage(p);
         QuestStage stage = stages.get(stageId);
         if (stage == null || !stage.type.equals("kill")) return;
 
         if (matchesTarget(stage, e.getEntity().getType().name())) {
-            int prog = p.getPersistentDataContainer().getOrDefault(progKey, PersistentDataType.INTEGER, 0);
-            handleProgress(p, stage, prog);
+            handleProgress(p, stage, getProgress(p));
         }
     }
 
     @EventHandler
     public void onPickup(EntityPickupItemEvent e) {
-        if (e.isCancelled()) return;
         if (!(e.getEntity() instanceof Player)) return;
         Player p = (Player) e.getEntity();
+        if (isSkipped(p)) return;
+
         int stageId = getStage(p);
         QuestStage stage = stages.get(stageId);
         if (stage == null || !stage.type.equals("pickup")) return;
 
         if (matchesTarget(stage, e.getItem().getItemStack().getType().name())) {
-            completeQuest(p, stages.containsKey(stageId + 1) ? stages.get(stageId + 1).name : "Обучение завершено!");
+            handleProgress(p, stage, getProgress(p));
         }
     }
 
-    private static class QuestStage {
-        final int id;
-        final String type;
-        final String target;
-        final int amount;
-        final String name;
-        final String message;
+    @EventHandler
+    public void onDeath(PlayerDeathEvent e) {
+        Player p = e.getEntity();
+        // Считаем смерти для достижения "Безупречный"
+        if (p.getPersistentDataContainer().has(stageKey, PersistentDataType.INTEGER)) {
+            int deaths = p.getPersistentDataContainer().getOrDefault(deathKey, PersistentDataType.INTEGER, 0);
+            p.getPersistentDataContainer().set(deathKey, PersistentDataType.INTEGER, deaths + 1);
+        }
+    }
 
-        QuestStage(int id, String type, String target, int amount, String name, String message) {
+    // ==================== ВНУТРЕННИЙ КЛАСС ====================
+
+    public static class QuestStage {
+        public final int id;
+        public final String type;
+        public final String target;
+        public final int amount;
+        public final String name;
+        public final String message;
+        public final String rewardMessage;
+
+        public QuestStage(int id, String type, String target, int amount, String name, String message, String rewardMessage) {
             this.id = id;
             this.type = type;
             this.target = target;
             this.amount = amount;
             this.name = name;
             this.message = message;
+            this.rewardMessage = rewardMessage;
         }
     }
 }

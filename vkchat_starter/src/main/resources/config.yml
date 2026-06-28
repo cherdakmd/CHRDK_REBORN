@@ -1,46 +1,44 @@
 # ==========================================
-# Стартовый Набор (VKChat Starter)
+# VKChat Starter v3.0.0 — Полная переработка
+# 35 обновлений для нового игрока
 # ==========================================
 
 settings:
-  # Давать ли набор при первом заходе?
   enabled: true
-  
-  # Сообщение, которое отправляется игроку при выдаче
-  welcome-message: "&e&l★ CHRDK REBORN ★ &7» &aДобро пожаловать! Мы подготовили для тебя стартовый комплект снаряжения, два кастомных артефакта и Книгу-Руководство в инвентарь. Начни прохождение квеста!"
+  welcome-message: "&e&l★ CHRDK REBORN ★ &7» &aДобро пожаловать! Ты получил стартовый набор, блок привата и книгу-руководство. Удачной игры!"
 
-  # Блоки привата для новичков
-  give-claim-blocks: true
-  claim-blocks:
-    small: 3      # Малый блок (8 блоков радиус)
-    medium: 1     # Средний блок (16 блоков радиус)
+  # Защита нового игрока (неуязвимость после входа)
+  join-protection-seconds: 30
 
-  # Настройки выдаваемой брони - УДАЛЕНО (выдается национальная броня)
-  armor:
-    helmet:
-      material: "AIR"
-    chestplate:
-      material: "AIR"
-    leggings:
-      material: "AIR"
-    boots:
-      material: "AIR"
-        
-  # Список предметов инвентаря
-  items:
-    sword:
+  # Авто-телепорт на спавн при первом входе
+  teleport-to-spawn: true
+
+  # Один блок привата при первом входе
+  claim-block:
+    enabled: true
+    material: "GOLD_BLOCK"
+    radius: 8
+    name: "&6&lБлок привата"
+    lore:
+      - "&7Радиус защиты: &e8 блоков"
+      - "&7Поставь в мире для защиты территории"
+      - "&7Питай приват: &e/n feed"
+      - ""
+      - "&c⚠ Только для нового игрока!"
+
+  # Стартовое снаряжение
+  equipment:
+    weapon:
       material: "STONE_SWORD"
-      amount: 1
       name: "&7[Обычный] &fМеч Скитальца"
       lore:
         - "&7Редкость: &7[Обычный]"
-        - "&8Оружие для первых сражений"
+        - "&8Первое оружие для выживания"
       enchants:
         - "DAMAGE_ALL;1"
         - "DURABILITY;3"
     pickaxe:
       material: "WOODEN_PICKAXE"
-      amount: 1
       name: "&7[Обычный] &fКирка Скитальца"
       lore:
         - "&7Редкость: &7[Обычный]"
@@ -49,128 +47,187 @@ settings:
         - "DURABILITY;3"
     axe:
       material: "STONE_AXE"
-      amount: 1
       name: "&7[Обычный] &fТопор Скитальца"
       lore:
         - "&7Редкость: &7[Обычный]"
       enchants:
         - "DIG_SPEED;1"
         - "DURABILITY;3"
+    shovel:
+      material: "WOODEN_SHOVEL"
+      name: "&7[Обычный] &fЛопата Скитальца"
+      lore:
+        - "&7Редкость: &7[Обычный]"
+      enchants:
+        - "DIG_SPEED;1"
+        - "DURABILITY;3"
+
+  # Стартовые ресурсы
+  resources:
     food:
       material: "BREAD"
-      amount: 16
+      amount: 32
     torches:
       material: "TORCH"
+      amount: 64
+    cobblestone:
+      material: "COBBLESTONE"
+      amount: 64
+    wood:
+      material: "OAK_PLANKS"
       amount: 32
 
+  # Стартовый бонус репутации
+  starter-reputation: 500
+
+  # Дать ли артефакты
+  give-artifacts: true
+  artifact-count: 2
+
+# ==========================================
 # Цепочка квестов обучения
+# ==========================================
 quest:
   enabled: true
-  reward-per-stage: 50
-  final-reward-rep: 1000
+  reward-per-stage: 75
+  final-reward-rep: 1500
   final-reward-items:
-    - "RUNE_TOKEN;1"
+    - "RUNE_TOKEN;2"
     - "ARTIFACT_SHARD;1"
   stages:
+    # === ЭТАП 1: БАЗА ===
     - id: 0
       type: "break"
       target: "_LOG"
       amount: 5
       name: "Срубить 5 дерева"
       message: "&7Дерево: {progress}/5"
+      reward-message: "&a+75 репутации ВК"
     - id: 1
       type: "craft"
       target: "CRAFTING_TABLE"
       amount: 1
       name: "Скрафтить Верстак"
+      reward-message: "&a+75 репутации ВК"
     - id: 2
       type: "craft"
       target: "WOODEN_PICKAXE"
       amount: 1
       name: "Скрафтить Деревянную Кирку"
+      reward-message: "&a+75 репутации ВК"
+    # === ЭТАП 2: ДОБЫЧА ===
     - id: 3
       type: "break"
       target: "STONE"
-      amount: 10
-      name: "Добыть 10 Камня"
-      message: "&7Камень: {progress}/10"
+      amount: 16
+      name: "Добыть 16 Камня"
+      message: "&7Камень: {progress}/16"
+      reward-message: "&a+75 репутации ВК"
     - id: 4
       type: "craft"
       target: "STONE_SWORD"
       amount: 1
       name: "Скрафтить Каменный Меч"
+      reward-message: "&a+75 репутации ВК"
     - id: 5
       type: "kill"
       target: "ZOMBIE"
-      amount: 1
-      name: "Убить Зомби"
+      amount: 3
+      name: "Убить 3 Зомби"
+      message: "&7Зомби: {progress}/3"
+      reward-message: "&a+75 репутации ВК"
+    # === ЭТАП 3: ШАХТА ===
     - id: 6
       type: "break"
       target: "COAL_ORE"
-      amount: 1
-      name: "Добыть Уголь"
+      amount: 3
+      name: "Добыть 3 Угля"
+      message: "&7Уголь: {progress}/3"
+      reward-message: "&a+75 репутации ВК"
     - id: 7
       type: "craft"
       target: "TORCH"
-      amount: 1
-      name: "Скрафтить Факелы"
+      amount: 8
+      name: "Скрафтить 8 Факелов"
+      message: "&7Факелы: {progress}/8"
+      reward-message: "&a+75 репутации ВК"
     - id: 8
       type: "break"
       target: "IRON_ORE"
-      amount: 3
-      name: "Добыть 3 Железной Руды"
-      message: "&7Железная руда: {progress}/3"
+      amount: 5
+      name: "Добыть 5 Железной Руды"
+      message: "&7Железная руда: {progress}/5"
+      reward-message: "&a+75 репутации ВК"
+    # === ЭТАП 4: ПЛАВКА ===
     - id: 9
       type: "pickup"
       target: "IRON_INGOT"
-      amount: 1
-      name: "Переплавить Железный Слиток"
+      amount: 3
+      name: "Переплавить 3 Железных Слитка"
+      message: "&7Железо: {progress}/3"
+      reward-message: "&a+75 репутации ВК"
     - id: 10
       type: "kill"
       target: "SKELETON"
-      amount: 1
-      name: "Убить Скелета"
+      amount: 3
+      name: "Убить 3 Скелетов"
+      message: "&7Скелеты: {progress}/3"
+      reward-message: "&a+75 репутации ВК"
+    # === ЭТАП 5: ЗАЩИТА ===
     - id: 11
       type: "craft"
       target: "SHIELD"
       amount: 1
       name: "Скрафтить Щит"
+      reward-message: "&a+75 репутации ВК"
     - id: 12
       type: "break"
       target: "GOLD_ORE"
-      amount: 1
-      name: "Добыть Золотую Руду"
+      amount: 2
+      name: "Добыть 2 Золотых Руды"
+      message: "&7Золото: {progress}/2"
+      reward-message: "&a+75 репутации ВК"
     - id: 13
       type: "pickup"
       target: "GOLD_INGOT"
-      amount: 1
-      name: "Выплавить Золотой Слиток"
+      amount: 2
+      name: "Выплавить 2 Золотых Слитка"
+      message: "&7Золото: {progress}/2"
+      reward-message: "&a+75 репутации ВК"
+    # === ЭТАП 6: ФИНАЛ ===
     - id: 14
       type: "break"
       target: "DIAMOND_ORE"
       amount: 1
       name: "Найти Алмаз"
+      reward-message: "&6+1500 репутации ВК + руны + осколки!"
 
+# ==========================================
 # Книга-руководство
+# ==========================================
 guide-book:
   title: "Книга Скитальца"
-  author: "Администрация"
+  author: "Администрация CHRDK REBORN"
   pages:
-    - "&1&l★ CHRDK REBORN ★\n\n&0Приветствуем тебя!\n\nПервым делом напиши:\n&9/vklink\n\n&0Связка с ВК подарит &61000 стартовой репутации&0!"
-    - "&2&l⛺ БЛОЧНЫЕ ПРИВАТЫ\n\n&0Ты получил блоки привата в стартовом наборе!\n\nПоставь блок в мире — вокруг него создастся защищённая зона.\n\n&0Питай приват: &9/n feed\n&0Купить ещё: &9/n buyclaim"
-    - "&5&l🛡️ ЭВОЛЮЦИЯ & РУНЫ\n\n&0Усиливай снаряжение до &4+25&0!\nПокупай кристаллы и руны: &9/runes\n\n&0Цены динамические!"
-    - "&3&l🧬 ЛИЧНЫЕ МУТАЦИИ\n\n&0В меню &9/nation &0доступна Лаборатория.\n\n&05 мутаций по &61500 репутации&0 за каждую!"
-    - "&6&l💰 РЫНОК И ПОХОДЫ\n\n&0* Продавай ресурсы: &9/shop\n&0* Оффлайн-походы: &9!поход &0в ВК\n\n&8Группа: vk.com/chrdk_reborn"
+    - "&1&l★ CHRDK REBORN ★\n\n&0Добро пожаловать на сервер!\n\nПервым делом:\n&9/vklink\n\n&0Связка с ВК даст &6500 репутации&0 и доступ к боту!"
+    - "&2&l🛡 БЛОК ПРИВАТА\n\n&0Ты получил блок привата!\n\nПоставь его в мире — вокруг создастся защищённая зона (8 блоков).\n\n&0Питай приват: &9/n feed\n&0Купить ещё: &9/n buyclaim"
+    - "&5&l⚔ КУЗНЯ И РУНЫ\n\n&0Усиливай снаряжение до &4+25&0!\n\nКристаллы заточки: &9/runes\nКузня: &9/forge\n\n&0Цены динамические — следи за рынком!"
+    - "&3&l🏕 ОФФЛАЙН-ПОХОДЫ\n\n&0Отправься в поход через ВК:\n&9!поход\n\n&0Выбери маршрут, класс и спутника.\nПоходы работают когда ты оффлайн!"
+    - "&6&l💰 ЭКОНОМИКА\n\n&0Репутация — главная валюта.\n\nЗаработай: квесты, мобы, походы\nПотратить: &9/shop &0, &9/runes\n\n&8Группа: vk.com/chrdk_reborn"
 
+# ==========================================
 # Уведомления
+# ==========================================
 notifications:
-  progress-message: "&7{quest}: {progress}/{target}"
-  complete-message: "&a✔ Квест выполнен! Следующее задание: {next}"
-  final-message: "&6🎉 ОБУЧЕНИЕ ЗАВЕРШЕНО! +{reward} репутации ВК!"
+  progress-message: "&7{quest}: &e{progress}/{target}"
+  complete-message: "&a✔ Квест выполнен! &7Следующее: &e{next}"
+  final-message: "&6🎉 ОБУЧЕНИЕ ЗАВЕРШЕНО! &e+{reward} репутации ВК!"
   title-complete: "&aКвест выполнен!"
   title-final: "&6🌟 ОБУЧЕНИЕ ЗАВЕРШЕНО 🌟"
 
+# ==========================================
 # Достижения
+# ==========================================
 achievements:
   enabled: true
   list:
@@ -185,4 +242,32 @@ achievements:
     - id: "quest_no_death"
       name: "🛡️ Безупречный"
       description: "Завершить обучение без смертей"
+      reward-rep: 999
+    - id: "first_claim"
+      name: "🏠 Домовитый"
+      description: "Поставить первый блок привата"
+      reward-rep: 500
+    - id: "first_craft"
+      name: "🔨 Ремесленник"
+      description: "Скрафтить первый предмет"
+      reward-rep: 250
+    - id: "first_kill"
+      name: "⚔️ Воин"
+      description: "Убить первого моба"
+      reward-rep: 250
+    - id: "first_mine"
+      name: "⛏️ Шахтёр"
+      description: "Добыть первую руду"
+      reward-rep: 250
+    - id: "first_enchant"
+      name: "✨ Зачарователь"
+      description: "Зачаровать первый предмет"
+      reward-rep: 500
+    - id: "first_trade"
+      name: "🤝 Торговец"
+      description: "Совершить первый обмен"
+      reward-rep: 500
+    - id: "first_nether"
+      name: "🔥 Путешественник"
+      description: "Впервые попасть в Незер"
       reward-rep: 999
