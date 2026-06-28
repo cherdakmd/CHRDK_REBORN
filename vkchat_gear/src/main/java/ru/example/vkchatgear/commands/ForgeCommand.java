@@ -300,10 +300,24 @@ public class ForgeCommand implements CommandExecutor, Listener, TabCompleter {
     @EventHandler
     public void onClose(InventoryCloseEvent e) {
         if (!isForgeTitle(e.getView().getTitle())) return;
-        if (e.getView().getTitle().equals(HUB_TITLE) || e.getView().getTitle().equals(SCROLLS_TITLE)) return;
         if (!(e.getPlayer() instanceof Player)) return;
-        pending.remove(e.getPlayer().getUniqueId());
-        returnInputs((Player) e.getPlayer(), e.getInventory());
+        Player p = (Player) e.getPlayer();
+        
+        // Очистка GUI свитков — не выдавать предметы из магазина
+        if (e.getView().getTitle().equals(SCROLLS_TITLE)) {
+            for (int i = 0; i < e.getInventory().getSize(); i++) {
+                ItemStack item = e.getInventory().getItem(i);
+                if (item != null && item.hasItemMeta() && item.getItemMeta().getPersistentDataContainer()
+                        .has(new NamespacedKey(plugin, "forge_scroll_shop_type"), PersistentDataType.STRING)) {
+                    e.getInventory().setItem(i, null);
+                }
+            }
+            return;
+        }
+        
+        if (e.getView().getTitle().equals(HUB_TITLE)) return;
+        pending.remove(p.getUniqueId());
+        returnInputs(p, e.getInventory());
     }
 
     private void handleFusionButton(Player p, Inventory inv) {
