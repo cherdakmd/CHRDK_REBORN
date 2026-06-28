@@ -226,11 +226,107 @@ new-artifacts:
     drop-chance: 0.3
 
 # ==========================================
-#  ALCHEMIST TIER АИРДРОПОВ
+#  ALCHEMIST TIER АИРДРОПОВ (v2.2.0)
 # ==========================================
 alchemist-airdrop:
   enabled: true
   interval-seconds: 14400           # Раз в 4 часа
+  player-cooldown-seconds: 86400    # Кулдаун на игрока (24 часа)
+  despawn-minutes: 30               # Сундук исчезает через 30 минут
+  artifact-chance: 15               # 15% шанс на артефакт в сундуке
+  vk-announce: false                # Уведомление в ВК чат
+
+  # Сообщения по тирам
+  messages:
+    common: "&a✦ Алхимик дарит тебе сундук!"
+    rare: "&b✦✦ Алхимический Тайник! Редкий сундук заспавнен!"
+    epic: "&d✦✦✦ Эпический Алхимический Сундук! Ценные ресурсы внутри!"
+    legendary: "&6✦✦✦✦ ЛЕГЕНДАРНЫЙ АЛХИМИЧЕСКИЙ СУНДУК! Невероятные сокровища!"
+    mythic: "&c✦✦✦✦✦ МИФИЧЕСКИЙ СУНДУК АЛХИМИКА! Абсолютная редкость!"
+
+  # Система тиров сундуков
+  tiers:
+    common:
+      name: "&a🧪 Алхимический Тайник"
+      chance: 50
+      items:
+        - "EXPERIENCE_BOTTLE;16;32;100"
+        - "GOLDEN_APPLE;4;8;80"
+        - "GLASS_BOTTLE;8;16;60"
+        - "BREWING_STAND;1;1;15"
+        - "FERMENTED_SPIDER_EYE;2;6;40"
+        - "GLOWSTONE_DUST;8;16;70"
+        - "REDSTONE;16;32;90"
+        - "SUGAR;8;16;50"
+        - "RABBIT_FOOT;1;2;20"
+        - "BLAZE_POWDER;4;8;45"
+        - "GHAST_TEAR;1;2;25"
+
+    rare:
+      name: "&b🧪 Редкий Алхимический Тайник"
+      chance: 25
+      items:
+        - "ENCHANTED_GOLDEN_APPLE;1;2;60"
+        - "DRAGON_BREATH;2;4;50"
+        - "EXPERIENCE_BOTTLE;32;64;100"
+        - "GOLDEN_APPLE;8;16;90"
+        - "FIRE_CHARGE;4;8;40"
+        - "MAGMA_CREAM;4;8;55"
+        - "BLAZE_ROD;4;8;45"
+        - "ENDER_PEARL;4;8;50"
+        - "CHORUS_FRUIT;8;16;60"
+        - "PHANTOM_MEMBRANE;2;4;35"
+        - "NAUTILUS_SHELL;1;2;20"
+
+    epic:
+      name: "&d🧪 Эпический Алхимический Сундук"
+      chance: 15
+      items:
+        - "ENCHANTED_GOLDEN_APPLE;2;4;80"
+        - "TOTEM_OF_UNDYING;1;1;40"
+        - "DRAGON_BREATH;4;8;70"
+        - "SHULKER_SHELL;1;2;25"
+        - "HEART_OF_THE_SEA;1;1;15"
+        - "CONDUIT;1;1;8"
+        - "BEACON;1;1;5"
+        - "NETHER_STAR;1;1;10"
+        - "ELYTRA;1;1;3"
+        - "NETHERITE_SCRAP;1;2;20"
+        - "ANCIENT_DEBRIS;1;1;10"
+
+    legendary:
+      name: "&6🧪 Легендарный Алхимический Сундук"
+      chance: 8
+      items:
+        - "ENCHANTED_GOLDEN_APPLE;4;8;100"
+        - "TOTEM_OF_UNDYING;1;2;60"
+        - "ELYTRA;1;1;15"
+        - "BEACON;1;1;20"
+        - "NETHER_STAR;1;2;30"
+        - "NETHERITE_INGOT;1;2;25"
+        - "ANCIENT_DEBRIS;2;4;35"
+        - "SHULKER_SHELL;2;4;40"
+        - "HEART_OF_THE_SEA;1;2;25"
+        - "CONDUIT;1;1;15"
+        - "DRAGON_EGG;1;1;2"
+        - "END_CRYSTAL;4;8;45"
+
+    mythic:
+      name: "&c🧪 Мифический Сундук Алхимика"
+      chance: 2
+      items:
+        - "ENCHANTED_GOLDEN_APPLE;8;16;100"
+        - "TOTEM_OF_UNDYING;2;3;80"
+        - "ELYTRA;1;1;40"
+        - "BEACON;1;1;35"
+        - "NETHER_STAR;2;4;50"
+        - "NETHERITE_INGOT;2;4;40"
+        - "ANCIENT_DEBRIS;3;6;55"
+        - "DRAGON_EGG;1;1;10"
+        - "END_CRYSTAL;8;16;70"
+        - "COMMAND_BLOCK;1;1;3"
+
+  # Старый формат (совместимость)
   tier:
     name: "&a🧪 Алхимический Тайник"
     items:
