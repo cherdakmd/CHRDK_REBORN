@@ -629,6 +629,16 @@ public class VKCommandHandler {
                         p.sendMessage(mcFormat);
                     }
                 }
+            } else {
+                // В ЛС: если сообщение не распознано как команда — показываем главное меню
+                if (peer < 2000000000) {
+                    String welcome = "🏠 Главное меню CHRDK REBORN\n\n" +
+                            "Выбери режим:\n" +
+                            "🏕 Походы — оффлайн-экспедиции\n" +
+                            "👤 Аккаунт — управление профилем\n\n" +
+                            "Или используй команды напрямую.";
+                    plugin.getVkManager().sendKeyboard(peer, welcome, VKKeyboardBuilder.mainDmMenu());
+                }
             }
         }
     }
