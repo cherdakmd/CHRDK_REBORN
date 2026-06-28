@@ -84,6 +84,16 @@ public class MarketManager {
         return stock.getOrDefault(itemId, 0);
     }
 
+    public int getMaxStock(String itemId) {
+        return plugin.getConfig().getInt("items." + itemId + ".max-stock", 5000);
+    }
+
+    public boolean isScarcity(String itemId) {
+        int current = stock.getOrDefault(itemId, 0);
+        int threshold = plugin.getConfig().getInt("items." + itemId + ".scarcity-threshold", 0);
+        return threshold > 0 && current <= threshold;
+    }
+
     public double getPriceDeltaPercent(String itemId) {
         double base = plugin.getConfig().getDouble("items." + itemId + ".base-price", 10.0);
         if (base <= 0) return 0;
@@ -95,15 +105,36 @@ public class MarketManager {
         double min = plugin.getConfig().getDouble("items." + itemId + ".min-price", 1.0);
         double drop = plugin.getConfig().getDouble("items." + itemId + ".drop-per-item", 0.01);
         int currentStock = stock.getOrDefault(itemId, 0);
+        int scarcityThreshold = plugin.getConfig().getInt("items." + itemId + ".scarcity-threshold", 0);
         
-        double price = base - (currentStock * drop);
-        price = Math.max(min, Math.min(base * 4.0, price)); // Защита от дефолта / космических цен
+        double price;
+        if (currentStock <= 0) {
+            // Дефицит: цена резко растёт
+            double spikeMult = plugin.getConfig().getDouble("market2.scarcity.price-spike-multiplier", 3.0);
+            price = base * spikeMult;
+        } else if (scarcityThreshold > 0 && currentStock <= scarcityThreshold) {
+            // Близко к дефициту: цена растёт экспоненциально
+            double ratio = (double) currentStock / scarcityThreshold;
+            double spikeMult = plugin.getConfig().getDouble("market2.scarcity.price-spike-multiplier", 3.0);
+            price = base + (base * (spikeMult - 1.0) * (1.0 - ratio));
+        } else {
+            // Обычная формула: цена падает с ростом стока
+            price = base - (currentStock * drop);
+        }
+        
+        // Защита от космических цен
+        double maxPrice = base * 5.0;
+        price = Math.max(min, Math.min(maxPrice, price));
+        
+        // Дневной тренд
         price *= getTrendMultiplier(itemId);
         
+        // Рыночное событие
         if ((itemId.equals(activeEventItemId) || "ALL".equals(activeEventItemId)) && System.currentTimeMillis() < activeEventExpireTime) {
             price *= activeEventMultiplier;
         }
-        return price;
+        
+        return Math.round(price * 100.0) / 100.0;
     }
 
     public double calculateBulkPrice(String itemId, int amount) {
@@ -142,23 +173,24 @@ public class MarketManager {
             if ((itemId.equals(activeEventItemId) || "ALL".equals(activeEventItemId)) && System.currentTimeMillis() < activeEventExpireTime) {
                 price *= activeEventMultiplier;
             }
-            // Спред/комиссия +15% для защиты от вечной накрутки
-            total += price * 1.15;
+            // Спред/комиссия для защиты от накрутки
+            double buySpread = plugin.getConfig().getDouble("settings.buy-spread", 0.15);
+            total += price * (1.0 + buySpread);
         }
         return total;
     }
 
     public void addStock(String itemId, int amount) {
-        // Лимит максимального стока для защиты от гиперинфляции (максимум 5000 предметов)
+        int maxStock = plugin.getConfig().getInt("items." + itemId + ".max-stock", 5000);
         int current = stock.getOrDefault(itemId, 0);
-        stock.put(itemId, Math.min(5000, current + amount));
+        stock.put(itemId, Math.min(maxStock, current + amount));
         recordTrade(itemId, amount, "sell");
     }
 
     public void removeStock(String itemId, int amount) {
-        // Лимит минимального стока для защиты от космических цен (минимум -1000)
+        // Минимальный сток -500 для защиты от космических цен
         int current = stock.getOrDefault(itemId, 0);
-        stock.put(itemId, Math.max(-1000, current - amount));
+        stock.put(itemId, Math.max(-500, current - amount));
         recordTrade(itemId, amount, "buy");
     }
 
@@ -191,11 +223,13 @@ public class MarketManager {
 
     public String getTrendLabel(String itemId) {
         double m = getTrendMultiplier(itemId);
-        if (m >= 1.25) return "ажиотаж дня x" + String.format(java.util.Locale.US, "%.2f", m);
-        if (m >= 1.08) return "спрос дня x" + String.format(java.util.Locale.US, "%.2f", m);
-        if (m <= 0.82) return "переизбыток дня x" + String.format(java.util.Locale.US, "%.2f", m);
-        if (m <= 0.95) return "скидка дня x" + String.format(java.util.Locale.US, "%.2f", m);
-        return "стабильно x" + String.format(java.util.Locale.US, "%.2f", m);
+        if (m >= 1.80) return "🔥 АЖИОТАЖ x" + String.format(java.util.Locale.US, "%.2f", m);
+        if (m >= 1.40) return "📈 Высокий спрос x" + String.format(java.util.Locale.US, "%.2f", m);
+        if (m >= 1.10) return "↗ Спрос x" + String.format(java.util.Locale.US, "%.2f", m);
+        if (m <= 0.50) return "💀 КРИЗИС x" + String.format(java.util.Locale.US, "%.2f", m);
+        if (m <= 0.70) return "📉 Переизбыток x" + String.format(java.util.Locale.US, "%.2f", m);
+        if (m <= 0.90) return "↘ Скидка x" + String.format(java.util.Locale.US, "%.2f", m);
+        return "➡ Стабильно x" + String.format(java.util.Locale.US, "%.2f", m);
     }
 
     public int getDailyVolume(String itemId) {

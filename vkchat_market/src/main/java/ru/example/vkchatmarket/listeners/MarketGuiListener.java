@@ -188,6 +188,14 @@ public class MarketGuiListener implements Listener {
         else if (currentPrice < basePrice * 0.7) demand = ChatColor.YELLOW + "Низкий ↘";
         else if (currentPrice > basePrice * 1.5) demand = ChatColor.GOLD + "Ажиотажный 📈";
 
+        // Статус дефицита
+        int stock = plugin.getMarketManager().getStock(itemId);
+        int scarcityThreshold = plugin.getConfig().getInt("items." + itemId + ".scarcity-threshold", 0);
+        String stockStatus;
+        if (stock <= 0) stockStatus = ChatColor.DARK_RED + "⚠ ДЕФИЦИТ";
+        else if (scarcityThreshold > 0 && stock <= scarcityThreshold) stockStatus = ChatColor.RED + "⚠ Мало (" + stock + ")";
+        else stockStatus = ChatColor.GRAY + "В наличии: " + stock;
+
         ItemStack item = new ItemStack(m);
         ItemMeta meta = item.getItemMeta();
         meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', name));
@@ -196,6 +204,7 @@ public class MarketGuiListener implements Listener {
                 && System.currentTimeMillis() < plugin.getMarketManager().getActiveEventExpireTime();
         if (isEvent) lore.add(ChatColor.GOLD + "⚡ СОБЫТИЕ: " + plugin.getMarketManager().getActiveEventName());
         lore.add(ChatColor.DARK_GRAY + "Категория: " + category);
+        lore.add(stockStatus);
         lore.add(ChatColor.GRAY + "Продажа: " + ChatColor.GREEN + String.format("%.2f", currentPrice) + " реп/шт.");
         lore.add(ChatColor.GRAY + "Покупка: " + ChatColor.GOLD + String.format("%.2f", buyPrice) + " реп/шт.");
         lore.add(ChatColor.GRAY + "Спрос: " + demand);
@@ -204,9 +213,10 @@ public class MarketGuiListener implements Listener {
         lore.add("");
         lore.add(ChatColor.GREEN + "ЛКМ: продать всё");
         lore.add(ChatColor.GREEN + "SHIFT+ЛКМ: продать 1 стак");
-        lore.add(ChatColor.GOLD + "ПКМ: купить 16");
-        lore.add(ChatColor.GOLD + "SHIFT+ПКМ: купить 64");
+        lore.add(ChatColor.GOLD + "ПКМ: купить 1");
+        lore.add(ChatColor.GOLD + "SHIFT+ПКМ: купить 16");
         lore.add(ChatColor.YELLOW + "Колесо: купить 1");
+        meta.setLore(lore);
         meta.setLore(lore);
         meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
         meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "market_item"), PersistentDataType.STRING, itemId);
@@ -298,8 +308,8 @@ public class MarketGuiListener implements Listener {
         ClickType click = e.getClick();
         if (click == ClickType.LEFT) sellItems(p, itemId, -1);
         else if (click == ClickType.SHIFT_LEFT) sellItems(p, itemId, 64);
-        else if (click == ClickType.RIGHT) buyItems(p, itemId, 16);
-        else if (click == ClickType.SHIFT_RIGHT) buyItems(p, itemId, 64);
+        else if (click == ClickType.RIGHT) buyItems(p, itemId, 1);
+        else if (click == ClickType.SHIFT_RIGHT) buyItems(p, itemId, 16);
         else if (click == ClickType.MIDDLE) buyItems(p, itemId, 1);
         openGui(plugin, p, getPageFromTitle(e.getView().getTitle()), category);
     }
