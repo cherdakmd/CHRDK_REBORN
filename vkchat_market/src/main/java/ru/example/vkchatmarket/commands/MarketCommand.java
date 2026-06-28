@@ -51,7 +51,7 @@ public class MarketCommand implements CommandExecutor, TabCompleter {
             p.sendMessage(org.bukkit.ChatColor.GOLD + "История рынка:");
             for (String line : plugin.getMarketManager().getHistoryTail(10)) p.sendMessage(org.bukkit.ChatColor.GRAY + "• " + line);
         } else if (args.length > 0 && (args[0].equalsIgnoreCase("roulette") || args[0].equalsIgnoreCase("рулетка"))) {
-            plugin.getMarketFun().spinRoulette(p);
+            plugin.getMarketFun().openBetGUI(p);
         } else if (args.length > 0 && args[0].equalsIgnoreCase("russian")) {
             plugin.getMarketFun().spinRoulette(p, "russian");
         } else if (args.length > 0 && args[0].equalsIgnoreCase("double")) {
