@@ -843,7 +843,7 @@ public class VKChatDonatePayPlugin extends JavaPlugin implements CommandExecutor
         }
     }
 
-    @EventHandler
+    @EventHandler(priority = org.bukkit.event.EventPriority.HIGH)
     public void onBlockBreak(BlockBreakEvent e) {
         if (e.isCancelled()) return;
         Player p = e.getPlayer();
@@ -851,14 +851,18 @@ public class VKChatDonatePayPlugin extends JavaPlugin implements CommandExecutor
         String status = getEffectiveStatus(p);
         if (status == null || status.equals("none")) return;
         int chance = getConfig().getInt("donor-statuses.levels." + status + ".effects.mining-extra-drop-chance", 0);
-        int copies = bonusCopiesFromPercent(chance);
-        if (copies <= 0) return;
-        Collection<ItemStack> drops = e.getBlock().getDrops(p.getInventory().getItemInMainHand());
-        if (drops.isEmpty()) return;
-        ItemStack extra = drops.iterator().next().clone();
-        extra.setAmount(Math.max(1, Math.min(extra.getMaxStackSize(), extra.getAmount())));
-        for (int i = 0; i < copies; i++) {
-            e.getBlock().getWorld().dropItemNaturally(e.getBlock().getLocation(), extra.clone());
+        if (chance <= 0) return;
+        
+        // Шанс на дополнительный дроп — блокируем стандартный дроп и выдаём увеличенный
+        if (new java.util.Random().nextInt(100) < chance) {
+            java.util.Collection<ItemStack> drops = e.getBlock().getDrops(p.getInventory().getItemInMainHand());
+            if (drops.isEmpty()) return;
+            e.setDropItems(false); // Блокируем стандартный дроп
+            for (ItemStack drop : drops) {
+                ItemStack bonus = drop.clone();
+                bonus.setAmount(drop.getAmount() * 2); // x2 дроп
+                e.getBlock().getWorld().dropItemNaturally(e.getBlock().getLocation(), bonus);
+            }
         }
     }
 

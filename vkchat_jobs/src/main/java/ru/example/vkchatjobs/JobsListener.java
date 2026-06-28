@@ -105,8 +105,10 @@ public class JobsListener implements Listener {
                 ItemStack tool = p.getInventory().getItemInMainHand();
 
                 if (plugin.getJobsDataManager().hasSkill(p.getUniqueId(), "miner", "miner_double")) {
-                    if (Math.random() < 0.1 && !b.getDrops().isEmpty()) {
-                        b.getWorld().dropItemNaturally(b.getLocation(), b.getDrops().iterator().next());
+                    if (Math.random() < 0.1) {
+                        // Дополнительный дроп — создаём отдельно, не через getDrops()
+                        ItemStack bonus = new ItemStack(m, 1);
+                        b.getWorld().dropItemNaturally(b.getLocation(), bonus);
                         p.sendMessage(org.bukkit.ChatColor.AQUA + "✨ Сработал навык Удачливый шахтер!");
                     }
                 }
@@ -212,8 +214,9 @@ public class JobsListener implements Listener {
                 Block b = e.getBlock();
 
                 if (plugin.getJobsDataManager().hasSkill(p.getUniqueId(), "farmer", "farm_double")) {
-                    if (Math.random() < 0.1 && !b.getDrops().isEmpty()) {
-                        b.getWorld().dropItemNaturally(b.getLocation(), b.getDrops().iterator().next());
+                    if (Math.random() < 0.1) {
+                        ItemStack bonus = new ItemStack(m, 1);
+                        b.getWorld().dropItemNaturally(b.getLocation(), bonus);
                         p.sendMessage(org.bukkit.ChatColor.AQUA + "✨ Сработал навык Щедрый урожай!");
                     }
                 }
