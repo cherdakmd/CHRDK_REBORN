@@ -120,12 +120,12 @@ public class MarketGuiListener implements Listener {
         if (category.equals("limited")) return false;
         if (category.equals("all")) return true;
         String cfg = plugin.getConfig().getString("items." + id + ".category", guessCategory(id)).toLowerCase();
-        if (category.equals("ores")) return cfg.contains("руд") || cfg.contains("слит") || id.contains("INGOT") || id.contains("ORE") || id.contains("DIAMOND") || id.contains("COPPER");
-        if (category.equals("food")) return cfg.contains("еда") || cfg.contains("ферм") || id.contains("BREAD") || id.contains("APPLE") || id.contains("CARROT") || id.contains("POTATO") || id.contains("WHEAT") || id.contains("PUMPKIN") || id.contains("MELON");
+        if (category.equals("ores")) return cfg.contains("руд") || cfg.contains("слит") || cfg.contains("редкие") || id.contains("INGOT") || id.contains("ORE") || id.contains("DIAMOND") || id.contains("COPPER") || id.contains("EMERALD") || id.contains("SCRAP") || id.contains("DEBRIS");
+        if (category.equals("food")) return cfg.contains("еда") || cfg.contains("ферм") || id.contains("BREAD") || id.contains("APPLE") || id.contains("CARROT") || id.contains("POTATO") || id.contains("WHEAT") || id.contains("PUMPKIN") || id.contains("MELON") || id.contains("BERRY") || id.contains("BEETROOT") || id.contains("SUGAR_CANE") || id.contains("BAMBOO") || id.contains("CACTUS");
         if (category.equals("wood")) return cfg.contains("дерев") || id.contains("LOG") || id.contains("WOOD");
-        if (category.equals("blocks")) return cfg.contains("строй") || id.contains("STONE") || id.contains("SAND") || id.contains("GLASS") || id.contains("BRICK") || id.contains("BASALT") || id.contains("BLACKSTONE") || id.contains("OBSIDIAN");
-        if (category.equals("mob")) return cfg.contains("мобы") || id.contains("BONE") || id.contains("STRING") || id.contains("GUNPOWDER") || id.contains("LEATHER") || id.contains("FEATHER") || id.contains("ROTTEN") || id.contains("SPIDER") || id.contains("SLIME");
-        if (category.equals("decor")) return cfg.contains("декор") || id.contains("WOOL") || id.contains("DYE") || id.contains("INK");
+        if (category.equals("blocks")) return cfg.contains("строй") || id.contains("STONE") || id.contains("SAND") || id.contains("GLASS") || id.contains("BRICK") || id.contains("BASALT") || id.contains("BLACKSTONE") || id.contains("OBSIDIAN") || id.contains("SLATE") || id.contains("CLAY") || id.contains("GRANITE") || id.contains("DIORITE") || id.contains("ANDESITE");
+        if (category.equals("mob")) return cfg.contains("мобы") || cfg.contains("нижний мир") || cfg.contains("океан") || id.contains("BONE") || id.contains("STRING") || id.contains("GUNPOWDER") || id.contains("LEATHER") || id.contains("FEATHER") || id.contains("ROTTEN") || id.contains("SPIDER") || id.contains("SLIME") || id.contains("BLAZE") || id.contains("GHAST") || id.contains("MAGMA") || id.contains("PHANTOM") || id.contains("PRISMARINE") || id.contains("ENDER_PEARL");
+        if (category.equals("decor")) return cfg.contains("декор") || cfg.contains("магия") || id.contains("WOOL") || id.contains("DYE") || id.contains("INK") || id.contains("AMETHYST") || id.contains("EXPERIENCE_BOTTLE");
         return true;
     }
 
@@ -524,7 +524,7 @@ public class MarketGuiListener implements Listener {
     }
 
     private static boolean isRareShopItem(String id) {
-        return id.contains("TOTEM") || id.contains("ENCHANTED_GOLDEN_APPLE") || id.contains("NETHERITE_INGOT") || id.contains("ECHO_SHARD") || id.contains("ANCIENT_DEBRIS") || id.contains("NETHER_STAR");
+        return id.contains("TOTEM") || id.contains("ENCHANTED_GOLDEN_APPLE") || id.contains("NETHERITE_INGOT") || id.contains("ECHO_SHARD") || id.contains("ANCIENT_DEBRIS") || id.contains("NETHER_STAR") || id.contains("HEART_OF_THE_SEA");
     }
 
     private static ItemStack infoItem(VKChatMarketPlugin plugin, int page, int pages, int total, Player p, String category) {
