@@ -18,8 +18,12 @@ import java.util.List;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import java.util.ArrayList;
 import java.util.Random;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
 
 public class CombatListener implements Listener {
+    private final Set<UUID> processing = new HashSet<>();
 
     @EventHandler
     public void onPlayerDeath(PlayerDeathEvent e) {
@@ -77,6 +81,18 @@ public class CombatListener implements Listener {
     @EventHandler
     public void onHit(EntityDamageByEntityEvent e) {
         if (e.isCancelled()) return;
+        // Защита от рекурсии (Meteor Shower и подобные создают взрывы)
+        UUID targetId = e.getEntity().getUniqueId();
+        if (processing.contains(targetId)) return;
+        processing.add(targetId);
+        try {
+            onHitInternal(e);
+        } finally {
+            processing.remove(targetId);
+        }
+    }
+
+    private void onHitInternal(EntityDamageByEntityEvent e) {
 
         // Зависимость сложности мобов от репутации игрока ВК (Тьма наступает)
         if (e.getEntity() instanceof Player && e.getDamager() instanceof org.bukkit.entity.Monster) {
