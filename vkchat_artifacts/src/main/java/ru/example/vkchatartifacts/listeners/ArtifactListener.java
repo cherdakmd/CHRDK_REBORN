@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Random;
 import java.util.Set;
 import java.util.HashSet;
+import java.util.UUID;
 import java.util.Collections;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
@@ -46,6 +47,7 @@ public class ArtifactListener implements Listener {
     private final Random random = new Random();
     private final Set<Integer> boostingIds = Collections.synchronizedSet(new HashSet<>());
     private final java.util.Map<java.util.UUID, Long> revivalCooldowns = new java.util.concurrent.ConcurrentHashMap<>();
+    private final Set<UUID> processing = new HashSet<>(); // Защита от рекурсии
     private static final java.util.UUID ARTIFACT_HEALTH_UUID = java.util.UUID.fromString("7d4f6b7a-2f5a-4dbd-9c8c-0df91f5c1001");
     private static final java.util.UUID ARTIFACT_SPEED_UUID = java.util.UUID.fromString("7d4f6b7a-2f5a-4dbd-9c8c-0df91f5c1002");
     private static final java.util.UUID ARTIFACT_ARMOR_UUID = java.util.UUID.fromString("7d4f6b7a-2f5a-4dbd-9c8c-0df91f5c1003");
@@ -505,86 +507,98 @@ public class ArtifactListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGH)
     public void onDamage(EntityDamageByEntityEvent e) {
-        if (e.getDamager() instanceof Player) {
-            Player p = (Player) e.getDamager();
-            for (ItemStack item : p.getInventory().getContents()) {
-                if (item == null || !item.hasItemMeta()) continue;
-                if (item.getItemMeta().getPersistentDataContainer().has(isArtifactKey, PersistentDataType.INTEGER)) {
-                    String buff = item.getItemMeta().getPersistentDataContainer().get(buffKey, PersistentDataType.STRING);
-                    int level = item.getItemMeta().getPersistentDataContainer().get(levelKey, PersistentDataType.INTEGER);
-                    
-                    if ("DAMAGE".equals(buff)) {
-                        e.setDamage(e.getDamage() + level);
-                    } else if ("VAMPIRISM".equals(buff)) {
-                        double heal = e.getDamage() * (level * 0.1);
-                        p.setHealth(Math.min(p.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue(), p.getHealth() + heal));
-                    } else if ("CRITICAL".equals(buff)) {
-                        if (random.nextInt(100) < (level * 5)) {
-                            e.setDamage(e.getDamage() * 2);
-                            p.getWorld().spawnParticle(org.bukkit.Particle.CRIT_MAGIC, e.getEntity().getLocation().add(0, 1, 0), 15);
-                        }
-                    } else if ("WITHER_TOUCH".equals(buff) && e.getEntity() instanceof org.bukkit.entity.LivingEntity) {
-                        ((org.bukkit.entity.LivingEntity) e.getEntity()).addPotionEffect(new PotionEffect(PotionEffectType.WITHER, 60, level - 1, false, false));
-                    } else if ("POISON_STRIKE".equals(buff) && e.getEntity() instanceof org.bukkit.entity.LivingEntity) {
-                        ((org.bukkit.entity.LivingEntity) e.getEntity()).addPotionEffect(new PotionEffect(PotionEffectType.POISON, 60, level - 1, false, false));
-                    } else if ("LIGHTNING_STRIKE".equals(buff)) {
-                        if (random.nextInt(100) < (level * 10)) {
-                            e.getEntity().getWorld().strikeLightningEffect(e.getEntity().getLocation());
-                            if (e.getEntity() instanceof org.bukkit.entity.LivingEntity) {
-                                ((org.bukkit.entity.LivingEntity) e.getEntity()).damage(4.0 * level, p);
-                            }
-                        }
-                    } else if ("TRUE_STRIKE".equals(buff)) {
-                        e.setDamage(e.getDamage() + (level * 1.5));
-                        p.getWorld().spawnParticle(org.bukkit.Particle.CRIT, e.getEntity().getLocation().add(0, 1, 0), 10);
-                    } else if ("FROST_BITE".equals(buff) && e.getEntity() instanceof org.bukkit.entity.LivingEntity) {
-                        ((org.bukkit.entity.LivingEntity) e.getEntity()).addPotionEffect(new PotionEffect(PotionEffectType.SLOW, 60, level - 1, false, false));
-                    } else if ("BERSERKER".equals(buff)) {
-                        double missingHealth = p.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue() - p.getHealth();
-                        double healthPercent = missingHealth / p.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue();
-                        e.setDamage(e.getDamage() * (1.0 + healthPercent * level * 0.2));
-                    } else if ("FLAME_TONGUE".equals(buff) && e.getEntity() instanceof org.bukkit.entity.LivingEntity) {
-                        ((org.bukkit.entity.LivingEntity) e.getEntity()).setFireTicks(40 + level * 20);
-                    } else if ("ECHO_STRIKE".equals(buff)) {
-                        if (random.nextInt(100) < (level * 10)) {
-                            e.setDamage(e.getDamage() * 2);
-                            p.getWorld().spawnParticle(org.bukkit.Particle.CRIT_MAGIC, e.getEntity().getLocation().add(0, 1, 0), 20);
-                            p.getWorld().playSound(p.getLocation(), org.bukkit.Sound.ENTITY_PLAYER_ATTACK_CRIT, 1.0f, 1.2f);
-                        }
-                    } else if ("LIFESTEAL_AURA".equals(buff)) {
-                        for (org.bukkit.entity.Entity near : p.getNearbyEntities(8, 8, 8)) {
-                            if (near instanceof Player && near != p) {
-                                Player ally = (Player) near;
-                                double heal = e.getDamage() * 0.15;
-                                ally.setHealth(Math.min(ally.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue(), ally.getHealth() + heal));
-                            }
-                        }
-                    } else if ("ABYSSAL_POWER".equals(buff)) {
-                        e.setDamage(e.getDamage() + 10);
-                    } else if ("DRAGON_BLOOD".equals(buff) && e.getEntity() instanceof org.bukkit.entity.LivingEntity) {
-                        if (((org.bukkit.entity.LivingEntity) e.getEntity()).getFireTicks() > 0) {
-                            e.setDamage(e.getDamage() * 1.5);
+        UUID targetId = e.getEntity().getUniqueId();
+        if (processing.contains(targetId)) return;
+        processing.add(targetId);
+        try {
+            if (e.getDamager() instanceof Player) {
+                onDamageInternal(e, (Player) e.getDamager());
+            }
+            if (e.getEntity() instanceof Player) {
+                onDamageByVictim(e);
+            }
+        } finally {
+            processing.remove(targetId);
+        }
+    }
+
+    private void onDamageInternal(EntityDamageByEntityEvent e, Player p) {
+        for (ItemStack item : p.getInventory().getContents()) {
+            if (item == null || !item.hasItemMeta()) continue;
+            if (item.getItemMeta().getPersistentDataContainer().has(isArtifactKey, PersistentDataType.INTEGER)) {
+                String buff = item.getItemMeta().getPersistentDataContainer().get(buffKey, PersistentDataType.STRING);
+                int level = item.getItemMeta().getPersistentDataContainer().get(levelKey, PersistentDataType.INTEGER);
+
+                if ("DAMAGE".equals(buff)) {
+                    e.setDamage(e.getDamage() + level);
+                } else if ("VAMPIRISM".equals(buff)) {
+                    double heal = e.getDamage() * (level * 0.1);
+                    p.setHealth(Math.min(p.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue(), p.getHealth() + heal));
+                } else if ("CRITICAL".equals(buff)) {
+                    if (random.nextInt(100) < (level * 5)) {
+                        e.setDamage(e.getDamage() * 2);
+                        p.getWorld().spawnParticle(org.bukkit.Particle.CRIT_MAGIC, e.getEntity().getLocation().add(0, 1, 0), 15);
+                    }
+                } else if ("WITHER_TOUCH".equals(buff) && e.getEntity() instanceof org.bukkit.entity.LivingEntity) {
+                    ((org.bukkit.entity.LivingEntity) e.getEntity()).addPotionEffect(new PotionEffect(PotionEffectType.WITHER, 60, level - 1, false, false));
+                } else if ("POISON_STRIKE".equals(buff) && e.getEntity() instanceof org.bukkit.entity.LivingEntity) {
+                    ((org.bukkit.entity.LivingEntity) e.getEntity()).addPotionEffect(new PotionEffect(PotionEffectType.POISON, 60, level - 1, false, false));
+                } else if ("LIGHTNING_STRIKE".equals(buff)) {
+                    if (random.nextInt(100) < (level * 10)) {
+                        e.getEntity().getWorld().strikeLightningEffect(e.getEntity().getLocation());
+                        if (e.getEntity() instanceof org.bukkit.entity.LivingEntity) {
+                            ((org.bukkit.entity.LivingEntity) e.getEntity()).damage(4.0 * level, p);
                         }
                     }
-                }
-            }
-
-            // BLOODLETTING curse: take damage back when attacking
-            if (e.getDamager() instanceof Player) {
-                Player attacker = (Player) e.getDamager();
-                for (ItemStack item : attacker.getInventory().getContents()) {
-                    if (item == null || !item.hasItemMeta()) continue;
-                    if (item.getItemMeta().getPersistentDataContainer().has(isArtifactKey, PersistentDataType.INTEGER)) {
-                        String curse = item.getItemMeta().getPersistentDataContainer().get(curseKey, PersistentDataType.STRING);
-                        if ("BLOODLETTING".equals(curse)) {
-                            attacker.damage(e.getDamage() * 0.2);
-                            break;
+                } else if ("TRUE_STRIKE".equals(buff)) {
+                    e.setDamage(e.getDamage() + (level * 1.5));
+                    p.getWorld().spawnParticle(org.bukkit.Particle.CRIT, e.getEntity().getLocation().add(0, 1, 0), 10);
+                } else if ("FROST_BITE".equals(buff) && e.getEntity() instanceof org.bukkit.entity.LivingEntity) {
+                    ((org.bukkit.entity.LivingEntity) e.getEntity()).addPotionEffect(new PotionEffect(PotionEffectType.SLOW, 60, level - 1, false, false));
+                } else if ("BERSERKER".equals(buff)) {
+                    double missingHealth = p.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue() - p.getHealth();
+                    double healthPercent = missingHealth / p.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue();
+                    e.setDamage(e.getDamage() * (1.0 + healthPercent * level * 0.2));
+                } else if ("FLAME_TONGUE".equals(buff) && e.getEntity() instanceof org.bukkit.entity.LivingEntity) {
+                    ((org.bukkit.entity.LivingEntity) e.getEntity()).setFireTicks(40 + level * 20);
+                } else if ("ECHO_STRIKE".equals(buff)) {
+                    if (random.nextInt(100) < (level * 10)) {
+                        e.setDamage(e.getDamage() * 2);
+                        p.getWorld().spawnParticle(org.bukkit.Particle.CRIT_MAGIC, e.getEntity().getLocation().add(0, 1, 0), 20);
+                        p.getWorld().playSound(p.getLocation(), org.bukkit.Sound.ENTITY_PLAYER_ATTACK_CRIT, 1.0f, 1.2f);
+                    }
+                } else if ("LIFESTEAL_AURA".equals(buff)) {
+                    for (org.bukkit.entity.Entity near : p.getNearbyEntities(8, 8, 8)) {
+                        if (near instanceof Player && near != p) {
+                            Player ally = (Player) near;
+                            double heal = e.getDamage() * 0.15;
+                            ally.setHealth(Math.min(ally.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue(), ally.getHealth() + heal));
                         }
+                    }
+                } else if ("ABYSSAL_POWER".equals(buff)) {
+                    e.setDamage(e.getDamage() + 10);
+                } else if ("DRAGON_BLOOD".equals(buff) && e.getEntity() instanceof org.bukkit.entity.LivingEntity) {
+                    if (((org.bukkit.entity.LivingEntity) e.getEntity()).getFireTicks() > 0) {
+                        e.setDamage(e.getDamage() * 1.5);
                     }
                 }
             }
         }
-        
+
+        // BLOODLETTING curse: take damage back when attacking
+        for (ItemStack item : p.getInventory().getContents()) {
+            if (item == null || !item.hasItemMeta()) continue;
+            if (item.getItemMeta().getPersistentDataContainer().has(isArtifactKey, PersistentDataType.INTEGER)) {
+                String curse = item.getItemMeta().getPersistentDataContainer().get(curseKey, PersistentDataType.STRING);
+                if ("BLOODLETTING".equals(curse)) {
+                    p.damage(e.getDamage() * 0.2);
+                    break;
+                }
+            }
+        }
+    }
+
+    private void onDamageByVictim(EntityDamageByEntityEvent e) {
         if (e.getEntity() instanceof Player) {
             Player p = (Player) e.getEntity();
             for (ItemStack item : p.getInventory().getContents()) {
