@@ -38,35 +38,54 @@ public class ConfigManager {
 
         messagesFile = new File(plugin.getDataFolder(), "messages.yml");
         if (!messagesFile.exists()) {
-            plugin.saveResource("messages.yml", false);
+            try { plugin.saveResource("messages.yml", false); } catch (Exception ex) {
+                plugin.getLogger().warning("messages.yml не найден в JAR, создаю дефолтный.");
+                try { messagesFile.createNewFile(); } catch (Exception ignored) {}
+            }
         }
         updateYamlWithDefaults(messagesFile, "messages.yml");
         messages = YamlConfiguration.loadConfiguration(messagesFile);
 
         badwordsFile = new File(plugin.getDataFolder(), "badwords.yml");
         if (!badwordsFile.exists()) {
-            plugin.saveResource("badwords.yml", false);
+            try { plugin.saveResource("badwords.yml", false); } catch (Exception ex) {
+                plugin.getLogger().warning("badwords.yml не найден в JAR, создаю дефолтный.");
+                try { badwordsFile.createNewFile(); } catch (Exception ignored) {}
+            }
         }
         updateYamlWithDefaults(badwordsFile, "badwords.yml");
         badwords = YamlConfiguration.loadConfiguration(badwordsFile);
 
         donutFile = new File(plugin.getDataFolder(), "vkdonut.yml");
         if (!donutFile.exists()) {
-            plugin.saveResource("vkdonut.yml", false);
+            try { plugin.saveResource("vkdonut.yml", false); } catch (Exception ex) {
+                plugin.getLogger().warning("vkdonut.yml не найден в JAR, создаю дефолтный.");
+                try { donutFile.createNewFile(); } catch (Exception ignored) {}
+            }
         }
         updateYamlWithDefaults(donutFile, "vkdonut.yml");
         donutConfig = YamlConfiguration.loadConfiguration(donutFile);
 
         eventsFile = new File(plugin.getDataFolder(), "events.yml");
         if (!eventsFile.exists()) {
-            plugin.saveResource("events.yml", false);
+            try {
+                plugin.saveResource("events.yml", false);
+            } catch (Exception ex) {
+                plugin.getLogger().warning("events.yml не найден в JAR, создаю дефолтный.");
+                try { eventsFile.createNewFile(); } catch (Exception ignored) {}
+            }
         }
         updateYamlWithDefaults(eventsFile, "events.yml");
         eventsConfig = YamlConfiguration.loadConfiguration(eventsFile);
 
         hardcoreFile = new File(plugin.getDataFolder(), "hardcore.yml");
         if (!hardcoreFile.exists()) {
-            plugin.saveResource("hardcore.yml", false);
+            try {
+                plugin.saveResource("hardcore.yml", false);
+            } catch (Exception ex) {
+                plugin.getLogger().warning("hardcore.yml не найден в JAR, создаю дефолтный.");
+                try { hardcoreFile.createNewFile(); } catch (Exception ignored) {}
+            }
         }
         updateYamlWithDefaults(hardcoreFile, "hardcore.yml");
         hardcoreConfig = YamlConfiguration.loadConfiguration(hardcoreFile);

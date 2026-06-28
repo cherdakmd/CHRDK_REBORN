@@ -1,0 +1,39 @@
+# ==========================================
+#  ИНТЕГРАЦИЯ С TWITCH (API & Drops)
+# ==========================================
+twitch:
+  enabled: true
+  
+  # Данные разработчика Twitch (Получать на dev.twitch.tv)
+  client-id: "YOUR_TWITCH_CLIENT_ID"
+  client-secret: "YOUR_TWITCH_CLIENT_SECRET"
+  
+  # Как часто проверять статус стримеров (в секундах)
+  check-interval: 60
+  
+  # Список каналов (логинов) Twitch, которые нужно отслеживать
+  streamers:
+    - "kalinin_play"
+    - "chrdk_reborn_official"
+    
+  # Интеграция с плагином TAB (Изменение префикса/суффикса)
+  tab-integration:
+    enabled: true
+    live-prefix: "&5&l[LIVE] &r" # Добавляется к текущему префиксу
+    
+  # Система самописных Twitch Drops (Награды за просмотр)
+  # Игрок должен привязать Twitch командой /twitch link <логин>
+  drops:
+    enabled: true
+    watch-time-required: 30 # Минут для получения награды (выдается циклично каждые X минут)
+    notify-progress: true # Напоминать зрителям в ActionBar о прогрессе просмотра и просить привязать аккаунт
+    commands:
+      - "give {player} diamond 5"
+      - "eco give {player} 1000"
+    message: "&d&lTWITCH &8| &fТы поддерживаешь стримера уже {time} минут! Держи награду!"
+    reputation-reward: 10 # Сколько репутации ВК давать за каждые N минут просмотра
+
+  # Настройки анонсов
+  announcements:
+    interval: 15 # Повторять анонс в чат MC каждые 15 минут (пока идет стрим)
+    streamer-reward: 50 # Сколько репутации получает стример за то, что начал трансляцию
