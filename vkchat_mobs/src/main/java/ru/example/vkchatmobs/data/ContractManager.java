@@ -43,7 +43,10 @@ public class ContractManager {
         CHAMPION("champion", "§6Гроза Чемпионов", "Убить 3 Мини-Bossов", 3, 350, 1, 1),
         LEGENDARY("legendary", "§c☠ Легендарный Завоеватель ☠", "Убить 1 Мирового Супер-Босса", 1, 500, 3, 2),
         ELEMENTAL("elemental", "§bЭлементальный Охотник", "Убить 20 мобов одного стихийного типа", 20, 300, 1, 1),
-        SLAYER("slayer", "§4☠ Истребитель ☠", "Убить 50 мобов любого типа", 50, 400, 3, 2);
+        SLAYER("slayer", "§4☠ Истребитель ☠", "Убить 50 мобов любого типа", 50, 400, 3, 2),
+        BOSS_HUNTER("boss_hunter", "§c⚔ Охотник на Боссов", "Убить 5 мини-боссов", 5, 500, 4, 3),
+        ELEMENT_MASTER("element_master", "§d✦ Мастер Стихий", "Убить 30 мобов одной стихии", 30, 350, 2, 2),
+        ARCHETYPE_SLAYER("archetype_slayer", "§5☠ Убийца Архетипов", "Убить 20 мобов одного архетипа", 20, 450, 3, 2);
 
         private final String id;
         private final String displayName;
