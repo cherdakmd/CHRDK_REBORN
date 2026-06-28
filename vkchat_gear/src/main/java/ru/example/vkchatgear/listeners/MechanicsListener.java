@@ -32,28 +32,27 @@ public class MechanicsListener implements Listener {
 
                 java.util.List<String> lore = meta.getLore();
 
-                // Ore Magnet & Auto-smelt
+                // Ore Magnet & Auto-smelt & Telekinesis
                 boolean oreMagnet = false;
                 for (String l : lore) { if (org.bukkit.ChatColor.stripColor(l).contains("Магнит Руд")) oreMagnet = true; }
                 boolean autoSmelt = false;
                 for (String l : lore) { if (org.bukkit.ChatColor.stripColor(l).contains("Авто-плавка")) autoSmelt = true; }
+                boolean hasTelekinesis = false;
+                for (String l : lore) { if (org.bukkit.ChatColor.stripColor(l).contains("Телекинез")) hasTelekinesis = true; }
+
+                boolean dropsHandledBySmelt = false;
 
                 // Авто-плавка работает только если нет Магнита Руд (иначе дюп слитков)
                 if (autoSmelt && !oreMagnet) {
-                    if (e.getBlock().getType().name().contains("IRON_ORE")) {
+                    ItemStack smelted = getSmeltedFromOre(e.getBlock().getType());
+                    if (smelted != null) {
                         e.setDropItems(false);
-                        p.getWorld().dropItemNaturally(e.getBlock().getLocation(), new ItemStack(org.bukkit.Material.IRON_INGOT));
-                        p.giveExp(1);
-                    } else if (e.getBlock().getType().name().contains("GOLD_ORE")) {
-                        e.setDropItems(false);
-                        p.getWorld().dropItemNaturally(e.getBlock().getLocation(), new ItemStack(org.bukkit.Material.GOLD_INGOT));
-                        p.giveExp(1);
-                    } else if (e.getBlock().getType().name().contains("COPPER_ORE")) {
-                        e.setDropItems(false);
-                        try {
-                            org.bukkit.Material copperIngot = org.bukkit.Material.valueOf("COPPER_INGOT");
-                            p.getWorld().dropItemNaturally(e.getBlock().getLocation(), new ItemStack(copperIngot));
-                        } catch (Exception ignored) {}
+                        dropsHandledBySmelt = true;
+                        if (hasTelekinesis) {
+                            p.getInventory().addItem(smelted).values().forEach(leftover -> p.getWorld().dropItemNaturally(p.getLocation(), leftover));
+                        } else {
+                            p.getWorld().dropItemNaturally(e.getBlock().getLocation(), smelted);
+                        }
                         p.giveExp(1);
                     }
                 }
@@ -62,7 +61,11 @@ public class MechanicsListener implements Listener {
                 if (oreMagnet) {
                     ItemStack ingot = getIngotFromOre(e.getBlock().getType());
                     if (ingot != null) {
-                        p.getWorld().dropItemNaturally(e.getBlock().getLocation(), ingot);
+                        if (hasTelekinesis) {
+                            p.getInventory().addItem(ingot).values().forEach(leftover -> p.getWorld().dropItemNaturally(p.getLocation(), leftover));
+                        } else {
+                            p.getWorld().dropItemNaturally(e.getBlock().getLocation(), ingot);
+                        }
                         p.giveExp(1);
                     }
                 }
@@ -80,14 +83,7 @@ public class MechanicsListener implements Listener {
                 }
 
                 // Телекинез (Сразу в инвентарь)
-                boolean hasTelekinesis = false;
-                for (String l : lore) {
-                    if (org.bukkit.ChatColor.stripColor(l).contains("Телекинез")) {
-                        hasTelekinesis = true;
-                        break;
-                    }
-                }
-                if (hasTelekinesis) {
+                if (hasTelekinesis && !dropsHandledBySmelt) {
                     e.setDropItems(false);
                     for (ItemStack drop : e.getBlock().getDrops(tool)) {
                         p.getInventory().addItem(drop).values().forEach(leftover -> p.getWorld().dropItemNaturally(p.getLocation(), leftover));
@@ -151,7 +147,7 @@ public class MechanicsListener implements Listener {
             } else if (plugin.getGearManager().isWearingSet(p, "ember_crown")) {
                 p.getWorld().spawnParticle(org.bukkit.Particle.FLAME, p.getLocation().add(0, 0.2, 0), 2, 0.15, 0.1, 0.15, 0.01);
             } else if (plugin.getGearManager().isWearingSet(p, "plague_mist")) {
-                p.getWorld().spawnParticle(org.bukkit.Particle.SPELL_MOB, p.getLocation().add(0, 0.2, 0), 3, 0.3, 0.2, 0.3, 0.01);
+                p.getWorld().spawnParticle(org.bukkit.Particle.SPELL_MOB, p.getLocation().add(0, 0.2, 0), 3, 0.3, 0.2, 0.3, 0.01, org.bukkit.Color.fromRGB(80, 200, 80));
             } else if (plugin.getGearManager().isWearingSet(p, "starforged")) {
                 p.getWorld().spawnParticle(org.bukkit.Particle.ENCHANTMENT_TABLE, p.getLocation().add(0, 0.5, 0), 2, 0.3, 0.3, 0.3, 0.01);
             }
@@ -180,6 +176,18 @@ public class MechanicsListener implements Listener {
     }
 
     private ItemStack getIngotFromOre(org.bukkit.Material blockType) {
+        String name = blockType.name();
+        if (name.contains("IRON_ORE")) return new ItemStack(org.bukkit.Material.IRON_INGOT);
+        if (name.contains("GOLD_ORE")) return new ItemStack(org.bukkit.Material.GOLD_INGOT);
+        if (name.contains("COPPER_ORE")) {
+            try {
+                return new ItemStack(org.bukkit.Material.valueOf("COPPER_INGOT"));
+            } catch (Exception ignored) {}
+        }
+        return null;
+    }
+
+    private ItemStack getSmeltedFromOre(org.bukkit.Material blockType) {
         String name = blockType.name();
         if (name.contains("IRON_ORE")) return new ItemStack(org.bukkit.Material.IRON_INGOT);
         if (name.contains("GOLD_ORE")) return new ItemStack(org.bukkit.Material.GOLD_INGOT);

@@ -753,7 +753,7 @@ public class CombatListener implements Listener {
                     }
                 }
                 target.addPotionEffect(new PotionEffect(PotionEffectType.POISON, 100, 1));
-                target.getWorld().spawnParticle(org.bukkit.Particle.SPELL_MOB, target.getLocation().add(0, 1, 0), 30, 0.5, 0.5, 0.5, 0.05);
+                target.getWorld().spawnParticle(org.bukkit.Particle.SPELL_MOB, target.getLocation().add(0, 1, 0), 30, 0.5, 0.5, 0.5, 0.05, org.bukkit.Color.fromRGB(80, 200, 80));
                 sendCombatMessage(p, org.bukkit.ChatColor.GREEN + "☠️ [Моровой Туман] Ядовитый туман окурал врага!");
             }
 

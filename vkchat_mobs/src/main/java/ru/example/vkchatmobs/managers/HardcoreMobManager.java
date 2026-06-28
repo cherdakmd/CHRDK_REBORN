@@ -247,7 +247,7 @@ public class HardcoreMobManager implements Listener {
                 minion.setCustomNameVisible(true);
                 minion.getPersistentDataContainer().set(eliteKey, PersistentDataType.INTEGER, 1);
             }
-            p.getWorld().spawnParticle(Particle.SPELL_MOB, mob.getLocation().add(0, 1, 0), 30, 1.0, 0.5, 1.0, 0.1);
+            p.getWorld().spawnParticle(Particle.SPELL_MOB, mob.getLocation().add(0, 1, 0), 30, 1.0, 0.5, 1.0, 0.1, org.bukkit.Color.fromRGB(128, 0, 128));
         }
         if (archetype.equals("guardian")) {
             for (LivingEntity near : mob.getWorld().getNearbyEntities(mob.getLocation(), 8, 8, 8, e -> e instanceof Monster).stream().map(e -> (LivingEntity) e).collect(java.util.stream.Collectors.toList())) {
@@ -453,7 +453,7 @@ public class HardcoreMobManager implements Listener {
     }
 
     private String strip(String s) { return ChatColor.stripColor(s == null ? "" : s); }
-    private Particle particleFor(String e) { if (e.equals("fire")) return Particle.FLAME; if (e.equals("frost")) return Particle.SNOWBALL; if (e.equals("poison")) return Particle.SPELL_WITCH; if (e.equals("storm")) return Particle.CRIT_MAGIC; if (e.equals("light")) return Particle.END_ROD; if (e.equals("ice")) return Particle.SNOW_SHOVEL; if (e.equals("blood")) return Particle.BLOCK_DUST; return Particle.SMOKE_NORMAL; }
+    private Particle particleFor(String e) { if (e.equals("fire")) return Particle.FLAME; if (e.equals("frost")) return Particle.SNOWBALL; if (e.equals("poison")) return Particle.SPELL_WITCH; if (e.equals("storm")) return Particle.CRIT_MAGIC; if (e.equals("light")) return Particle.END_ROD; if (e.equals("ice")) return Particle.SNOW_SHOVEL; if (e.equals("blood")) return Particle.SPELL_WITCH; return Particle.SMOKE_NORMAL; }
     private String abilityName(String a, String e) { return archetypeName(a) + " / " + elementName(e); }
     private String formatName(String tier, String a, String e, LivingEntity mob) { return ChatColor.translateAlternateColorCodes('&', tierColor(tier) + "[" + tier.toUpperCase() + "] &f" + archetypeName(a) + " " + elementName(e)); }
     private String tierColor(String t) { if (t.equals("world")) return "&5&l"; if (t.equals("raid")) return "&4&l"; if (t.equals("mini")) return "&c&l"; return "&6"; }

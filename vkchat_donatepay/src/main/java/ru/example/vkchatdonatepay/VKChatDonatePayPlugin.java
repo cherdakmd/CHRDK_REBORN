@@ -17,7 +17,6 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.player.PlayerExpChangeEvent;
 import org.bukkit.inventory.Inventory;
@@ -840,29 +839,6 @@ public class VKChatDonatePayPlugin extends JavaPlugin implements CommandExecutor
                 int amp = parts.length > 1 ? Integer.parseInt(parts[1].trim()) : 0;
                 if (type != null) p.addPotionEffect(new PotionEffect(type, 500, amp, true, false, false));
             } catch (Exception ignored) {}
-        }
-    }
-
-    @EventHandler(priority = org.bukkit.event.EventPriority.HIGH)
-    public void onBlockBreak(BlockBreakEvent e) {
-        if (e.isCancelled()) return;
-        Player p = e.getPlayer();
-        cleanupExpiredBonusTiers(p.getName());
-        String status = getEffectiveStatus(p);
-        if (status == null || status.equals("none")) return;
-        int chance = getConfig().getInt("donor-statuses.levels." + status + ".effects.mining-extra-drop-chance", 0);
-        if (chance <= 0) return;
-        
-        // Шанс на дополнительный дроп — блокируем стандартный дроп и выдаём увеличенный
-        if (new java.util.Random().nextInt(100) < chance) {
-            java.util.Collection<ItemStack> drops = e.getBlock().getDrops(p.getInventory().getItemInMainHand());
-            if (drops.isEmpty()) return;
-            e.setDropItems(false); // Блокируем стандартный дроп
-            for (ItemStack drop : drops) {
-                ItemStack bonus = drop.clone();
-                bonus.setAmount(drop.getAmount() * 2); // x2 дроп
-                e.getBlock().getWorld().dropItemNaturally(e.getBlock().getLocation(), bonus);
-            }
         }
     }
 

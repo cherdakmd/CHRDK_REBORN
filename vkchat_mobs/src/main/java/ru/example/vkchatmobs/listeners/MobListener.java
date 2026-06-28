@@ -170,7 +170,7 @@ public class MobListener implements Listener {
                             world.spawnParticle(Particle.SPELL_WITCH, mob.getLocation().add(0, 0.5, 0), 6, 0.5, 0.5, 0.5, 0.02);
                         } else if (bossType.equals("void_walker")) {
                             world.spawnParticle(Particle.REVERSE_PORTAL, mob.getLocation().add(0, 0.3, 0), 10, 0.6, 0.3, 0.6, 0.02);
-                            world.spawnParticle(Particle.SPELL_MOB, mob.getLocation().add(0, 1.0, 0), 4, 0.4, 0.4, 0.4, 0.01);
+                            world.spawnParticle(Particle.SPELL_MOB, mob.getLocation().add(0, 1.0, 0), 4, 0.4, 0.4, 0.4, 0.01, org.bukkit.Color.fromRGB(80, 0, 120));
                         }
 
                         // 2. АКТИВНЫЕ СПОСОБНОСТИ (СПЕЛЛЫ) В БОЮ
@@ -254,7 +254,7 @@ public class MobListener implements Listener {
                                 double heal = maxHp * 0.05;
                                 mob.setHealth(Math.min(maxHp, mob.getHealth() + heal));
                                 world.playSound(mob.getLocation(), Sound.ENTITY_WITCH_DRINK, 1.2f, 1.0f);
-                                world.spawnParticle(Particle.SPELL_INSTANT, mob.getLocation().add(0, 1, 0), 20, 0.5, 0.8, 0.5, 0.05);
+                                world.spawnParticle(Particle.SPELL_INSTANT, mob.getLocation().add(0, 1, 0), 20, 0.5, 0.8, 0.5, 0.05, org.bukkit.Color.fromRGB(255, 255, 200));
                                 updateNameplate(mob);
                             }
                         } else if (bossType.equals("void_walker")) {
