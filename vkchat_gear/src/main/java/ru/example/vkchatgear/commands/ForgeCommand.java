@@ -932,7 +932,11 @@ public class ForgeCommand implements CommandExecutor, Listener, TabCompleter {
             lore.removeIf(l -> ChatColor.stripColor(l).startsWith("Свойство редкости:"));
             lore.add(Math.min(1, lore.size()), prop);
         }
-        lore.add(ChatColor.DARK_PURPLE + "⭐ Возвышено в реликтовой кузне");
+        boolean alreadyMarked = false;
+        for (String l : lore) {
+            if (ChatColor.stripColor(l).contains("Возвышено в реликтовой кузне")) { alreadyMarked = true; break; }
+        }
+        if (!alreadyMarked) lore.add(ChatColor.DARK_PURPLE + "⭐ Возвышено в реликтовой кузне");
         meta.setLore(lore);
         String pure = meta.hasDisplayName() ? ChatColor.stripColor(meta.getDisplayName()) : item.getType().name();
         pure = pure.replaceFirst("^\\[[^]]+\\]\\s*", "");
