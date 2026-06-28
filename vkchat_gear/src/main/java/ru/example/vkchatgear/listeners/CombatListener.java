@@ -19,11 +19,33 @@ import org.bukkit.event.entity.PlayerDeathEvent;
 import java.util.ArrayList;
 import java.util.Random;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class CombatListener implements Listener {
     private final Set<UUID> processing = new HashSet<>();
+    private final Map<UUID, Long> meteorCooldowns = new ConcurrentHashMap<>();
+    private final Map<UUID, Long> meteorShowerCooldowns = new ConcurrentHashMap<>();
+    private final Map<UUID, Long> messageCooldowns = new ConcurrentHashMap<>();
+    private static final long METEOR_COOLDOWN_MS = 3000; // 3 сек
+    private static final long METEOR_SHOWER_COOLDOWN_MS = 10000; // 10 сек
+    private static final long MESSAGE_COOLDOWN_MS = 2000; // 2 сек
+
+    private boolean checkCooldown(Map<UUID, Long> map, UUID uuid, long cooldownMs) {
+        long now = System.currentTimeMillis();
+        Long last = map.get(uuid);
+        if (last != null && now - last < cooldownMs) return false;
+        map.put(uuid, now);
+        return true;
+    }
+
+    private void sendCombatMessage(Player p, String msg) {
+        if (!checkCooldown(messageCooldowns, p.getUniqueId(), MESSAGE_COOLDOWN_MS)) return;
+        p.sendMessage(msg);
+    }
 
     @EventHandler
     public void onPlayerDeath(PlayerDeathEvent e) {
@@ -61,12 +83,12 @@ public class CombatListener implements Listener {
                 lore.remove(sealIndex);
                 meta.setLore(lore);
                 toDowngrade.setItemMeta(meta);
-                p.sendMessage(org.bukkit.ChatColor.LIGHT_PURPLE + "🛡️ [Печать Души] Ваша Печать Души защитила предмет " + meta.getDisplayName() + " от потери грейда, но разрушилась!");
+                sendCombatMessage(p, org.bukkit.ChatColor.LIGHT_PURPLE + "🛡️ [Печать Души] Ваша Печать Души защитила предмет " + meta.getDisplayName() + " от потери грейда, но разрушилась!");
                 p.playSound(p.getLocation(), org.bukkit.Sound.ENTITY_ITEM_BREAK, 1.0f, 1.0f);
                 p.getWorld().spawnParticle(org.bukkit.Particle.TOTEM, p.getLocation(), 40, 0.5, 0.5, 0.5, 0.15);
             } else {
                 plugin.getGearManager().downgradeGear(toDowngrade);
-                p.sendMessage(org.bukkit.ChatColor.DARK_RED + "☠ При смерти ваше снаряжение пострадало... Один из предметов потерял свой грейд!");
+                sendCombatMessage(p, org.bukkit.ChatColor.DARK_RED + "☠ При смерти ваше снаряжение пострадало... Один из предметов потерял свой грейд!");
             }
         }
     }
@@ -433,13 +455,13 @@ public class CombatListener implements Listener {
                     for (org.bukkit.entity.Entity near : target.getNearbyEntities(3, 3, 3)) {
                         if (near instanceof LivingEntity && near != p && near != target) ((LivingEntity) near).damage(procDamage * 0.45, p);
                     }
-                    p.sendMessage(org.bukkit.ChatColor.YELLOW + "✦ [Грозовой Импульс] Разряд прошёл по цели.");
+                    sendCombatMessage(p, org.bukkit.ChatColor.YELLOW + "✦ [Грозовой Импульс] Разряд прошёл по цели.");
                 }
                 if (isProc(weaponProc, "Багровый Резонанс", "Кровь Рода") && random.nextInt(100) < 14) {
                     double heal = Math.min(6.0, Math.max(1.0, e.getFinalDamage() * 0.22));
                     p.setHealth(Math.min(p.getHealth() + heal, p.getAttribute(org.bukkit.attribute.Attribute.GENERIC_MAX_HEALTH).getValue()));
                     p.getWorld().spawnParticle(org.bukkit.Particle.HEART, p.getLocation().add(0, 1.2, 0), 5, 0.4, 0.4, 0.4, 0.03);
-                    p.sendMessage(org.bukkit.ChatColor.RED + "✦ [Багровый Резонанс] Восстановлено " + String.format("%.1f", heal) + " HP.");
+                    sendCombatMessage(p, org.bukkit.ChatColor.RED + "✦ [Багровый Резонанс] Восстановлено " + String.format("%.1f", heal) + " HP.");
                 }
                 if (isProc(weaponProc, "Похищение Жизни", "Вампиризм") && random.nextInt(100) < 16) {
                     double heal = Math.min(4.0, Math.max(1.0, e.getFinalDamage() * 0.18));
@@ -463,9 +485,9 @@ public class CombatListener implements Listener {
                     if (hasEnchant(lore, "Отравление")) {
                         target.addPotionEffect(new PotionEffect(PotionEffectType.POISON, 100, 1));
                     }
-                    // Метеорит (Пассивно шанс 10%)
-                    if (hasEnchant(lore, "Метеоритный Удар") && random.nextInt(100) < 10) {
-                        target.getWorld().createExplosion(target.getLocation(), 2.0f, false, false, p);
+                    // Метеорит (Пассивно шанс 10%, кулдаун 3 сек)
+                    if (hasEnchant(lore, "Метеоритный Удар") && random.nextInt(100) < 10 && checkCooldown(meteorCooldowns, p.getUniqueId(), METEOR_COOLDOWN_MS)) {
+                        target.getWorld().createExplosion(target.getLocation(), 1.5f, false, false, p);
                     }
                     if (hasEnchant(lore, "Грозовой Разряд") && random.nextInt(100) < 15) {
                         target.getWorld().strikeLightningEffect(target.getLocation());
@@ -558,15 +580,15 @@ public class CombatListener implements Listener {
                     if (hasEnchant(lore, "Паралич") && random.nextInt(100) < 10) {
                         target.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, 40, 5));
                         target.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 40, 0));
-                        p.sendMessage(org.bukkit.ChatColor.YELLOW + " Цель парализована!");
+                        sendCombatMessage(p, org.bukkit.ChatColor.YELLOW + " Цель парализована!");
                     }
 
-                    // 1. Метеоритный Дождь (Шанс 10% вызвать серию взрывов вокруг цели)
-                    if (hasEnchant(lore, "Метеоритный Дождь") && random.nextInt(100) < 10) {
-                        p.sendMessage(org.bukkit.ChatColor.GOLD + "☄️ [Метеоритный Дождь] Огненная волна накрыла врагов вокруг!");
+                    // 1. Метеоритный Дождь (Шанс 10% вызвать серию взрывов вокруг цели, кулдаун 10 сек)
+                    if (hasEnchant(lore, "Метеоритный Дождь") && random.nextInt(100) < 10 && checkCooldown(meteorShowerCooldowns, p.getUniqueId(), METEOR_SHOWER_COOLDOWN_MS)) {
+                        sendCombatMessage(p, org.bukkit.ChatColor.GOLD + "☄️ [Метеоритный Дождь] Огненная волна накрыла врагов вокруг!");
                         for (int k = 0; k < 3; k++) {
                             org.bukkit.Location loc = target.getLocation().clone().add(random.nextInt(6) - 3, 0, random.nextInt(6) - 3);
-                            target.getWorld().createExplosion(loc, 1.5f, false, false, p);
+                            target.getWorld().createExplosion(loc, 1.0f, false, false, p);
                         }
                     }
 
@@ -574,7 +596,7 @@ public class CombatListener implements Listener {
                     if (hasEnchant(lore, "Ледяное Касание") && random.nextInt(100) < 15) {
                         target.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, 60, 9)); // Медлительность X
                         target.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 60, 0));
-                        p.sendMessage(org.bukkit.ChatColor.BLUE + "❄️ [Ледяное Касание] Вы заморозили цель на 3 секунды!");
+                        sendCombatMessage(p, org.bukkit.ChatColor.BLUE + "❄️ [Ледяное Касание] Вы заморозили цель на 3 секунды!");
                         target.getWorld().spawnParticle(org.bukkit.Particle.SNOWBALL, target.getLocation().add(0, 1.0, 0), 30, 0.3, 0.5, 0.3, 0.1);
                     }
 
@@ -582,7 +604,7 @@ public class CombatListener implements Listener {
                     if (hasEnchant(lore, "Распад") && random.nextInt(100) < 5) {
                         e.setDamage(e.getDamage() * 1.45);
                         target.addPotionEffect(new PotionEffect(PotionEffectType.WITHER, 100, 2)); // Иссушение III
-                        p.sendMessage(org.bukkit.ChatColor.DARK_RED + "☠️ [Распад] Цель дезинтегрирована! Двойной урон и увядание III!");
+                        sendCombatMessage(p, org.bukkit.ChatColor.DARK_RED + "☠️ [Распад] Цель дезинтегрирована! Двойной урон и увядание III!");
                         target.getWorld().spawnParticle(org.bukkit.Particle.PORTAL, target.getLocation().add(0, 1.0, 0), 30, 0.4, 0.5, 0.4, 0.1);
                     }
 
@@ -601,7 +623,7 @@ public class CombatListener implements Listener {
                         }
                         if (count > 0) {
                             p.setHealth(Math.min(p.getHealth() + totalHeal, p.getAttribute(org.bukkit.attribute.Attribute.GENERIC_MAX_HEALTH).getValue()));
-                            p.sendMessage(org.bukkit.ChatColor.DARK_RED + "✨ [Аура Вампиризма] Вы похитили ХП у " + count + " противников в радиусе, восстановив +" + String.format("%.1f", totalHeal) + " HP!");
+                            sendCombatMessage(p, org.bukkit.ChatColor.DARK_RED + "✨ [Аура Вампиризма] Вы похитили ХП у " + count + " противников в радиусе, восстановив +" + String.format("%.1f", totalHeal) + " HP!");
                             
                             // Рисуем багровый круг вокруг игрока
                             org.bukkit.Location pLoc = p.getLocation();
@@ -620,10 +642,10 @@ public class CombatListener implements Listener {
                         target.damage(3.0, p);
                         p.setHealth(Math.min(p.getHealth() + 2.0, p.getAttribute(org.bukkit.attribute.Attribute.GENERIC_MAX_HEALTH).getValue()));
                         target.getWorld().spawnParticle(org.bukkit.Particle.SOUL, target.getLocation().add(0, 1.0, 0), 15, 0.3, 0.5, 0.3, 0.05);
-                        p.sendMessage(org.bukkit.ChatColor.DARK_PURPLE + "☠ [Вытягивание душ] Вы вытянули жизненную силу из цели!");
+                        sendCombatMessage(p, org.bukkit.ChatColor.DARK_PURPLE + "☠ [Вытягивание душ] Вы вытянули жизненную силу из цели!");
                         if (random.nextInt(100) < 8) {
                             target.addPotionEffect(new PotionEffect(PotionEffectType.WITHER, 60, 0));
-                            p.sendMessage(org.bukkit.ChatColor.DARK_PURPLE + "☠ [Вытягивание душ] Цель поражена Иссушением!");
+                            sendCombatMessage(p, org.bukkit.ChatColor.DARK_PURPLE + "☠ [Вытягивание душ] Цель поражена Иссушением!");
                         }
                     }
 
@@ -631,7 +653,7 @@ public class CombatListener implements Listener {
                     if (hasEnchant(lore, "Цепная молния") && random.nextInt(100) < 10) {
                         target.getWorld().strikeLightningEffect(target.getLocation());
                         target.damage(4.0, p);
-                        p.sendMessage(org.bukkit.ChatColor.AQUA + "⚡ [Цепная молния] Разряд поразил цель!");
+                        sendCombatMessage(p, org.bukkit.ChatColor.AQUA + "⚡ [Цепная молния] Разряд поразил цель!");
                         int chained = 0;
                         for (org.bukkit.entity.Entity near : target.getNearbyEntities(3, 3, 3)) {
                             if (chained >= 2) break;
@@ -643,7 +665,7 @@ public class CombatListener implements Listener {
                             }
                         }
                         if (chained > 0) {
-                            p.sendMessage(org.bukkit.ChatColor.AQUA + "⚡ [Цепная молния] Молния перескочила на " + chained + " врагов!");
+                            sendCombatMessage(p, org.bukkit.ChatColor.AQUA + "⚡ [Цепная молния] Молния перескочила на " + chained + " врагов!");
                         }
                     }
 
@@ -655,7 +677,7 @@ public class CombatListener implements Listener {
                         p.teleport(behind);
                         e.setDamage(e.getDamage() * 1.5);
                         target.getWorld().spawnParticle(org.bukkit.Particle.PORTAL, target.getLocation().add(0, 1.0, 0), 30, 0.3, 0.5, 0.3, 0.1);
-                        p.sendMessage(org.bukkit.ChatColor.DARK_GRAY + "⚔ [Удар Бездны] Вы телепортировались за спину врага!");
+                        sendCombatMessage(p, org.bukkit.ChatColor.DARK_GRAY + "⚔ [Удар Бездны] Вы телепортировались за спину врага!");
                         target.sendMessage(org.bukkit.ChatColor.DARK_GRAY + "⚔ [Удар Бездны] Противник материализовался у вас за спиной!");
                     }
                 }
@@ -679,14 +701,14 @@ public class CombatListener implements Listener {
                 double heal = e.getFinalDamage() * 0.15;
                 p.setHealth(Math.min(p.getHealth() + heal, p.getAttribute(org.bukkit.attribute.Attribute.GENERIC_MAX_HEALTH).getValue()));
                 p.getWorld().spawnParticle(org.bukkit.Particle.SPELL_WITCH, p.getLocation().add(0, 1.5, 0), 5, 0.2, 0.2, 0.2);
-                p.sendMessage(org.bukkit.ChatColor.DARK_PURPLE + "🗡️ [Клинок Тени] Вы высосли жизнь из противника!");
+                sendCombatMessage(p, org.bukkit.ChatColor.DARK_PURPLE + "🗡️ [Клинок Тени] Вы высосли жизнь из противника!");
             }
 
             // Пепельная Корона - Поджигает цель при атаке
             if (plugin.getGearManager().isWearingSet(p, "ember_crown") && random.nextInt(100) < 25) {
                 target.setFireTicks(80);
                 target.getWorld().spawnParticle(org.bukkit.Particle.FLAME, target.getLocation().add(0, 1, 0), 15, 0.3, 0.3, 0.3, 0.02);
-                p.sendMessage(org.bukkit.ChatColor.GOLD + "🔥 [Пепельная Корона] Пламя обрушилось на врага!");
+                sendCombatMessage(p, org.bukkit.ChatColor.GOLD + "🔥 [Пепельная Корона] Пламя обрушилось на врага!");
             }
 
             // Моровой Туман - AoE Poison II 5 блоков
@@ -699,7 +721,7 @@ public class CombatListener implements Listener {
                 }
                 target.addPotionEffect(new PotionEffect(PotionEffectType.POISON, 100, 1));
                 target.getWorld().spawnParticle(org.bukkit.Particle.SPELL_MOB, target.getLocation().add(0, 1, 0), 30, 0.5, 0.5, 0.5, 0.05);
-                p.sendMessage(org.bukkit.ChatColor.GREEN + "☠️ [Моровой Туман] Ядовитый туман окурал врага!");
+                sendCombatMessage(p, org.bukkit.ChatColor.GREEN + "☠️ [Моровой Туман] Ядовитый туман окурал врага!");
             }
 
             // 2. Ясный Сокол (Темная Империя) - Казнь при ХП < 25% (шанс 20%)
@@ -708,7 +730,7 @@ public class CombatListener implements Listener {
                 if (target.getHealth() / maxHp <= 0.25) {
                     if (random.nextInt(100) < 20) {
                         e.setDamage(Math.max(e.getDamage() * 2.0, 12.0)); // Нерф: мощный, но не гарантированный ваншот
-                        p.sendMessage(org.bukkit.ChatColor.RED + "⚔️ [Опричная Казнь] Вы казнили раненого противника!");
+                        sendCombatMessage(p, org.bukkit.ChatColor.RED + "⚔️ [Опричная Казнь] Вы казнили раненого противника!");
                         target.getWorld().spawnParticle(org.bukkit.Particle.CRIT, target.getLocation().add(0, 1, 0), 30, 0.3, 0.5, 0.3, 0.15);
                         target.getWorld().spawnParticle(org.bukkit.Particle.REDSTONE, target.getLocation().add(0, 1, 0), 20, 0.3, 0.5, 0.3, new org.bukkit.Particle.DustOptions(org.bukkit.Color.RED, 1.5f));
                     }
@@ -778,7 +800,7 @@ public class CombatListener implements Listener {
                 e.setCancelled(true);
                 p.getWorld().spawnParticle(org.bukkit.Particle.CLOUD, p.getLocation(), 20, 0.4, 0.2, 0.4, 0.05);
                 p.playSound(p.getLocation(), org.bukkit.Sound.ENTITY_BAT_TAKEOFF, 1.0f, 1.2f);
-                p.sendMessage(org.bukkit.ChatColor.AQUA + "🍃 [Полет Ветра] Сила ветра спасла вас от урона при падении!");
+                sendCombatMessage(p, org.bukkit.ChatColor.AQUA + "🍃 [Полет Ветра] Сила ветра спасла вас от урона при падении!");
                 return;
             }
 
@@ -796,7 +818,7 @@ public class CombatListener implements Listener {
                         le.addPotionEffect(new PotionEffect(PotionEffectType.SLOW_FALLING, 60, 0));
                     }
                 }
-                p.sendMessage(org.bukkit.ChatColor.AQUA + " 🌌 Гравитационный импульс отбросил всех врагов вокруг!");
+                sendCombatMessage(p, org.bukkit.ChatColor.AQUA + " 🌌 Гравитационный импульс отбросил всех врагов вокруг!");
             }
         }
     }

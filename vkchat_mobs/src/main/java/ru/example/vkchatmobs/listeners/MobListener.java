@@ -170,7 +170,7 @@ public class MobListener implements Listener {
                             world.spawnParticle(Particle.SPELL_WITCH, mob.getLocation().add(0, 0.5, 0), 6, 0.5, 0.5, 0.5, 0.02);
                         } else if (bossType.equals("void_walker")) {
                             world.spawnParticle(Particle.REVERSE_PORTAL, mob.getLocation().add(0, 0.3, 0), 10, 0.6, 0.3, 0.6, 0.02);
-                            world.spawnParticle(Particle.DRAGON_BREATH, mob.getLocation().add(0, 1.0, 0), 4, 0.4, 0.4, 0.4, 0.01);
+                            world.spawnParticle(Particle.SPELL_MOB, mob.getLocation().add(0, 1.0, 0), 4, 0.4, 0.4, 0.4, 0.01);
                         }
 
                         // 2. АКТИВНЫЕ СПОСОБНОСТИ (СПЕЛЛЫ) В БОЮ
