@@ -3,15 +3,17 @@ package ru.example.vkchatoffline.managers;
 import ru.example.vkchat.VKChatPlugin;
 import ru.example.vkchatoffline.data.ActiveAdventure;
 
-import java.util.Arrays;
 import java.util.Locale;
 import java.util.Random;
+import java.util.Set;
 
 /**
  * Спутники Offline Adventures: названия, модификаторы, реакции.
  * Вынесено из AdventureManager без изменения текущей механики.
  */
 public final class OfflineCompanionManager {
+    private static final Set<String> VALID_COMPANIONS = Set.of("wolf", "raven", "alchemist", "mule", "bear", "owl", "snake", "dragon_whelp");
+
     private OfflineCompanionManager() {}
 
     public static String companionName(String c) {
@@ -132,7 +134,7 @@ public final class OfflineCompanionManager {
     }
 
     public static boolean isValidCompanion(String comp) {
-        return Arrays.asList("wolf", "raven", "alchemist", "mule", "dragon_whelp", "bear", "owl", "snake").contains(comp);
+        return VALID_COMPANIONS.contains(comp);
     }
 
     public static String chooseText() {

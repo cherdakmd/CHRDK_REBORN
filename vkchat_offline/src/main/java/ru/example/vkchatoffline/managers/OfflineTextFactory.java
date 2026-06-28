@@ -81,6 +81,12 @@ public final class OfflineTextFactory {
         if (route.equals("swamp")) return "☠";
         if (route.equals("castle")) return "🏰";
         if (route.equals("nether")) return "🌋";
+        if (route.equals("mountain")) return "🏔";
+        if (route.equals("underwater")) return "🌊";
+        if (route.equals("desert")) return "🏜";
+        if (route.equals("frozen")) return "❄";
+        if (route.equals("volcanic")) return "🌋";
+        if (route.equals("shadow")) return "🌑";
         return "🗺";
     }
 

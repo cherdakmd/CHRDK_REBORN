@@ -13,6 +13,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * Персистентное хранение активных походов и питомцев в БД VKChat.
@@ -104,14 +105,16 @@ public class ExpeditionStorage {
                         "INSERT INTO vkchat_offline_gear (player_uuid, damage, defense) VALUES (?, ?, ?) " +
                                 "ON CONFLICT(player_uuid) DO UPDATE SET damage = excluded.damage, defense = excluded.defense");
             }
-            ps.setString(1, uuid.toString());
-            ps.setInt(2, damage);
-            ps.setInt(3, defense);
-            if (useMysql) {
-                ps.setInt(4, damage);
-                ps.setInt(5, defense);
+            try (PreparedStatement psFinal = ps) {
+                psFinal.setString(1, uuid.toString());
+                psFinal.setInt(2, damage);
+                psFinal.setInt(3, defense);
+                if (useMysql) {
+                    psFinal.setInt(4, damage);
+                    psFinal.setInt(5, defense);
+                }
+                psFinal.executeUpdate();
             }
-            ps.executeUpdate();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -186,14 +189,16 @@ public class ExpeditionStorage {
                         "INSERT INTO vkchat_offline_expeditions (vk_id, player_uuid, data) VALUES (?, ?, ?) " +
                                 "ON CONFLICT(vk_id) DO UPDATE SET player_uuid = excluded.player_uuid, data = excluded.data");
             }
-            ps.setInt(1, expedition.getSenderId());
-            ps.setString(2, expedition.getPlayerUuid().toString());
-            ps.setString(3, data);
-            if (useMysql) {
-                ps.setString(4, expedition.getPlayerUuid().toString());
-                ps.setString(5, data);
+            try (PreparedStatement psFinal = ps) {
+                psFinal.setInt(1, expedition.getSenderId());
+                psFinal.setString(2, expedition.getPlayerUuid().toString());
+                psFinal.setString(3, data);
+                if (useMysql) {
+                    psFinal.setString(4, expedition.getPlayerUuid().toString());
+                    psFinal.setString(5, data);
+                }
+                psFinal.executeUpdate();
             }
-            ps.executeUpdate();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -223,12 +228,14 @@ public class ExpeditionStorage {
                         "INSERT INTO vkchat_offline_pets (vk_id, pet_name) VALUES (?, ?) " +
                                 "ON CONFLICT(vk_id) DO UPDATE SET pet_name = excluded.pet_name");
             }
-            ps.setInt(1, vkId);
-            ps.setString(2, petName);
-            if (useMysql) {
-                ps.setString(3, petName);
+            try (PreparedStatement psFinal = ps) {
+                psFinal.setInt(1, vkId);
+                psFinal.setString(2, petName);
+                if (useMysql) {
+                    psFinal.setString(3, petName);
+                }
+                psFinal.executeUpdate();
             }
-            ps.executeUpdate();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -381,7 +388,7 @@ public class ExpeditionStorage {
             e.printStackTrace();
         }
         if (list.isEmpty()) return null;
-        return list.get(new java.util.Random().nextInt(list.size()));
+        return list.get(ThreadLocalRandom.current().nextInt(list.size()));
     }
 
     private boolean useMysql() {

@@ -2,6 +2,7 @@ package ru.example.vkchatoffline.managers;
 
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 import ru.example.vkchat.VKChatPlugin;
 import ru.example.vkchatoffline.VKChatOfflinePlugin;
 
@@ -74,7 +75,8 @@ public class OfflineRewardManager {
 
     public boolean isSellableStashItem(ItemStack item) {
         if (item == null || item.getType() == Material.AIR) return false;
-        if (item.hasItemMeta() && (item.getItemMeta().hasDisplayName() || item.getItemMeta().hasLore())) return false;
+        ItemMeta meta = item.getItemMeta();
+        if (meta != null && (meta.hasDisplayName() || meta.hasLore())) return false;
         String n = item.getType().name();
         return !(n.contains("NETHERITE") || n.contains("TOTEM") || n.contains("ENCHANTED") || n.contains("NETHER_STAR"));
     }

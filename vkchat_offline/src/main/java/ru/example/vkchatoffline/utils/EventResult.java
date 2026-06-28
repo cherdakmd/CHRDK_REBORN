@@ -5,6 +5,7 @@ import org.bukkit.inventory.ItemStack;
 import ru.example.vkchatoffline.utils.EventGenerator.*;
 
 import java.util.*;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 
 /**
@@ -129,7 +130,7 @@ public class EventResult {
                 }
 
                 if (max > 0) {
-                    int amount = min + new Random().nextInt(max - min + 1);
+                    int amount = min + ThreadLocalRandom.current().nextInt(max - min + 1);
                     items.add(new ItemStack(material, Math.max(1, amount)));
                 }
             } catch (Exception e) {

@@ -18,6 +18,7 @@ import ru.example.vkchatoffline.managers.AdventureCommandManager;
 import ru.example.vkchatoffline.managers.ShiftManager;
 
 import java.util.*;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 
 /**
@@ -44,11 +45,12 @@ public class OfflineListener implements Listener {
 
     @EventHandler
     public void onVKMessage(VKMessageEvent e) {
+        if (e.isCancelled()) return;
         if (!plugin.getConfig().getBoolean("enabled", true)) return;
 
         int peer = e.getPeer();
         int sender = e.getSenderId();
-        String msg = e.getMessage().toLowerCase().trim();
+        String msg = (e.getMessage() == null ? "" : e.getMessage().toLowerCase().trim());
         String[] args = msg.split(" ");
 
         // Команда смены
@@ -486,24 +488,22 @@ public class OfflineListener implements Listener {
      * Улучшенная система лута для походов.
      */
     public void generateLoot(Expedition exp, boolean isBoss) {
-        Random random = new Random();
-
         List<ItemStack> loot = new ArrayList<>();
         int level = exp.getLevel();
 
         // Базовая добыча по типу локации
         switch (exp.getDungeonType()) {
             case "forest":
-                generateForestLoot(loot, level, random);
+                generateForestLoot(loot, level);
                 break;
             case "mine":
-                generateMineLoot(loot, level, random);
+                generateMineLoot(loot, level);
                 break;
             case "castle":
-                generateCastleLoot(loot, level, random, isBoss);
+                generateCastleLoot(loot, level, isBoss);
                 break;
             case "nether":
-                generateNetherLoot(loot, level, random);
+                generateNetherLoot(loot, level);
                 break;
         }
 
@@ -511,14 +511,14 @@ public class OfflineListener implements Listener {
         if (exp.getPendingEventTitle() != null) {
             String title = exp.getPendingEventTitle();
             if (title.contains("Казна")) {
-                loot.add(new ItemStack(Material.GOLD_BLOCK, 1 + random.nextInt(2)));
-                loot.add(new ItemStack(Material.DIAMOND, 3 + random.nextInt(4)));
+                loot.add(new ItemStack(Material.GOLD_BLOCK, 1 + ThreadLocalRandom.current().nextInt(2)));
+                loot.add(new ItemStack(Material.DIAMOND, 3 + ThreadLocalRandom.current().nextInt(4)));
             } else if (title.contains("Лаборатория")) {
-                loot.add(new ItemStack(Material.NETHERITE_SCRAP, 1 + random.nextInt(2)));
-                loot.add(new ItemStack(Material.IRON_BLOCK, 2 + random.nextInt(3)));
+                loot.add(new ItemStack(Material.NETHERITE_SCRAP, 1 + ThreadLocalRandom.current().nextInt(2)));
+                loot.add(new ItemStack(Material.IRON_BLOCK, 2 + ThreadLocalRandom.current().nextInt(3)));
             } else if (title.contains("Сокровищница")) {
-                loot.add(new ItemStack(Material.EMERALD, 4 + random.nextInt(5)));
-                loot.add(new ItemStack(Material.PRISMARINE_SHARD, 2 + random.nextInt(3)));
+                loot.add(new ItemStack(Material.EMERALD, 4 + ThreadLocalRandom.current().nextInt(5)));
+                loot.add(new ItemStack(Material.PRISMARINE_SHARD, 2 + ThreadLocalRandom.current().nextInt(3)));
             }
         }
 
@@ -530,7 +530,7 @@ public class OfflineListener implements Listener {
 
         // Бонус от серий побед
         if (exp.getConsecutiveWins() >= 5) {
-            loot.add(new ItemStack(Material.EMERALD, 1 + random.nextInt(2)));
+            loot.add(new ItemStack(Material.EMERALD, 1 + ThreadLocalRandom.current().nextInt(2)));
         }
 
         exp.addItems(loot);
@@ -551,71 +551,71 @@ public class OfflineListener implements Listener {
         }
     }
 
-    private void generateForestLoot(List<ItemStack> loot, int level, Random random) {
-        int count = 2 + random.nextInt(3) + level / 3;
+    private void generateForestLoot(List<ItemStack> loot, int level) {
+        int count = 2 + ThreadLocalRandom.current().nextInt(3) + level / 3;
 
         for (int i = 0; i < count; i++) {
-            int roll = random.nextInt(100);
+            int roll = ThreadLocalRandom.current().nextInt(100);
             if (roll < 40) {
-                loot.add(new ItemStack(Material.APPLE, 1 + random.nextInt(3)));
+                loot.add(new ItemStack(Material.APPLE, 1 + ThreadLocalRandom.current().nextInt(3)));
             } else if (roll < 60) {
-                loot.add(new ItemStack(Material.STICK, 3 + random.nextInt(5)));
+                loot.add(new ItemStack(Material.STICK, 3 + ThreadLocalRandom.current().nextInt(5)));
             } else if (roll < 75) {
-                loot.add(new ItemStack(Material.BROWN_MUSHROOM, 2 + random.nextInt(4)));
+                loot.add(new ItemStack(Material.BROWN_MUSHROOM, 2 + ThreadLocalRandom.current().nextInt(4)));
             } else if (roll < 85) {
-                loot.add(new ItemStack(Material.RED_MUSHROOM, 1 + random.nextInt(2)));
+                loot.add(new ItemStack(Material.RED_MUSHROOM, 1 + ThreadLocalRandom.current().nextInt(2)));
             } else if (roll < 92) {
-                loot.add(new ItemStack(Material.ROTTEN_FLESH, 1 + random.nextInt(2)));
+                loot.add(new ItemStack(Material.ROTTEN_FLESH, 1 + ThreadLocalRandom.current().nextInt(2)));
             } else if (roll < 97) {
-                loot.add(new ItemStack(Material.GOLD_NUGGET, 1 + random.nextInt(3)));
+                loot.add(new ItemStack(Material.GOLD_NUGGET, 1 + ThreadLocalRandom.current().nextInt(3)));
             } else {
                 loot.add(new ItemStack(Material.MAP, 1));
             }
         }
     }
 
-    private void generateMineLoot(List<ItemStack> loot, int level, Random random) {
-        int count = 3 + random.nextInt(4) + level / 2;
+    private void generateMineLoot(List<ItemStack> loot, int level) {
+        int count = 3 + ThreadLocalRandom.current().nextInt(4) + level / 2;
 
         for (int i = 0; i < count; i++) {
-            int roll = random.nextInt(100);
+            int roll = ThreadLocalRandom.current().nextInt(100);
             if (roll < 40) {
-                loot.add(new ItemStack(Material.COAL, 3 + random.nextInt(8)));
+                loot.add(new ItemStack(Material.COAL, 3 + ThreadLocalRandom.current().nextInt(8)));
             } else if (roll < 65) {
-                loot.add(new ItemStack(Material.IRON_ORE, 1 + random.nextInt(3)));
+                loot.add(new ItemStack(Material.IRON_ORE, 1 + ThreadLocalRandom.current().nextInt(3)));
             } else if (roll < 80) {
-                loot.add(new ItemStack(Material.GOLD_ORE, 1 + random.nextInt(2)));
+                loot.add(new ItemStack(Material.GOLD_ORE, 1 + ThreadLocalRandom.current().nextInt(2)));
             } else if (roll < 90) {
-                loot.add(new ItemStack(Material.LAPIS_LAZULI, 2 + random.nextInt(4)));
+                loot.add(new ItemStack(Material.LAPIS_LAZULI, 2 + ThreadLocalRandom.current().nextInt(4)));
             } else if (roll < 95) {
-                loot.add(new ItemStack(Material.REDSTONE, 1 + random.nextInt(3)));
+                loot.add(new ItemStack(Material.REDSTONE, 1 + ThreadLocalRandom.current().nextInt(3)));
             } else if (roll < 98) {
-                loot.add(new ItemStack(Material.DIAMOND, 1 + (random.nextInt(2) * level / 5)));
+                loot.add(new ItemStack(Material.DIAMOND, 1 + (ThreadLocalRandom.current().nextInt(2) * level / 5)));
             } else {
                 loot.add(new ItemStack(Material.NETHERITE_SCRAP, 1));
             }
         }
     }
 
-    private void generateCastleLoot(List<ItemStack> loot, int level, Random random, boolean isBoss) {
-        int count = isBoss ? 8 + random.nextInt(5) : 3 + random.nextInt(4) + level;
+    private void generateCastleLoot(List<ItemStack> loot, int level, boolean isBoss) {
+        int count = isBoss ? 8 + ThreadLocalRandom.current().nextInt(5) : 3 + ThreadLocalRandom.current().nextInt(4) + level;
 
         for (int i = 0; i < count; i++) {
-            int roll = random.nextInt(100);
+            int roll = ThreadLocalRandom.current().nextInt(100);
             if (roll < 30) {
-                loot.add(new ItemStack(Material.GOLD_INGOT, 2 + random.nextInt(5)));
+                loot.add(new ItemStack(Material.GOLD_INGOT, 2 + ThreadLocalRandom.current().nextInt(5)));
             } else if (roll < 50) {
-                loot.add(new ItemStack(Material.DIAMOND, 1 + random.nextInt(3)));
+                loot.add(new ItemStack(Material.DIAMOND, 1 + ThreadLocalRandom.current().nextInt(3)));
             } else if (roll < 65) {
-                loot.add(new ItemStack(Material.EMERALD, 1 + random.nextInt(2)));
+                loot.add(new ItemStack(Material.EMERALD, 1 + ThreadLocalRandom.current().nextInt(2)));
             } else if (roll < 75) {
-                loot.add(new ItemStack(Material.ENCHANTED_GOLDEN_APPLE, 0 + (random.nextInt(3) * level / 10)));
+                loot.add(new ItemStack(Material.ENCHANTED_GOLDEN_APPLE, Math.max(1, ThreadLocalRandom.current().nextInt(3) * level / 10)));
             } else if (roll < 85) {
-                loot.add(new ItemStack(Material.DIAMOND_BLOCK, 0 + (random.nextInt(2) * level / 10)));
+                loot.add(new ItemStack(Material.DIAMOND_BLOCK, Math.max(1, ThreadLocalRandom.current().nextInt(2) * level / 10)));
             } else if (roll < 93) {
-                loot.add(new ItemStack(Material.ENDER_PEARL, 0 + (random.nextInt(2) * level / 10)));
+                loot.add(new ItemStack(Material.ENDER_PEARL, Math.max(1, ThreadLocalRandom.current().nextInt(2) * level / 10)));
             } else if (roll < 98) {
-                loot.add(new ItemStack(Material.GOLD_BLOCK, 1 + (random.nextInt(2) * level / 10)));
+                loot.add(new ItemStack(Material.GOLD_BLOCK, 1 + (ThreadLocalRandom.current().nextInt(2) * level / 10)));
             } else {
                 loot.add(new ItemStack(Material.DRAGON_HEAD, 1));
             }
@@ -623,14 +623,14 @@ public class OfflineListener implements Listener {
 
         // Эксклюзивный лут для босса
         if (isBoss) {
-            if (random.nextInt(100) < 50) {
+            if (ThreadLocalRandom.current().nextInt(100) < 50) {
                 ItemStack scroll = new ItemStack(Material.PAPER);
                 ItemMeta meta = scroll.getItemMeta();
                 meta.setDisplayName(org.bukkit.ChatColor.LIGHT_PURPLE + "Свиток Синтеза");
                 scroll.setItemMeta(meta);
                 loot.add(scroll);
             }
-            if (random.nextInt(100) < 50) {
+            if (ThreadLocalRandom.current().nextInt(100) < 50) {
                 ItemStack fragment = new ItemStack(Material.PAPER);
                 ItemMeta meta = fragment.getItemMeta();
                 meta.setDisplayName(org.bukkit.ChatColor.AQUA + "Фрагмент неизвестных чар");
@@ -640,18 +640,18 @@ public class OfflineListener implements Listener {
         }
     }
 
-    private void generateNetherLoot(List<ItemStack> loot, int level, Random random) {
-        int count = 4 + random.nextInt(4) + level;
+    private void generateNetherLoot(List<ItemStack> loot, int level) {
+        int count = 4 + ThreadLocalRandom.current().nextInt(4) + level;
         for (int i = 0; i < count; i++) {
-            int roll = random.nextInt(100);
+            int roll = ThreadLocalRandom.current().nextInt(100);
             if (roll < 30) {
-                loot.add(new ItemStack(Material.QUARTZ, 3 + random.nextInt(6)));
+                loot.add(new ItemStack(Material.QUARTZ, 3 + ThreadLocalRandom.current().nextInt(6)));
             } else if (roll < 55) {
-                loot.add(new ItemStack(Material.GLOWSTONE_DUST, 2 + random.nextInt(4)));
+                loot.add(new ItemStack(Material.GLOWSTONE_DUST, 2 + ThreadLocalRandom.current().nextInt(4)));
             } else if (roll < 75) {
-                loot.add(new ItemStack(Material.GOLD_NUGGET, 4 + random.nextInt(8)));
+                loot.add(new ItemStack(Material.GOLD_NUGGET, 4 + ThreadLocalRandom.current().nextInt(8)));
             } else if (roll < 88) {
-                loot.add(new ItemStack(Material.BLAZE_ROD, 1 + random.nextInt(2)));
+                loot.add(new ItemStack(Material.BLAZE_ROD, 1 + ThreadLocalRandom.current().nextInt(2)));
             } else if (roll < 96) {
                 loot.add(new ItemStack(Material.NETHERITE_SCRAP, 1));
             } else {

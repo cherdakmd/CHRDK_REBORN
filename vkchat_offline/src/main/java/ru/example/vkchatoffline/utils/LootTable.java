@@ -4,6 +4,7 @@ import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.*;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 
 /**
@@ -12,7 +13,6 @@ import java.util.stream.Collectors;
  */
 public class LootTable {
     private final Map<String, LootTable.Entry> lootTables = new HashMap<>();
-    private final Random random = new Random();
 
     /**
      * Класс записи лута.
@@ -36,7 +36,7 @@ public class LootTable {
 
         public int getRandomAmount() {
             if (maxAmount <= minAmount) return minAmount;
-            return minAmount + new Random().nextInt(maxAmount - minAmount + 1);
+            return minAmount + ThreadLocalRandom.current().nextInt(maxAmount - minAmount + 1);
         }
     }
 
@@ -63,7 +63,7 @@ public class LootTable {
                 .collect(Collectors.toList());
 
         for (Entry entry : table) {
-            if (random.nextInt(100) < entry.chance) {
+            if (ThreadLocalRandom.current().nextInt(100) < entry.chance) {
                 int amount = entry.getRandomAmount();
                 if (levelMultiplier > 1) {
                     amount = (int) (amount * (1.0 + (levelMultiplier - 1) * 0.1));
@@ -91,7 +91,7 @@ public class LootTable {
                 Material material = Material.valueOf(parts[0].toUpperCase());
                 int min = Integer.parseInt(parts[1]);
                 int max = parts.length > 2 ? Integer.parseInt(parts[2]) : min;
-                int chance = Math.max(1, 100 - (level * 5)); // Чем выше уровень, тем выше шанс
+                int chance = Math.min(100, 10 + (level * 5)); // Чем выше уровень, тем выше шанс
 
                 entries.add(new Entry(parts[0], material, min, max, chance, "common"));
             } catch (Exception ignored) {}
@@ -101,7 +101,7 @@ public class LootTable {
 
         // Взвешенный выбор
         int totalWeight = entries.stream().mapToInt(e -> e.chance).sum();
-        int roll = random.nextInt(totalWeight);
+        int roll = ThreadLocalRandom.current().nextInt(totalWeight);
         int current = 0;
 
         for (Entry entry : entries) {
@@ -140,10 +140,10 @@ public class LootTable {
                 new Entry("Уголь", Material.COAL, 5, 15, 90, "common"),
                 new Entry("Железо", Material.IRON_ORE, 2, 8, 75, "common"),
                 new Entry("Золото", Material.GOLD_ORE, 1, 3, 50, "uncommon"),
-                new Entry("Алмаз", Material.DIAMOND, 0, 2, 15, "rare"),
+                new Entry("Алмаз", Material.DIAMOND, 1, 2, 15, "rare"),
                 new Entry("Лазурит", Material.LAPIS_LAZULI, 3, 10, 60, "uncommon"),
                 new Entry("Редстоун", Material.REDSTONE, 2, 6, 40, "uncommon"),
-                new Entry("Незерит", Material.NETHERITE_SCRAP, 0, 1, 3, "legendary")
+                new Entry("Незерит", Material.NETHERITE_SCRAP, 1, 1, 3, "legendary")
         );
 
         table.registerTable("mine", entries);
@@ -157,10 +157,10 @@ public class LootTable {
                 new Entry("Золотые монеты", Material.GOLD_INGOT, 10, 30, 95, "common"),
                 new Entry("Алмазы", Material.DIAMOND, 3, 8, 70, "uncommon"),
                 new Entry("Эндер жемчуг", Material.ENDER_PEARL, 1, 2, 20, "rare"),
-                new Entry("Золотое яблоко", Material.ENCHANTED_GOLDEN_APPLE, 0, 2, 15, "rare"),
-                new Entry("Блок алмаза", Material.DIAMOND_BLOCK, 0, 2, 10, "epic"),
+                new Entry("Золотое яблоко", Material.ENCHANTED_GOLDEN_APPLE, 1, 2, 15, "rare"),
+                new Entry("Блок алмаза", Material.DIAMOND_BLOCK, 1, 2, 10, "epic"),
                 new Entry("Свиток синтеза", Material.PAPER, 1, 1, 8, "legendary"),
-                new Entry("Артефакт", Material.TOTEM_OF_UNDYING, 0, 1, 5, "mythic")
+                new Entry("Артефакт", Material.TOTEM_OF_UNDYING, 1, 1, 5, "mythic")
         );
 
         table.registerTable("castle", entries);
@@ -180,6 +180,102 @@ public class LootTable {
         );
 
         table.registerTable("boss", entries);
+        return table;
+    }
+
+    public static LootTable createMountainTable() {
+        LootTable table = new LootTable();
+
+        List<Entry> entries = Arrays.asList(
+                new Entry("Железо", Material.IRON_INGOT, 8, 20, 85, "common"),
+                new Entry("Золото", Material.GOLD_INGOT, 4, 12, 70, "common"),
+                new Entry("Алмаз", Material.DIAMOND, 1, 3, 25, "rare"),
+                new Entry("Изумруд", Material.EMERALD, 2, 6, 45, "uncommon"),
+                new Entry("Камень", Material.COBBLESTONE, 16, 32, 60, "uncommon"),
+                new Entry("Слеза призрака", Material.GHAST_TEAR, 1, 1, 8, "legendary")
+        );
+
+        table.registerTable("mountain", entries);
+        return table;
+    }
+
+    public static LootTable createUnderwaterTable() {
+        LootTable table = new LootTable();
+
+        List<Entry> entries = Arrays.asList(
+                new Entry("Сердце моря", Material.HEART_OF_THE_SEA, 1, 1, 15, "rare"),
+                new Entry("Раковина наутилуса", Material.NAUTILUS_SHELL, 2, 4, 50, "uncommon"),
+                new Entry("Осколок призмарина", Material.PRISMARINE_SHARD, 8, 24, 80, "common"),
+                new Entry("Трезубец", Material.TRIDENT, 1, 1, 5, "legendary"),
+                new Entry("Золото", Material.GOLD_INGOT, 4, 12, 65, "common"),
+                new Entry("Водоросли", Material.KELP, 16, 32, 90, "common")
+        );
+
+        table.registerTable("underwater", entries);
+        return table;
+    }
+
+    public static LootTable createDesertTable() {
+        LootTable table = new LootTable();
+
+        List<Entry> entries = Arrays.asList(
+                new Entry("Песок", Material.SAND, 32, 64, 100, "common"),
+                new Entry("Золото", Material.GOLD_INGOT, 4, 12, 65, "common"),
+                new Entry("Изумруд", Material.EMERALD, 1, 3, 30, "uncommon"),
+                new Entry("Кактус", Material.CACTUS, 8, 16, 70, "common"),
+                new Entry("Седло", Material.SADDLE, 1, 1, 10, "rare"),
+                new Entry("Древний обломок", Material.ANCIENT_DEBRIS, 1, 1, 5, "legendary")
+        );
+
+        table.registerTable("desert", entries);
+        return table;
+    }
+
+    public static LootTable createFrozenTable() {
+        LootTable table = new LootTable();
+
+        List<Entry> entries = Arrays.asList(
+                new Entry("Лёд", Material.ICE, 16, 48, 100, "common"),
+                new Entry("Алмаз", Material.DIAMOND, 1, 3, 25, "rare"),
+                new Entry("Плотный лёд", Material.PACKED_ICE, 8, 24, 60, "uncommon"),
+                new Entry("Синий лёд", Material.BLUE_ICE, 4, 12, 40, "uncommon"),
+                new Entry("Зачарованное золотое яблоко", Material.ENCHANTED_GOLDEN_APPLE, 1, 1, 5, "legendary"),
+                new Entry("Снежный ком", Material.SNOWBALL, 16, 32, 90, "common")
+        );
+
+        table.registerTable("frozen", entries);
+        return table;
+    }
+
+    public static LootTable createVolcanicTable() {
+        LootTable table = new LootTable();
+
+        List<Entry> entries = Arrays.asList(
+                new Entry("Слизь магмы", Material.MAGMA_CREAM, 8, 24, 100, "common"),
+                new Entry("Обсидиан", Material.OBSIDIAN, 8, 24, 70, "common"),
+                new Entry("Незеритовый обломок", Material.NETHERITE_SCRAP, 1, 3, 30, "rare"),
+                new Entry("Древний обломок", Material.ANCIENT_DEBRIS, 1, 1, 12, "epic"),
+                new Entry("Огненный заряд", Material.FIRE_CHARGE, 4, 8, 50, "uncommon"),
+                new Entry("Базальт", Material.BASALT, 16, 32, 85, "common")
+        );
+
+        table.registerTable("volcanic", entries);
+        return table;
+    }
+
+    public static LootTable createShadowTable() {
+        LootTable table = new LootTable();
+
+        List<Entry> entries = Arrays.asList(
+                new Entry("Жемчуг Энда", Material.ENDER_PEARL, 8, 20, 100, "common"),
+                new Entry("Око Энда", Material.ENDER_EYE, 4, 12, 60, "uncommon"),
+                new Entry("Панцирь шалкера", Material.SHULKER_SHELL, 1, 2, 15, "rare"),
+                new Entry("Элитра", Material.ELYTRA, 1, 1, 3, "legendary"),
+                new Entry("Тотем бессмертия", Material.TOTEM_OF_UNDYING, 1, 1, 10, "epic"),
+                new Entry("Незеритовый обломок", Material.NETHERITE_SCRAP, 2, 6, 40, "rare")
+        );
+
+        table.registerTable("shadow", entries);
         return table;
     }
 

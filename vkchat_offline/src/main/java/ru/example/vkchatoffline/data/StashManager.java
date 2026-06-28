@@ -46,7 +46,7 @@ public class StashManager {
             if (item != null && item.getType() != Material.AIR && item.getAmount() > 0) {
                 String encoded = item.getType().name() + ";" + item.getAmount();
                 if (item.hasItemMeta() && item.getItemMeta().hasDisplayName()) {
-                    encoded += ";name=" + item.getItemMeta().getDisplayName().replace(";", ",");
+                    encoded += ";name=" + item.getItemMeta().getDisplayName().replace(";", "§");
                 }
                 raw.add(encoded);
             }
@@ -114,6 +114,7 @@ public class StashManager {
     }
 
     private ItemStack parseItem(String line) {
+        if (line == null || line.trim().isEmpty()) return null;
         try {
             String[] parts = line.split(";");
             Material material = Material.valueOf(parts[0].trim().toUpperCase(Locale.ROOT));
@@ -123,7 +124,7 @@ public class StashManager {
             for (String part : parts) {
                 if (part.startsWith("name=")) {
                     ItemMeta meta = item.getItemMeta();
-                    meta.setDisplayName(part.substring("name=".length()));
+                    meta.setDisplayName(part.substring("name=".length()).replace("§", ";"));
                     item.setItemMeta(meta);
                 }
             }

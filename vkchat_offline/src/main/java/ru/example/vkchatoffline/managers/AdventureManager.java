@@ -125,7 +125,9 @@ public class AdventureManager implements Listener {
 
     @EventHandler
     public void onVKMessage(VKMessageEvent e) {
+        if (e.isCancelled()) return;
         if (e.getPeer() != e.getSenderId()) return;
+        if (!isApiAvailable()) return;
         String text = e.getMessage() == null ? "" : e.getMessage().trim();
 
         // Не перехватываем сообщения безопасности ядра: 2FA-кнопки "Войти" / "Блокировка"
@@ -335,6 +337,8 @@ public class AdventureManager implements Listener {
 
     @EventHandler
     public void onVKCommand(VKCommandEvent e) {
+        if (e.isCancelled()) return;
+        if (!isApiAvailable()) return;
         String cmd = e.getCommand().toLowerCase(Locale.ROOT);
         if (!COMMANDS.contains(cmd)) return;
         e.setCancelled(true);
@@ -428,9 +432,19 @@ public class AdventureManager implements Listener {
         }
 
 
-    private VKChatAPI api() { return VKChatPlugin.getInstance().getApi(); }
+    private VKChatAPI api() {
+        VKChatPlugin instance = VKChatPlugin.getInstance();
+        if (instance == null) return null;
+        return instance.getApi();
+    }
+
+    private boolean isApiAvailable() {
+        VKChatAPI a = api();
+        return a != null;
+    }
 
     private void showHeroMenu(int vkId) {
+        if (!isApiAvailable()) return;
         api().sendKeyboard(vkId, "👤 Меню героя\n\nВыбери раздел: персонаж, класс, спутник, навыки, расходники, кампания или дневник.", keyboardHero());
     }
 
@@ -439,6 +453,7 @@ public class AdventureManager implements Listener {
     }
 
     private void showMenuOrStatusPage(int vkId, int page) {
+        if (!isApiAvailable()) return;
         if (active.containsKey(vkId)) { showStatus(vkId); return; }
         UUID uuid = api().getUuidByVkId(vkId);
         if (uuid == null) { api().sendMessage(vkId, "❌ Твой ВК не привязан к Minecraft аккаунту."); return; }
@@ -464,6 +479,7 @@ public class AdventureManager implements Listener {
     }
 
     private void startAdventure(int vkId, String[] args) {
+        if (!isApiAvailable()) return;
         UUID uuid = api().getUuidByVkId(vkId);
         if (uuid == null) { api().sendMessage(vkId, "❌ Твой ВК не привязан к Minecraft аккаунту."); return; }
         if (Bukkit.getPlayer(uuid) != null && Bukkit.getPlayer(uuid).isOnline()) {
@@ -538,6 +554,7 @@ public class AdventureManager implements Listener {
     }
 
     private void handleChoice(int vkId, String[] args) {
+        if (!isApiAvailable()) return;
         ActiveAdventure adv = active.get(vkId);
         if (adv == null || !adv.waitingChoice) { api().sendMessage(vkId, "Сейчас нет события, требующего выбора."); return; }
         int choice = 0;
@@ -547,6 +564,7 @@ public class AdventureManager implements Listener {
     }
 
     private void createEvent(ActiveAdventure adv) {
+        if (!isApiAvailable()) return;
         String[] types = {
                 "combat", "combat", "trap", "trap", "survival", "survival",
                 "riddle", "ambush", "curse", "treasure", "merchant", "shrine", "rare", "gathering", "camp", "mimic", "puzzle", "duel", "portal", "artifact", "patron", "heist", "disease", "baba_yaga", "leshy", "rusalka", "domovoi", "perun", "morana", "vodyanoy", "koshchey", "zmey", "bogatyr", "oracle", "tavern", "blacksmith", "moral", "nightmare", "memory", "companion", "collection", "extra", "extra", "extra", "extra", "boss"
@@ -606,6 +624,7 @@ public class AdventureManager implements Listener {
     }
 
     private void resolveChoice(ActiveAdventure adv, int choice, boolean timeout) {
+        if (!isApiAvailable()) return;
         adv.waitingChoice = false;
         int rep = api().getReputation(adv.vkId);
         int routeDifficulty = plugin.getConfig().getInt("adventures." + adv.route + ".difficulty", 1);
@@ -1004,26 +1023,26 @@ public class AdventureManager implements Listener {
 
     private void applyExtraPositive(ActiveAdventure adv, int choice, StringBuilder msg) {
         int roll = ThreadLocalRandom.current().nextInt(8);
-        if (roll == 0) { adv.gold += 20 + ThreadLocalRandom.current().nextInt(45); msg.append("🪙 Судьба дала золото.\\n"); }
-        else if (roll == 1) { adv.relics++; msg.append("🏺 Найдена малая реликвия.\\n"); }
-        else if (roll == 2) { adv.inspiration++; msg.append("✨ Сцена вдохновила героя: вдохновение +1.\\n"); }
-        else if (roll == 3) { adv.supplies += 1 + ThreadLocalRandom.current().nextInt(2); msg.append("🥫 Найдены припасы.\\n"); }
-        else if (roll == 4) { adv.hp = Math.min(adv.maxHp, adv.hp + 10 + ThreadLocalRandom.current().nextInt(12)); msg.append("💖 Герой восстановил здоровье.\\n"); }
-        else if (roll == 5) { adv.morale = Math.min(100, adv.morale + 15); msg.append("🧠 Мораль поднялась.\\n"); }
-        else if (roll == 6) { adv.blessing = randomBlessing(); msg.append("🌟 Судьба дала ").append(blessingText(adv.blessing)).append("\\n"); }
-        else { if (!"none".equals(adv.condition)) { msg.append("🩹 Состояние снято: ").append(conditionText(adv.condition)).append("\\n"); adv.condition = "none"; } else { adv.gold += 15; msg.append("🪙 Небольшая добыча.\\n"); } }
+        if (roll == 0) { adv.gold += 20 + ThreadLocalRandom.current().nextInt(45); msg.append("🪙 Судьба дала золото.\n"); }
+        else if (roll == 1) { adv.relics++; msg.append("🏺 Найдена малая реликвия.\n"); }
+        else if (roll == 2) { adv.inspiration++; msg.append("✨ Сцена вдохновила героя: вдохновение +1.\n"); }
+        else if (roll == 3) { adv.supplies += 1 + ThreadLocalRandom.current().nextInt(2); msg.append("🥫 Найдены припасы.\n"); }
+        else if (roll == 4) { adv.hp = Math.min(adv.maxHp, adv.hp + 10 + ThreadLocalRandom.current().nextInt(12)); msg.append("💖 Герой восстановил здоровье.\n"); }
+        else if (roll == 5) { adv.morale = Math.min(100, adv.morale + 15); msg.append("🧠 Мораль поднялась.\n"); }
+        else if (roll == 6) { adv.blessing = randomBlessing(); msg.append("🌟 Судьба дала ").append(blessingText(adv.blessing)).append("\n"); }
+        else { if (!"none".equals(adv.condition)) { msg.append("🩹 Состояние снято: ").append(conditionText(adv.condition)).append("\n"); adv.condition = "none"; } else { adv.gold += 15; msg.append("🪙 Небольшая добыча.\n"); } }
     }
 
     private void applyExtraNegative(ActiveAdventure adv, int choice, StringBuilder msg) {
         int roll = ThreadLocalRandom.current().nextInt(8);
-        if (roll == 0) { adv.gold = Math.max(0, adv.gold - 20); msg.append("🪙 Потеряны монеты.\\n"); }
+        if (roll == 0) { adv.gold = Math.max(0, adv.gold - 20); msg.append("🪙 Потеряны монеты.\n"); }
         else if (roll == 1) { applyCondition(adv, randomConditionFor("extra"), msg); }
-        else if (roll == 2) { adv.supplies = Math.max(0, adv.supplies - 1); msg.append("🥫 Припасы испорчены.\\n"); }
-        else if (roll == 3) { adv.morale = Math.max(0, adv.morale - 12); msg.append("🧠 Мораль просела.\\n"); }
-        else if (roll == 4) { adv.inspiration = Math.max(0, adv.inspiration - 1); msg.append("✨ Вдохновение потеряно.\\n"); }
-        else if (roll == 5) { adv.blessing = "none"; msg.append("🌑 Благословение рассеялось.\\n"); }
-        else if (roll == 6) { adv.hp -= 5 + ThreadLocalRandom.current().nextInt(8); msg.append("💥 Дополнительный урон от странного исхода.\\n"); }
-        else { msg.append("🎲 Судьба оставила дурной знак.\\n"); adv.morale = Math.max(0, adv.morale - 5); }
+        else if (roll == 2) { adv.supplies = Math.max(0, adv.supplies - 1); msg.append("🥫 Припасы испорчены.\n"); }
+        else if (roll == 3) { adv.morale = Math.max(0, adv.morale - 12); msg.append("🧠 Мораль просела.\n"); }
+        else if (roll == 4) { adv.inspiration = Math.max(0, adv.inspiration - 1); msg.append("✨ Вдохновение потеряно.\n"); }
+        else if (roll == 5) { adv.blessing = "none"; msg.append("🌑 Благословение рассеялось.\n"); }
+        else if (roll == 6) { adv.hp -= 5 + ThreadLocalRandom.current().nextInt(8); msg.append("💥 Дополнительный урон от странного исхода.\n"); }
+        else { msg.append("🎲 Судьба оставила дурной знак.\n"); adv.morale = Math.max(0, adv.morale - 5); }
     }
 
     private boolean isSlavicMyth(String type) {
@@ -1034,65 +1053,65 @@ public class AdventureManager implements Listener {
         switch (type) {
             case "baba_yaga":
                 adv.relics++;
-                msg.append("🧙 Баба-Яга признала хитрость: реликвия +1\\n");
+                msg.append("🧙 Баба-Яга признала хитрость: реликвия +1\n");
                 break;
             case "leshy":
                 adv.supplies += 2;
                 adv.morale = Math.min(100, adv.morale + 10);
-                msg.append("🌲 Леший вывел к ягодной поляне: припасы +2, мораль +10%\\n");
+                msg.append("🌲 Леший вывел к ягодной поляне: припасы +2, мораль +10%\n");
                 break;
             case "rusalka":
                 adv.blessing = "life";
-                msg.append("🌊 Русалка даровала благословение Жизни.\\n");
+                msg.append("🌊 Русалка даровала благословение Жизни.\n");
                 break;
             case "domovoi":
                 adv.hp = Math.min(adv.maxHp, adv.hp + 12);
                 adv.condition = "none";
-                msg.append("🏚 Домовой накормил и снял дурное состояние.\\n");
+                msg.append("🏚 Домовой накормил и снял дурное состояние.\n");
                 break;
             case "perun":
                 adv.blessing = "power";
                 adv.inspiration++;
-                msg.append("⚡ Перун отметил смелость: Сила и вдохновение +1.\\n");
+                msg.append("⚡ Перун отметил смелость: Сила и вдохновение +1.\n");
                 break;
             case "morana":
                 adv.gold += 40;
-                msg.append("❄ Морана отпустила за холодную плату: золото +40.\\n");
+                msg.append("❄ Морана отпустила за холодную плату: золото +40.\n");
                 break;
             case "vodyanoy":
                 adv.supplies++;
                 adv.gold += 20;
-                msg.append("💧 Водяной обменял тайну на добычу: припасы +1, золото +20.\\n");
+                msg.append("💧 Водяной обменял тайну на добычу: припасы +1, золото +20.\n");
                 break;
             case "koshchey":
                 adv.relics += 2;
-                msg.append("☠ Ты коснулся иглы Кощея и унёс две реликвии.\\n");
+                msg.append("☠ Ты коснулся иглы Кощея и унёс две реликвии.\n");
                 break;
             case "zmey":
                 adv.gold += 60;
                 adv.morale = Math.min(100, adv.morale + 20);
-                msg.append("🐉 След Змея привёл к кладу: золото +60, мораль +20%.\\n");
+                msg.append("🐉 След Змея привёл к кладу: золото +60, мораль +20%.\n");
                 break;
             case "bogatyr":
                 adv.blessing = "power";
                 adv.hp = Math.min(adv.maxHp, adv.hp + 15);
-                msg.append("🛡 Богатырское испытание укрепило тело: HP +15 и Сила.\\n");
+                msg.append("🛡 Богатырское испытание укрепило тело: HP +15 и Сила.\n");
                 break;
         }
     }
 
     private void handleSlavicNegative(ActiveAdventure adv, String type, int choice, StringBuilder msg) {
         switch (type) {
-            case "baba_yaga": applyCondition(adv, "cursed", msg); msg.append("🧙 Ведьмин договор обернулся проклятием.\\n"); break;
-            case "leshy": adv.supplies = Math.max(0, adv.supplies - 2); msg.append("🌲 Леший запутал тропу: припасы -2.\\n"); break;
-            case "rusalka": applyCondition(adv, "exhausted", msg); msg.append("🌊 Песня русалки вытянула силы.\\n"); break;
-            case "domovoi": adv.morale = Math.max(0, adv.morale - 15); msg.append("🏚 Домовой рассердился: мораль -15%.\\n"); break;
-            case "perun": adv.hp -= 8; msg.append("⚡ Молния Перуна обожгла героя: -8 HP.\\n"); break;
-            case "morana": applyCondition(adv, "exhausted", msg); adv.morale = Math.max(0, adv.morale - 12); msg.append("❄ Холод Мораны забрал силы и мораль.\\n"); break;
-            case "vodyanoy": adv.gold = Math.max(0, adv.gold - 25); msg.append("💧 Водяной утащил монеты: золото -25.\\n"); break;
-            case "koshchey": applyCondition(adv, "cursed", msg); adv.inspiration = 0; msg.append("☠ Кощей украл вдохновение.\\n"); break;
-            case "zmey": adv.hp -= 10; applyCondition(adv, "burned", msg); msg.append("🐉 Змеиное пламя опалило путь.\\n"); break;
-            case "bogatyr": adv.morale = Math.max(0, adv.morale - 10); msg.append("🛡 Испытание Богатыря оказалось слишком тяжёлым: мораль -10%.\\n"); break;
+            case "baba_yaga": applyCondition(adv, "cursed", msg); msg.append("🧙 Ведьмин договор обернулся проклятием.\n"); break;
+            case "leshy": adv.supplies = Math.max(0, adv.supplies - 2); msg.append("🌲 Леший запутал тропу: припасы -2.\n"); break;
+            case "rusalka": applyCondition(adv, "exhausted", msg); msg.append("🌊 Песня русалки вытянула силы.\n"); break;
+            case "domovoi": adv.morale = Math.max(0, adv.morale - 15); msg.append("🏚 Домовой рассердился: мораль -15%.\n"); break;
+            case "perun": adv.hp -= 8; msg.append("⚡ Молния Перуна обожгла героя: -8 HP.\n"); break;
+            case "morana": applyCondition(adv, "exhausted", msg); adv.morale = Math.max(0, adv.morale - 12); msg.append("❄ Холод Мораны забрал силы и мораль.\n"); break;
+            case "vodyanoy": adv.gold = Math.max(0, adv.gold - 25); msg.append("💧 Водяной утащил монеты: золото -25.\n"); break;
+            case "koshchey": applyCondition(adv, "cursed", msg); adv.inspiration = 0; msg.append("☠ Кощей украл вдохновение.\n"); break;
+            case "zmey": adv.hp -= 10; applyCondition(adv, "burned", msg); msg.append("🐉 Змеиное пламя опалило путь.\n"); break;
+            case "bogatyr": adv.morale = Math.max(0, adv.morale - 10); msg.append("🛡 Испытание Богатыря оказалось слишком тяжёлым: мораль -10%.\n"); break;
         }
     }
 
@@ -1251,6 +1270,7 @@ public class AdventureManager implements Listener {
     }
 
     private void chooseCompanion(int vkId, String[] args) {
+        if (!isApiAvailable()) return;
         if (args.length < 2) {
             api().sendKeyboard(vkId, OfflineCompanionManager.chooseText(), keyboardCompanions());
             return;
@@ -1267,6 +1287,7 @@ public class AdventureManager implements Listener {
     }
 
     private void takeRest(int vkId) {
+        if (!isApiAvailable()) return;
         ActiveAdventure adv = active.get(vkId);
         if (adv == null) { api().sendKeyboard(vkId, "Активного похода нет.", keyboardMain()); return; }
         if (adv.waitingChoice) { api().sendKeyboard(vkId, "Сначала ответь на текущее событие.", keyboardChoices()); return; }
@@ -1278,10 +1299,10 @@ public class AdventureManager implements Listener {
         if ("bleeding".equals(adv.condition) || "exhausted".equals(adv.condition)) adv.condition = "none";
         adv.nextEventTime += 30000L;
         saveAll();
-        api().sendKeyboard(vkId, "🔥 Короткий отдых\\n\\n" +
-                "🥫 Припасы -1\\n" +
-                "💖 HP +" + heal + "\\n" +
-                "🧠 Мораль +15%\\n" +
+        api().sendKeyboard(vkId, "🔥 Короткий отдых\n\n" +
+                "🥫 Припасы -1\n" +
+                "💖 HP +" + heal + "\n" +
+                "🧠 Мораль +15%\n" +
                 "⏳ Следующее событие чуть позже.", keyboardStatusOnly());
     }
 
@@ -1302,8 +1323,8 @@ public class AdventureManager implements Listener {
         adv.waitingChoice = false;
         adv.nextEventTime = System.currentTimeMillis() + plugin.getConfig().getLong("stage-delay-seconds", 60) * 1000L;
         saveAll();
-        api().sendKeyboard(adv.vkId, preface + "\\n🧬 Спасбросок смерти\\n\\n" +
-                "🎲 d20: " + roll + (mod >= 0 ? " +" : " ") + mod + " vs DC " + dc + "\\n" +
+        api().sendKeyboard(adv.vkId, preface + "\n🧬 Спасбросок смерти\n\n" +
+                "🎲 d20: " + roll + (mod >= 0 ? " +" : " ") + mod + " vs DC " + dc + "\n" +
                 "✨ Персонаж выжил на 1 HP, но получил Истощение.", keyboardStatusOnly());
         return true;
     }
@@ -1337,6 +1358,7 @@ public class AdventureManager implements Listener {
     }
 
     private void chooseClass(int vkId, String[] args) {
+        if (!isApiAvailable()) return;
         if (args.length < 2) {
             api().sendKeyboard(vkId, OfflineClassManager.chooseText(), keyboardClasses());
             return;
@@ -1386,6 +1408,7 @@ public class AdventureManager implements Listener {
     }
 
     private void showOfflineShop(int vkId, String section) {
+        if (!isApiAvailable()) return;
         StringBuilder sb = new StringBuilder("🛒 Лавка походника\n\n");
         sb.append("Баланс: ").append(api().getReputation(vkId)).append(" реп. | LVL ").append(getAdvLevel(vkId)).append("\n\n");
         boolean consumables = section.equalsIgnoreCase("consumables") || section.equalsIgnoreCase("расходники");
@@ -1398,6 +1421,7 @@ public class AdventureManager implements Listener {
     }
 
     private void buyOfflineItem(int vkId, String id) {
+        if (!isApiAvailable()) return;
         ShopItem it = offlineShopItems().get(id);
         if (it == null) { api().sendMessage(vkId, "❌ Товар не найден. Напиши !магазин"); return; }
         int price = progressivePrice(vkId, it);
@@ -1450,6 +1474,7 @@ public class AdventureManager implements Listener {
     }
 
     private void showOfflineSkills(int vkId) {
+        if (!isApiAvailable()) return;
         StringBuilder sb = new StringBuilder("🧠 Навыки походника\n\n");
         sb.append("Очки: ").append(availableOfflineSkillPoints(vkId)).append(" | LVL ").append(getAdvLevel(vkId)).append("\n\n");
         String[][] defs = offlineSkillDefs();
@@ -1462,6 +1487,7 @@ public class AdventureManager implements Listener {
     }
 
     private void learnOfflineSkill(int vkId, String id) {
+        if (!isApiAvailable()) return;
         if (hasOfflineSkill(vkId, id)) { api().sendMessage(vkId, "Навык уже изучен."); return; }
         if (availableOfflineSkillPoints(vkId) <= 0) { api().sendKeyboard(vkId, "❌ Нет очков навыков. Получай уровни в походах.", keyboardOfflineSkills()); return; }
         boolean exists = false; String title = id;
@@ -1474,6 +1500,7 @@ public class AdventureManager implements Listener {
     }
 
     private void showOfflineEquipment(int vkId) {
+        if (!isApiAvailable()) return;
         StringBuilder sb = new StringBuilder("⚔ Экипировка походника\n\n");
         for (String slot : java.util.Arrays.asList("weapon", "armor", "talisman", "tool", "backpack")) {
             ShopItem it = offlineShopItems().get(data.getString("stats." + vkId + ".equipment." + slot, ""));
@@ -1484,12 +1511,14 @@ public class AdventureManager implements Listener {
     }
 
     private void showConsumables(int vkId) {
+        if (!isApiAvailable()) return;
         StringBuilder sb = new StringBuilder("🌿 Расходники\n\n");
         for (ShopItem it : offlineShopItems().values()) if (it.type.equals("consumable")) sb.append(it.name).append(": ").append(data.getInt("stats." + vkId + ".bag." + it.id,0)).append("\n");
         api().sendKeyboard(vkId, sb.toString(), keyboardUseConsumables());
     }
 
     private void useConsumable(int vkId, String id) {
+        if (!isApiAvailable()) return;
         int count = data.getInt("stats." + vkId + ".bag." + id, 0);
         if (count <= 0) { api().sendKeyboard(vkId, "❌ У тебя нет этого расходника.", keyboardUseConsumables()); return; }
         ActiveAdventure adv = active.get(vkId);
@@ -1510,10 +1539,12 @@ public class AdventureManager implements Listener {
     }
 
     private void previewSellStash(int vkId) {
+        if (!isApiAvailable()) return;
         api().sendKeyboard(vkId, rewardManager.buildSellStashPreview(vkId), keyboardSellStash());
     }
 
     private void sellStash(int vkId, boolean confirm) {
+        if (!isApiAvailable()) return;
         api().sendKeyboard(vkId, rewardManager.sellStash(vkId), keyboardMain());
     }
 
@@ -1536,9 +1567,9 @@ public class AdventureManager implements Listener {
     private String phobiaForRoute(String route) { return hospitalManager.phobiaForRoute(route); }
     private void maybeAddPhobia(int vkId, String route, String type, StringBuilder msg) { hospitalManager.maybeAddPhobia(vkId, route, type, msg); }
     private String phobiaName(String id) { return hospitalManager.phobiaName(id); }
-    private void showPsyche(int vkId) { api().sendKeyboard(vkId, hospitalManager.buildPsycheText(vkId), keyboardHospital()); }
-    private void showHospital(int vkId) { api().sendKeyboard(vkId, hospitalManager.buildHospitalText(vkId), keyboardHospital()); }
-    private void useHospital(int vkId, String mode) { api().sendKeyboard(vkId, hospitalManager.useHospital(vkId, mode), keyboardHospital()); }
+    private void showPsyche(int vkId) { if (!isApiAvailable()) return; api().sendKeyboard(vkId, hospitalManager.buildPsycheText(vkId), keyboardHospital()); }
+    private void showHospital(int vkId) { if (!isApiAvailable()) return; api().sendKeyboard(vkId, hospitalManager.buildHospitalText(vkId), keyboardHospital()); }
+    private void useHospital(int vkId, String mode) { if (!isApiAvailable()) return; api().sendKeyboard(vkId, hospitalManager.useHospital(vkId, mode), keyboardHospital()); }
 
     private String chapterForRoute(String route) { return campaignManager.chapterForRoute(route); }
     private String routeForChapter(String ch) { return campaignManager.routeForChapter(ch); }
@@ -1546,8 +1577,9 @@ public class AdventureManager implements Listener {
     private boolean isChapterUnlocked(int vkId, String ch) { return campaignManager.isChapterUnlocked(vkId, ch); }
     private void completeCampaignForRoute(int vkId, String route) { campaignManager.completeCampaignForRoute(vkId, route); }
     private String campaignLine(int vkId) { return campaignManager.campaignLine(vkId); }
-    private void showCampaign(int vkId) { api().sendKeyboard(vkId, campaignManager.buildCampaignText(vkId), keyboardCampaign()); }
+    private void showCampaign(int vkId) { if (!isApiAvailable()) return; api().sendKeyboard(vkId, campaignManager.buildCampaignText(vkId), keyboardCampaign()); }
     private void startCampaignChapter(int vkId, String ch) {
+        if (!isApiAvailable()) return;
         if (!isChapterUnlocked(vkId, ch)) { api().sendKeyboard(vkId, "🔒 Эта глава ещё закрыта. Заверши предыдущую.", keyboardCampaign()); return; }
         startAdventure(vkId, new String[]{"!пойти", routeForChapter(ch)});
     }
@@ -1555,7 +1587,7 @@ public class AdventureManager implements Listener {
     private String collectionName(String id) { return campaignManager.collectionName(id); }
     private String collectionForRoute(String route) { return campaignManager.collectionForRoute(route); }
     private void discoverCollection(int vkId, String route, StringBuilder msg) { campaignManager.discoverCollection(vkId, route, msg); }
-    private void showCollections(int vkId) { api().sendKeyboard(vkId, campaignManager.buildCollectionsText(vkId), keyboardMain()); }
+    private void showCollections(int vkId) { if (!isApiAvailable()) return; api().sendKeyboard(vkId, campaignManager.buildCollectionsText(vkId), keyboardMain()); }
 
     private int companionRelation(int vkId, String comp) { if (comp == null || comp.equals("none")) return 0; return data.getInt("stats." + vkId + ".relations." + comp, 0); }
     private void addCompanionRelation(int vkId, String comp, int delta, StringBuilder msg) {
@@ -1565,6 +1597,7 @@ public class AdventureManager implements Listener {
         if (msg != null && Math.abs(delta) >= 5) msg.append("🤝 Отношения со спутником: ").append(delta > 0 ? "+" : "").append(delta).append(" (").append(now).append(")\n");
     }
     private void showRelationships(int vkId) {
+        if (!isApiAvailable()) return;
         StringBuilder sb = new StringBuilder("🤝 Отношения со спутниками\n\n");
         for (String c: java.util.Arrays.asList("wolf","raven","alchemist","mule","dragon_whelp","bear","owl","snake")) sb.append(companionName(c)).append(": ").append(companionRelation(vkId,c)).append("/100\n");
         sb.append("\nВысокая дружба помогает в событиях спутника и даёт моральные бонусы.");
@@ -1572,6 +1605,7 @@ public class AdventureManager implements Listener {
     }
 
     private void showAdventureInventory(int vkId) {
+        if (!isApiAvailable()) return;
         ActiveAdventure adv = active.get(vkId);
         if (adv == null) {
             api().sendKeyboard(vkId, "🎲 Сумка походника\n\nАктивного похода нет.\nВ походе здесь будут показаны золото, реликвии, припасы, мораль, вдохновение и состояния.", keyboardMain());
@@ -1588,6 +1622,7 @@ public class AdventureManager implements Listener {
     }
 
     private void showAdventureProfile(int vkId) {
+        if (!isApiAvailable()) return;
         String cls = getPlayerClass(vkId);
         int level = getAdvLevel(vkId);
         int xp = getAdvXp(vkId);
@@ -1620,6 +1655,7 @@ public class AdventureManager implements Listener {
     }
 
     private void finishAdventure(ActiveAdventure adv, String preface) {
+        if (!isApiAvailable()) return;
         active.remove(adv.vkId);
         int routeDifficulty = plugin.getConfig().getInt("adventures." + adv.route + ".difficulty", 1);
         int repMin = plugin.getConfig().getInt("adventures." + adv.route + ".reward.rep-min", 0);
@@ -1769,6 +1805,7 @@ public class AdventureManager implements Listener {
     }
 
     private void killAdventure(ActiveAdventure adv, String preface) {
+        if (!isApiAvailable()) return;
         if (tryDeathSave(adv, preface)) return;
         active.remove(adv.vkId);
         int repLoss = Math.max(50, api().getReputation(adv.vkId) * plugin.getConfig().getInt("death-rep-loss-percent", 10) / 100);
@@ -1795,6 +1832,7 @@ public class AdventureManager implements Listener {
     }
 
     private void tick() {
+        if (!isApiAvailable()) return;
         long now = System.currentTimeMillis();
         for (ActiveAdventure adv : new ArrayList<>(active.values())) {
             if (adv.waitingChoice && now >= adv.choiceDeadline) {
@@ -1808,6 +1846,7 @@ public class AdventureManager implements Listener {
     }
 
     private void showStatus(int vkId) {
+        if (!isApiAvailable()) return;
         ActiveAdventure adv = active.get(vkId);
         if (adv == null) { api().sendKeyboard(vkId, "Активного похода нет.", keyboardMain()); return; }
         String msg = "⏳ Статус похода\n\n" +
@@ -1822,6 +1861,7 @@ public class AdventureManager implements Listener {
     }
 
     private void showStash(int vkId, String[] args) {
+        if (!isApiAvailable()) return;
         UUID uuid = api().getUuidByVkId(vkId);
         if (uuid == null) { api().sendMessage(vkId, "❌ Аккаунт не привязан."); return; }
         int page = 1;
@@ -1836,6 +1876,7 @@ public class AdventureManager implements Listener {
     }
 
     private void showQuestion(int vkId, String[] args) {
+        if (!isApiAvailable()) return;
         int q = 0;
         if (args.length >= 2) try { q = Integer.parseInt(args[1]); } catch (Exception ignored) {}
         String text;
@@ -1852,6 +1893,7 @@ public class AdventureManager implements Listener {
     }
 
     private void unlockRoute(int vkId, String[] args) {
+        if (!isApiAvailable()) return;
         UUID uuid = api().getUuidByVkId(vkId);
         if (uuid == null) { api().sendMessage(vkId, "❌ Аккаунт не привязан."); return; }
         if (args.length < 2) { api().sendMessage(vkId, "Использование: !открыть <route>"); return; }
@@ -1870,6 +1912,7 @@ public class AdventureManager implements Listener {
     }
 
     private void showJournal(int vkId) {
+        if (!isApiAvailable()) return;
         java.util.List<String> journal = data.getStringList("journal." + vkId);
         if (journal.isEmpty()) {
             api().sendKeyboard(vkId, "📜 Дневник приключений\n\nПока пусто. Начни поход — события появятся здесь.", keyboardMain());
@@ -1890,6 +1933,7 @@ public class AdventureManager implements Listener {
     }
 
     private void showAchievements(int vkId) {
+        if (!isApiAvailable()) return;
         StringBuilder sb = new StringBuilder("🏆 Достижения походника (145 шт. по 999 реп.)\n\n");
         String[][] ach = {
                 // === ПРОХОЖДЕНИЕ МАРШРУТОВ (12) ===
@@ -2081,10 +2125,14 @@ public class AdventureManager implements Listener {
 
     private String dailyDate() { return progressManager.dailyDate(); }
     private void ensureDaily(int vkId) { progressManager.ensureDaily(vkId); }
-    private void showDaily(int vkId) { api().sendKeyboard(vkId, progressManager.buildDailyText(vkId), keyboardMain()); }
+    private void showDaily(int vkId) {
+        if (!isApiAvailable()) return;
+        api().sendKeyboard(vkId, progressManager.buildDailyText(vkId), keyboardMain());
+    }
     private void progressDaily(int vkId, String type, int amount) { progressManager.progressDaily(vkId, type, amount); }
 
     private void handleAdmin(int sender, int peer, String[] args) {
+        if (!isApiAvailable()) return;
         if (!isVkAdmin(sender)) { api().sendMessage(peer, "⛔ Нет доступа к админ-командам оффлайн-модуля."); return; }
         if (args.length < 2) { api().sendMessage(peer, "Админ: !офадмин list | cancel <vk> | finish <vk> | key <vk> <route> | stash <vk> | event <vk>"); return; }
         String sub = args[1].toLowerCase(Locale.ROOT);
@@ -2239,6 +2287,7 @@ public class AdventureManager implements Listener {
     private String keyboardCombatChoices() { return OfflineKeyboardFactory.combatChoices(); }
 
     private void healSmart(int vkId) {
+        if (!isApiAvailable()) return;
         ActiveAdventure adv = active.get(vkId);
         if (adv != null) {
             healInAdventure(vkId, adv);
@@ -2248,6 +2297,7 @@ public class AdventureManager implements Listener {
     }
 
     private void healInAdventure(int vkId, ActiveAdventure adv) {
+        if (!isApiAvailable()) return;
         if (adv.hp >= adv.maxHp && "none".equals(adv.condition)) {
             api().sendKeyboard(vkId, "💚 Лечение не требуется: HP полный и негативных состояний нет.", keyboardStatusOnly());
             return;

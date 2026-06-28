@@ -15,6 +15,7 @@ import ru.example.vkchatoffline.utils.EventResult;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -374,7 +375,7 @@ public class AdventureCommandManager {
         exp.setPendingEventDescription(bossDesc);
 
         double discountFactor = getDiscountFactor(exp.getPlayerUuid());
-        int baseBribe = 400 + new Random().nextInt(401); // 400-800
+        int baseBribe = 400 + ThreadLocalRandom.current().nextInt(401); // 400-800
         int bribeCost = (int) (baseBribe * discountFactor);
         exp.setBossBribeCost(bribeCost);
 
@@ -421,7 +422,7 @@ public class AdventureCommandManager {
         }
 
         if (event.getType().contains("riddle") && !riddles.isEmpty()) {
-            Riddle riddle = riddles.get(new Random().nextInt(riddles.size()));
+            Riddle riddle = riddles.get(ThreadLocalRandom.current().nextInt(riddles.size()));
             exp.setWaitingChoice(false);
             exp.setWaitingRiddle(true);
             exp.setCurrentRiddleQuestion(riddle.getQuestion());
@@ -537,7 +538,7 @@ public class AdventureCommandManager {
         if (maxMinutes < minMinutes) {
             maxMinutes = minMinutes;
         }
-        return minMinutes + new Random().nextInt(maxMinutes - minMinutes + 1);
+        return minMinutes + ThreadLocalRandom.current().nextInt(maxMinutes - minMinutes + 1);
     }
 
     private boolean consumeFoodFromStash(UUID uuid) {
@@ -863,16 +864,16 @@ public class AdventureCommandManager {
 
         if (choice == 1) { // Рискованная атака
             int chance = getCombatChance(exp, "aggressive");
-            boolean success = new Random().nextInt(100) < chance;
+            boolean success = ThreadLocalRandom.current().nextInt(100) < chance;
 
             if (success) {
-                int damage = (exp.getDamage() * 5) + new Random().nextInt(20);
+                int damage = (exp.getDamage() * 5) + ThreadLocalRandom.current().nextInt(20);
                 VKChatPlugin.getInstance().getVkManager().sendMessage(exp.getPeerId(), exp.getSenderId(),
                         "Ты нанес сокрушительный удар! Босс повержен!\n" +
                         "Урон: " + damage);
                 finishExpedition(exp, true);
             } else {
-                int damage = 30 + new Random().nextInt(20);
+                int damage = 30 + ThreadLocalRandom.current().nextInt(20);
                 exp.takeDamage(damage, "Рискованная атака босса");
                 VKChatPlugin.getInstance().getVkManager().sendMessage(exp.getPeerId(), exp.getSenderId(),
                         "Ты промахнулся и получил мощный ответный удар!\n" +
@@ -890,16 +891,16 @@ public class AdventureCommandManager {
 
         if (choice == 2) { // Осторожный удар
             int chance = getCombatChance(exp, "careful");
-            boolean success = new Random().nextInt(100) < chance;
+            boolean success = ThreadLocalRandom.current().nextInt(100) < chance;
 
             if (success) {
-                int damage = (exp.getDamage() * 3) + new Random().nextInt(15);
+                int damage = (exp.getDamage() * 3) + ThreadLocalRandom.current().nextInt(15);
                 VKChatPlugin.getInstance().getVkManager().sendMessage(exp.getPeerId(), exp.getSenderId(),
                         "Медленно, но верно ты добил босса!\n" +
                         "Урон: " + damage);
                 finishExpedition(exp, true);
             } else {
-                int damage = 15 + new Random().nextInt(10);
+                int damage = 15 + ThreadLocalRandom.current().nextInt(10);
                 exp.takeDamage(damage, "Босс контратаковал");
                 VKChatPlugin.getInstance().getVkManager().sendMessage(exp.getPeerId(), exp.getSenderId(),
                         "Босс оказался хитрее!\n" +
@@ -917,7 +918,7 @@ public class AdventureCommandManager {
 
         if (choice == 3) { // Попытка сбежать
             int chance = getCombatChance(exp, "escape");
-            boolean success = new Random().nextInt(100) < chance;
+            boolean success = ThreadLocalRandom.current().nextInt(100) < chance;
 
             if (success) {
                 VKChatPlugin.getInstance().getVkManager().sendMessage(exp.getPeerId(), exp.getSenderId(),
@@ -963,7 +964,6 @@ public class AdventureCommandManager {
     private void handleEncounterAction(Expedition exp, int choice) {
         String type = exp.getCurrentEncounterType();
         EventResult event = pendingEvents.get(exp.getSenderId());
-        Random random = new Random();
         int pLevel = getPlayerLevel(exp.getPlayerUuid());
 
         boolean success;
@@ -973,8 +973,12 @@ public class AdventureCommandManager {
             String title = exp.getPendingEventTitle();
             String[] parts = title.split(":");
             String ghostName = parts.length > 1 ? parts[1] : "Призрак";
-            int gDamage = parts.length > 2 ? Integer.parseInt(parts[2]) : 5;
-            int gDefense = parts.length > 3 ? Integer.parseInt(parts[3]) : 0;
+            int gDamage = 5;
+            int gDefense = 0;
+            try {
+                if (parts.length > 2) gDamage = Integer.parseInt(parts[2]);
+                if (parts.length > 3) gDefense = Integer.parseInt(parts[3]);
+            } catch (NumberFormatException ignored) {}
             int sender = exp.getSenderId();
             
             if (choice == 1) { // Дуэль
@@ -983,17 +987,17 @@ public class AdventureCommandManager {
                 int winChance = 50 + (playerPower - ghostPower) * 4;
                 winChance = Math.max(15, Math.min(85, winChance));
                 
-                success = random.nextInt(100) < winChance;
+                success = ThreadLocalRandom.current().nextInt(100) < winChance;
                 if (success) {
                     VKChatPlugin.getInstance().getApi().addReputation(sender, 150);
-                    exp.addItem(new ItemStack(Material.GOLD_INGOT, 1 + random.nextInt(3)));
+                    exp.addItem(new ItemStack(Material.GOLD_INGOT, 1 + ThreadLocalRandom.current().nextInt(3)));
                     
                     VKChatPlugin.getInstance().getVkManager().sendMessage(exp.getPeerId(), sender,
                             "⚔️ ДУЭЛЬ ВЫИГРАНА!\n" +
                             "Ты одолел призрака " + ghostName + " в честном бою!\n" +
                             "🔺 Получено: +150 репутации, новые трофеи отправлены в рюкзак.");
                 } else {
-                    damage = 25 + random.nextInt(20);
+                    damage = 25 + ThreadLocalRandom.current().nextInt(20);
                     exp.takeDamage(damage, "Проигранная дуэль с призраком " + ghostName);
                     VKChatPlugin.getInstance().getApi().takeReputation(sender, 50);
                     
@@ -1010,12 +1014,12 @@ public class AdventureCommandManager {
                     }
                 }
             } else { // Сбежать
-                success = random.nextInt(100) < getCombatChance(exp, "escape");
+                success = ThreadLocalRandom.current().nextInt(100) < getCombatChance(exp, "escape");
                 if (success) {
                     VKChatPlugin.getInstance().getVkManager().sendMessage(exp.getPeerId(), sender,
                             "🏃 Ты благополучно скрылся от дуэли во тьме.");
                 } else {
-                    damage = 15 + random.nextInt(10);
+                    damage = 15 + ThreadLocalRandom.current().nextInt(10);
                     exp.takeDamage(damage, "Призрак настиг тебя при бегстве");
                     VKChatPlugin.getInstance().getVkManager().sendMessage(exp.getPeerId(), sender,
                             "❌ Призрак " + ghostName + " настиг тебя при попытке сбежать!\n" +
@@ -1040,12 +1044,12 @@ public class AdventureCommandManager {
             int sender = exp.getSenderId();
             int currentRep = VKChatPlugin.getInstance().getApi().getReputation(sender);
             if (choice == 1) { // Сражаться
-                success = random.nextInt(100) < getCombatChance(exp, "aggressive");
+                success = ThreadLocalRandom.current().nextInt(100) < getCombatChance(exp, "aggressive");
                 if (success) {
                     exp.onVictory(false);
                     // Награда за победу над разбойниками
                     VKChatPlugin.getInstance().getApi().addReputation(sender, 150);
-                    ItemStack gold = new ItemStack(Material.GOLD_INGOT, 1 + random.nextInt(3));
+                    ItemStack gold = new ItemStack(Material.GOLD_INGOT, 1 + ThreadLocalRandom.current().nextInt(3));
                     exp.addItem(gold);
                     
                     VKChatPlugin.getInstance().getVkManager().sendMessage(exp.getPeerId(), sender,
@@ -1054,7 +1058,7 @@ public class AdventureCommandManager {
                             "🔺 Награда: +150 репутации, золотые слитки добавлены в рюкзак.\n\n" +
                             exp.getStatusText());
                 } else {
-                    damage = 35 + random.nextInt(15);
+                    damage = 35 + ThreadLocalRandom.current().nextInt(15);
                     exp.takeDamage(damage, "Тяжелые ранения в бою с разбойниками");
                     
                     // Штраф: потеря 50% накопленного лута (потеря лута / грабеж)
@@ -1062,7 +1066,8 @@ public class AdventureCommandManager {
                     if (!exp.getInventory().isEmpty()) {
                         lostLootSize = (int) Math.ceil(exp.getInventory().size() * 0.50);
                         for (int k = 0; k < lostLootSize && !exp.getInventory().isEmpty(); k++) {
-                            exp.getInventory().remove(random.nextInt(exp.getInventory().size()));
+                            if (exp.getInventory().isEmpty()) break;
+                            exp.getInventory().remove(ThreadLocalRandom.current().nextInt(exp.getInventory().size()));
                         }
                     }
                     
@@ -1086,7 +1091,7 @@ public class AdventureCommandManager {
                     lostLootSize = (int) Math.ceil(exp.getInventory().size() * 0.20);
                     if (lostLootSize == 0 && exp.getInventory().size() > 0) lostLootSize = 1; // минимум 1, если есть
                     for (int k = 0; k < lostLootSize && !exp.getInventory().isEmpty(); k++) {
-                        exp.getInventory().remove(random.nextInt(exp.getInventory().size()));
+                        exp.getInventory().remove(ThreadLocalRandom.current().nextInt(exp.getInventory().size()));
                     }
                 }
                 int repLoss = Math.min(currentRep, 50);
@@ -1101,14 +1106,14 @@ public class AdventureCommandManager {
                         "Они ухмыльнулись и скрылись во тьме, оставив тебя в живых.\n\n" +
                         exp.getStatusText());
             } else if (choice == 3) { // Попытаться скрыться в зарослях
-                success = random.nextInt(100) < getCombatChance(exp, "escape");
+                success = ThreadLocalRandom.current().nextInt(100) < getCombatChance(exp, "escape");
                 if (success) {
                     VKChatPlugin.getInstance().getVkManager().sendMessage(exp.getPeerId(), sender,
                             "🏃 ЧУДО-ПОБЕГ:\n" +
                             "Ты искусно проскользнул сквозь густые заросли и ушел от погони разбойников невредимым!\n\n" +
                             exp.getStatusText());
                 } else {
-                    damage = 25 + random.nextInt(10);
+                    damage = 25 + ThreadLocalRandom.current().nextInt(10);
                     exp.takeDamage(damage, "Засада при попытке побега");
                     
                     // Поломка снаряжения: навсегда снижает урон и защиту на 3
@@ -1124,7 +1129,7 @@ public class AdventureCommandManager {
                     if (!exp.getInventory().isEmpty()) {
                         lostLootSize = (int) Math.ceil(exp.getInventory().size() * 0.30);
                         for (int k = 0; k < lostLootSize && !exp.getInventory().isEmpty(); k++) {
-                            exp.getInventory().remove(random.nextInt(exp.getInventory().size()));
+                            exp.getInventory().remove(ThreadLocalRandom.current().nextInt(exp.getInventory().size()));
                         }
                     }
                     
@@ -1155,41 +1160,41 @@ public class AdventureCommandManager {
 
         if ("loot".equals(type)) {
             if (choice == 1) {
-                success = random.nextInt(100) < getCombatChance(exp, "careful");
+                success = ThreadLocalRandom.current().nextInt(100) < getCombatChance(exp, "careful");
             } else {
-                success = random.nextInt(100) < getCombatChance(exp, "escape");
-                damage = success ? random.nextInt(5) : random.nextInt(12) + 5;
+                success = ThreadLocalRandom.current().nextInt(100) < getCombatChance(exp, "escape");
+                damage = success ? ThreadLocalRandom.current().nextInt(5) : ThreadLocalRandom.current().nextInt(12) + 5;
             }
         } else if ("enemy".equals(type)) {
             if (choice == 1) {
-                success = random.nextInt(100) < getCombatChance(exp, "aggressive");
-                damage = success ? 0 : random.nextInt(20) + 10;
+                success = ThreadLocalRandom.current().nextInt(100) < getCombatChance(exp, "aggressive");
+                damage = success ? 0 : ThreadLocalRandom.current().nextInt(20) + 10;
             } else {
-                success = random.nextInt(100) < getCombatChance(exp, "escape");
-                damage = success ? random.nextInt(8) : random.nextInt(15) + 10;
+                success = ThreadLocalRandom.current().nextInt(100) < getCombatChance(exp, "escape");
+                damage = success ? ThreadLocalRandom.current().nextInt(8) : ThreadLocalRandom.current().nextInt(15) + 10;
             }
         } else if ("trap".equals(type)) {
             if (choice == 1) {
-                success = random.nextInt(100) < 50 + pLevel;
+                success = ThreadLocalRandom.current().nextInt(100) < 50 + pLevel;
                 damage = success ? 0 : 30;
             } else {
-                success = random.nextInt(100) < getCombatChance(exp, "escape");
+                success = ThreadLocalRandom.current().nextInt(100) < getCombatChance(exp, "escape");
                 damage = success ? 0 : 25;
             }
         } else if ("encounter".equals(type)) {
-            success = choice == 1 ? random.nextInt(100) < 55 + pLevel : random.nextInt(100) < 40;
-            damage = success ? 0 : random.nextInt(10) + 5;
+            success = choice == 1 ? ThreadLocalRandom.current().nextInt(100) < 55 + pLevel : ThreadLocalRandom.current().nextInt(100) < 40;
+            damage = success ? 0 : ThreadLocalRandom.current().nextInt(10) + 5;
         } else if ("environmental".equals(type)) {
             if (choice == 1) {
-                success = random.nextInt(100) < 45 + pLevel;
-                damage = success ? random.nextInt(8) : random.nextInt(18) + 8;
+                success = ThreadLocalRandom.current().nextInt(100) < 45 + pLevel;
+                damage = success ? ThreadLocalRandom.current().nextInt(8) : ThreadLocalRandom.current().nextInt(18) + 8;
             } else {
-                success = random.nextInt(100) < getCombatChance(exp, "escape");
-                damage = success ? 0 : random.nextInt(12) + 8;
+                success = ThreadLocalRandom.current().nextInt(100) < getCombatChance(exp, "escape");
+                damage = success ? 0 : ThreadLocalRandom.current().nextInt(12) + 8;
             }
         } else {
-            success = choice == 1 ? random.nextBoolean() : random.nextInt(100) < 35;
-            damage = success ? 0 : random.nextInt(15) + 5;
+            success = choice == 1 ? ThreadLocalRandom.current().nextBoolean() : ThreadLocalRandom.current().nextInt(100) < 35;
+            damage = success ? 0 : ThreadLocalRandom.current().nextInt(15) + 5;
         }
 
         if (success) {
@@ -1375,7 +1380,7 @@ public class AdventureCommandManager {
         msg.append(exp.getStatusText());
 
         int rareChance = config.getInt("completion." + dungeonKey + ".rare_loot_chance", 0);
-        if (new Random().nextInt(100) < rareChance) {
+        if (ThreadLocalRandom.current().nextInt(100) < rareChance) {
             msg.append("\n🎉 Выбит эксклюзивный лут!");
         }
 
@@ -1453,7 +1458,7 @@ public class AdventureCommandManager {
                 return;
             }
 
-            VKChatPlugin.getInstance().getApi().addReputation(sender, -cost);
+            VKChatPlugin.getInstance().getApi().takeReputation(sender, cost);
             untrackExpedition(targetId);
 
             VKChatPlugin.getInstance().getVkManager().sendMessage(peer, sender,
@@ -1482,7 +1487,7 @@ public class AdventureCommandManager {
                         "Питомец (Охотничий Сокол) стоит " + cost + " репутации.");
                 return;
             }
-            VKChatPlugin.getInstance().getApi().addReputation(sender, -cost);
+            VKChatPlugin.getInstance().getApi().takeReputation(sender, cost);
             playerPets.put(sender, "Сокол");
             expeditionStorage.savePet(sender, "Сокол");
             VKChatPlugin.getInstance().getVkManager().sendMessage(peer, sender,
@@ -1507,8 +1512,7 @@ public class AdventureCommandManager {
             }
         }
 
-        Random random = new Random();
-        if (random.nextInt(100) >= 15) {
+        if (ThreadLocalRandom.current().nextInt(100) >= 15) {
             return;
         }
 
@@ -1518,7 +1522,7 @@ public class AdventureCommandManager {
                 "проклятие_тьмы",
                 "проклятие_голода"
         };
-        String modifier = modifiers[random.nextInt(modifiers.length)];
+        String modifier = modifiers[ThreadLocalRandom.current().nextInt(modifiers.length)];
         exp.applyModifier(modifier, 2);
 
         VKChatPlugin.getInstance().getVkManager().sendMessage(exp.getPeerId(), exp.getSenderId(),

@@ -9,6 +9,7 @@ first-event-delay-seconds: 20
 stage-delay-seconds: 60
 choice-timeout-seconds: 300
 key-drop-chance: 18
+daily-expedition-limit: 5
 
 death-cooldown-hours: 4
 injury-hours: 12
@@ -563,6 +564,57 @@ mmorpg:
     better-rewards-per-difficulty: 0.15
     death-penalty-reduction-per-level: 0.01
     max-death-penalty-reduction: 0.50
+
+  # === НАГРАДЫ ЗА УРОВНИ ПОХОДНИКА ===
+  adventure-level-rewards:
+    5:
+      rep-bonus: 50
+      message: "🎖 Походник V: +50 репутации"
+    10:
+      rep-bonus: 120
+      message: "🎖 Походник X: +120 репутации"
+    15:
+      rep-bonus: 200
+      message: "🎖 Походник XV: +200 репутации"
+    20:
+      rep-bonus: 350
+      message: "🎖 Походник XX: +350 репутации"
+    30:
+      rep-bonus: 600
+      message: "🎖 Походник XXX: +600 репутации"
+    40:
+      rep-bonus: 1000
+      message: "🎖 Походник XL: +1000 репутации"
+    50:
+      rep-bonus: 1500
+      message: "🎖 Походник L: +1500 репутации"
+
+  # === БОНУСЫ КОМПАНЬОНОВ ЗА УРОВЕНЬ ===
+  companion-level-bonus:
+    wolf:
+      5: "🐾 Волк V: +2 к боевым проверкам"
+      10: "🐾 Волк X: +3 к боевым проверкам, +5% к урону"
+    raven:
+      5: "🦅 Ворон V: +2 к обнаружению ловушек"
+      10: "🦅 Ворон X: +3 к обнаружению, шанс подсказки"
+    alchemist:
+      5: "🧪 Алхимик V: +15% к лечению"
+      10: "🧪 Алхимик X: +25% к лечению, снятие яда"
+    mule:
+      5: "🐴 Мул V: +1 припас"
+      10: "🐴 Мул X: +2 припаса, спасение от голода"
+    dragon_whelp:
+      5: "🐲 Дракон V: +3 к AoE урону"
+      10: "🐲 Дракон X: +5 к AoE, страх врагов"
+    bear:
+      5: "🐻 Медведь V: +2 к защите"
+      10: "🐻 Медведь X: +4 к защите, танк-провокация"
+    owl:
+      5: "🦉 Сова V: +2 к разведке"
+      10: "🦉 Сова X: +3 к разведке, обнаружение секретов"
+    snake:
+      5: "🐍 Змея V: +2 к яду"
+      10: "🐍 Змея X: +4 к яду, замедление врагов"
 
   # === ИНТЕГРАЦИЯ (v2.1.0) ===
   integration:
