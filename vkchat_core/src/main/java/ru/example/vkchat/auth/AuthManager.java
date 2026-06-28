@@ -8,6 +8,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -110,10 +111,7 @@ public class AuthManager {
                             int vkId = rs.getInt("vk_id");
                             String msg = "🛡️ Блокировка безопасности!\nМы заметили вход с нового или локального IP-адреса.\n\nТвой одноразовый код (2FA) для подтверждения в игре: " + code + "\n\nНикому не сообщай этот код!";
                             
-                            String kbJson = "{\"inline\":true,\"buttons\":[" +
-                                    "[{\"action\":{\"type\":\"text\",\"label\":\"🔑 Войти: " + code + "\",\"payload\":\"{\\\"2fa_code\\\":\\\"" + code + "\\\"}\"},\"color\":\"positive\"}," +
-                                    "{\"action\":{\"type\":\"text\",\"label\":\"❌ БЛОКИРОВКА " + code + "\",\"payload\":\"{\\\"2fa_block\\\":\\\"" + code + "\\\"}\"},\"color\":\"negative\"}]" +
-                                    "]}";
+                            String kbJson = ru.example.vkchat.vk.VKKeyboardBuilder.twoFaKeyboard(code);
                             plugin.getVkManager().sendKeyboard(vkId, msg, kbJson);
                             
                             // Высылаем инструкцию игроку в чат
@@ -312,6 +310,10 @@ public class AuthManager {
         return await2fa.get(uuid);
     }
 
+    public Iterable<Map.Entry<UUID, String>> getAwait2faEntries() {
+        return new ArrayList<>(await2fa.entrySet());
+    }
+
     public void confirm2fa(UUID uuid) {
         await2fa.remove(uuid);
         loggedIn.put(uuid, true);
@@ -377,6 +379,17 @@ public class AuthManager {
 
     public boolean isLinked(Player player) {
         return isLinked(player.getUniqueId());
+    }
+
+    public boolean isLinkedByVkId(int vkId) {
+        try (Connection conn = plugin.getDatabaseManager().getConnection()) {
+            PreparedStatement ps = conn.prepareStatement("SELECT uuid FROM vkchat_auth WHERE vk_id = ?");
+            ps.setInt(1, vkId);
+            ResultSet rs = ps.executeQuery();
+            return rs.next();
+        } catch (SQLException e) {
+            return false;
+        }
     }
 
     public void unlink(Player player) {

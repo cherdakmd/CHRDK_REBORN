@@ -30,7 +30,7 @@ public class VKCommandHandler {
             if (cmdEvent.isCancelled()) return;
         }
 
-        if (cmd.equals("!помощь") || cmd.equals("!help") || cmd.equals("!клавиатура") || cmd.equals("!меню")) {
+        if (cmd.equals("!помощь") || cmd.equals("!help") || cmd.equals("!клавиатура")) {
             String help = " Доступные команды:\n\n" +
                     " Профиль и Сервер:\n" +
                     " !online - Онлайн на сервере\n" +
@@ -52,12 +52,25 @@ public class VKCommandHandler {
                     " !промо <код> - Активировать код\n\n" +
                     " Дополнительно:\n" +
                     " !анекдот - Случайная шутка\n" +
+                    " !меню - Главное меню\n" +
                     " !помощь - Показать это меню";
             
             if (peer < 2000000000) {
                 plugin.getVkManager().sendKeyboard(peer, help, VKKeyboardBuilder.helpInlineKeyboard());
             } else {
                 plugin.getVkManager().sendMessage(peer, fromId, help);
+            }
+        } else if (cmd.equals("!меню")) {
+            // Главное меню в ЛС — переключение между режимами
+            if (peer < 2000000000) {
+                String welcome = "🏠 Главное меню CHRDK REBORN\n\n" +
+                        "Выбери режим:\n" +
+                        "🏕 Походы — оффлайн-экспедиции\n" +
+                        "👤 Аккаунт — управление профилем\n\n" +
+                        "Или используй команды напрямую.";
+                plugin.getVkManager().sendKeyboard(peer, welcome, VKKeyboardBuilder.mainDmMenu());
+            } else {
+                plugin.getVkManager().sendMessage(peer, fromId, "Используй эту команду в ЛС бота.");
             }
         } else if (cmd.equals("!online") || cmd.equals("!онлайн")) {
             int count = Bukkit.getOnlinePlayers().size();
@@ -401,6 +414,157 @@ public class VKCommandHandler {
             }
         } else if (cmd.equals("!рулетка") || cmd.equals("!roulette")) {
             plugin.getMiniGamesManager().playRoulette(fromId, peer);
+        } else if (cmd.equals("!аккаунт") || cmd.equals("!account")) {
+            // Меню управления аккаунтом (только в ЛС)
+            if (peer < 2000000000) {
+                String info = "👤 Управление аккаунтом\n\n" +
+                        "Статус: " + (plugin.getAuthManager().isLinkedByVkId(fromId) ? "✅ Привязан" : "❌ Не привязан") + "\n" +
+                        "Репутация: " + plugin.getReputationManager().getPoints(fromId) + "\n\n" +
+                        "Выбери действие кнопкой ниже:";
+                plugin.getVkManager().sendKeyboard(peer, info, VKKeyboardBuilder.accountMenu());
+            } else {
+                plugin.getVkManager().sendMessage(peer, fromId, "Эта команда работает только в ЛС бота.");
+            }
+        } else if (cmd.equals("!мойстатус") || cmd.equals("!mystatus")) {
+            // Показать статус аккаунта
+            String status = "📊 Статус аккаунта\n\n";
+            try (java.sql.Connection conn = plugin.getDatabaseManager().getConnection()) {
+                java.sql.PreparedStatement ps = conn.prepareStatement("SELECT * FROM vkchat_auth WHERE vk_id = ?");
+                ps.setInt(1, fromId);
+                java.sql.ResultSet rs = ps.executeQuery();
+                if (rs.next()) {
+                    String uuid = rs.getString("uuid");
+                    String lastIp = rs.getString("last_ip");
+                    long regDate = rs.getLong("reg_date");
+                    status += "UUID: " + (uuid != null ? uuid.substring(0, 8) + "..." : "Н/Д") + "\n";
+                    status += "Последний IP: " + (lastIp != null ? lastIp : "Н/Д") + "\n";
+                    status += "Последний вход: " + (regDate > 0 ? new java.text.SimpleDateFormat("dd.MM.yyyy HH:mm").format(new java.util.Date(regDate)) : "Н/Д") + "\n";
+                } else {
+                    status += "Аккаунт не найден в базе данных.\n";
+                }
+            } catch (Exception e) {
+                status += "Ошибка получения данных.\n";
+            }
+            status += "\nРепутация: " + plugin.getReputationManager().getPoints(fromId) + "\n";
+            if (peer < 2000000000) {
+                plugin.getVkManager().sendKeyboard(peer, status, VKKeyboardBuilder.accountMenu());
+            } else {
+                plugin.getVkManager().sendMessage(peer, fromId, status);
+            }
+        } else if (cmd.equals("!инфоаккаунт") || cmd.equals("!accountinfo")) {
+            // Информация о системе безопасности
+            String info = "🛡️ Система безопасности CHRDK REBORN\n\n" +
+                    "• 2FA защита при входе с нового IP\n" +
+                    "• Автоматический вход с того же IP (24ч)\n" +
+                    "• Блокировка при 3 неудачных попытках\n" +
+                    "• Уведомления в ВК при входе/выходе\n" +
+                    "• Таймаут сессии при неактивности\n\n" +
+                    "Команды:\n" +
+                    "• /vklink — привязать ВК\n" +
+                    "• /register <пароль> — регистрация\n" +
+                    "• /login <пароль> — вход\n" +
+                    "• /2fa <код> — подтверждение 2FA\n" +
+                    "• /logout — выход из аккаунта";
+            if (peer < 2000000000) {
+                plugin.getVkManager().sendKeyboard(peer, info, VKKeyboardBuilder.accountMenu());
+            } else {
+                plugin.getVkManager().sendMessage(peer, fromId, info);
+            }
+        } else if (cmd.equals("!сменитьпароль") || cmd.equals("!changepass")) {
+            // Смена пароля — отправляем инструкцию
+            String msg = "🔑 Смена пароля\n\n" +
+                    "Для смены пароля используй команду в игре:\n" +
+                    "/changepass <старый_пароль> <новый_пароль>\n\n" +
+                    "После смены пароля вы получите уведомление в ВК.";
+            if (peer < 2000000000) {
+                plugin.getVkManager().sendKeyboard(peer, msg, VKKeyboardBuilder.accountMenu());
+            } else {
+                plugin.getVkManager().sendMessage(peer, fromId, msg);
+            }
+        } else if (cmd.equals("!выйти") || cmd.equals("!logout")) {
+            // Выход из аккаунта
+            String msg = "🚪 Выход из аккаунта\n\n" +
+                    "Для выхода используй команду в игре:\n" +
+                    "/logout\n\n" +
+                    "После выхода вам нужно будет заново войти.";
+            if (peer < 2000000000) {
+                plugin.getVkManager().sendKeyboard(peer, msg, VKKeyboardBuilder.accountMenu());
+            } else {
+                plugin.getVkManager().sendMessage(peer, fromId, msg);
+            }
+        } else if (cmd.equals("!блок") || cmd.equals("!block")) {
+            // Блокировка входа по коду
+            if (args.length >= 2) {
+                String code = args[1];
+                if (plugin.getAuthManager().blockLoginByCode(code)) {
+                    plugin.getVkManager().sendMessage(peer, fromId, "🛡️ Вход по коду " + code + " заблокирован! Нарушитель кикнут.");
+                } else {
+                    plugin.getVkManager().sendMessage(peer, fromId, "❌ Код " + code + " не найден или уже обработан.");
+                }
+            } else {
+                plugin.getVkManager().sendMessage(peer, fromId, "Использование: !блок <код>");
+            }
+        } else if (cmd.equals("!вход") || cmd.equals("!login")) {
+            // Вход по коду 2FA из ВК
+            if (args.length >= 2) {
+                String code = args[1];
+                if (plugin.getAuthManager().is2faCode(code)) {
+                    // Ищем UUID по коду
+                    java.util.UUID targetUuid = null;
+                    for (java.util.Map.Entry<java.util.UUID, String> entry : plugin.getAuthManager().getAwait2faEntries()) {
+                        if (entry.getValue().equals(code)) {
+                            targetUuid = entry.getKey();
+                            break;
+                        }
+                    }
+                    if (targetUuid != null) {
+                        Player target = Bukkit.getPlayer(targetUuid);
+                        if (target != null) {
+                            int linkedVk = plugin.getAuthManager().getLinkedVkId(target);
+                            if (linkedVk == fromId) {
+                                plugin.getAuthManager().confirm2fa(targetUuid);
+                                plugin.getVkManager().sendMessage(peer, fromId, "✅ Вход подтверждён! Добро пожаловать в игру.");
+                                target.sendMessage(plugin.getConfigManager().formatColor(plugin.getConfigManager().getMessage("auth_2fa_success")));
+                                return;
+                            }
+                        }
+                    }
+                    plugin.getVkManager().sendMessage(peer, fromId, "❌ Код не найден или не принадлежит вам.");
+                } else {
+                    plugin.getVkManager().sendMessage(peer, fromId, "❌ Неверный код 2FA.");
+                }
+            } else {
+                plugin.getVkManager().sendMessage(peer, fromId, "Использование: !вход <код>");
+            }
+        } else if (cmd.equals("!2fa")) {
+            // Подтверждение 2FA через кнопку
+            if (args.length >= 2) {
+                String code = args[1];
+                if (plugin.getAuthManager().is2faCode(code)) {
+                    java.util.UUID targetUuid = null;
+                    for (java.util.Map.Entry<java.util.UUID, String> entry : plugin.getAuthManager().getAwait2faEntries()) {
+                        if (entry.getValue().equals(code)) {
+                            targetUuid = entry.getKey();
+                            break;
+                        }
+                    }
+                    if (targetUuid != null) {
+                        Player target = Bukkit.getPlayer(targetUuid);
+                        if (target != null) {
+                            int linkedVk = plugin.getAuthManager().getLinkedVkId(target);
+                            if (linkedVk == fromId) {
+                                plugin.getAuthManager().confirm2fa(targetUuid);
+                                plugin.getVkManager().sendMessage(peer, fromId, "✅ Вход подтверждён!");
+                                target.sendMessage(plugin.getConfigManager().formatColor(plugin.getConfigManager().getMessage("auth_2fa_success")));
+                                return;
+                            }
+                        }
+                    }
+                    plugin.getVkManager().sendMessage(peer, fromId, "❌ Код не найден или не принадлежит вам.");
+                } else {
+                    plugin.getVkManager().sendMessage(peer, fromId, "❌ Неверный код.");
+                }
+            }
         } else {
             if (peer == mainChatId && plugin.getRiddleManager().checkAnswer(fromId, text)) {
                 return;

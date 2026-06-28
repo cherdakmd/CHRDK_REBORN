@@ -94,6 +94,91 @@ public class VKKeyboardBuilder {
         return s.replace("\\", "\\\\").replace("\"", "\\\"");
     }
 
+    // ==================== ГЛАВНОЕ МЕНЮ В ЛС БОТА ====================
+    
+    /**
+     * Главное меню при входе в ЛС бота.
+     * Два режима: Походы и Управление аккаунтом.
+     */
+    public static String mainDmMenu() {
+        return new VKKeyboardBuilder()
+                .oneTime(false)
+                .positive("🏕 Походы", "!поход")
+                .textButton("👤 Аккаунт", "!аккаунт", "primary")
+                .row()
+                .secondary("📊 Профиль", "!профиль")
+                .secondary("⭐ Рейтинг", "!рейтинг")
+                .row()
+                .secondary("🎁 Бонус", "!бонус")
+                .secondary("🛟 Помощь", "!помощь")
+                .build();
+    }
+
+    /**
+     * Меню управления аккаунтом.
+     */
+    public static String accountMenu() {
+        return new VKKeyboardBuilder()
+                .oneTime(false)
+                .positive("🔑 Войти", "!вход")
+                .negative("🔒 Заблокировать", "!блок")
+                .row()
+                .textButton("📊 Статус", "!мойстатус", "primary")
+                .secondary("🔑 Сменить пароль", "!сменитьпароль")
+                .row()
+                .secondary("📋 Инфо", "!инфоаккаунт")
+                .secondary("🚪 Выйти", "!выйти")
+                .row()
+                .secondary("◀ Назад", "!меню")
+                .build();
+    }
+
+    /**
+     * Меню походов (перенаправляет в offline модуль).
+     */
+    public static String adventureMenu() {
+        return new VKKeyboardBuilder()
+                .oneTime(false)
+                .positive("🗺 Маршруты", "!походы")
+                .secondary("🎒 Тайник", "!тайник 1")
+                .row()
+                .secondary("👤 Герой", "!герой")
+                .secondary("📖 Кампания", "!кампания")
+                .row()
+                .secondary("🧠 Навыки", "!навыки")
+                .secondary("🛒 Магазин", "!магазин")
+                .row()
+                .secondary("◀ Назад", "!меню")
+                .build();
+    }
+
+    // ==================== 2FA КЛАВИАТУРА ====================
+
+    /**
+     * Клавиатура 2FA при входе на сервер.
+     * Inline — отображается прямо под сообщением.
+     */
+    public static String twoFaKeyboard(String code) {
+        return new VKKeyboardBuilder()
+                .inline(true)
+                .positive("🔑 Войти: " + code, "!2fa " + code)
+                .negative("❌ Блокировка", "!блок " + code)
+                .build();
+    }
+
+    /**
+     * Клавиатура подтверждения смены пароля.
+     */
+    public static String confirmKeyboard(String action) {
+        return new VKKeyboardBuilder()
+                .inline(true)
+                .positive("✅ Подтвердить", "!подтвердить " + action)
+                .negative("❌ Отмена", "!отмена")
+                .build();
+    }
+
+    // ==================== СТАРЫЕ КЛАВИАТУРЫ (совместимость) ====================
+
     public static String mainMenuKeyboard() {
         return new VKKeyboardBuilder()
                 .oneTime(false)
