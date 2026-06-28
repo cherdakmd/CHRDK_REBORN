@@ -8,6 +8,7 @@ import org.bukkit.NamespacedKey;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.attribute.Attribute;
+import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -422,7 +423,8 @@ public class ConsumablesListener implements Listener {
                 e.setCancelled(true);
                 totem.setAmount(totem.getAmount() - 1);
                 
-                p.setHealth(p.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue());
+                AttributeInstance maxHpAttr = p.getAttribute(Attribute.GENERIC_MAX_HEALTH);
+                p.setHealth(maxHpAttr != null ? maxHpAttr.getValue() : 20.0);
                 p.addPotionEffect(new PotionEffect(PotionEffectType.FIRE_RESISTANCE, 200, 0));
                 p.addPotionEffect(new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, 200, 1));
                 

@@ -130,7 +130,9 @@ public class MobListener implements Listener {
                         if (mob.getPersistentDataContainer().has(rankKey, PersistentDataType.INTEGER)) {
                             int rank = mob.getPersistentDataContainer().get(rankKey, PersistentDataType.INTEGER);
                             if (rank >= minRank) {
-                                double maxHp = mob.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue();
+                                AttributeInstance maxHpAttr = mob.getAttribute(Attribute.GENERIC_MAX_HEALTH);
+                                if (maxHpAttr == null) continue;
+                                double maxHp = maxHpAttr.getValue();
                                 double nextHp = Math.min(maxHp, mob.getHealth() + healAmount);
                                 if (nextHp > mob.getHealth()) {
                                     mob.setHealth(nextHp);
@@ -259,7 +261,9 @@ public class MobListener implements Listener {
                                 }
 
                                 // 2. Самолечение босса (5% здоровья)
-                                double maxHp = mob.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue();
+                                AttributeInstance maxHpAttr2 = mob.getAttribute(Attribute.GENERIC_MAX_HEALTH);
+                                if (maxHpAttr2 == null) continue;
+                                double maxHp = maxHpAttr2.getValue();
                                 double heal = maxHp * 0.05;
                                 mob.setHealth(Math.min(maxHp, mob.getHealth() + heal));
                                 world.playSound(mob.getLocation(), Sound.ENTITY_WITCH_DRINK, 1.2f, 1.0f);
@@ -564,7 +568,9 @@ public class MobListener implements Listener {
         if (!mob.getPersistentDataContainer().has(rankKey, PersistentDataType.INTEGER)) return;
         
         int rank = mob.getPersistentDataContainer().get(rankKey, PersistentDataType.INTEGER);
-        double maxHp = mob.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue();
+        AttributeInstance maxHpAttr3 = mob.getAttribute(Attribute.GENERIC_MAX_HEALTH);
+        if (maxHpAttr3 == null) return;
+        double maxHp = maxHpAttr3.getValue();
         double currentHp = mob.getHealth();
         
         String color = org.bukkit.ChatColor.GREEN.toString();
@@ -638,7 +644,9 @@ public class MobListener implements Listener {
 
         // --- [НОВОЕ] ОБРАБОТКА СМЕНЫ ФАЗ СУПЕР-БОССОВ (ПРИ < 50% HP) ---
         if (mob.getPersistentDataContainer().has(isSuperBossKey, PersistentDataType.INTEGER)) {
-            double maxHp = mob.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue();
+            AttributeInstance maxHpAttr4 = mob.getAttribute(Attribute.GENERIC_MAX_HEALTH);
+            if (maxHpAttr4 == null) return;
+            double maxHp = maxHpAttr4.getValue();
             double nextHp = mob.getHealth() - e.getFinalDamage();
             int phase = mob.getPersistentDataContainer().getOrDefault(bossPhaseKey, PersistentDataType.INTEGER, 1);
 

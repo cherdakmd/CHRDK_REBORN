@@ -20,6 +20,7 @@ import ru.example.vkchatnations.data.NationManager;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class ClaimDefenseManager {
 
@@ -89,7 +90,7 @@ public class ClaimDefenseManager {
                 if (!isEnabled()) return;
                 long now = System.currentTimeMillis();
                 if (now - lastAutoTrigger < getAutoCheckInterval() * 50L) return;
-                if (Math.random() > getAutoChance()) return;
+                if (ThreadLocalRandom.current().nextDouble() > getAutoChance()) return;
 
                 ChunkClaim claim = pickRandomClaim();
                 if (claim == null) return;
@@ -99,7 +100,7 @@ public class ClaimDefenseManager {
                 if (nationPlayers.isEmpty()) return;
 
                 String type = pickRandomType();
-                Player target = nationPlayers.get(new Random().nextInt(nationPlayers.size()));
+                Player target = nationPlayers.get(ThreadLocalRandom.current().nextInt(nationPlayers.size()));
                 startDefense(type, target, claim);
                 lastAutoTrigger = now;
             }
@@ -245,8 +246,9 @@ public class ClaimDefenseManager {
     }
 
     private void spawnRaidMob(World world, Location loc, Location target, List<String> mobTypes) {
+        if (mobTypes == null) mobTypes = new ArrayList<>();
         EntityType type = parseEntityType(mobTypes.isEmpty() ? "ZOMBIE" :
-                mobTypes.get(new Random().nextInt(mobTypes.size())));
+                mobTypes.get(ThreadLocalRandom.current().nextInt(mobTypes.size())));
 
         Entity raw = world.spawnEntity(loc, type);
         if (!(raw instanceof LivingEntity)) return;
@@ -262,7 +264,6 @@ public class ClaimDefenseManager {
 
         if (mob instanceof Creeper) {
             ((Creeper) mob).setPowered(true);
-            ((Creeper) mob).setExplosionRadius(4);
         }
 
         mob.setRemoveWhenFarAway(false);
@@ -360,7 +361,7 @@ public class ClaimDefenseManager {
 
     private void spawnSiegeMinion(World world, Location loc, Location target) {
         EntityType[] types = {EntityType.ZOMBIE, EntityType.SKELETON, EntityType.ZOMBIE_VILLAGER, EntityType.STRAY};
-        EntityType type = types[new Random().nextInt(types.length)];
+        EntityType type = types[ThreadLocalRandom.current().nextInt(types.length)];
 
         Entity raw = world.spawnEntity(loc, type);
         if (!(raw instanceof LivingEntity)) return;
@@ -453,8 +454,9 @@ public class ClaimDefenseManager {
     }
 
     private void spawnSaboteur(World world, Location loc, Location target, List<String> mobTypes) {
+        if (mobTypes == null) mobTypes = new ArrayList<>();
         EntityType type = parseEntityType(mobTypes.isEmpty() ? "WITCH" :
-                mobTypes.get(new Random().nextInt(mobTypes.size())));
+                mobTypes.get(ThreadLocalRandom.current().nextInt(mobTypes.size())));
 
         Entity raw = world.spawnEntity(loc, type);
         if (!(raw instanceof LivingEntity)) return;
@@ -508,11 +510,11 @@ public class ClaimDefenseManager {
     private ChunkClaim pickRandomClaim() {
         List<ChunkClaim> claims = new ArrayList<>(nationManager.getNationClaims().values());
         if (claims.isEmpty()) return null;
-        return claims.get(new Random().nextInt(claims.size()));
+        return claims.get(ThreadLocalRandom.current().nextInt(claims.size()));
     }
 
     private String pickRandomType() {
-        double roll = Math.random();
+        double roll = ThreadLocalRandom.current().nextDouble();
         if (roll < 0.4) return "RAID";
         if (roll < 0.7) return "SIEGE";
         return "SABOTAGE";
@@ -543,9 +545,9 @@ public class ClaimDefenseManager {
         if (world == null) return null;
 
         for (int attempt = 0; attempt < 20; attempt++) {
-            int dx = new Random().nextInt(radius * 2) - radius;
-            int dz = new Random().nextInt(radius * 2) - radius;
-            int dy = new Random().nextInt(10) - 3;
+            int dx = ThreadLocalRandom.current().nextInt(radius * 2) - radius;
+            int dz = ThreadLocalRandom.current().nextInt(radius * 2) - radius;
+            int dy = ThreadLocalRandom.current().nextInt(10) - 3;
 
             Location loc = center.clone().add(dx, dy, dz);
             if (loc.getBlock().getType() == Material.AIR

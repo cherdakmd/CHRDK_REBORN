@@ -180,7 +180,8 @@ public class ArtifactListener implements Listener {
                     } else if (buff.equals("ENDER_SHIFT")) {
                         hasEnderShift = true;
                     } else if (buff.equals("SOUL_SHIELD")) {
-                        if (p.getHealth() < p.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue() * 0.3) {
+                        AttributeInstance hpAttr1 = p.getAttribute(Attribute.GENERIC_MAX_HEALTH);
+                        if (hpAttr1 != null && p.getHealth() < hpAttr1.getValue() * 0.3) {
                             p.addPotionEffect(new PotionEffect(PotionEffectType.ABSORPTION, 100, 1, false, false));
                         }
                     } else if (buff.equals("FIRE_RESISTANCE_AURA")) {
@@ -194,7 +195,8 @@ public class ArtifactListener implements Listener {
                         // Handled in onPlayerDeath
                     } else if (buff.equals("ABYSSAL_POWER")) {
                         hasAbyssalPower = true;
-                        if (p.getHealth() < p.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue() * 0.3) {
+                        AttributeInstance hpAttr2 = p.getAttribute(Attribute.GENERIC_MAX_HEALTH);
+                        if (hpAttr2 != null && p.getHealth() < hpAttr2.getValue() * 0.3) {
                             p.addPotionEffect(new PotionEffect(PotionEffectType.INVISIBILITY, 100, 0, false, false));
                         }
                     } else if (buff.equals("DRAGON_BLOOD")) {
@@ -533,7 +535,9 @@ public class ArtifactListener implements Listener {
                     e.setDamage(e.getDamage() + level);
                 } else if ("VAMPIRISM".equals(buff)) {
                     double heal = e.getDamage() * (level * 0.1);
-                    p.setHealth(Math.min(p.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue(), p.getHealth() + heal));
+                    AttributeInstance maxHpAttr = p.getAttribute(Attribute.GENERIC_MAX_HEALTH);
+                    double maxHp = maxHpAttr != null ? maxHpAttr.getValue() : 20.0;
+                    p.setHealth(Math.min(maxHp, p.getHealth() + heal));
                 } else if ("CRITICAL".equals(buff)) {
                     if (ThreadLocalRandom.current().nextInt(100) < (level * 5)) {
                         e.setDamage(e.getDamage() * 2);
@@ -556,8 +560,10 @@ public class ArtifactListener implements Listener {
                 } else if ("FROST_BITE".equals(buff) && e.getEntity() instanceof org.bukkit.entity.LivingEntity) {
                     ((org.bukkit.entity.LivingEntity) e.getEntity()).addPotionEffect(new PotionEffect(PotionEffectType.SLOW, 60, level - 1, false, false));
                 } else if ("BERSERKER".equals(buff)) {
-                    double missingHealth = p.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue() - p.getHealth();
-                    double healthPercent = missingHealth / p.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue();
+                    AttributeInstance maxHpAttr2 = p.getAttribute(Attribute.GENERIC_MAX_HEALTH);
+                    double maxHpVal = maxHpAttr2 != null ? maxHpAttr2.getValue() : 20.0;
+                    double missingHealth = maxHpVal - p.getHealth();
+                    double healthPercent = missingHealth / maxHpVal;
                     e.setDamage(e.getDamage() * (1.0 + healthPercent * level * 0.2));
                 } else if ("FLAME_TONGUE".equals(buff) && e.getEntity() instanceof org.bukkit.entity.LivingEntity) {
                     ((org.bukkit.entity.LivingEntity) e.getEntity()).setFireTicks(40 + level * 20);
@@ -572,7 +578,9 @@ public class ArtifactListener implements Listener {
                         if (near instanceof Player && near != p) {
                             Player ally = (Player) near;
                             double heal = e.getDamage() * 0.15;
-                            ally.setHealth(Math.min(ally.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue(), ally.getHealth() + heal));
+                            AttributeInstance allyMaxHpAttr = ally.getAttribute(Attribute.GENERIC_MAX_HEALTH);
+                            double allyMaxHp = allyMaxHpAttr != null ? allyMaxHpAttr.getValue() : 20.0;
+                            ally.setHealth(Math.min(allyMaxHp, ally.getHealth() + heal));
                         }
                     }
                 } else if ("ABYSSAL_POWER".equals(buff)) {
@@ -683,7 +691,8 @@ public class ArtifactListener implements Listener {
                 revivalCooldowns.put(p.getUniqueId(), System.currentTimeMillis());
                 e.setKeepInventory(true);
                 e.getDrops().clear();
-                double maxHp = p.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue();
+                AttributeInstance maxHpAttr3 = p.getAttribute(Attribute.GENERIC_MAX_HEALTH);
+                double maxHp = maxHpAttr3 != null ? maxHpAttr3.getValue() : 20.0;
                 p.setHealth(Math.max(1.0, maxHp * 0.5));
                 p.addPotionEffect(new PotionEffect(PotionEffectType.ABSORPTION, 200, 1, false, false));
                 p.addPotionEffect(new PotionEffect(PotionEffectType.FIRE_RESISTANCE, 200, 0, false, false));
@@ -734,7 +743,9 @@ public class ArtifactListener implements Listener {
         if (hasArtifactBuff(p, "SOUL_DRAIN")) {
             int level = getArtifactBuffLevel(p, "SOUL_DRAIN");
             double heal = level * 2;
-            p.setHealth(Math.min(p.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue(), p.getHealth() + heal));
+            AttributeInstance maxHpAttr4 = p.getAttribute(Attribute.GENERIC_MAX_HEALTH);
+            double maxHp4 = maxHpAttr4 != null ? maxHpAttr4.getValue() : 20.0;
+            p.setHealth(Math.min(maxHp4, p.getHealth() + heal));
             p.getWorld().spawnParticle(org.bukkit.Particle.SOUL, e.getEntity().getLocation().add(0, 1, 0), 10, 0.3, 0.3, 0.3, 0.1);
             p.getWorld().playSound(p.getLocation(), org.bukkit.Sound.ENTITY_WITHER_HURT, 0.5f, 1.5f);
         }

@@ -192,8 +192,8 @@ public class NationManager {
     }
 
     public boolean hasMutation(UUID uuid, String mutationId) {
-        if (!unlockedMutations.containsKey(uuid)) return false;
-        return unlockedMutations.get(uuid).contains(mutationId);
+        Set<String> set = unlockedMutations.get(uuid);
+        return set != null && set.contains(mutationId);
     }
 
     public boolean hasMutation(Player p, String mutationId) {

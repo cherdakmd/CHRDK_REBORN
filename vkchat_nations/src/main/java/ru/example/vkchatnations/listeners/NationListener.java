@@ -36,6 +36,8 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 import java.util.ArrayList;
+import java.util.concurrent.ThreadLocalRandom;
+import org.bukkit.attribute.AttributeInstance;
 
 public class NationListener implements Listener {
     private final VKChatNationsPlugin plugin;
@@ -383,7 +385,7 @@ public class NationListener implements Listener {
         if (plugin.getNationManager().hasMutation(p, "stakhanovite") && p.getLocation().getBlockY() < 50) {
             Material type = b.getType();
             if (type.name().contains("IRON_ORE") || type.name().contains("GOLD_ORE") || type.name().contains("COAL") || type.name().contains("DIAMOND_ORE")) {
-                if (Math.random() < 0.20) {
+                if (ThreadLocalRandom.current().nextDouble() < 0.20) {
                     p.getWorld().dropItemNaturally(b.getLocation(), new ItemStack(type, 1));
                     p.sendMessage(ChatColor.GOLD + "⛏️ [Стахановец] Двойной дроп руды!");
                     p.getWorld().spawnParticle(org.bukkit.Particle.VILLAGER_HAPPY, b.getLocation().add(0.5, 0.5, 0.5), 10);
@@ -395,7 +397,7 @@ public class NationListener implements Listener {
         if (plugin.getNationManager().hasMutation(p, "soviet_magnet")) {
             Material type = b.getType();
             if (type.name().contains("ORE") || type.name().contains("COAL")) {
-                if (Math.random() < 0.15) {
+                if (ThreadLocalRandom.current().nextDouble() < 0.15) {
                     p.giveExp(e.getExpToDrop() > 0 ? e.getExpToDrop() : 1);
                     p.sendMessage(ChatColor.GOLD + "⚙️ [Индустриальный Магнит] Получено +15% бонусного опыта/ресурсов!");
                 }
@@ -553,7 +555,8 @@ public class NationListener implements Listener {
                     return;
                 }
                 setCooldown(p, "pagan_staff", now);
-                double max = p.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue();
+                AttributeInstance maxHpAttr = p.getAttribute(Attribute.GENERIC_MAX_HEALTH);
+                double max = maxHpAttr != null ? maxHpAttr.getValue() : 20.0;
                 p.setHealth(Math.min(p.getHealth() + 4.0, max));
                 p.sendMessage(ChatColor.GREEN + "🌿 Дыхание леса исцелило вас на 4 HP (2 сердца)!");
                 p.playSound(p.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1f, 1f);
@@ -584,8 +587,9 @@ public class NationListener implements Listener {
                 }
                 setCooldown(p, "pagan_brew", now);
                 consumeOneItem(p, item);
-                double max = p.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue();
-                p.setHealth(Math.min(p.getHealth() + 10.0, max));
+                AttributeInstance maxHpAttr2 = p.getAttribute(Attribute.GENERIC_MAX_HEALTH);
+                double max2 = maxHpAttr2 != null ? maxHpAttr2.getValue() : 20.0;
+                p.setHealth(Math.min(p.getHealth() + 10.0, max2));
                 p.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, 300, 1));
                 p.sendMessage(ChatColor.GREEN + "🏺 Вы выпили Отвар Лешего! Восстановлено 10 HP и получена Регенерация II.");
                 p.playSound(p.getLocation(), Sound.ENTITY_GENERIC_DRINK, 1f, 1f);
@@ -764,7 +768,7 @@ public class NationListener implements Listener {
 
                     if (!hasNationalHelmet) {
                         // Обходим блокировку дружественного огня!
-                        if (Math.random() < 0.2) {
+                        if (ThreadLocalRandom.current().nextDouble() < 0.2) {
                             attacker.sendMessage(ChatColor.RED + "☠️ [БЕЗУМИЕ КРОВЯНОЙ ЛУНЫ] Проклятие затмило ваш разум! Без защитного шлема нации вы ранили своего соотечественника!");
                             attacker.playSound(attacker.getLocation(), Sound.ENTITY_ENDER_DRAGON_GROWL, 0.5f, 1.5f);
                             attacker.getWorld().spawnParticle(org.bukkit.Particle.REDSTONE, attacker.getLocation().add(0, 1, 0), 10, new org.bukkit.Particle.DustOptions(org.bukkit.Color.RED, 1.5f));
@@ -789,12 +793,12 @@ public class NationListener implements Listener {
                     new NamespacedKey(plugin, "national_item"), PersistentDataType.STRING
                 );
                 if ("kgb_dagger".equals(natId)) {
-                    if (Math.random() < 0.40) {
+                    if (ThreadLocalRandom.current().nextDouble() < 0.40) {
                         target.addPotionEffect(new PotionEffect(PotionEffectType.WITHER, 100, 0));
                         p.sendMessage(ChatColor.DARK_RED + "🗡️ [Смерш] Удар кинжала наложил увядание!");
                     }
                 } else if ("imperial_saber".equals(natId)) {
-                    if (Math.random() < 0.25) {
+                    if (ThreadLocalRandom.current().nextDouble() < 0.25) {
                         target.addPotionEffect(new PotionEffect(PotionEffectType.POISON, 80, 1));
                         p.sendMessage(ChatColor.RED + "🗡️ [Кровотечение] Рана сабли кровоточит!");
                         target.getWorld().spawnParticle(org.bukkit.Particle.REDSTONE, target.getLocation().add(0, 1.0, 0), 10, 0.2, 0.2, 0.2, new org.bukkit.Particle.DustOptions(org.bukkit.Color.RED, 1.0f));
@@ -802,13 +806,15 @@ public class NationListener implements Listener {
                 }
             }
 
-            if (plugin.getNationManager().hasMutation(p, "wither_touch") && Math.random() < 0.15) {
+            if (plugin.getNationManager().hasMutation(p, "wither_touch") && ThreadLocalRandom.current().nextDouble() < 0.15) {
                 target.addPotionEffect(new PotionEffect(PotionEffectType.WITHER, 80, 0));
                 p.sendMessage(ChatColor.DARK_PURPLE + "💀 [Касание Нави] Цель иссушена!");
             }
 
             if (plugin.getNationManager().hasMutation(p, "blood_rage")) {
-                double hpPercent = p.getHealth() / p.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue();
+                AttributeInstance maxHpAttr3 = p.getAttribute(Attribute.GENERIC_MAX_HEALTH);
+                double maxHp3 = maxHpAttr3 != null ? maxHpAttr3.getValue() : 20.0;
+                double hpPercent = p.getHealth() / maxHp3;
                 if (hpPercent <= 0.30) {
                     e.setDamage(e.getDamage() * 1.30);
                 }
@@ -885,7 +891,9 @@ public class NationListener implements Listener {
             }
 
             if (plugin.getNationManager().hasMutation(victim, "sacred_shield")) {
-                double hpPercent = victim.getHealth() / victim.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue();
+                AttributeInstance maxHpAttr4 = victim.getAttribute(Attribute.GENERIC_MAX_HEALTH);
+                double maxHp4 = maxHpAttr4 != null ? maxHpAttr4.getValue() : 20.0;
+                double hpPercent = victim.getHealth() / maxHp4;
                 if (hpPercent <= 0.15) {
                     long lastShield = 0;
                     if (victim.hasMetadata("sacred_shield_time")) {
@@ -902,15 +910,19 @@ public class NationListener implements Listener {
 
             // [НОВОЕ] Ужас Чернобога (pagan_fear) - шанс 10% иссушить нападающего
             if (plugin.getNationManager().hasMutation(victim, "pagan_fear") && e.getDamager() instanceof LivingEntity) {
-                if (Math.random() < 0.10) {
+                if (ThreadLocalRandom.current().nextDouble() < 0.10) {
                     ((LivingEntity) e.getDamager()).addPotionEffect(new PotionEffect(PotionEffectType.WITHER, 80, 0));
                     victim.sendMessage(ChatColor.DARK_PURPLE + "💀 [Ужас Чернобога] Нападающий иссушен!");
                 }
             }
 
             // [НОВОЕ] Царское Терпение (imperial_patience) -10% урона при полном здоровье
-            if (plugin.getNationManager().hasMutation(victim, "imperial_patience") && victim.getHealth() >= victim.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue() - 0.5) {
-                e.setDamage(e.getDamage() * 0.90);
+            if (plugin.getNationManager().hasMutation(victim, "imperial_patience")) {
+                AttributeInstance maxHpAttr5 = victim.getAttribute(Attribute.GENERIC_MAX_HEALTH);
+                double maxHpVal5 = maxHpAttr5 != null ? maxHpAttr5.getValue() : 20.0;
+                if (victim.getHealth() >= maxHpVal5 - 0.5) {
+                    e.setDamage(e.getDamage() * 0.90);
+                }
             }
         }
     }
@@ -943,17 +955,21 @@ public class NationListener implements Listener {
                 new NamespacedKey(plugin, "national_item"), PersistentDataType.STRING
             );
             if ("pagan_sickle".equals(natId)) {
-                killer.setHealth(Math.min(killer.getHealth() + 1.0, killer.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue()));
+                AttributeInstance maxHpAttr6 = killer.getAttribute(Attribute.GENERIC_MAX_HEALTH);
+                double maxHp6 = maxHpAttr6 != null ? maxHpAttr6.getValue() : 20.0;
+                killer.setHealth(Math.min(killer.getHealth() + 1.0, maxHp6));
                 killer.sendMessage(ChatColor.GREEN + "🌾 [Жатва] Ритуальный серп восстановил вам 1 HP!");
                 killer.getWorld().spawnParticle(org.bukkit.Particle.HEART, killer.getLocation().add(0, 1.0, 0), 2, 0.2, 0.2, 0.2);
             }
         }
 
         if (plugin.getNationManager().hasMutation(killer, "vampiric_claws")) {
-            double maxHp = e.getEntity().getAttribute(Attribute.GENERIC_MAX_HEALTH) != null 
-                ? e.getEntity().getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue() : 20.0;
+            AttributeInstance victimMaxHpAttr = e.getEntity().getAttribute(Attribute.GENERIC_MAX_HEALTH);
+            double maxHp = victimMaxHpAttr != null ? victimMaxHpAttr.getValue() : 20.0;
             double heal = maxHp * 0.10;
-            killer.setHealth(Math.min(killer.getHealth() + heal, killer.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue()));
+            AttributeInstance killerMaxHpAttr = killer.getAttribute(Attribute.GENERIC_MAX_HEALTH);
+            double killerMaxHp = killerMaxHpAttr != null ? killerMaxHpAttr.getValue() : 20.0;
+            killer.setHealth(Math.min(killer.getHealth() + heal, killerMaxHp));
             killer.sendMessage(ChatColor.GREEN + "🩸 [Жертвенные Когти] Восстановлено +" + String.format("%.1f", heal) + " HP!");
             killer.getWorld().spawnParticle(org.bukkit.Particle.HEART, killer.getLocation().add(0, 1.5, 0), 3, 0.3, 0.3, 0.3);
         }
@@ -988,7 +1004,7 @@ public class NationListener implements Listener {
                 if (plugin.getNationManager().hasMutation(e.getPlayer(), "nature_regrowth")) {
                     if (e.getPlayer().getInventory().getItemInMainHand().getType() == org.bukkit.Material.AIR) {
                         org.bukkit.block.data.Ageable ageable = (org.bukkit.block.data.Ageable) b.getBlockData();
-                        if (ageable.getAge() < ageable.getMaximumAge() && Math.random() < 0.45) {
+                        if (ageable.getAge() < ageable.getMaximumAge() && ThreadLocalRandom.current().nextDouble() < 0.45) {
                             ageable.setAge(ageable.getMaximumAge());
                             b.setBlockData(ageable);
                             b.getWorld().spawnParticle(org.bukkit.Particle.VILLAGER_HAPPY, b.getLocation().add(0.5, 0.5, 0.5), 15, 0.3, 0.3, 0.3, 0.05);
@@ -1001,7 +1017,7 @@ public class NationListener implements Listener {
                 // Ур.5 «Цитадель»: мгновенный рост ферм владельцем (Shift+ПКМ).
                 int farmingLevel = plugin.getConfig().getInt("claim.farming-level", 5);
                 if (claim != null && claim.getDurability() > 0 && claim.getLevel() >= farmingLevel && claim.getOwner().equals(e.getPlayer().getUniqueId())) {
-                    if (e.getPlayer().isSneaking() && Math.random() < 0.3) {
+                    if (e.getPlayer().isSneaking() && ThreadLocalRandom.current().nextDouble() < 0.3) {
                         org.bukkit.block.data.Ageable ageable = (org.bukkit.block.data.Ageable) b.getBlockData();
                         if (ageable.getAge() < ageable.getMaximumAge()) {
                             ageable.setAge(ageable.getMaximumAge());
@@ -1021,7 +1037,9 @@ public class NationListener implements Listener {
         if (plugin.getNationManager().hasMutation(p, "herbal_healing")) {
             Material type = e.getItem().getType();
             if (type == Material.APPLE || type == Material.SWEET_BERRIES) {
-                p.setHealth(Math.min(p.getHealth() + 4.0, p.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue()));
+                AttributeInstance maxHpAttr7 = p.getAttribute(Attribute.GENERIC_MAX_HEALTH);
+                double maxHp7 = maxHpAttr7 != null ? maxHpAttr7.getValue() : 20.0;
+                p.setHealth(Math.min(p.getHealth() + 4.0, maxHp7));
                 p.sendMessage(ChatColor.GREEN + "🍎 [Целебные Травы] Восстановлено +4 HP!");
                 p.getWorld().spawnParticle(org.bukkit.Particle.HEART, p.getLocation().add(0, 1.5, 0), 2, 0.2, 0.2, 0.2);
             }

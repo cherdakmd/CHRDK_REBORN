@@ -2,6 +2,7 @@ package ru.example.vkchatmobs.managers;
 
 import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
+import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -112,13 +113,15 @@ public class MobStormManager implements Listener {
         mob.setCustomNameVisible(true);
         mob.setGlowing(true);
 
-        double maxHp = mob.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue();
-        mob.getAttribute(Attribute.GENERIC_MAX_HEALTH).setBaseValue(maxHp * multiplier);
-        mob.setHealth(mob.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue());
+        AttributeInstance hpAttr = mob.getAttribute(Attribute.GENERIC_MAX_HEALTH);
+        if (hpAttr == null) return;
+        double maxHp = hpAttr.getValue();
+        hpAttr.setBaseValue(maxHp * multiplier);
+        mob.setHealth(hpAttr.getValue());
 
-        if (mob.getAttribute(Attribute.GENERIC_ATTACK_DAMAGE) != null) {
-            mob.getAttribute(Attribute.GENERIC_ATTACK_DAMAGE).setBaseValue(
-                mob.getAttribute(Attribute.GENERIC_ATTACK_DAMAGE).getValue() * multiplier);
+        AttributeInstance dmgAttr = mob.getAttribute(Attribute.GENERIC_ATTACK_DAMAGE);
+        if (dmgAttr != null) {
+            dmgAttr.setBaseValue(dmgAttr.getValue() * multiplier);
         }
 
         mob.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 600, 1, true, false));

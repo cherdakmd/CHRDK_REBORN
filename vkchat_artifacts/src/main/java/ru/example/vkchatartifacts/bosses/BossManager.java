@@ -27,11 +27,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 import java.lang.reflect.Method;
 
 public class BossManager extends BukkitRunnable implements Listener {
     private final VKChatArtifactsPlugin plugin;
-    private final Random random = new Random();
     private final Map<java.util.UUID, Long> skillCooldowns = new HashMap<>();
     private static final long SKILL_COOLDOWN_MS = 5000L;
     
@@ -59,15 +59,15 @@ public class BossManager extends BukkitRunnable implements Listener {
         List<String> keys = new ArrayList<>(list.getKeys(false));
         if (keys.isEmpty()) return;
         
-        activeBossId = keys.get(random.nextInt(keys.size()));
+        activeBossId = keys.get(ThreadLocalRandom.current().nextInt(keys.size()));
         ConfigurationSection bossConfig = list.getConfigurationSection(activeBossId);
 
         World w = Bukkit.getWorld("world");
         if (w == null) return;
 
         int radius = plugin.getConfig().getInt("bosses.radius", 5000);
-        int x = random.nextInt(radius * 2) - radius;
-        int z = random.nextInt(radius * 2) - radius;
+        int x = ThreadLocalRandom.current().nextInt(radius * 2) - radius;
+        int z = ThreadLocalRandom.current().nextInt(radius * 2) - radius;
         int y = w.getHighestBlockYAt(x, z) + 1;
         Location spawnLoc = new Location(w, x, y, z);
         String name = ChatColor.translateAlternateColorCodes('&', bossConfig.getString("name", "Босс"));
@@ -139,9 +139,9 @@ public class BossManager extends BukkitRunnable implements Listener {
         Long lastSkill = skillCooldowns.get(bossUuid);
         if (lastSkill != null && (now - lastSkill) < SKILL_COOLDOWN_MS) return;
 
-        if (random.nextInt(100) < 20) {
+        if (ThreadLocalRandom.current().nextInt(100) < 20) {
             skillCooldowns.put(bossUuid, now);
-            String skill = skills.get(random.nextInt(skills.size()));
+            String skill = skills.get(ThreadLocalRandom.current().nextInt(skills.size()));
             
             switch (skill) {
                 case "MINIONS":
@@ -176,7 +176,7 @@ public class BossManager extends BukkitRunnable implements Listener {
                     p.sendMessage(ChatColor.DARK_GRAY + "Ты застрял в паутине!");
                     break;
                 case "TELEPORT":
-                    Location loc = activeBoss.getLocation().add(random.nextInt(10) - 5, 0, random.nextInt(10) - 5);
+                    Location loc = activeBoss.getLocation().add(ThreadLocalRandom.current().nextInt(10) - 5, 0, ThreadLocalRandom.current().nextInt(10) - 5);
                     activeBoss.teleport(loc);
                     break;
                 case "BLINDNESS":
@@ -215,7 +215,7 @@ public class BossManager extends BukkitRunnable implements Listener {
             e.getDrops().add(ru.example.vkchatartifacts.items.ConsumableFactory.generateReviveScroll(plugin));
 
             // Синтез Свиток шанс 30%
-            if (random.nextInt(100) < 30) {
+            if (ThreadLocalRandom.current().nextInt(100) < 30) {
                 org.bukkit.inventory.ItemStack synth = new org.bukkit.inventory.ItemStack(org.bukkit.Material.PAPER);
                 org.bukkit.inventory.meta.ItemMeta smeta = synth.getItemMeta();
                 smeta.setDisplayName(org.bukkit.ChatColor.translateAlternateColorCodes('&', "&d&l Свиток Синтеза"));
@@ -234,8 +234,8 @@ public class BossManager extends BukkitRunnable implements Listener {
 
 
             
-            if (random.nextInt(100) < dropChance) {
-                boolean isMythic = random.nextDouble() * 100 <= mythicChanceConfig;
+            if (ThreadLocalRandom.current().nextInt(100) < dropChance) {
+                boolean isMythic = ThreadLocalRandom.current().nextDouble() * 100 <= mythicChanceConfig;
                 org.bukkit.inventory.ItemStack artifact = ArtifactFactory.generateArtifact(plugin, isMythic);
                 e.getDrops().add(artifact);
                 
