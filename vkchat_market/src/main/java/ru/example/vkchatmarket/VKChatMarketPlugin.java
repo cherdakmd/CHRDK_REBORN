@@ -6,6 +6,7 @@ import ru.example.vkchatmarket.commands.MarketCommand;
 import ru.example.vkchatmarket.data.MarketFun;
 import ru.example.vkchatmarket.data.MarketManager;
 import ru.example.vkchatmarket.listeners.MarketGuiListener;
+import ru.example.vkchatmarket.listeners.VKRouletteListener;
 
 public class VKChatMarketPlugin extends JavaPlugin {
     private static VKChatMarketPlugin instance;
@@ -59,6 +60,7 @@ public class VKChatMarketPlugin extends JavaPlugin {
         getCommand("market").setExecutor(marketCmd);
         getCommand("market").setTabCompleter(marketCmd);
         getServer().getPluginManager().registerEvents(new MarketGuiListener(this), this);
+        getServer().getPluginManager().registerEvents(new VKRouletteListener(this), this);
 
         long interval = getConfig().getLong("settings.recovery-interval", 1200) * 20L;
         getServer().getScheduler().runTaskTimerAsynchronously(this, () -> marketManager.recoverMarket(), interval, interval);
