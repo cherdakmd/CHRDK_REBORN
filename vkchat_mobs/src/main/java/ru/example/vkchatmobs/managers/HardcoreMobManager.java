@@ -42,6 +42,8 @@ public class HardcoreMobManager implements Listener {
     private final NamespacedKey lastAbilityKey;
 
     private final Map<UUID, Long> rewardCooldowns = new ConcurrentHashMap<>();
+    private final Map<String, Long> vkMessageCooldowns = new ConcurrentHashMap<>();
+    private static final long VK_MSG_COOLDOWN_MS = 5000L; // 5 секунд между VK-сообщениями
 
     private static final String[] ARCHETYPES = {"tank", "assassin", "archer", "shaman", "necromancer", "hunter", "warlord", "berserker", "paladin", "ranger", "alchemist", "summoner", "guardian"};
     private static final String[] ELEMENTS = {"fire", "frost", "poison", "storm", "dark", "light", "void", "nature", "ice", "blood", "wind", "earth", "crystal"};
@@ -141,7 +143,14 @@ public class HardcoreMobManager implements Listener {
         if (tier.equals("raid") || tier.equals("world")) {
             String msg = ChatColor.DARK_RED + "☠ [ОХОТА] " + ChatColor.GOLD + strip(formatName(tier, archetype, element, mob)) + ChatColor.RED + " появился: X " + mob.getLocation().getBlockX() + " Z " + mob.getLocation().getBlockZ();
             Bukkit.broadcastMessage(msg);
-            try { VKChatPlugin.getInstance().getApi().sendToMainChat(ChatColor.stripColor(msg)); } catch (Throwable ignored) {}
+            // VK-сообщение с кулдауном
+            String vkKey = "hardcore_" + tier;
+            Long lastVk = vkMessageCooldowns.get(vkKey);
+            long now = System.currentTimeMillis();
+            if (lastVk == null || now - lastVk >= VK_MSG_COOLDOWN_MS) {
+                vkMessageCooldowns.put(vkKey, now);
+                try { VKChatPlugin.getInstance().getApi().sendToMainChat(ChatColor.stripColor(msg)); } catch (Throwable ignored) {}
+            }
         }
     }
 

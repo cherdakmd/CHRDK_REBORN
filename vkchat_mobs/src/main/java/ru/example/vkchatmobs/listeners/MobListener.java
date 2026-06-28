@@ -55,6 +55,16 @@ public class MobListener implements Listener {
     // Таймеры для способностей супер-боссов
     private final Map<String, Long> lastSpellTime = new ConcurrentHashMap<>();
 
+    // Антифарм боссов: глобальный кулдаун и отслеживание спавнов
+    private long lastSuperBossSpawnTime = 0L;
+    private static final long SUPER_BOSS_COOLDOWN_MS = 600000L; // 10 минут между супер-боссами
+    private final Map<String, Integer> recentSpawnCounts = new ConcurrentHashMap<>();
+    private final Map<String, Long> spawnCountResetTimes = new ConcurrentHashMap<>();
+
+    // Кулдаун VK-сообщений для боссов
+    private final Map<String, Long> vkMessageCooldowns = new ConcurrentHashMap<>();
+    private static final long VK_MSG_COOLDOWN_MS = 5000L; // 5 секунд между VK-сообщениями босса
+
     public MobListener(VKChatMobsPlugin plugin) {
         this.plugin = plugin;
         this.diffKey = new NamespacedKey(plugin, "difficulty_multiplier");
@@ -347,9 +357,33 @@ public class MobListener implements Listener {
         }
 
         // --- [НОВОЕ] РЕДКИЙ СПАВН МИРОВЫХ СУПЕР-БОССОВ (шанс 0.2%) ---
+        // Антифарм: глобальный кулдаун + проверка на мобофабрику
+        long now = System.currentTimeMillis();
         if (e.getSpawnReason() == CreatureSpawnEvent.SpawnReason.NATURAL && random.nextInt(1000) < 2) {
-            spawnSuperBoss(mob);
-            return;
+            // Глобальный кулдаун между супер-боссами
+            if (now - lastSuperBossSpawnTime < SUPER_BOSS_COOLDOWN_MS) {
+                // Too soon, skip boss spawn
+            } else {
+                // Проверка на мобофабрику: считаем спавны в радиусе 5 блоков за последние 10 секунд
+                String areaKey = mob.getWorld().getName() + ":" + (mob.getLocation().getBlockX() / 5) + ":" + (mob.getLocation().getBlockZ() / 5);
+                Integer count = recentSpawnCounts.getOrDefault(areaKey, 0);
+                recentSpawnCounts.put(areaKey, count + 1);
+
+                // Сброс счётчика каждые 10 секунд
+                Long resetTime = spawnCountResetTimes.getOrDefault(areaKey, 0L);
+                if (now - resetTime > 10000L) {
+                    recentSpawnCounts.put(areaKey, 1);
+                    spawnCountResetTimes.put(areaKey, now);
+                    count = 0;
+                }
+
+                // Если в зоне было >15 спавнов за 10 сек — это мобофабрика, не спавним босса
+                if (count < 15) {
+                    lastSuperBossSpawnTime = now;
+                    spawnSuperBoss(mob);
+                    return;
+                }
+            }
         }
 
         double radius = plugin.getConfig().getDouble("settings.search-radius", 64.0);
@@ -507,12 +541,23 @@ public class MobListener implements Listener {
         String alert = ChatColor.RED + "☠️ [МИРОВОЙ БОСС] " + ChatColor.GOLD + "" + ChatColor.BOLD + finalName + ChatColor.RED + " пробудился в мире " + ChatColor.YELLOW + world + ChatColor.RED + " на координатах " + ChatColor.AQUA + "X:" + x + " Z:" + z + ChatColor.RED + "! В бой!";
         Bukkit.broadcastMessage(alert);
         
-        try {
-            VKChatPlugin.getInstance().getApi().sendToMainChat(ChatColor.stripColor(alert));
-        } catch (Throwable ignored) {}
+        // VK-сообщение с кулдауном (не спамить если боссы спавнятся часто)
+        if (canSendVkMessage("super_boss_spawn")) {
+            try {
+                VKChatPlugin.getInstance().getApi().sendToMainChat(ChatColor.stripColor(alert));
+            } catch (Throwable ignored) {}
+        }
 
         mob.setCustomName(ChatColor.translateAlternateColorCodes('&', "&d&l☠ " + finalName + " ☠"));
         mob.setCustomNameVisible(true);
+    }
+
+    private boolean canSendVkMessage(String key) {
+        long now = System.currentTimeMillis();
+        Long last = vkMessageCooldowns.get(key);
+        if (last != null && now - last < VK_MSG_COOLDOWN_MS) return false;
+        vkMessageCooldowns.put(key, now);
+        return true;
     }
 
     private void updateNameplate(LivingEntity mob) {

@@ -24,6 +24,9 @@ public class StatsListener implements Listener {
     private final Map<UUID, Integer> killStreaks = new ConcurrentHashMap<>();
     // Серии смертей
     private final Map<UUID, Integer> deathStreaks = new ConcurrentHashMap<>();
+    // Кулдаун VK-сообщений для PvP
+    private long lastPvpVkMessage = 0L;
+    private static final long PVP_VK_MSG_COOLDOWN_MS = 10000L; // 10 секунд между PvP VK-сообщениями
 
     public StatsListener(VKChatPlugin plugin) {
         this.plugin = plugin;
@@ -175,12 +178,16 @@ public class StatsListener implements Listener {
             victim.playSound(victim.getLocation(), Sound.ENTITY_VILLAGER_DEATH, 1f, 0.8f);
         } catch (Exception ignored) {}
 
-        // ===== ВК СООБЩЕНИЕ =====
+        // ===== ВК СООБЩЕНИЕ (с кулдауном) =====
         String vkMsg = "⚔ " + killer.getName() + " убил " + victim.getName() + " (-" + actualLoss + " → +" + totalGain + " реп)";
         if (killStreak >= streakBonusThreshold) {
             vkMsg += " [Серия x" + killStreak + "]";
         }
-        plugin.getVkManager().sendToMainChat(vkMsg);
+        long nowVk = System.currentTimeMillis();
+        if (nowVk - lastPvpVkMessage >= PVP_VK_MSG_COOLDOWN_MS) {
+            lastPvpVkMessage = nowVk;
+            plugin.getVkManager().sendToMainChat(vkMsg);
+        }
 
         sendDeathMessage(victim, killer, e, repMsg);
     }
