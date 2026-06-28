@@ -50,6 +50,12 @@ public class MarketCommand implements CommandExecutor, TabCompleter {
         } else if (args.length > 0 && (args[0].equalsIgnoreCase("history") || args[0].equalsIgnoreCase("история"))) {
             p.sendMessage(org.bukkit.ChatColor.GOLD + "История рынка:");
             for (String line : plugin.getMarketManager().getHistoryTail(10)) p.sendMessage(org.bukkit.ChatColor.GRAY + "• " + line);
+        } else if (args.length > 0 && (args[0].equalsIgnoreCase("roulette") || args[0].equalsIgnoreCase("рулетка"))) {
+            plugin.getMarketFun().spinRoulette(p);
+        } else if (args.length > 0 && (args[0].equalsIgnoreCase("quest") || args[0].equalsIgnoreCase("квест"))) {
+            showQuestInfo(p);
+        } else if (args.length > 0 && (args[0].equalsIgnoreCase("flash") || args[0].equalsIgnoreCase("flashsale"))) {
+            showFlashSaleInfo(p);
         } else if (args.length > 0) {
             MarketGuiListener.openGui(plugin, p, args[0]);
         } else {
@@ -58,13 +64,40 @@ public class MarketCommand implements CommandExecutor, TabCompleter {
         return true;
     }
 
+    private void showQuestInfo(Player p) {
+        var fun = plugin.getMarketFun();
+        String info = fun.getQuestInfo();
+        p.sendMessage(org.bukkit.ChatColor.GOLD + "═══ 📋 Квест Дня ═══");
+        p.sendMessage(org.bukkit.ChatColor.YELLOW + info);
+        if (fun.isQuestCompleted(p.getName())) {
+            p.sendMessage(org.bukkit.ChatColor.GREEN + "✅ Вы уже выполнили квест!");
+        } else {
+            int progress = fun.getPlayerQuestProgress(p.getName());
+            p.sendMessage(org.bukkit.ChatColor.GRAY + "Прогресс: " + progress + "/" + fun.getQuestTarget());
+        }
+    }
+
+    private void showFlashSaleInfo(Player p) {
+        var fun = plugin.getMarketFun();
+        if (fun.getFlashSaleItemId() == null || System.currentTimeMillis() >= fun.getFlashSaleEndTime()) {
+            p.sendMessage(org.bukkit.ChatColor.GRAY + "Сейчас нет активных Flash Sale.");
+            return;
+        }
+        String name = plugin.getConfig().getString("items." + fun.getFlashSaleItemId() + ".name", fun.getFlashSaleItemId());
+        int percent = (int) (fun.getFlashSaleDiscount() * 100);
+        long remaining = (fun.getFlashSaleEndTime() - System.currentTimeMillis()) / 1000;
+        p.sendMessage(org.bukkit.ChatColor.LIGHT_PURPLE + "═══ ⚡ Flash Sale ═══");
+        p.sendMessage(org.bukkit.ChatColor.YELLOW + name + org.bukkit.ChatColor.LIGHT_PURPLE + " -" + percent + "%");
+        p.sendMessage(org.bukkit.ChatColor.GRAY + "Осталось: " + remaining + " сек.");
+    }
+
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String label, String[] args) {
         List<String> completions = new ArrayList<>();
         String last = args.length > 0 ? args[args.length - 1].toLowerCase() : "";
 
         if (args.length == 1) {
-            completions.addAll(Arrays.asList("spawnnpc", "trends", "тренды", "history", "история"));
+            completions.addAll(Arrays.asList("spawnnpc", "trends", "тренды", "history", "история", "roulette", "рулетка", "quest", "квест", "flash", "flashsale"));
         }
 
         return completions.stream().filter(s -> last.isEmpty() || s.toLowerCase().startsWith(last)).collect(Collectors.toList());

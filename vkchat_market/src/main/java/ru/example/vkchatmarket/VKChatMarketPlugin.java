@@ -3,12 +3,14 @@ package ru.example.vkchatmarket;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 import ru.example.vkchatmarket.commands.MarketCommand;
+import ru.example.vkchatmarket.data.MarketFun;
 import ru.example.vkchatmarket.data.MarketManager;
 import ru.example.vkchatmarket.listeners.MarketGuiListener;
 
 public class VKChatMarketPlugin extends JavaPlugin {
     private static VKChatMarketPlugin instance;
     private MarketManager marketManager;
+    private MarketFun marketFun;
 
 
     private void migrateConfigDefaults() {
@@ -51,6 +53,7 @@ public class VKChatMarketPlugin extends JavaPlugin {
         }
 
         marketManager = new MarketManager(this);
+        marketFun = new MarketFun(this);
         
         MarketCommand marketCmd = new MarketCommand(this);
         getCommand("market").setExecutor(marketCmd);
@@ -62,6 +65,12 @@ public class VKChatMarketPlugin extends JavaPlugin {
         
         // Каждые 30 минут запускаем проверку случайных событий на бирже
         getServer().getScheduler().runTaskTimer(this, () -> marketManager.checkForRandomEvent(), 1200L, 36000L);
+        
+        // Каждые 10 минут проверяем Flash Sale
+        getServer().getScheduler().runTaskTimer(this, () -> marketFun.checkFlashSale(), 1200L, 12000L);
+        
+        // Квест дня обновляется при старте
+        marketFun.ensureDailyQuest();
 
         getLogger().info("VKChatMarket успешно запущен!");
     }
@@ -79,5 +88,9 @@ public class VKChatMarketPlugin extends JavaPlugin {
 
     public MarketManager getMarketManager() {
         return marketManager;
+    }
+
+    public MarketFun getMarketFun() {
+        return marketFun;
     }
 }

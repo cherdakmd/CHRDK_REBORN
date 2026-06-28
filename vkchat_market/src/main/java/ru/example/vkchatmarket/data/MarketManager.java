@@ -1,38 +1,119 @@
 package ru.example.vkchatmarket.data;
 
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.Player;
 import ru.example.vkchatmarket.VKChatMarketPlugin;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ThreadLocalRandom;
 
+/**
+ * MarketManager v3.0 — Полная переработка экономики.
+ * 
+ * Модель: реальная кривая спроса/предложения с эластичностью.
+ * - Цена = base * supplyMultiplier * trendMultiplier * eventMultiplier
+ * - supplyMultiplier = Math.pow(0.95, stock / elasticity) — экспоненциальная кривая
+ * - Bid-ask спред: покупка дороже продажи на 15-30%
+ * - Анти-манипуляция: кулдаун на продажу того же предмета
+ * - Восстановление: постепенное, зависит от спроса
+ */
 public class MarketManager {
+    // Внутренний класс для рыночных событий
+    public static class MarketEvent {
+        public final String name;
+        public final String itemId; // "ALL" для глобальных
+        public final double multiplier;
+        public final long expireTime;
+        public final String category; // null = все категории
+
+        public MarketEvent(String name, String itemId, double multiplier, long durationMs) {
+            this.name = name;
+            this.itemId = itemId;
+            this.multiplier = multiplier;
+            this.expireTime = System.currentTimeMillis() + durationMs;
+            this.category = null;
+        }
+
+        public MarketEvent(String name, String itemId, double multiplier, long durationMs, String category) {
+            this.name = name;
+            this.itemId = itemId;
+            this.multiplier = multiplier;
+            this.expireTime = System.currentTimeMillis() + durationMs;
+            this.category = category;
+        }
+
+        public boolean isActive() { return System.currentTimeMillis() < expireTime; }
+        public boolean affects(String itemId, String itemCategory) {
+            if (!isActive()) return false;
+            if ("ALL".equals(this.itemId)) return true;
+            if (this.itemId.equals(itemId)) return true;
+            if (category != null && category.equals(itemCategory)) return true;
+            return false;
+        }
+    }
+
     private final VKChatMarketPlugin plugin;
     private File file;
     private FileConfiguration data;
-    
-    // Хранит количество проданных предметов (сток). Чем больше сток - тем ниже цена.
-    private final Map<String, Integer> stock = new ConcurrentHashMap<>();
-    private final Map<String, Double> dailyTrends = new ConcurrentHashMap<>();
-    private final Map<String, Integer> dailyVolume = new ConcurrentHashMap<>();
+
+    // Основные данные рынка
+    private final Map<String, Integer> stock = new ConcurrentHashMap<>();       // Текущий запас (полож = избыток, отриц = дефицит)
+    private final Map<String, Double> dailyTrends = new ConcurrentHashMap<>();  // Дневные тренды
+    private final Map<String, Integer> dailyVolume = new ConcurrentHashMap<>(); // Объём торгов за день
+    private final Map<String, Long> lastTradeTime = new ConcurrentHashMap<>(); // Кулдаун на торговлю
+    private final Map<String, Double> momentum = new ConcurrentHashMap<>();    // Моментум цены (ускорение)
+    private final Map<String, Integer> yesterdayVolume = new ConcurrentHashMap<>(); // Вчерашний объём
     private final java.util.List<String> history = new CopyOnWriteArrayList<>();
     private String trendDate = "";
+    private int marketCyclePhase = 0; // 0=normal, 1=boom, 2=bust
+    private long cycleEndTime = 0L;
 
-    // Экономические кризисы и события
-    private String activeEventName = null;
-    private String activeEventItemId = null;
-    private double activeEventMultiplier = 1.0;
-    private long activeEventExpireTime = 0L;
+    // Рыночные события (поддержка множественных)
+    private final java.util.List<MarketEvent> activeEvents = new CopyOnWriteArrayList<>();
 
-    public String getActiveEventName() { return activeEventName; }
-    public String getActiveEventItemId() { return activeEventItemId; }
-    public double getActiveEventMultiplier() { return activeEventMultiplier; }
-    public long getActiveEventExpireTime() { return activeEventExpireTime; }
+    // Совместимость со старым API
+    public String getActiveEventName() {
+        MarketEvent e = getStrongestEvent("ALL");
+        return e != null ? e.name : null;
+    }
+    public String getActiveEventItemId() {
+        MarketEvent e = getStrongestEvent("ALL");
+        return e != null ? e.itemId : null;
+    }
+    public double getActiveEventMultiplier() {
+        MarketEvent e = getStrongestEvent("ALL");
+        return e != null ? e.multiplier : 1.0;
+    }
+    public long getActiveEventExpireTime() {
+        MarketEvent e = getStrongestEvent("ALL");
+        return e != null ? e.expireTime : 0L;
+    }
+
+    public MarketEvent getStrongestEvent(String itemId) {
+        MarketEvent strongest = null;
+        for (MarketEvent e : activeEvents) {
+            if (e.isActive() && e.affects(itemId, null)) {
+                if (strongest == null || Math.abs(e.multiplier - 1.0) > Math.abs(strongest.multiplier - 1.0)) {
+                    strongest = e;
+                }
+            }
+        }
+        return strongest;
+    }
+
+    public java.util.List<MarketEvent> getActiveEvents() {
+        java.util.List<MarketEvent> result = new java.util.ArrayList<>();
+        for (MarketEvent e : activeEvents) {
+            if (e.isActive()) result.add(e);
+        }
+        return result;
+    }
 
     public MarketManager(VKChatMarketPlugin plugin) {
         this.plugin = plugin;
@@ -42,27 +123,48 @@ public class MarketManager {
     private void load() {
         file = new File(plugin.getDataFolder(), "market_data.yml");
         if (!file.exists()) {
-            try { file.createNewFile(); } catch (IOException ignored) {}
+            try { file.createNewFile(); } catch (IOException e) {
+                plugin.getLogger().warning("Не удалось создать market_data.yml: " + e.getMessage());
+            }
         }
         data = YamlConfiguration.loadConfiguration(file);
 
         if (data.contains("stock")) {
-            for (String item : data.getConfigurationSection("stock").getKeys(false)) {
-                stock.put(item, data.getInt("stock." + item));
+            ConfigurationSection sec = data.getConfigurationSection("stock");
+            if (sec != null) {
+                for (String item : sec.getKeys(false)) {
+                    stock.put(item, data.getInt("stock." + item));
+                }
             }
         }
         trendDate = data.getString("daily.date", today());
-        if (data.contains("daily.trends") && data.getConfigurationSection("daily.trends") != null) {
-            for (String item : data.getConfigurationSection("daily.trends").getKeys(false)) {
-                dailyTrends.put(item, data.getDouble("daily.trends." + item, 1.0));
+        if (data.contains("daily.trends")) {
+            ConfigurationSection sec = data.getConfigurationSection("daily.trends");
+            if (sec != null) {
+                for (String item : sec.getKeys(false)) {
+                    dailyTrends.put(item, data.getDouble("daily.trends." + item, 1.0));
+                }
             }
         }
-        if (data.contains("daily.volume") && data.getConfigurationSection("daily.volume") != null) {
-            for (String item : data.getConfigurationSection("daily.volume").getKeys(false)) {
-                dailyVolume.put(item, data.getInt("daily.volume." + item, 0));
+        if (data.contains("daily.volume")) {
+            ConfigurationSection sec = data.getConfigurationSection("daily.volume");
+            if (sec != null) {
+                for (String item : sec.getKeys(false)) {
+                    dailyVolume.put(item, data.getInt("daily.volume." + item, 0));
+                }
             }
         }
         history.addAll(data.getStringList("history"));
+        if (data.contains("momentum")) {
+            ConfigurationSection sec = data.getConfigurationSection("momentum");
+            if (sec != null) {
+                for (String item : sec.getKeys(false)) {
+                    momentum.put(item, data.getDouble("momentum." + item, 0.0));
+                }
+            }
+        }
+        marketCyclePhase = data.getInt("cycle.phase", 0);
+        cycleEndTime = data.getLong("cycle.endtime", 0L);
         ensureDailyTrends();
     }
 
@@ -73,12 +175,495 @@ public class MarketManager {
         }
         data.set("daily.date", trendDate);
         data.set("daily.trends", null);
-        for (Map.Entry<String, Double> entry : dailyTrends.entrySet()) data.set("daily.trends." + entry.getKey(), entry.getValue());
+        for (Map.Entry<String, Double> entry : dailyTrends.entrySet()) {
+            data.set("daily.trends." + entry.getKey(), entry.getValue());
+        }
         data.set("daily.volume", null);
-        for (Map.Entry<String, Integer> entry : dailyVolume.entrySet()) data.set("daily.volume." + entry.getKey(), entry.getValue());
-        data.set("history", history.subList(Math.max(0, history.size() - 80), history.size()));
-        try { data.save(file); } catch (IOException ignored) {}
+        for (Map.Entry<String, Integer> entry : dailyVolume.entrySet()) {
+            data.set("daily.volume." + entry.getKey(), entry.getValue());
+        }
+        int maxHistory = plugin.getConfig().getInt("market2.history.max-entries", 100);
+        data.set("history", history.subList(Math.max(0, history.size() - maxHistory), history.size()));
+        data.set("momentum", null);
+        for (Map.Entry<String, Double> entry : momentum.entrySet()) {
+            data.set("momentum." + entry.getKey(), entry.getValue());
+        }
+        data.set("cycle.phase", marketCyclePhase);
+        data.set("cycle.endtime", cycleEndTime);
+        try { data.save(file); } catch (IOException e) {
+            plugin.getLogger().warning("Не удалось сохранить market_data.yml: " + e.getMessage());
+        }
     }
+
+    // ========================================
+    // ЦЕНООБРАЗОВАНИЕ v3.0
+    // ========================================
+
+    /**
+     * Текущая цена ПРОДАЖИ (игрок продаёт рынку).
+     * Формула: base * supplyMult * trendMult * eventMult * momentumMult * cycleMult
+     * 
+     * supplyMult = Math.pow(0.95, stock / elasticity)
+     * - stock > 0 (избыток) → цена падает
+     * - stock < 0 (дефицит) → цена растёт
+     * - elasticity определяет, насколько чувствительна цена
+     */
+    public double getCurrentPrice(String itemId) {
+        double base = plugin.getConfig().getDouble("items." + itemId + ".base-price", 10.0);
+        double min = plugin.getConfig().getDouble("items." + itemId + ".min-price", 1.0);
+        double maxMult = plugin.getConfig().getDouble("items." + itemId + ".max-multiplier", 5.0);
+        double elasticity = plugin.getConfig().getDouble("items." + itemId + ".elasticity", 100.0);
+        int currentStock = stock.getOrDefault(itemId, 0);
+
+        // Экспоненциальная кривая спроса/предложения
+        double supplyMult;
+        if (elasticity <= 0) elasticity = 100.0;
+        supplyMult = Math.pow(0.95, (double) currentStock / elasticity);
+
+        // Ограничиваем множитель
+        supplyMult = Math.max(0.1, Math.min(maxMult, supplyMult));
+
+        double price = base * supplyMult;
+
+        // Дневной тренд
+        price *= getTrendMultiplier(itemId);
+
+        // Моментум (каждый предмет двигает цену на trade-impact %)
+        double mom = momentum.getOrDefault(itemId, 0.0);
+        price *= (1.0 + mom);
+
+        // Рыночные события (суммируем все активные)
+        double eventMult = 1.0;
+        for (MarketEvent e : getActiveEvents()) {
+            if (e.affects(itemId, plugin.getConfig().getString("items." + itemId + ".category", ""))) {
+                eventMult *= e.multiplier;
+            }
+        }
+        price *= eventMult;
+
+        // Цикл рынка (бум/крах)
+        if (marketCyclePhase == 1) price *= 1.3; // бум
+        else if (marketCyclePhase == 2) price *= 0.7; // крах
+
+        // Округляем до 2 знаков
+        return Math.max(min, Math.round(price * 100.0) / 100.0);
+    }
+
+    /**
+     * Цена ПОКУПКИ (игрок покупает у рынка).
+     * Всегда дороже продажи на величину спреда.
+     */
+    public double getBuyPrice(String itemId) {
+        double sellPrice = getCurrentPrice(itemId);
+        double spread = plugin.getConfig().getDouble("settings.buy-spread", 0.20);
+        return Math.round(sellPrice * (1.0 + spread) * 100.0) / 100.0;
+    }
+
+    /**
+     * Рассчитать стоимость покупки N предметов.
+     * Каждый следующий предмет дороже (рост спроса).
+     */
+    public double calculateBulkBuyPrice(String itemId, int amount) {
+        double total = 0;
+        int currentStock = stock.getOrDefault(itemId, 0);
+        double base = plugin.getConfig().getDouble("items." + itemId + ".base-price", 10.0);
+        double min = plugin.getConfig().getDouble("items." + itemId + ".min-price", 1.0);
+        double maxMult = plugin.getConfig().getDouble("items." + itemId + ".max-multiplier", 5.0);
+        double elasticity = plugin.getConfig().getDouble("items." + itemId + ".elasticity", 100.0);
+        double spread = plugin.getConfig().getDouble("settings.buy-spread", 0.20);
+        double mom = momentum.getOrDefault(itemId, 0.0);
+
+        if (elasticity <= 0) elasticity = 100.0;
+
+        for (int i = 0; i < amount; i++) {
+            int virtualStock = currentStock - i; // Сток уменьшается с каждой покупкой
+            double supplyMult = Math.pow(0.95, (double) virtualStock / elasticity);
+            supplyMult = Math.max(0.1, Math.min(maxMult, supplyMult));
+            double price = base * supplyMult;
+            price *= getTrendMultiplier(itemId);
+            price *= (1.0 + mom);
+            // События
+            double eventMult = 1.0;
+            for (MarketEvent e : getActiveEvents()) {
+                if (e.affects(itemId, null)) eventMult *= e.multiplier;
+            }
+            price *= eventMult;
+            if (marketCyclePhase == 1) price *= 1.3;
+            else if (marketCyclePhase == 2) price *= 0.7;
+            price = Math.max(min, price);
+            total += price * (1.0 + spread);
+        }
+
+        return Math.round(total * 100.0) / 100.0;
+    }
+
+    /**
+     * Рассчитать выручку от продажи N предметов.
+     * Каждый следующий предмет дешевле (рост предложения).
+     */
+    public double calculateBulkSellPrice(String itemId, int amount) {
+        double total = 0;
+        int currentStock = stock.getOrDefault(itemId, 0);
+        double base = plugin.getConfig().getDouble("items." + itemId + ".base-price", 10.0);
+        double min = plugin.getConfig().getDouble("items." + itemId + ".min-price", 1.0);
+        double maxMult = plugin.getConfig().getDouble("items." + itemId + ".max-multiplier", 5.0);
+        double elasticity = plugin.getConfig().getDouble("items." + itemId + ".elasticity", 100.0);
+        double sellSpread = plugin.getConfig().getDouble("settings.sell-spread", 0.10);
+        double mom = momentum.getOrDefault(itemId, 0.0);
+
+        if (elasticity <= 0) elasticity = 100.0;
+
+        for (int i = 0; i < amount; i++) {
+            int virtualStock = currentStock + i; // Сток увеличивается с каждой продажей
+            double supplyMult = Math.pow(0.95, (double) virtualStock / elasticity);
+            supplyMult = Math.max(0.1, Math.min(maxMult, supplyMult));
+            double price = base * supplyMult;
+            price *= getTrendMultiplier(itemId);
+            price *= (1.0 + mom);
+            // События
+            double eventMult = 1.0;
+            for (MarketEvent e : getActiveEvents()) {
+                if (e.affects(itemId, null)) eventMult *= e.multiplier;
+            }
+            price *= eventMult;
+            if (marketCyclePhase == 1) price *= 1.3;
+            else if (marketCyclePhase == 2) price *= 0.7;
+            price = Math.max(min, price);
+            total += price * (1.0 - sellSpread);
+        }
+
+        return Math.round(total * 100.0) / 100.0;
+    }
+
+    // ========================================
+    // ТОРГОВЫЕ ОПЕРАЦИИ
+    // ========================================
+
+    /**
+     * Проверить, можно ли торговать (анти-спам).
+     */
+    public boolean canTrade(String itemId, Player player) {
+        long cooldownMs = plugin.getConfig().getLong("settings.trade-cooldown-ms", 500);
+        long now = System.currentTimeMillis();
+        String key = itemId + ":" + player.getUniqueId();
+        Long last = lastTradeTime.get(key);
+        if (last != null && now - last < cooldownMs) return false;
+        lastTradeTime.put(key, now);
+        return true;
+    }
+
+    /**
+     * Продать предметы рынку.
+     */
+    public int sellItems(String itemId, int amount, double donorMultiplier) {
+        int maxStock = plugin.getConfig().getInt("items." + itemId + ".max-stock", 5000);
+        int current = stock.getOrDefault(itemId, 0);
+
+        // Проверяем лимит стока
+        int canAccept = Math.max(0, maxStock - current);
+        int actualAmount = Math.min(amount, canAccept);
+
+        if (actualAmount <= 0) return 0;
+
+        stock.put(itemId, current + actualAmount);
+        double totalPrice = calculateBulkSellPrice(itemId, actualAmount) * donorMultiplier;
+        int repToGive = Math.max(1, (int) Math.round(totalPrice));
+
+        // Обновляем моментум (продажа давит на цену)
+        // Каждый предмет понижает цену на trade-impact %
+        double mom = momentum.getOrDefault(itemId, 0.0);
+        double tradeImpact = plugin.getConfig().getDouble("market2.trade-impact", 0.05);
+        double impact = actualAmount * tradeImpact;
+        momentum.put(itemId, Math.max(-2.0, mom - impact));
+
+        recordTrade(itemId, actualAmount, "sell");
+        return repToGive;
+    }
+
+    /**
+     * Купить предметы у рынка.
+     */
+    public int buyItems(String itemId, int amount, double donorMultiplier) {
+        int current = stock.getOrDefault(itemId, 0);
+        int minStock = plugin.getConfig().getInt("items." + itemId + ".min-stock", -200);
+
+        // Проверяем доступность
+        int canProvide = Math.max(0, current - minStock);
+        int actualAmount = Math.min(amount, canProvide);
+
+        if (actualAmount <= 0) return -1; // Нет в наличии
+
+        stock.put(itemId, current - actualAmount);
+        double totalPrice = calculateBulkBuyPrice(itemId, actualAmount) * donorMultiplier;
+        int repToCharge = Math.max(1, (int) Math.round(totalPrice));
+
+        // Обновляем моментум (покупка толкает цену вверх)
+        // Каждый предмет повышает цену на trade-impact %
+        double mom = momentum.getOrDefault(itemId, 0.0);
+        double tradeImpact = plugin.getConfig().getDouble("market2.trade-impact", 0.05);
+        double impact = actualAmount * tradeImpact;
+        momentum.put(itemId, Math.min(2.0, mom + impact));
+
+        recordTrade(itemId, actualAmount, "buy");
+        return repToCharge;
+    }
+
+    // ========================================
+    // ВОССТАНОВЛЕНИЕ РЫНКА
+    // ========================================
+
+    /**
+     * Постепенное восстановление рынка.
+     * Сток стремится к 0 (равновесие).
+     * Моментум затухает со временем.
+     */
+    public void recoverMarket() {
+        if (!plugin.getConfig().contains("items")) return;
+
+        for (String itemId : plugin.getConfig().getConfigurationSection("items").getKeys(false)) {
+            int current = stock.getOrDefault(itemId, 0);
+            if (current == 0) continue;
+
+            int recoveryRate = plugin.getConfig().getInt("items." + itemId + ".recovery-rate", 5);
+            double recoveryMultiplier = plugin.getConfig().getDouble("market2.recovery-multiplier", 1.0);
+
+            int recovery = (int) Math.max(1, Math.round(recoveryRate * recoveryMultiplier));
+
+            if (current > 0) {
+                // Избыток → уменьшаем сток
+                stock.put(itemId, Math.max(0, current - recovery));
+            } else {
+                // Дефицит → увеличиваем сток (но не выше 0)
+                stock.put(itemId, Math.min(0, current + recovery));
+            }
+
+            // Затухание моментума
+            double mom = momentum.getOrDefault(itemId, 0.0);
+            if (Math.abs(mom) > 0.01) {
+                momentum.put(itemId, mom * 0.9); // 10% затухание
+            } else {
+                momentum.remove(itemId);
+            }
+        }
+
+        // Проверяем цикл рынка
+        checkMarketCycle();
+
+        saveAll();
+    }
+
+    /**
+     * Проверка и обновление рыночного цикла.
+     * Рынок цикличен: бум → нормализация → крах → восстановление.
+     */
+    private void checkMarketCycle() {
+        long now = System.currentTimeMillis();
+        if (now < cycleEndTime) return;
+
+        double cycleChance = plugin.getConfig().getDouble("market2.cycle.chance", 0.05);
+        if (ThreadLocalRandom.current().nextDouble() >= cycleChance) return;
+
+        // Определяем новую фазу
+        int oldPhase = marketCyclePhase;
+        if (marketCyclePhase == 0) {
+            // Нормальная → бум или крах
+            marketCyclePhase = ThreadLocalRandom.current().nextBoolean() ? 1 : 2;
+        } else {
+            // Возврат к норме
+            marketCyclePhase = 0;
+        }
+
+        long durationMs = plugin.getConfig().getLong("market2.cycle.duration-ms", 1800000); // 30 мин
+        cycleEndTime = now + durationMs;
+
+        String msg;
+        if (marketCyclePhase == 1) {
+            msg = "📈 [Биржа] Экономический БУМ! Все цены +30%!";
+        } else if (marketCyclePhase == 2) {
+            msg = "📉 [Биржа] Рыночный КРАХ! Все цены -30%!";
+        } else {
+            msg = "➡ [Биржа] Рынок стабилизировался.";
+        }
+
+        org.bukkit.Bukkit.broadcastMessage(org.bukkit.ChatColor.GOLD + msg);
+        addHistory("🔄 Цикл рынка: " + (marketCyclePhase == 1 ? "БУМ" : marketCyclePhase == 2 ? "КРАХ" : "НОРМА"));
+    }
+
+    // ========================================
+    // ДНЕВНЫЕ ТРЕНДЫ
+    // ========================================
+
+    public synchronized void ensureDailyTrends() {
+        String now = today();
+        if (now.equals(trendDate) && !dailyTrends.isEmpty()) return;
+        trendDate = now;
+        dailyTrends.clear();
+        dailyVolume.clear();
+
+        if (plugin.getConfig().getConfigurationSection("items") == null) return;
+
+        double min = plugin.getConfig().getDouble("market2.trends.min-multiplier", 0.60);
+        double max = plugin.getConfig().getDouble("market2.trends.max-multiplier", 1.80);
+
+        for (String itemId : plugin.getConfig().getConfigurationSection("items").getKeys(false)) {
+            // Нормальное распределение вокруг 1.0
+            double roll = ThreadLocalRandom.current().nextGaussian() * 0.2 + 1.0;
+            roll = Math.max(min, Math.min(max, roll));
+            dailyTrends.put(itemId, Math.round(roll * 100.0) / 100.0);
+        }
+
+        addHistory("📊 Новый торговый день: тренды обновлены.");
+        saveAll();
+    }
+
+    public double getTrendMultiplier(String itemId) {
+        ensureDailyTrends();
+        return dailyTrends.getOrDefault(itemId, 1.0);
+    }
+
+    public String getTrendLabel(String itemId) {
+        double m = getTrendMultiplier(itemId);
+        if (m >= 1.60) return "🔥 АЖИОТАЖ x" + String.format("%.2f", m);
+        if (m >= 1.30) return "📈 Высокий спрос x" + String.format("%.2f", m);
+        if (m >= 1.10) return "↗ Рост x" + String.format("%.2f", m);
+        if (m <= 0.40) return "💀 КРИЗИС x" + String.format("%.2f", m);
+        if (m <= 0.60) return "📉 Обвал x" + String.format("%.2f", m);
+        if (m <= 0.85) return "↘ Скидка x" + String.format("%.2f", m);
+        return "➡ Стабильно x" + String.format("%.2f", m);
+    }
+
+    // ========================================
+    // РЫНОЧНЫЕ СОБЫТИЯ (РАСШИРЕННЫЕ)
+    // ========================================
+
+    public void checkForRandomEvent() {
+        // Очищаем истёкшие события
+        activeEvents.removeIf(e -> !e.isActive());
+
+        // Проверяем, не слишком ли много событий
+        int maxEvents = plugin.getConfig().getInt("market2.events.max-concurrent", 3);
+        if (activeEvents.size() >= maxEvents) return;
+
+        double eventChance = plugin.getConfig().getDouble("market2.events.chance", 0.15);
+        if (ThreadLocalRandom.current().nextDouble() >= eventChance) return;
+
+        if (plugin.getConfig().getConfigurationSection("items") == null) return;
+
+        List<String> items = new ArrayList<>(plugin.getConfig().getConfigurationSection("items").getKeys(false));
+        if (items.isEmpty()) return;
+
+        // Выбираем случайный предмет для события
+        String targetItem = items.get(ThreadLocalRandom.current().nextInt(items.size()));
+
+        // Определяем тип события (расширенный список)
+        int eventType = ThreadLocalRandom.current().nextInt(12);
+        String msg;
+        long duration;
+        MarketEvent newEvent;
+
+        switch (eventType) {
+            case 0: // Дефицит
+                newEvent = new MarketEvent("⚠️ Дефицит: " + getItemName(targetItem), targetItem, 2.5,
+                        plugin.getConfig().getLong("market2.events.duration-ms", 600000));
+                msg = "🚨 [Биржа] " + newEvent.name + "! Спрос критический! Цена x2.5!";
+                stock.put(targetItem, Math.max(-100, stock.getOrDefault(targetItem, 0) - 50));
+                break;
+
+            case 1: // Избыток
+                newEvent = new MarketEvent("📦 Избыток: " + getItemName(targetItem), targetItem, 0.4,
+                        plugin.getConfig().getLong("market2.events.duration-ms", 600000));
+                msg = "📉 [Биржа] " + newEvent.name + "! Рынок переполнен! Цена x0.4!";
+                stock.put(targetItem, stock.getOrDefault(targetItem, 0) + 100);
+                break;
+
+            case 2: // Золотая лихорадка
+                newEvent = new MarketEvent("⛏️ Золотая Лихорадка", "GOLD_INGOT", 3.0,
+                        plugin.getConfig().getLong("market2.events.duration-ms", 600000));
+                msg = "🚨 [Биржа] Золотая Лихорадка! Скупщики платят x3 за золото!";
+                stock.put("GOLD_INGOT", Math.max(-100, stock.getOrDefault("GOLD_INGOT", 0) - 30));
+                break;
+
+            case 3: // Энергетический кризис
+                newEvent = new MarketEvent("🔌 Энергетический Кризис", "COAL", 4.0,
+                        plugin.getConfig().getLong("market2.events.duration-ms", 600000));
+                msg = "🚨 [Биржа] Энергетический Кризис! Уголь в дефиците! Цена x4!";
+                stock.put("COAL", Math.max(-100, stock.getOrDefault("COAL", 0) - 80));
+                break;
+
+            case 4: // Строительный бум
+                newEvent = new MarketEvent("🏗 Строительный Бум", "ALL", 1.5,
+                        plugin.getConfig().getLong("market2.events.duration-ms", 600000));
+                msg = "🏗 [Биржа] Строительный Бум! Все цены продажи +50%!";
+                break;
+
+            case 5: // Рыночный обвал
+                newEvent = new MarketEvent("💥 Рыночный Обвал", "ALL", 0.5,
+                        plugin.getConfig().getLong("market2.events.duration-ms", 600000));
+                msg = "💥 [Биржа] Рыночный Обвал! Все цены -50%!";
+                break;
+
+            case 6: // Алмазная лихорадка
+                newEvent = new MarketEvent("💎 Алмазная Лихорадка", "DIAMOND", 2.8,
+                        plugin.getConfig().getLong("market2.events.duration-ms", 600000));
+                msg = "💎 [Биржа] Алмазная Лихорадка! Спрос на алмазы x2.8!";
+                stock.put("DIAMOND", Math.max(-100, stock.getOrDefault("DIAMOND", 0) - 40));
+                break;
+
+            case 7: // Голод
+                newEvent = new MarketEvent("🍞 Голод", "ALL", 1.8,
+                        plugin.getConfig().getLong("market2.events.duration-ms", 600000), "еда");
+                msg = "🍞 [Биржа] Голод! Цены на еду x1.8!";
+                break;
+
+            case 8: // Война (мобы дорожают)
+                newEvent = new MarketEvent("⚔️ Война", "ALL", 2.0,
+                        plugin.getConfig().getLong("market2.events.duration-ms", 600000), "мобы");
+                msg = "⚔️ [Биржа] Война! Лут мобов в цене x2.0!";
+                break;
+
+            case 9: // Мирный договор
+                newEvent = new MarketEvent("🕊 Мирный Договор", "ALL", 0.6,
+                        plugin.getConfig().getLong("market2.events.duration-ms", 600000), "мобы");
+                msg = "🕊 [Биржа] Мирный Договор! Лут мобов подешевел x0.6!";
+                break;
+
+            case 10: // Лесной пожар
+                newEvent = new MarketEvent("🔥 Лесной Пожар", "ALL", 2.5,
+                        plugin.getConfig().getLong("market2.events.duration-ms", 600000), "дерево");
+                msg = "🔥 [Биржа] Лесной Пожар! Дерево в дефиците x2.5!";
+                break;
+
+            case 11: // Технологический прорыв
+                newEvent = new MarketEvent("🔬 Технологический Прорыв", "REDSTONE", 3.5,
+                        plugin.getConfig().getLong("market2.events.duration-ms", 600000));
+                msg = "🔬 [Биржа] Технологический Прорыв! Редстоун x3.5!";
+                stock.put("REDSTONE", Math.max(-100, stock.getOrDefault("REDSTONE", 0) - 60));
+                break;
+
+            default:
+                return;
+        }
+
+        activeEvents.add(newEvent);
+        org.bukkit.Bukkit.broadcastMessage(org.bukkit.ChatColor.GOLD + msg);
+        addHistory("⚡ Событие: " + newEvent.name + " x" + newEvent.multiplier);
+        saveAll();
+    }
+
+    private boolean isEventActive(String itemId) {
+        for (MarketEvent e : activeEvents) {
+            if (e.isActive() && e.affects(itemId, null)) return true;
+        }
+        return false;
+    }
+
+    private String getItemName(String itemId) {
+        return plugin.getConfig().getString("items." + itemId + ".name", itemId);
+    }
+
+    // ========================================
+    // УТИЛИТЫ
+    // ========================================
 
     public int getStock(String itemId) {
         return stock.getOrDefault(itemId, 0);
@@ -100,138 +685,6 @@ public class MarketManager {
         return ((getCurrentPrice(itemId) - base) / base) * 100.0;
     }
 
-    public double getCurrentPrice(String itemId) {
-        double base = plugin.getConfig().getDouble("items." + itemId + ".base-price", 10.0);
-        double min = plugin.getConfig().getDouble("items." + itemId + ".min-price", 1.0);
-        double drop = plugin.getConfig().getDouble("items." + itemId + ".drop-per-item", 0.01);
-        int currentStock = stock.getOrDefault(itemId, 0);
-        int scarcityThreshold = plugin.getConfig().getInt("items." + itemId + ".scarcity-threshold", 0);
-        
-        double price;
-        if (currentStock <= 0) {
-            // Дефицит: цена резко растёт
-            double spikeMult = plugin.getConfig().getDouble("market2.scarcity.price-spike-multiplier", 3.0);
-            price = base * spikeMult;
-        } else if (scarcityThreshold > 0 && currentStock <= scarcityThreshold) {
-            // Близко к дефициту: цена растёт экспоненциально
-            double ratio = (double) currentStock / scarcityThreshold;
-            double spikeMult = plugin.getConfig().getDouble("market2.scarcity.price-spike-multiplier", 3.0);
-            price = base + (base * (spikeMult - 1.0) * (1.0 - ratio));
-        } else {
-            // Обычная формула: цена падает с ростом стока
-            price = base - (currentStock * drop);
-        }
-        
-        // Защита от космических цен
-        double maxPrice = base * 5.0;
-        price = Math.max(min, Math.min(maxPrice, price));
-        
-        // Дневной тренд
-        price *= getTrendMultiplier(itemId);
-        
-        // Рыночное событие
-        if ((itemId.equals(activeEventItemId) || "ALL".equals(activeEventItemId)) && System.currentTimeMillis() < activeEventExpireTime) {
-            price *= activeEventMultiplier;
-        }
-        
-        return Math.round(price * 100.0) / 100.0;
-    }
-
-    public double calculateBulkPrice(String itemId, int amount) {
-        double base = plugin.getConfig().getDouble("items." + itemId + ".base-price", 10.0);
-        double min = plugin.getConfig().getDouble("items." + itemId + ".min-price", 1.0);
-        double drop = plugin.getConfig().getDouble("items." + itemId + ".drop-per-item", 0.01);
-        int currentStock = stock.getOrDefault(itemId, 0);
-        
-        double total = 0;
-        for (int i = 0; i < amount; i++) {
-            double price = base - ((currentStock + i) * drop);
-            price = Math.max(min, Math.min(base * 4.0, price));
-            price *= getTrendMultiplier(itemId);
-            
-            if ((itemId.equals(activeEventItemId) || "ALL".equals(activeEventItemId)) && System.currentTimeMillis() < activeEventExpireTime) {
-                price *= activeEventMultiplier;
-            }
-            total += price;
-        }
-        return total;
-    }
-
-    public double calculateBulkBuyPrice(String itemId, int amount) {
-        double base = plugin.getConfig().getDouble("items." + itemId + ".base-price", 10.0);
-        double min = plugin.getConfig().getDouble("items." + itemId + ".min-price", 1.0);
-        double drop = plugin.getConfig().getDouble("items." + itemId + ".drop-per-item", 0.01);
-        int currentStock = stock.getOrDefault(itemId, 0);
-        
-        double total = 0;
-        for (int i = 0; i < amount; i++) {
-            int virtualStock = currentStock - i;
-            double price = base - (virtualStock * drop);
-            price = Math.max(min, Math.min(base * 4.0, price));
-            price *= getTrendMultiplier(itemId);
-            
-            if ((itemId.equals(activeEventItemId) || "ALL".equals(activeEventItemId)) && System.currentTimeMillis() < activeEventExpireTime) {
-                price *= activeEventMultiplier;
-            }
-            // Спред/комиссия для защиты от накрутки
-            double buySpread = plugin.getConfig().getDouble("settings.buy-spread", 0.15);
-            total += price * (1.0 + buySpread);
-        }
-        return total;
-    }
-
-    public void addStock(String itemId, int amount) {
-        int maxStock = plugin.getConfig().getInt("items." + itemId + ".max-stock", 5000);
-        int current = stock.getOrDefault(itemId, 0);
-        stock.put(itemId, Math.min(maxStock, current + amount));
-        recordTrade(itemId, amount, "sell");
-    }
-
-    public void removeStock(String itemId, int amount) {
-        // Минимальный сток -500 для защиты от космических цен
-        int current = stock.getOrDefault(itemId, 0);
-        stock.put(itemId, Math.max(-500, current - amount));
-        recordTrade(itemId, amount, "buy");
-    }
-
-
-    private String today() {
-        return new java.text.SimpleDateFormat("yyyyMMdd").format(new java.util.Date());
-    }
-
-    public synchronized void ensureDailyTrends() {
-        String now = today();
-        if (now.equals(trendDate) && !dailyTrends.isEmpty()) return;
-        trendDate = now;
-        dailyTrends.clear();
-        dailyVolume.clear();
-        if (plugin.getConfig().getConfigurationSection("items") == null) return;
-        double min = plugin.getConfig().getDouble("market2.trends.min-multiplier", 0.75);
-        double max = plugin.getConfig().getDouble("market2.trends.max-multiplier", 1.35);
-        for (String itemId : plugin.getConfig().getConfigurationSection("items").getKeys(false)) {
-            double roll = min + ThreadLocalRandom.current().nextDouble() * Math.max(0.01, max - min);
-            dailyTrends.put(itemId, Math.round(roll * 100.0) / 100.0);
-        }
-        addHistory("Новый торговый день: обновлены тренды цен.");
-        saveAll();
-    }
-
-    public double getTrendMultiplier(String itemId) {
-        ensureDailyTrends();
-        return dailyTrends.getOrDefault(itemId, 1.0);
-    }
-
-    public String getTrendLabel(String itemId) {
-        double m = getTrendMultiplier(itemId);
-        if (m >= 1.80) return "🔥 АЖИОТАЖ x" + String.format(java.util.Locale.US, "%.2f", m);
-        if (m >= 1.40) return "📈 Высокий спрос x" + String.format(java.util.Locale.US, "%.2f", m);
-        if (m >= 1.10) return "↗ Спрос x" + String.format(java.util.Locale.US, "%.2f", m);
-        if (m <= 0.50) return "💀 КРИЗИС x" + String.format(java.util.Locale.US, "%.2f", m);
-        if (m <= 0.70) return "📉 Переизбыток x" + String.format(java.util.Locale.US, "%.2f", m);
-        if (m <= 0.90) return "↘ Скидка x" + String.format(java.util.Locale.US, "%.2f", m);
-        return "➡ Стабильно x" + String.format(java.util.Locale.US, "%.2f", m);
-    }
-
     public int getDailyVolume(String itemId) {
         ensureDailyTrends();
         return dailyVolume.getOrDefault(itemId, 0);
@@ -239,16 +692,18 @@ public class MarketManager {
 
     public void recordTrade(String itemId, int amount, String type) {
         ensureDailyTrends();
-        dailyVolume.put(itemId, dailyVolume.getOrDefault(itemId, 0) + Math.max(0, amount));
-        if (amount >= plugin.getConfig().getInt("market2.history.min-volume-log", 64)) {
-            addHistory(type + " " + itemId + " x" + amount + " trend=" + getTrendLabel(itemId));
+        dailyVolume.put(itemId, dailyVolume.getOrDefault(itemId, 0) + amount);
+        int logThreshold = plugin.getConfig().getInt("market2.history.min-volume-log", 16);
+        if (amount >= logThreshold) {
+            addHistory(type.equals("sell") ? "📤" : "📥" + " " + itemId + " x" + amount + " " + getTrendLabel(itemId));
         }
     }
 
-    private void addHistory(String line) {
+    public void addHistory(String line) {
         String stamp = new java.text.SimpleDateFormat("dd.MM HH:mm").format(new java.util.Date());
         history.add(stamp + " — " + line);
-        while (history.size() > 80) history.remove(0);
+        int maxHistory = plugin.getConfig().getInt("market2.history.max-entries", 100);
+        while (history.size() > maxHistory) history.remove(0);
     }
 
     public java.util.List<String> getHistoryTail(int limit) {
@@ -266,179 +721,43 @@ public class MarketManager {
 
     public java.util.List<String> getRotatedLimitedItems() {
         java.util.List<String> all = new java.util.ArrayList<>();
-        if (plugin.getConfig().getConfigurationSection("limited-items") != null) all.addAll(plugin.getConfig().getConfigurationSection("limited-items").getKeys(false));
+        ConfigurationSection sec = plugin.getConfig().getConfigurationSection("limited-items");
+        if (sec != null) all.addAll(sec.getKeys(false));
         if (all.isEmpty()) return all;
         java.util.Collections.sort(all);
-        int count = Math.max(1, plugin.getConfig().getInt("market2.limited-rotation.count", Math.min(2, all.size())));
+
+        int count = Math.max(1, plugin.getConfig().getInt("market2.limited-rotation.count", 2));
         if (!plugin.getConfig().getBoolean("market2.limited-rotation.enabled", true)) return all;
+
         java.util.List<String> result = new java.util.ArrayList<>();
         int seed = Math.abs(today().hashCode());
-        for (int i = 0; i < Math.min(count, all.size()); i++) result.add(all.get((seed + i * 2) % all.size()));
+        for (int i = 0; i < Math.min(count, all.size()); i++) {
+            result.add(all.get((seed + i * 2) % all.size()));
+        }
         return result;
     }
 
     public String economyAuditLine() {
         ensureDailyTrends();
-        int hot = 0, cheap = 0;
-        for (double m : dailyTrends.values()) { if (m >= 1.2) hot++; if (m <= 0.85) cheap++; }
-        return "Горячих товаров: " + hot + ", переизбыток: " + cheap + ", записей истории: " + history.size();
+        int hot = 0, cheap = 0, deficit = 0;
+        for (Map.Entry<String, Double> entry : dailyTrends.entrySet()) {
+            if (entry.getValue() >= 1.3) hot++;
+            if (entry.getValue() <= 0.7) cheap++;
+        }
+        for (Map.Entry<String, Integer> entry : stock.entrySet()) {
+            if (entry.getValue() < 0) deficit++;
+        }
+        String cycle = marketCyclePhase == 1 ? " | 📈 БУМ" : marketCyclePhase == 2 ? " | 📉 КРАХ" : "";
+        return "📈 Рост: " + hot + " | 📉 Падение: " + cheap + " | ⚠️ Дефицит: " + deficit + cycle + " | ⚡ События: " + activeEvents.size();
     }
 
-    public void checkForRandomEvent() {
-        if (System.currentTimeMillis() < activeEventExpireTime) {
-            return; // Предыдущее событие еще активно
-        }
-        
-        // Шанс 20% на новое событие каждые 30 минут
-        if (ThreadLocalRandom.current().nextInt(100) >= 20) {
-            return;
-        }
-        
-        if (plugin.getConfig().getConfigurationSection("items") == null) return;
-        
-        int eventRoll = ThreadLocalRandom.current().nextInt(16);
-        String msg = "";
-        
-        switch (eventRoll) {
-            case 0: // Gold Rush
-                activeEventName = "⛏️ Золотая Лихорадка";
-                activeEventItemId = "GOLD_INGOT";
-                activeEventMultiplier = 3.0;
-                activeEventExpireTime = System.currentTimeMillis() + 900000L; // 15 минут
-                msg = "🚨 [Биржа] НОВОСТИ: " + activeEventName + "! Скупщики готовы платить тройную цену за золото! Цена GOLD_INGOT умножена на x3.0!";
-                break;
-                
-            case 1: // Iron Shortage
-                activeEventName = "⚔️ Железный Дефицит";
-                activeEventItemId = "IRON_INGOT";
-                activeEventMultiplier = 2.5;
-                activeEventExpireTime = System.currentTimeMillis() + 900000L; // 15 минут
-                msg = "🚨 [Биржа] НОВОСТИ: " + activeEventName + "! Нациям срочно требуется железо для ковки оружия! Цена IRON_INGOT умножена на x2.5!";
-                break;
-                
-            case 2: // Construction Boom
-                activeEventName = "🏡 Строительный Бум";
-                activeEventItemId = "OAK_LOG";
-                activeEventMultiplier = 3.0;
-                activeEventExpireTime = System.currentTimeMillis() + 900000L; // 15 минут
-                msg = "🚨 [Биржа] НОВОСТИ: " + activeEventName + "! Великая застройка городов! Цена OAK_LOG поднялась в x3.0 раза!";
-                break;
-                
-            case 3: // Plague Outbreak
-                activeEventName = "🧟 Вспышка Чумы";
-                activeEventItemId = "ROTTEN_FLESH";
-                activeEventMultiplier = 6.0;
-                activeEventExpireTime = System.currentTimeMillis() + 900000L; // 15 минут
-                msg = "🚨 [Биржа] НОВОСТИ: " + activeEventName + "! Алхимикам срочно требуется гнилая плоть для сыворотки! Цена ROTTEN_FLESH выросла в x6.0 раз!";
-                break;
-                
-            case 4: // Diamond Surplus
-                activeEventName = "💎 Алмазный Профицит";
-                activeEventItemId = "DIAMOND";
-                activeEventMultiplier = 0.3;
-                activeEventExpireTime = System.currentTimeMillis() + 900000L; // 15 минут
-                msg = "🚨 [Биржа] НОВОСТИ: " + activeEventName + "! Открыто гигантское алмазное месторождение! Цена DIAMOND обрушилась до x0.3!";
-                break;
-                
-            case 5: // Forest Hurricane
-                activeEventName = "🌪️ Лесной Ураган";
-                activeEventItemId = "OAK_LOG";
-                activeEventMultiplier = 4.0;
-                activeEventExpireTime = System.currentTimeMillis() + 900000L; // 15 минут
-                msg = "🚨 [Биржа] НОВОСТИ: " + activeEventName + "! Ураган повалил вековые дубы, бревна в жутком дефиците! Цена OAK_LOG умножена на x4.0!";
-                break;
-                
-            case 6: // Tax Holiday / Market Boom
-                activeEventName = "🪙 Королевская Ярмарка";
-                activeEventItemId = "ALL"; // Применяется ко всем ценам!
-                activeEventMultiplier = 1.5;
-                activeEventExpireTime = System.currentTimeMillis() + 900000L; // 15 минут
-                msg = "🚨 [Биржа] НОВОСТИ: " + activeEventName + "! Королевская ярмарка снизила налоги! Цены продажи ВСЕХ ресурсов выросли на +50%!";
-                break;
-
-            case 7: // Gold Import Ban (Embargo)
-                activeEventName = "🚫 Санкции на Золото";
-                activeEventItemId = "GOLD_INGOT";
-                activeEventMultiplier = 0.2;
-                activeEventExpireTime = System.currentTimeMillis() + 900000L; // 15 минут
-                msg = "🚨 [Биржа] НОВОСТИ: " + activeEventName + "! Торговая палата ввела запрет на импорт золота! Цена продажи GOLD_INGOT упала до x0.2!";
-                break;
-
-            case 8: // Netherite Embargo
-                activeEventName = "🌋 Незеритовое Эмбарго";
-                activeEventItemId = "NETHERITE_INGOT";
-                activeEventMultiplier = 3.0;
-                activeEventExpireTime = System.currentTimeMillis() + 900000L; // 15 минут
-                msg = "🚨 [Биржа] НОВОСТИ: " + activeEventName + "! Полное эмбарго на незеритовую продукцию! Спрос критический! Цена NETHERITE_INGOT взлетела до x3.0!";
-                break;
-
-            case 9: // Coal Deficit (Energy Crisis)
-                activeEventName = "🔌 Энергетический Кризис";
-                activeEventItemId = "COAL";
-                activeEventMultiplier = 3.5;
-                activeEventExpireTime = System.currentTimeMillis() + 900000L;
-                msg = "🚨 [Биржа] НОВОСТИ: " + activeEventName + "! Великий дефицит угля! Цена COAL выросла на x3.5!";
-                break;
-            case 10:
-                activeEventName = "🍞 Голодная Неделя";
-                activeEventItemId = "BREAD";
-                activeEventMultiplier = 2.8;
-                activeEventExpireTime = System.currentTimeMillis() + 900000L;
-                msg = "🚨 [Биржа] " + activeEventName + "! Еда дорожает: BREAD x2.8!";
-                break;
-            case 11:
-                activeEventName = "🧱 Великая Стройка";
-                activeEventItemId = "STONE";
-                activeEventMultiplier = 2.7;
-                activeEventExpireTime = System.currentTimeMillis() + 900000L;
-                msg = "🚨 [Биржа] " + activeEventName + "! Камень нужен строителям: STONE x2.7!";
-                break;
-            case 12:
-                activeEventName = "🎨 Фестиваль Красок";
-                activeEventItemId = "WHITE_WOOL";
-                activeEventMultiplier = 2.4;
-                activeEventExpireTime = System.currentTimeMillis() + 900000L;
-                msg = "🚨 [Биржа] " + activeEventName + "! Декор и шерсть в спросе: WHITE_WOOL x2.4!";
-                break;
-            case 13:
-                activeEventName = "💥 Пороховой Заказ";
-                activeEventItemId = "GUNPOWDER";
-                activeEventMultiplier = 3.2;
-                activeEventExpireTime = System.currentTimeMillis() + 900000L;
-                msg = "🚨 [Биржа] " + activeEventName + "! Порох нужен срочно: GUNPOWDER x3.2!";
-                break;
-            case 14:
-                activeEventName = "🌲 Лесной Переизбыток";
-                activeEventItemId = "OAK_LOG";
-                activeEventMultiplier = 0.45;
-                activeEventExpireTime = System.currentTimeMillis() + 900000L;
-                msg = "🚨 [Биржа] " + activeEventName + "! Дерево подешевело: OAK_LOG x0.45!";
-                break;
-            case 15:
-                activeEventName = "📦 Большая Ярмарка";
-                activeEventItemId = "ALL";
-                activeEventMultiplier = 1.25;
-                activeEventExpireTime = System.currentTimeMillis() + 900000L;
-                msg = "🚨 [Биржа] " + activeEventName + "! Все цены продажи +25%!";
-                break;
-        }
-        
-        org.bukkit.Bukkit.broadcastMessage(org.bukkit.ChatColor.GOLD + msg);
-        addHistory("Событие рынка: " + activeEventName + " item=" + activeEventItemId + " x" + activeEventMultiplier);
-        saveAll();
+    public String getMarketCycleLabel() {
+        if (marketCyclePhase == 1) return "📈 БУМ (+30%)";
+        if (marketCyclePhase == 2) return "📉 КРАХ (-30%)";
+        return "➡ Стабильно";
     }
 
-    public void recoverMarket() {
-        if (!plugin.getConfig().contains("items")) return;
-        
-        for (String itemId : plugin.getConfig().getConfigurationSection("items").getKeys(false)) {
-            int currentStock = stock.getOrDefault(itemId, 0);
-            if (currentStock > 0) {
-                int recoverAmount = plugin.getConfig().getInt("items." + itemId + ".recovery-amount", 50);
-                int newStock = Math.max(0, currentStock - recoverAmount);
-                stock.put(itemId, newStock);
-            }
-        }
-        saveAll();
+    private String today() {
+        return new java.text.SimpleDateFormat("yyyyMMdd").format(new java.util.Date());
     }
 }

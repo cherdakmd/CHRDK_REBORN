@@ -63,6 +63,7 @@ public class MarketGuiListener implements Listener {
         inv.setItem(32, categoryItem(plugin, Material.COMPASS, "all", ChatColor.AQUA + "📦 Все обычные товары", "Все разрешённые товары без редкостей"));
         inv.setItem(33, categoryItem(plugin, Material.DIAMOND, "limited", ChatColor.LIGHT_PURPLE + "💎 Лимитированные редкости", "Ротация дня, дорого, лимитировано"));
         inv.setItem(34, categoryItem(plugin, Material.CLOCK, "trends", ChatColor.AQUA + "📈 Тренды дня", "Горячие товары, история и аудит экономики"));
+        inv.setItem(40, rouletteItem(plugin));
         inv.setItem(43, sellAllItem(plugin));
         inv.setItem(49, helpItem(Material.PAPER, ChatColor.AQUA + "Подсказка", ChatColor.GRAY + "Редкие предметы убраны из /shop.", ChatColor.GRAY + "Артефакты, тотемы и особый лут добываются в RPG/ивентах.", ChatColor.RED + "Предметы с lore не продаются."));
         p.openInventory(inv);
@@ -178,45 +179,60 @@ public class MarketGuiListener implements Listener {
         Material m;
         try { m = Material.valueOf(itemId); } catch (Exception e) { m = Material.BARRIER; }
         String name = plugin.getConfig().getString("items." + itemId + ".name", itemId);
-        double currentPrice = plugin.getMarketManager().getCurrentPrice(itemId);
-        double buyPrice = currentPrice * 1.15;
+        double sellPrice = plugin.getMarketManager().getCurrentPrice(itemId);
+        double buyPrice = plugin.getMarketManager().getBuyPrice(itemId);
         double basePrice = plugin.getConfig().getDouble("items." + itemId + ".base-price", 10.0);
         String category = plugin.getConfig().getString("items." + itemId + ".category", guessCategory(itemId));
-
-        String demand = ChatColor.GREEN + "Высокий";
-        if (currentPrice < basePrice * 0.4) demand = ChatColor.RED + "Очень низкий 📉";
-        else if (currentPrice < basePrice * 0.7) demand = ChatColor.YELLOW + "Низкий ↘";
-        else if (currentPrice > basePrice * 1.5) demand = ChatColor.GOLD + "Ажиотажный 📈";
 
         // Статус дефицита
         int stock = plugin.getMarketManager().getStock(itemId);
         int scarcityThreshold = plugin.getConfig().getInt("items." + itemId + ".scarcity-threshold", 0);
         String stockStatus;
-        if (stock <= 0) stockStatus = ChatColor.DARK_RED + "⚠ ДЕФИЦИТ";
-        else if (scarcityThreshold > 0 && stock <= scarcityThreshold) stockStatus = ChatColor.RED + "⚠ Мало (" + stock + ")";
+        if (stock <= -50) stockStatus = ChatColor.DARK_RED + "💀 КРИТИЧЕСКИЙ ДЕФИЦИТ!";
+        else if (stock <= 0) stockStatus = ChatColor.RED + "⚠️ ДЕФИЦИТ";
+        else if (scarcityThreshold > 0 && stock <= scarcityThreshold) stockStatus = ChatColor.YELLOW + "⚠️ Мало (" + stock + ")";
         else stockStatus = ChatColor.GRAY + "В наличии: " + stock;
+
+        // Отклонение от базовой цены
+        double delta = basePrice > 0 ? ((sellPrice - basePrice) / basePrice) * 100.0 : 0;
+        String deltaStr = delta >= 0 ? ChatColor.GOLD + "+" + String.format("%.0f", delta) + "%" : ChatColor.RED + String.format("%.0f", delta) + "%";
 
         ItemStack item = new ItemStack(m);
         ItemMeta meta = item.getItemMeta();
         meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', name));
         List<String> lore = new ArrayList<>();
-        boolean isEvent = (itemId.equals(plugin.getMarketManager().getActiveEventItemId()) || "ALL".equals(plugin.getMarketManager().getActiveEventItemId()))
-                && System.currentTimeMillis() < plugin.getMarketManager().getActiveEventExpireTime();
-        if (isEvent) lore.add(ChatColor.GOLD + "⚡ СОБЫТИЕ: " + plugin.getMarketManager().getActiveEventName());
-        lore.add(ChatColor.DARK_GRAY + "Категория: " + category);
+
+        boolean isEvent = false;
+        for (ru.example.vkchatmarket.data.MarketManager.MarketEvent e : plugin.getMarketManager().getActiveEvents()) {
+            if (e.affects(itemId, category)) {
+                lore.add(ChatColor.GOLD + "⚡ " + e.name);
+                isEvent = true;
+            }
+        }
+
         lore.add(stockStatus);
-        lore.add(ChatColor.GRAY + "Продажа: " + ChatColor.GREEN + String.format("%.2f", currentPrice) + " реп/шт.");
-        lore.add(ChatColor.GRAY + "Покупка: " + ChatColor.GOLD + String.format("%.2f", buyPrice) + " реп/шт.");
-        lore.add(ChatColor.GRAY + "Спрос: " + demand);
-        lore.add(ChatColor.AQUA + "Тренд дня: " + plugin.getMarketManager().getTrendLabel(itemId));
-        lore.add(ChatColor.DARK_GRAY + "Оборот сегодня: " + plugin.getMarketManager().getDailyVolume(itemId) + " шт.");
+        lore.add(ChatColor.GREEN + "Продать: " + ChatColor.WHITE + String.format("%.2f", sellPrice) + " реп");
+        lore.add(ChatColor.GOLD + "Купить:  " + ChatColor.WHITE + String.format("%.2f", buyPrice) + " реп");
+        lore.add(ChatColor.GRAY + "От базы: " + deltaStr);
+        lore.add(ChatColor.AQUA + "Тренд: " + plugin.getMarketManager().getTrendLabel(itemId));
+        lore.add(ChatColor.DARK_GRAY + "Оборот: " + plugin.getMarketManager().getDailyVolume(itemId) + " шт");
+
+        // Flash Sale
+        if (plugin.getMarketFun().isFlashSaleActive(itemId)) {
+            int discount = (int) (plugin.getMarketFun().getFlashSaleDiscount() * 100);
+            lore.add(ChatColor.LIGHT_PURPLE + "⚡ Flash Sale: -" + discount + "%!");
+        }
+
+        // Квест дня
+        if (itemId.equals(plugin.getMarketFun().getQuestItemId())) {
+            lore.add(ChatColor.AQUA + "📋 Квест дня! " + plugin.getMarketFun().getQuestType() + " x" + plugin.getMarketFun().getQuestTarget());
+        }
+
         lore.add("");
         lore.add(ChatColor.GREEN + "ЛКМ: продать всё");
-        lore.add(ChatColor.GREEN + "SHIFT+ЛКМ: продать 1 стак");
+        lore.add(ChatColor.GREEN + "SHIFT+ЛКМ: продать 64");
         lore.add(ChatColor.GOLD + "ПКМ: купить 1");
         lore.add(ChatColor.GOLD + "SHIFT+ПКМ: купить 16");
-        lore.add(ChatColor.YELLOW + "Колесо: купить 1");
-        meta.setLore(lore);
         meta.setLore(lore);
         meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
         meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "market_item"), PersistentDataType.STRING, itemId);
@@ -231,6 +247,7 @@ public class MarketGuiListener implements Listener {
         for (int i = 0; i < 54; i++) inv.setItem(i, helpItem(Material.BLACK_STAINED_GLASS_PANE, " "));
         inv.setItem(4, helpItem(Material.CLOCK, ChatColor.AQUA + "📈 Тренды дня",
                 ChatColor.GRAY + plugin.getMarketManager().economyAuditLine(),
+                ChatColor.GRAY + "Цикл: " + plugin.getMarketManager().getMarketCycleLabel(),
                 ChatColor.GRAY + "Тренд влияет на цену покупки и продажи.",
                 ChatColor.YELLOW + "Обновляется раз в день автоматически."));
         java.util.List<String> top = plugin.getMarketManager().getTopTrends(14);
@@ -276,7 +293,14 @@ public class MarketGuiListener implements Listener {
         NamespacedKey sellAllKey = new NamespacedKey(plugin, "market_sell_all");
         NamespacedKey confirmSellAllKey = new NamespacedKey(plugin, "market_confirm_sell_all");
         NamespacedKey limitedKey = new NamespacedKey(plugin, "market_limited_item");
+        NamespacedKey rouletteKey = new NamespacedKey(plugin, "market_roulette");
         String category = getCategoryFromTitle(e.getView().getTitle());
+
+        if (meta.getPersistentDataContainer().has(rouletteKey, PersistentDataType.INTEGER)) {
+            e.setCancelled(true);
+            plugin.getMarketFun().spinRoulette(p);
+            return;
+        }
 
         if (meta.getPersistentDataContainer().has(sellAllKey, PersistentDataType.INTEGER)) {
             openSellAllConfirm(p, category);
@@ -330,7 +354,7 @@ public class MarketGuiListener implements Listener {
         int totalRep = 0;
         for (java.util.Map.Entry<String, Integer> e : sellable.entrySet()) {
             totalItems += e.getValue();
-            totalRep += Math.max(1, (int) Math.round(plugin.getMarketManager().calculateBulkPrice(e.getKey(), e.getValue())));
+            totalRep += Math.max(1, (int) Math.round(plugin.getMarketManager().calculateBulkSellPrice(e.getKey(), e.getValue())));
         }
         String baseTitle = ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("settings.gui-title", "&8Динамический Рынок"));
         Inventory inv = Bukkit.createInventory(null, 27, baseTitle + ChatColor.DARK_GRAY + " <sell_confirm>");
@@ -398,10 +422,10 @@ public class MarketGuiListener implements Listener {
                     if (toRemove == 0) break;
                 }
             }
-            int rep = Math.max(1, (int) Math.round(plugin.getMarketManager().calculateBulkPrice(itemId, count) * donorSellMultiplier(p)));
+            int rep = Math.max(1, (int) Math.round(plugin.getMarketManager().calculateBulkSellPrice(itemId, count) * donorSellMultiplier(p)));
             totalRep += rep;
             totalCount += count;
-            plugin.getMarketManager().addStock(itemId, count);
+            plugin.getMarketManager().sellItems(itemId, count, 1.0);
         }
         VKChatPlugin.getInstance().getApi().addReputation(vkId, totalRep);
         p.sendMessage(ChatColor.GREEN + "💰 Продано всё продаваемое: " + totalCount + " шт. за " + totalRep + " репутации ВК.");
@@ -410,6 +434,10 @@ public class MarketGuiListener implements Listener {
 
     private void sellItems(Player p, String itemId, int limit) {
         Material m; try { m = Material.valueOf(itemId); } catch (Exception e) { return; }
+        int vkId = VKChatPlugin.getInstance().getApi().getLinkedVkId(p);
+        if (vkId == -1) { p.sendMessage(ChatColor.RED + "Привяжи ВК (/vklink) для торговли!"); return; }
+
+        // Считаем предметы
         int count = 0;
         for (int i = 0; i < p.getInventory().getSize(); i++) {
             ItemStack item = p.getInventory().getItem(i);
@@ -419,8 +447,19 @@ public class MarketGuiListener implements Listener {
                 if (limit > 0 && count >= limit) break;
             }
         }
-        if (count == 0) { p.sendMessage(ChatColor.RED + "У тебя нет обычных предметов этого типа для продажи!"); return; }
-        double totalEarned = plugin.getMarketManager().calculateBulkPrice(itemId, count) * donorSellMultiplier(p);
+        if (count == 0) { p.sendMessage(ChatColor.RED + "Нет предметов для продажи!"); return; }
+
+        // Кулдаун
+        if (!plugin.getMarketManager().canTrade(itemId, p)) {
+            p.sendMessage(ChatColor.RED + "Подождите..."); return;
+        }
+
+        // Продаём
+        double donorMult = donorSellMultiplier(p);
+        int rep = plugin.getMarketManager().sellItems(itemId, count, donorMult);
+        if (rep <= 0) { p.sendMessage(ChatColor.RED + "Рынок переполнен!"); return; }
+
+        // Удаляем из инвентаря
         int toRemove = count;
         for (int i = 0; i < p.getInventory().getSize(); i++) {
             ItemStack item = p.getInventory().getItem(i);
@@ -430,54 +469,69 @@ public class MarketGuiListener implements Listener {
                 if (toRemove == 0) break;
             }
         }
+
+        VKChatPlugin.getInstance().getApi().addReputation(vkId, rep);
+        p.sendMessage(ChatColor.GREEN + "💰 Продано " + count + " шт. → " + rep + " реп.");
+        p.playSound(p.getLocation(), org.bukkit.Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1f, 1f);
+        plugin.getMarketFun().recordQuestProgress(p, itemId, count, "sell");
+    }
+
+    private void buyItems(Player p, String itemId, int amount) {
+        Material m; try { m = Material.valueOf(itemId); } catch (Exception e) { return; }
         int vkId = VKChatPlugin.getInstance().getApi().getLinkedVkId(p);
-        if (vkId != -1) {
-            int repToGive = Math.max(1, (int) Math.round(totalEarned));
-            VKChatPlugin.getInstance().getApi().addReputation(vkId, repToGive);
-            plugin.getMarketManager().addStock(itemId, count);
-            p.sendMessage(ChatColor.GREEN + "💰 Продано " + count + " шт. за " + repToGive + " репутации ВК.");
-            p.playSound(p.getLocation(), org.bukkit.Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1f, 1f);
-        } else p.sendMessage(ChatColor.RED + "Сначала привяжи ВКонтакте (/vklink), чтобы получать репутацию!");
+        if (vkId == -1) { p.sendMessage(ChatColor.RED + "Привяжи ВК (/vklink) для торговли!"); return; }
+
+        // Кулдаун
+        if (!plugin.getMarketManager().canTrade(itemId, p)) {
+            p.sendMessage(ChatColor.RED + "Подождите..."); return;
+        }
+
+        // Проверяем наличие
+        int stock = plugin.getMarketManager().getStock(itemId);
+        int minStock = plugin.getConfig().getInt("items." + itemId + ".min-stock", -200);
+        int canBuy = Math.max(0, stock - minStock);
+        if (canBuy <= 0) { p.sendMessage(ChatColor.RED + "Товар закончился! Дефицит!"); return; }
+        int actual = Math.min(amount, canBuy);
+
+        // Стоимость
+        double donorMult = donorBuyMultiplier(p);
+        int cost = plugin.getMarketManager().buyItems(itemId, actual, donorMult);
+        if (cost <= 0) { p.sendMessage(ChatColor.RED + "Ошибка цены!"); return; }
+
+        // Баланс
+        int rep = VKChatPlugin.getInstance().getApi().getReputation(vkId);
+        if (rep < cost) { p.sendMessage(ChatColor.RED + "Нужно " + cost + " реп. (у тебя " + rep + ")"); return; }
+
+        // Место в инвентаре
+        if (!p.getInventory().addItem(new ItemStack(m, actual)).isEmpty()) {
+            p.sendMessage(ChatColor.RED + "Инвентарь полон!"); return;
+        }
+
+        VKChatPlugin.getInstance().getApi().takeReputation(vkId, cost);
+        p.sendMessage(ChatColor.GREEN + "💰 Куплено " + actual + " шт. → " + cost + " реп.");
+        p.playSound(p.getLocation(), org.bukkit.Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1f, 1.2f);
+        plugin.getMarketFun().recordQuestProgress(p, itemId, actual, "buy");
     }
 
     private void buyLimitedItem(Player p, String itemId) {
         Material m;
         try { m = Material.valueOf(itemId); } catch (Exception e) { return; }
         int vkId = VKChatPlugin.getInstance().getApi().getLinkedVkId(p);
-        if (vkId == -1) { p.sendMessage(ChatColor.RED + "Сначала привяжите ВКонтакте (/vklink)."); return; }
-        int price = (int)Math.max(1, Math.round(plugin.getConfig().getInt("limited-items." + itemId + ".price", 1000) * donorBuyMultiplier(p)));
+        if (vkId == -1) { p.sendMessage(ChatColor.RED + "Привяжи ВК (/vklink)!"); return; }
+        int price = (int) Math.max(1, Math.round(plugin.getConfig().getInt("limited-items." + itemId + ".price", 1000) * donorBuyMultiplier(p)));
         int limit = plugin.getConfig().getInt("limited-items." + itemId + ".daily-limit", 1);
         String today = new java.text.SimpleDateFormat("yyyyMMdd").format(new java.util.Date());
         NamespacedKey limitKey = new NamespacedKey(plugin, "limited_" + today + "_" + itemId.toLowerCase());
         int boughtToday = p.getPersistentDataContainer().getOrDefault(limitKey, PersistentDataType.INTEGER, 0);
-        if (boughtToday >= limit) {
-            p.sendMessage(ChatColor.RED + "Лимит покупки на сегодня исчерпан: " + boughtToday + "/" + limit);
-            return;
-        }
+        if (boughtToday >= limit) { p.sendMessage(ChatColor.RED + "Лимит на сегодня: " + boughtToday + "/" + limit); return; }
         int currentRep = VKChatPlugin.getInstance().getApi().getReputation(vkId);
-        if (currentRep < price) { p.sendMessage(ChatColor.RED + "Недостаточно репутации! Нужно: " + price); return; }
-        if (!p.getInventory().addItem(new ItemStack(m, 1)).isEmpty()) { p.sendMessage(ChatColor.RED + "Недостаточно места в инвентаре!"); return; }
+        if (currentRep < price) { p.sendMessage(ChatColor.RED + "Нужно " + price + " реп. (у тебя " + currentRep + ")"); return; }
+        if (!p.getInventory().addItem(new ItemStack(m, 1)).isEmpty()) { p.sendMessage(ChatColor.RED + "Инвентарь полон!"); return; }
         p.getPersistentDataContainer().set(limitKey, PersistentDataType.INTEGER, boughtToday + 1);
         VKChatPlugin.getInstance().getApi().takeReputation(vkId, price);
-        p.sendMessage(ChatColor.LIGHT_PURPLE + "💎 Куплен лимитированный предмет: " + itemId + " за " + price + " реп. Лимит: " + (boughtToday + 1) + "/" + limit);
+        p.sendMessage(ChatColor.LIGHT_PURPLE + "💎 Куплено: " + itemId + " за " + price + " реп. (" + (boughtToday + 1) + "/" + limit + ")");
         p.playSound(p.getLocation(), org.bukkit.Sound.UI_TOAST_CHALLENGE_COMPLETE, 1f, 1f);
     }
-
-    private void buyItems(Player p, String itemId, int amount) {
-        Material m; try { m = Material.valueOf(itemId); } catch (Exception e) { return; }
-        int vkId = VKChatPlugin.getInstance().getApi().getLinkedVkId(p);
-        if (vkId == -1) { p.sendMessage(ChatColor.RED + "Сначала привяжите ВКонтакте (/vklink), чтобы покупать предметы!"); return; }
-        int finalCost = Math.max(1, (int) Math.round(plugin.getMarketManager().calculateBulkBuyPrice(itemId, amount) * donorBuyMultiplier(p)));
-        int currentRep = VKChatPlugin.getInstance().getApi().getReputation(vkId);
-        if (currentRep < finalCost) { p.sendMessage(ChatColor.RED + "Недостаточно репутации! Нужно: " + finalCost + " (У тебя: " + currentRep + ")"); return; }
-        java.util.Map<Integer, ItemStack> remaining = p.getInventory().addItem(new ItemStack(m, amount));
-        if (!remaining.isEmpty()) { p.sendMessage(ChatColor.RED + "Недостаточно места в инвентаре!"); return; }
-        VKChatPlugin.getInstance().getApi().takeReputation(vkId, finalCost);
-        plugin.getMarketManager().removeStock(itemId, amount);
-        p.sendMessage(ChatColor.GREEN + "💰 Куплено " + amount + " шт. за " + finalCost + " реп. ВК.");
-        p.playSound(p.getLocation(), org.bukkit.Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1f, 1.2f);
-    }
-
 
     private double donorSellMultiplier(Player p) {
         if (p.hasPermission("vkchat.donate.market.legend") || p.hasPermission("vkchat.donate.status.legend")) return plugin.getConfig().getDouble("market2.donate.sell-multiplier.legend", 3.00);
@@ -488,11 +542,12 @@ public class MarketGuiListener implements Listener {
     }
 
     private double donorBuyMultiplier(Player p) {
-        if (p.hasPermission("vkchat.donate.market.legend") || p.hasPermission("vkchat.donate.status.legend")) return plugin.getConfig().getDouble("market2.donate.buy-multiplier.legend", 0.00);
-        if (p.hasPermission("vkchat.donate.market.star") || p.hasPermission("vkchat.donate.status.star")) return plugin.getConfig().getDouble("market2.donate.buy-multiplier.star", 0.40);
-        if (p.hasPermission("vkchat.donate.market.flame") || p.hasPermission("vkchat.donate.status.flame")) return plugin.getConfig().getDouble("market2.donate.buy-multiplier.flame", 0.70);
-        if (p.hasPermission("vkchat.donate.market.spark") || p.hasPermission("vkchat.donate.status.spark")) return plugin.getConfig().getDouble("market2.donate.buy-multiplier.spark", 0.90);
-        return 1.0;
+        double mult = 1.0;
+        if (p.hasPermission("vkchat.donate.market.legend") || p.hasPermission("vkchat.donate.status.legend")) mult = plugin.getConfig().getDouble("market2.donate.buy-multiplier.legend", 0.00);
+        else if (p.hasPermission("vkchat.donate.market.star") || p.hasPermission("vkchat.donate.status.star")) mult = plugin.getConfig().getDouble("market2.donate.buy-multiplier.star", 0.40);
+        else if (p.hasPermission("vkchat.donate.market.flame") || p.hasPermission("vkchat.donate.status.flame")) mult = plugin.getConfig().getDouble("market2.donate.buy-multiplier.flame", 0.70);
+        else if (p.hasPermission("vkchat.donate.market.spark") || p.hasPermission("vkchat.donate.status.spark")) mult = plugin.getConfig().getDouble("market2.donate.buy-multiplier.spark", 0.90);
+        return mult;
     }
 
     private static void fillBottom(Inventory inv) {
@@ -519,6 +574,26 @@ public class MarketGuiListener implements Listener {
                 ChatColor.YELLOW + "Нажми для продажи всего"
         ));
         meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "market_sell_all"), PersistentDataType.INTEGER, 1);
+        it.setItemMeta(meta);
+        return it;
+    }
+
+    private static ItemStack rouletteItem(VKChatMarketPlugin plugin) {
+        ItemStack it = new ItemStack(Material.NETHER_STAR);
+        ItemMeta meta = it.getItemMeta();
+        int cost = plugin.getConfig().getInt("market2.roulette.cost", 500);
+        meta.setDisplayName(ChatColor.LIGHT_PURPLE + "🎰 Рулетка");
+        meta.setLore(java.util.Arrays.asList(
+                ChatColor.GRAY + "Испытай удачу!",
+                ChatColor.GRAY + "Стоимость: " + ChatColor.YELLOW + cost + " реп.",
+                ChatColor.GRAY + "Можно выиграть:",
+                ChatColor.GREEN + "  • Алмазы, Изумруды, Незерит",
+                ChatColor.GREEN + "  • Бонус репутацию",
+                ChatColor.RED + "  • Или ничего...",
+                "",
+                ChatColor.YELLOW + "Кулдаун: 5 минут"
+        ));
+        meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "market_roulette"), PersistentDataType.INTEGER, 1);
         it.setItemMeta(meta);
         return it;
     }
