@@ -14,6 +14,7 @@ import ru.example.vkchatmobs.VKChatMobsPlugin;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * Шторм мобов — мировое событие.
@@ -21,7 +22,6 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class MobStormManager implements Listener {
     private final VKChatMobsPlugin plugin;
-    private final Random random = new Random();
 
     private final NamespacedKey rankKey;
     private final NamespacedKey diffKey;
@@ -48,7 +48,7 @@ public class MobStormManager implements Listener {
         if (killer == null) return;
 
         int chance = plugin.getConfig().getInt("mob-storm.trigger-chance-percent", 10);
-        if (random.nextInt(100) >= chance) return;
+        if (ThreadLocalRandom.current().nextInt(100) >= chance) return;
         if (stormActive) return;
 
         startStorm(killer.getLocation());
@@ -96,13 +96,13 @@ public class MobStormManager implements Listener {
     }
 
     private void spawnStormMob(World world, Location center, int rank, double multiplier) {
-        double offsetX = random.nextDouble() * 20 - 10;
-        double offsetZ = random.nextDouble() * 20 - 10;
+        double offsetX = ThreadLocalRandom.current().nextDouble() * 20 - 10;
+        double offsetZ = ThreadLocalRandom.current().nextDouble() * 20 - 10;
         Location spawnLoc = center.clone().add(offsetX, 0, offsetZ);
         spawnLoc.setY(world.getHighestBlockYAt(spawnLoc) + 1);
 
         EntityType[] types = {EntityType.ZOMBIE, EntityType.SKELETON, EntityType.SPIDER, EntityType.CREEPER, EntityType.CAVE_SPIDER};
-        EntityType type = types[random.nextInt(types.length)];
+        EntityType type = types[ThreadLocalRandom.current().nextInt(types.length)];
 
         LivingEntity mob = (LivingEntity) world.spawnEntity(spawnLoc, type);
         mob.getPersistentDataContainer().set(rankKey, PersistentDataType.INTEGER, rank);

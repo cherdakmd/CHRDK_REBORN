@@ -6,7 +6,7 @@ import ru.example.vkchatoffline.VKChatOfflinePlugin;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 
@@ -18,7 +18,6 @@ public class OfflineProgressManager {
     private final VKChatOfflinePlugin plugin;
     private final Supplier<FileConfiguration> data;
     private final BiConsumer<Integer, String> journal;
-    private final Random random = new Random();
 
     public OfflineProgressManager(VKChatOfflinePlugin plugin, Supplier<FileConfiguration> data, BiConsumer<Integer, String> journal) {
         this.plugin = plugin;
@@ -71,7 +70,7 @@ public class OfflineProgressManager {
         String today = dailyDate();
         if (today.equals(d().getString("daily." + vkId + ".date"))) return;
         String[] types = {"complete", "relic", "gold"};
-        String type = types[random.nextInt(types.length)];
+        String type = types[ThreadLocalRandom.current().nextInt(types.length)];
         d().set("daily." + vkId + ".date", today);
         d().set("daily." + vkId + ".type", type);
         d().set("daily." + vkId + ".progress", 0);

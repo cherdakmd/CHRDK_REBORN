@@ -26,10 +26,10 @@ import ru.example.vkchat.VKChatPlugin;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class SiegeManager {
     private final VKChatMobsPlugin plugin;
-    private final Random random = new Random();
 
     private final NamespacedKey isSiegeMonsterKey;
     private final NamespacedKey siegeKey;
@@ -89,7 +89,7 @@ public class SiegeManager {
                 }
 
                 // Каждую минуту есть 25% шанс запустить осаду у случайного онлайн игрока с приватом
-                if (random.nextInt(100) < 25) {
+                if (ThreadLocalRandom.current().nextInt(100) < 25) {
                     triggerRandomSiege();
                 }
 
@@ -129,7 +129,7 @@ public class SiegeManager {
         if (eligibleClaims.isEmpty()) return;
 
         // Выбираем случайный приват
-        Map.Entry<String, ChunkClaim> chosen = eligibleClaims.get(random.nextInt(eligibleClaims.size()));
+        Map.Entry<String, ChunkClaim> chosen = eligibleClaims.get(ThreadLocalRandom.current().nextInt(eligibleClaims.size()));
         String key = chosen.getKey();
         ChunkClaim claim = chosen.getValue();
 
@@ -170,15 +170,15 @@ public class SiegeManager {
         EntityType[] types = {EntityType.ZOMBIE, EntityType.SKELETON, EntityType.SPIDER, EntityType.CREEPER};
 
         for (int i = 0; i < count; i++) {
-            double angle = random.nextDouble() * 2 * Math.PI;
-            double r = 12 + random.nextDouble() * 4;
+            double angle = ThreadLocalRandom.current().nextDouble() * 2 * Math.PI;
+            double r = 12 + ThreadLocalRandom.current().nextDouble() * 4;
             double dx = Math.cos(angle) * r;
             double dz = Math.sin(angle) * r;
 
             Location spawnLoc = siege.blockLoc.clone().add(dx, 0, dz);
             spawnLoc.setY(world.getHighestBlockYAt(spawnLoc) + 1);
 
-            EntityType t = types[random.nextInt(types.length)];
+            EntityType t = types[ThreadLocalRandom.current().nextInt(types.length)];
             
             // Если 3 волна, последний монстр может быть Мини-Боссом
             boolean isWaveBoss = (siege.currentWave == 3 && i == count - 1);

@@ -20,10 +20,10 @@ import ru.example.vkchatmobs.listeners.MobListener;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class MobsEvents2Manager implements Listener {
     private final VKChatMobsPlugin plugin;
-    private final Random random = new Random();
     private final NamespacedKey phaseKey;
     private final NamespacedKey raidBossKey;
     private final NamespacedKey threatBossKey;
@@ -84,8 +84,8 @@ public class MobsEvents2Manager implements Listener {
         World w = origin.getWorld();
         int radius = plugin.getConfig().getInt("events2.threats.safe-search-radius", 80);
         for (int tries = 0; tries < 30; tries++) {
-            int dx = tries == 0 ? 0 : random.nextInt(radius * 2 + 1) - radius;
-            int dz = tries == 0 ? 0 : random.nextInt(radius * 2 + 1) - radius;
+            int dx = tries == 0 ? 0 : ThreadLocalRandom.current().nextInt(radius * 2 + 1) - radius;
+            int dz = tries == 0 ? 0 : ThreadLocalRandom.current().nextInt(radius * 2 + 1) - radius;
             Location loc = origin.clone().add(dx, 0, dz);
             loc.setY(w.getHighestBlockYAt(loc) + 1);
             if (loc.distanceSquared(w.getSpawnLocation()) < 80 * 80) continue;
@@ -182,7 +182,7 @@ public class MobsEvents2Manager implements Listener {
         if (t.phase == 1) spawnAdds(t.center, 4);
         else if (t.phase == 2) { cosmeticPortal(t.center); spawnAdds(t.center, 6); }
         else if (t.phase == 3) spawnAdds(t.center, 12);
-        else if (t.phase == 4) for (int i = 0; i < 3; i++) plugin.getHardcoreMobManager().spawnCustom(t.center.clone().add(random.nextInt(10)-5,0,random.nextInt(10)-5), "mini", null, null);
+        else if (t.phase == 4) for (int i = 0; i < 3; i++) plugin.getHardcoreMobManager().spawnCustom(t.center.clone().add(ThreadLocalRandom.current().nextInt(10)-5,0,ThreadLocalRandom.current().nextInt(10)-5), "mini", null, null);
         else if (t.phase == 5) {
             LivingEntity boss = plugin.getHardcoreMobManager().spawnCustom(t.center, "raid", "necromancer", worldElement(w));
             if (boss != null) { boss.getPersistentDataContainer().set(threatBossKey, PersistentDataType.INTEGER, 1); boss.getPersistentDataContainer().set(raidBossKey, PersistentDataType.INTEGER, 1); boss.getPersistentDataContainer().set(phaseKey, PersistentDataType.INTEGER, 1); t.boss = boss.getUniqueId(); }
@@ -192,12 +192,12 @@ public class MobsEvents2Manager implements Listener {
     private String worldElement(World w) {
         if (w.getEnvironment() == World.Environment.NETHER) return "fire";
         if (w.getEnvironment() == World.Environment.THE_END) return "dark";
-        return random.nextBoolean() ? "storm" : "poison";
+        return ThreadLocalRandom.current().nextBoolean() ? "storm" : "poison";
     }
 
     private void cosmeticPortal(Location c) {
         World w = c.getWorld(); if (w == null) return;
-        for (int i = 0; i < 80; i++) w.spawnParticle(Particle.PORTAL, c.clone().add(random.nextDouble()*4-2, random.nextDouble()*3, random.nextDouble()*4-2), 1, 0,0,0,0.1);
+        for (int i = 0; i < 80; i++) w.spawnParticle(Particle.PORTAL, c.clone().add(ThreadLocalRandom.current().nextDouble()*4-2, ThreadLocalRandom.current().nextDouble()*3, ThreadLocalRandom.current().nextDouble()*4-2), 1, 0,0,0,0.1);
         w.playSound(c, Sound.BLOCK_END_PORTAL_SPAWN, 0.7f, 1.2f);
     }
 
@@ -205,9 +205,9 @@ public class MobsEvents2Manager implements Listener {
         World w = loc.getWorld(); if (w == null) return;
         EntityType[] types = {EntityType.ZOMBIE, EntityType.SKELETON, EntityType.SPIDER, EntityType.HUSK};
         for (int i = 0; i < count; i++) {
-            Location s = loc.clone().add(random.nextInt(12)-6, 0, random.nextInt(12)-6);
+            Location s = loc.clone().add(ThreadLocalRandom.current().nextInt(12)-6, 0, ThreadLocalRandom.current().nextInt(12)-6);
             s.setY(w.getHighestBlockYAt(s) + 1);
-            Entity e = w.spawnEntity(s, types[random.nextInt(types.length)]);
+            Entity e = w.spawnEntity(s, types[ThreadLocalRandom.current().nextInt(types.length)]);
             if (e instanceof LivingEntity) plugin.getHardcoreMobManager().makeElite((LivingEntity) e, "elite", null, worldElement(w), true);
         }
     }
@@ -244,7 +244,7 @@ public class MobsEvents2Manager implements Listener {
         int threshold = plugin.getConfig().getInt("events2.triggers.mob-kills-for-threat", 240);
         if (n >= threshold && !threats.containsKey(world)) {
             triggerKills.put(world, 0);
-            if (random.nextInt(100) < plugin.getConfig().getInt("events2.triggers.threat-chance-percent", 30)) startThreatNear(killer);
+            if (ThreadLocalRandom.current().nextInt(100) < plugin.getConfig().getInt("events2.triggers.threat-chance-percent", 30)) startThreatNear(killer);
         } else triggerKills.put(world, n);
     }
 
@@ -271,12 +271,12 @@ public class MobsEvents2Manager implements Listener {
     private void maybeRareReward(Player p, List<ItemStack> drops, boolean bonus) {
         if (isRareDailyCapped(p)) return;
         int chance = bonus ? 45 : 25;
-        if (random.nextInt(100) >= chance) return;
+        if (ThreadLocalRandom.current().nextInt(100) >= chance) return;
         ItemStack reward;
-        int r = random.nextInt(4);
+        int r = ThreadLocalRandom.current().nextInt(4);
         if (r == 0) reward = MobListener.getRuneToken();
         else if (r == 1) reward = MobListener.getArtifactShard();
-        else if (r == 2) reward = createForgeScroll(random.nextBoolean() ? "chance_25" : "anti_defect");
+        else if (r == 2) reward = createForgeScroll(ThreadLocalRandom.current().nextBoolean() ? "chance_25" : "anti_defect");
         else reward = VKChatMobsPlugin.createSetFragment(plugin);
         if (reward != null) { safeGive(p, reward); incrementRareDaily(p); p.sendMessage(ChatColor.LIGHT_PURPLE + "✨ Редкая рейд-награда: " + reward.getItemMeta().getDisplayName()); }
     }

@@ -46,15 +46,15 @@ public class JobsDataManager {
         if (data.contains("players")) {
             for (String uuidStr : data.getConfigurationSection("players").getKeys(false)) {
                 UUID uuid = UUID.fromString(uuidStr);
-                expData.put(uuid, new HashMap<>());
-                lvlData.put(uuid, new HashMap<>());
+                expData.put(uuid, new ConcurrentHashMap<>());
+                lvlData.put(uuid, new ConcurrentHashMap<>());
                 fatigueData.put(uuid, data.getInt("players." + uuidStr + ".fatigue", 0));
-                skillPoints.put(uuid, new HashMap<>());
-                unlockedSkills.put(uuid, new HashMap<>());
-                specializations.put(uuid, new HashMap<>());
-                dailyProgress.put(uuid, new HashMap<>());
-                dailyClaimed.put(uuid, new HashMap<>());
-                repEarned.put(uuid, new HashMap<>());
+                skillPoints.put(uuid, new ConcurrentHashMap<>());
+                unlockedSkills.put(uuid, new ConcurrentHashMap<>());
+                specializations.put(uuid, new ConcurrentHashMap<>());
+                dailyProgress.put(uuid, new ConcurrentHashMap<>());
+                dailyClaimed.put(uuid, new ConcurrentHashMap<>());
+                repEarned.put(uuid, new ConcurrentHashMap<>());
                 dailyDate.put(uuid, data.getString("players." + uuidStr + ".daily.date", today()));
                 if (data.contains("players." + uuidStr + ".daily.progress")) {
                     for (String job : data.getConfigurationSection("players." + uuidStr + ".daily.progress").getKeys(false)) {
@@ -113,7 +113,7 @@ public class JobsDataManager {
     }
 
     public void removeSkillPoint(UUID uuid, String job) {
-        skillPoints.putIfAbsent(uuid, new HashMap<>());
+        skillPoints.putIfAbsent(uuid, new ConcurrentHashMap<>());
         int pts = getSkillPoints(uuid, job);
         if (pts > 0) {
             skillPoints.get(uuid).put(job, pts - 1);
@@ -129,7 +129,7 @@ public class JobsDataManager {
     }
 
     public void unlockSkill(UUID uuid, String job, String skill) {
-        unlockedSkills.putIfAbsent(uuid, new HashMap<>());
+        unlockedSkills.putIfAbsent(uuid, new ConcurrentHashMap<>());
         unlockedSkills.get(uuid).putIfAbsent(job, new java.util.ArrayList<>());
         if (!unlockedSkills.get(uuid).get(job).contains(skill)) {
             unlockedSkills.get(uuid).get(job).add(skill);
@@ -157,8 +157,8 @@ public class JobsDataManager {
         String t = today();
         if (!t.equals(dailyDate.get(uuid))) {
             dailyDate.put(uuid, t);
-            dailyProgress.put(uuid, new HashMap<>());
-            dailyClaimed.put(uuid, new HashMap<>());
+            dailyProgress.put(uuid, new ConcurrentHashMap<>());
+            dailyClaimed.put(uuid, new ConcurrentHashMap<>());
         }
     }
 
@@ -180,7 +180,7 @@ public class JobsDataManager {
         if (!plugin.getConfig().getBoolean("daily.enabled", true)) return;
         UUID uuid = p.getUniqueId();
         ensureDaily(uuid);
-        dailyProgress.putIfAbsent(uuid, new HashMap<>());
+        dailyProgress.putIfAbsent(uuid, new ConcurrentHashMap<>());
         int target = getDailyTarget(job);
         int old = getDailyProgress(uuid, job);
         if (old >= target) return;
@@ -201,7 +201,7 @@ public class JobsDataManager {
         UUID uuid = p.getUniqueId();
         ensureDaily(uuid);
         if (isDailyClaimed(uuid, job) || getDailyProgress(uuid, job) < getDailyTarget(job)) return false;
-        dailyClaimed.putIfAbsent(uuid, new HashMap<>());
+        dailyClaimed.putIfAbsent(uuid, new ConcurrentHashMap<>());
         dailyClaimed.get(uuid).put(job, true);
         int rep = getDailyRewardRep(uuid, job);
         try {
@@ -228,7 +228,7 @@ public class JobsDataManager {
         if (!(spec.equals("xp") || spec.equals("stamina") || spec.equals("reward"))) return false;
         int req = plugin.getConfig().getInt("specializations.required-level", 20);
         if (getLevel(p.getUniqueId(), job) < req) return false;
-        specializations.putIfAbsent(p.getUniqueId(), new HashMap<>());
+        specializations.putIfAbsent(p.getUniqueId(), new ConcurrentHashMap<>());
         if (!getSpecialization(p.getUniqueId(), job).isEmpty()) return false;
         specializations.get(p.getUniqueId()).put(job, spec);
         saveAll();
@@ -330,7 +330,7 @@ public class JobsDataManager {
         if (payout <= 0) return;
 
         rewardVkRepSilent(p, payout);
-        repEarned.putIfAbsent(uuid, new HashMap<>());
+        repEarned.putIfAbsent(uuid, new ConcurrentHashMap<>());
         repEarned.get(uuid).put(job, getRepEarned(uuid, job) + payout);
         pendingRepNotify.put(uuid, pendingRepNotify.getOrDefault(uuid, 0) + payout);
         maybeNotifyRepBatch(p, job);
@@ -418,9 +418,9 @@ public class JobsDataManager {
         double cfgMult = plugin.getConfig().getDouble("jobs." + job + ".exp-multiplier", 1.0);
         amount = (int)Math.max(1, Math.round(amount * cfgMult));
         if ("xp".equals(getSpecialization(uuid, job))) amount = (int)Math.max(1, Math.round(amount * 1.15));
-        expData.putIfAbsent(uuid, new HashMap<>());
-        lvlData.putIfAbsent(uuid, new HashMap<>());
-        skillPoints.putIfAbsent(uuid, new HashMap<>());
+        expData.putIfAbsent(uuid, new ConcurrentHashMap<>());
+        lvlData.putIfAbsent(uuid, new ConcurrentHashMap<>());
+        skillPoints.putIfAbsent(uuid, new ConcurrentHashMap<>());
         
         int currentExp = getExp(uuid, job);
         int currentLvl = getLevel(uuid, job);

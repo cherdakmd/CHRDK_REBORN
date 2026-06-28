@@ -151,7 +151,8 @@ public class StreamManager extends BukkitRunnable implements Listener {
         long mins = (System.currentTimeMillis() - ls.startedAt) / 60000L;
         saveData();
         api().sendMessage(peer, "🔴 Стрим завершён. Длительность: " + mins + " мин.");
-        try { VKChatPlugin.getInstance().getApi().sendToMainChat("🔴 Стрим " + profiles.get(vk).channel + " завершён. Спасибо за эфир!"); } catch (Throwable ignored) {}
+        StreamerProfile profile = profiles.get(vk);
+        try { VKChatPlugin.getInstance().getApi().sendToMainChat("🔴 Стрим " + (profile != null ? profile.channel : "unknown") + " завершён. Спасибо за эфир!"); } catch (Throwable ignored) {}
     }
 
     private void tickManualLives() {

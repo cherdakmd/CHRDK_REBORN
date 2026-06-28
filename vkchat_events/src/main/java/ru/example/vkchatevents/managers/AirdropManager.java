@@ -31,11 +31,10 @@ import ru.example.vkchatevents.util.ClaimProtection;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class AirdropManager implements Listener {
     private final VKChatEventsPlugin plugin;
-    private final Random random = new Random();
     
     private Location activeAirdrop = null;
     private String activeTier = null;
@@ -87,7 +86,7 @@ public class AirdropManager implements Listener {
         this.activeAirdrop = loc;
         
         List<String> tiers = new ArrayList<>(plugin.getConfig().getConfigurationSection("airdrops.tiers").getKeys(false));
-        this.activeTier = tiers.get(random.nextInt(tiers.size()));
+        this.activeTier = tiers.get(ThreadLocalRandom.current().nextInt(tiers.size()));
         String tName = ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("airdrops.tiers." + activeTier + ".name"));
 
         int r = plugin.getConfig().getInt("airdrops.crater-radius", 3);
@@ -128,7 +127,7 @@ public class AirdropManager implements Listener {
                 EntityType type = EntityType.valueOf(p[0]);
                 int count = Integer.parseInt(p[1]);
                 for(int i=0; i<count; i++) {
-                    loc.getWorld().spawnEntity(loc.clone().add(random.nextInt(6)-3, 1, random.nextInt(6)-3), type);
+                    loc.getWorld().spawnEntity(loc.clone().add(ThreadLocalRandom.current().nextInt(6)-3, 1, ThreadLocalRandom.current().nextInt(6)-3), type);
                 }
             } catch (Exception ignored) {}
         }
@@ -141,7 +140,7 @@ public class AirdropManager implements Listener {
         int minZ = loc.getBlockZ() - fuzz;
         int maxZ = loc.getBlockZ() + fuzz;
         
-        if (random.nextBoolean()) {
+        if (ThreadLocalRandom.current().nextBoolean()) {
             bc = " С небес рухнул " + tName + "!\n" +
                  " Загадка: Ищите его в квадрате X: " + minX + " до " + maxX + ", Z: " + minZ + " до " + maxZ + "!\n" +
                  "Биом похож на " + loc.getBlock().getBiome().name() + "\n" +
@@ -355,7 +354,7 @@ public class AirdropManager implements Listener {
                 Material mat = Material.valueOf(p[0]);
                 int min = Integer.parseInt(p[1]);
                 int max = Integer.parseInt(p[2]);
-                int amt = random.nextInt(max - min + 1) + min;
+                int amt = ThreadLocalRandom.current().nextInt(max - min + 1) + min;
                 
                 amt = (int) (amt * multiplier);
                 

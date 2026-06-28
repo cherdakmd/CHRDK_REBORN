@@ -28,12 +28,11 @@ import ru.example.vkchat.api.VKCommandEvent;
 import ru.example.vkchatevents.VKChatEventsPlugin;
 import ru.example.vkchatevents.util.ClaimProtection;
 
-import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.UUID;
 
 public class WrathManager implements Listener {
     private final VKChatEventsPlugin plugin;
-    private final Random random = new Random();
     
     private boolean wrathActive = false;
     private LivingEntity activeBoss = null;
@@ -52,11 +51,11 @@ public class WrathManager implements Listener {
             @Override
             public void run() {
                 // Раз в 8 часов разыгрываем либо босса, либо случайный катаклизм/благословение
-                if (random.nextBoolean()) {
+                if (ThreadLocalRandom.current().nextBoolean()) {
                     tryStartWrath();
                 } else {
                     String[] cats = {"acid_rain", "earthquake", "tempest", "meteor_shower", "blizzard", "eclipse", "reputation_bloom", "angelic_grace", "star_shower", "geysers", "blood_moon_hunt", "treasure_comet", "station_fall", "fog_shadows", "plasma_storm", "gravity_anomaly"};
-                    startCataclysm(cats[random.nextInt(cats.length)]);
+                    startCataclysm(cats[ThreadLocalRandom.current().nextInt(cats.length)]);
                 }
             }
         }.runTaskTimer(plugin, interval * 20L, interval * 20L);
@@ -69,7 +68,7 @@ public class WrathManager implements Listener {
             public void run() {
                 if (activeCataclysm != null || isActive()) return;
                 if (Bukkit.getOnlinePlayers().isEmpty()) return;
-                if (random.nextInt(100) >= autoChance) return;
+                if (ThreadLocalRandom.current().nextInt(100) >= autoChance) return;
 
                 // Взвешенный выбор типа катаклизма
                 String[] allTypes = {"acid_rain", "earthquake", "tempest", "meteor_shower", "blizzard", "eclipse",
@@ -81,11 +80,11 @@ public class WrathManager implements Listener {
                     int count = (int) Math.max(1, Math.round(w * 10));
                     for (int i = 0; i < count; i++) weighted.add(t);
                 }
-                String type = weighted.get(random.nextInt(weighted.size()));
+                String type = weighted.get(ThreadLocalRandom.current().nextInt(weighted.size()));
 
                 // Выбираем случайного онлайн-игрока рядом с которым случится катаклизм
                 java.util.List<Player> online = new java.util.ArrayList<>(Bukkit.getOnlinePlayers());
-                Player target = online.get(random.nextInt(online.size()));
+                Player target = online.get(ThreadLocalRandom.current().nextInt(online.size()));
                 spontaneousCenter = target.getLocation().clone();
 
                 Bukkit.getScheduler().runTask(plugin, () -> {
@@ -257,7 +256,7 @@ public class WrathManager implements Listener {
                     p.playSound(p.getLocation(), org.bukkit.Sound.ENTITY_GENERIC_EXPLODE, 0.5f, 0.5f);
 
                     // С шансом 15% под ногами игрока трескается и проваливается блок (если не приват)!
-                    if (random.nextInt(100) < 15) {
+                    if (ThreadLocalRandom.current().nextInt(100) < 15) {
                         Block below = p.getLocation().clone().add(0, -1, 0).getBlock();
                         if (below.getType() != Material.AIR && below.getType() != Material.BEDROCK && below.getType() != Material.BARRIER) {
                             if (!isLocationClaimed(below.getLocation())) {
@@ -269,11 +268,11 @@ public class WrathManager implements Listener {
                     }
 
                     // С шансом 25% создаем реальную физическую ХАРДКОРНУЮ трещину (crack) на земле рядом с игроком!
-                    if (random.nextInt(100) < 25) {
-                        Location center = p.getLocation().clone().add(random.nextInt(10) - 5, -1, random.nextInt(10) - 5);
+                    if (ThreadLocalRandom.current().nextInt(100) < 25) {
+                        Location center = p.getLocation().clone().add(ThreadLocalRandom.current().nextInt(10) - 5, -1, ThreadLocalRandom.current().nextInt(10) - 5);
                         if (!isLocationClaimed(center)) {
-                            boolean xAxis = random.nextBoolean();
-                            int length = 6 + random.nextInt(5); // Хардкорная длина 6-10 блоков!
+                            boolean xAxis = ThreadLocalRandom.current().nextBoolean();
+                            int length = 6 + ThreadLocalRandom.current().nextInt(5); // Хардкорная длина 6-10 блоков!
                             for (int i = 0; i < length; i++) {
                                 Location loc = center.clone().add(xAxis ? i : 0, 0, xAxis ? 0 : i);
                                 // Углубляем трещину на 3 блока вниз
@@ -316,15 +315,15 @@ public class WrathManager implements Listener {
                 for (Player p : Bukkit.getOnlinePlayers()) {
                     if (!shouldAffectPlayer(p)) continue;
                     if (p.getWorld().equals(world)) {
-                        if (random.nextInt(100) < 25) {
-                            Location strikeLoc = p.getLocation().clone().add(random.nextInt(16) - 8, 0, random.nextInt(16) - 8);
+                        if (ThreadLocalRandom.current().nextInt(100) < 25) {
+                            Location strikeLoc = p.getLocation().clone().add(ThreadLocalRandom.current().nextInt(16) - 8, 0, ThreadLocalRandom.current().nextInt(16) - 8);
                             world.strikeLightning(strikeLoc);
                         }
 
                         // Ураганный ветер сносит игроков под открытым небом!
                         if (p.getLocation().getBlock().getY() >= world.getHighestBlockYAt(p.getLocation())) {
-                            double dx = (random.nextDouble() - 0.5) * 1.5;
-                            double dz = (random.nextDouble() - 0.5) * 1.5;
+                            double dx = (ThreadLocalRandom.current().nextDouble() - 0.5) * 1.5;
+                            double dz = (ThreadLocalRandom.current().nextDouble() - 0.5) * 1.5;
                             p.setVelocity(new org.bukkit.util.Vector(dx, 0.1, dz));
                             p.sendMessage(ChatColor.YELLOW + "💨 Сильный порыв ураганного ветра сносит вас в сторону!");
                         }
@@ -351,8 +350,8 @@ public class WrathManager implements Listener {
 
                 for (Player p : Bukkit.getOnlinePlayers()) {
                     if (!shouldAffectPlayer(p)) continue;
-                    if (p.getWorld().equals(world) && random.nextInt(100) < 30) {
-                        Location meteorLoc = p.getLocation().clone().add(random.nextInt(20) - 10, 15, random.nextInt(20) - 10);
+                    if (p.getWorld().equals(world) && ThreadLocalRandom.current().nextInt(100) < 30) {
+                        Location meteorLoc = p.getLocation().clone().add(ThreadLocalRandom.current().nextInt(20) - 10, 15, ThreadLocalRandom.current().nextInt(20) - 10);
                         org.bukkit.entity.LargeFireball fireball = (org.bukkit.entity.LargeFireball) world.spawnEntity(meteorLoc, EntityType.FIREBALL);
                         fireball.setDirection(new org.bukkit.util.Vector(0, -1, 0)); // Летят ровно вниз
                         fireball.setYield(2.0f); // Взрыв малой мощности
@@ -439,10 +438,10 @@ public class WrathManager implements Listener {
                     if (p.getWorld().equals(world)) {
                         p.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 100, 0));
                         
-                        if (random.nextInt(100) < 30) {
+                        if (ThreadLocalRandom.current().nextInt(100) < 30) {
                             EntityType[] mobs = {EntityType.WITHER_SKELETON, EntityType.PHANTOM, EntityType.ZOMBIE, EntityType.SKELETON};
-                            EntityType selectedMob = mobs[random.nextInt(mobs.length)];
-                            Location spawn = p.getLocation().clone().add(random.nextInt(10) - 5, 0, random.nextInt(10) - 5);
+                            EntityType selectedMob = mobs[ThreadLocalRandom.current().nextInt(mobs.length)];
+                            Location spawn = p.getLocation().clone().add(ThreadLocalRandom.current().nextInt(10) - 5, 0, ThreadLocalRandom.current().nextInt(10) - 5);
                             spawn.setY(world.getHighestBlockYAt(spawn) + 1);
                             
                             if (!isLocationClaimed(spawn)) {
@@ -562,8 +561,8 @@ public class WrathManager implements Listener {
                     Location pLoc = p.getLocation();
                     if (p.getWorld().equals(world) && pLoc.getBlock().getY() >= world.getHighestBlockYAt(pLoc)) {
                         // Игрок под открытым звездным небом! Шанс 40% на удар кометы
-                        if (random.nextInt(100) < 40) {
-                            Location starStrike = pLoc.clone().add(random.nextInt(16) - 8, 0, random.nextInt(16) - 8);
+                        if (ThreadLocalRandom.current().nextInt(100) < 40) {
+                            Location starStrike = pLoc.clone().add(ThreadLocalRandom.current().nextInt(16) - 8, 0, ThreadLocalRandom.current().nextInt(16) - 8);
                             starStrike.setY(world.getHighestBlockYAt(starStrike));
                             
                             if (!isLocationClaimed(starStrike)) {
@@ -597,8 +596,8 @@ public class WrathManager implements Listener {
                                 
                                 // 4. Спавним лут/награды
                                 Material[] prizes = {Material.GOLD_NUGGET, Material.LAPIS_LAZULI, Material.EXPERIENCE_BOTTLE, Material.EMERALD};
-                                Material selectedPrize = prizes[random.nextInt(prizes.length)];
-                                world.dropItemNaturally(starStrike.clone().add(0, 1, 0), new ItemStack(selectedPrize, 2 + random.nextInt(4)));
+                                Material selectedPrize = prizes[ThreadLocalRandom.current().nextInt(prizes.length)];
+                                world.dropItemNaturally(starStrike.clone().add(0, 1, 0), new ItemStack(selectedPrize, 2 + ThreadLocalRandom.current().nextInt(4)));
                                 
                                 p.sendMessage(ChatColor.GOLD + "🌠 Комета упала с небес, пробив глубокий кратер в земле совсем рядом! Исследуйте кратер!");
                                 p.playSound(p.getLocation(), org.bukkit.Sound.BLOCK_GLASS_BREAK, 1.0f, 1.2f);
@@ -628,8 +627,8 @@ public class WrathManager implements Listener {
 
                 for (Player p : Bukkit.getOnlinePlayers()) {
                     if (!shouldAffectPlayer(p)) continue;
-                    if (p.getWorld().equals(world) && random.nextInt(100) < 35) {
-                        Location geyserLoc = p.getLocation().clone().add(random.nextInt(14) - 7, 0, random.nextInt(14) - 7);
+                    if (p.getWorld().equals(world) && ThreadLocalRandom.current().nextInt(100) < 35) {
+                        Location geyserLoc = p.getLocation().clone().add(ThreadLocalRandom.current().nextInt(14) - 7, 0, ThreadLocalRandom.current().nextInt(14) - 7);
                         geyserLoc.setY(world.getHighestBlockYAt(geyserLoc));
 
                         if (!isLocationClaimed(geyserLoc)) {
@@ -701,11 +700,11 @@ public class WrathManager implements Listener {
                 EntityType[] mobs = {EntityType.ZOMBIE, EntityType.SKELETON, EntityType.SPIDER, EntityType.HUSK};
                 for (Player p : Bukkit.getOnlinePlayers()) {
                     if (!p.getWorld().equals(world) || !shouldAffectPlayer(p)) continue;
-                    if (random.nextInt(100) >= 35) continue;
-                    Location spawn = p.getLocation().clone().add(random.nextInt(18) - 9, 0, random.nextInt(18) - 9);
+                    if (ThreadLocalRandom.current().nextInt(100) >= 35) continue;
+                    Location spawn = p.getLocation().clone().add(ThreadLocalRandom.current().nextInt(18) - 9, 0, ThreadLocalRandom.current().nextInt(18) - 9);
                     spawn.setY(world.getHighestBlockYAt(spawn) + 1);
                     if (isLocationClaimed(spawn)) continue;
-                    LivingEntity mob = (LivingEntity) world.spawnEntity(spawn, mobs[random.nextInt(mobs.length)]);
+                    LivingEntity mob = (LivingEntity) world.spawnEntity(spawn, mobs[ThreadLocalRandom.current().nextInt(mobs.length)]);
                     mob.setCustomName(ChatColor.RED + "Кровавый охотник");
                     mob.setCustomNameVisible(true);
                     mob.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 20 * 60, 1));
@@ -719,7 +718,7 @@ public class WrathManager implements Listener {
             cataclysmEndTime = System.currentTimeMillis() + 60000L;
             Location chestLoc;
             if (spontaneousCenter != null) {
-                chestLoc = spontaneousCenter.clone().add(random.nextInt(20) - 10, 0, random.nextInt(20) - 10);
+                chestLoc = spontaneousCenter.clone().add(ThreadLocalRandom.current().nextInt(20) - 10, 0, ThreadLocalRandom.current().nextInt(20) - 10);
                 chestLoc.setY(world.getHighestBlockYAt(chestLoc) + 1);
             } else {
                 chestLoc = ClaimProtection.findSafeWildernessLocation(world, plugin.getConfig().getInt("wrath.spawn-radius", 2000), 32, 80);
@@ -736,9 +735,9 @@ public class WrathManager implements Listener {
             Block chestBlock = chestLoc.getBlock();
             chestBlock.setType(Material.CHEST);
             org.bukkit.block.Chest chest = (org.bukkit.block.Chest) chestBlock.getState();
-            chest.getInventory().addItem(new ItemStack(Material.DIAMOND, 12 + random.nextInt(13)));
-            chest.getInventory().addItem(new ItemStack(Material.EXPERIENCE_BOTTLE, 24 + random.nextInt(25)));
-            if (random.nextBoolean()) chest.getInventory().addItem(new ItemStack(Material.NETHERITE_SCRAP, 1 + random.nextInt(3)));
+            chest.getInventory().addItem(new ItemStack(Material.DIAMOND, 12 + ThreadLocalRandom.current().nextInt(13)));
+            chest.getInventory().addItem(new ItemStack(Material.EXPERIENCE_BOTTLE, 24 + ThreadLocalRandom.current().nextInt(25)));
+            if (ThreadLocalRandom.current().nextBoolean()) chest.getInventory().addItem(new ItemStack(Material.NETHERITE_SCRAP, 1 + ThreadLocalRandom.current().nextInt(3)));
             world.spawnParticle(org.bukkit.Particle.FIREWORKS_SPARK, chestLoc.clone().add(0.5, 1.5, 0.5), 80, 1.2, 1.2, 1.2, 0.08);
             world.playSound(chestLoc, org.bukkit.Sound.ENTITY_FIREWORK_ROCKET_BLAST, 2.0f, 0.9f);
             stopCataclysm();
@@ -771,7 +770,7 @@ public class WrathManager implements Listener {
                         World world = Bukkit.getWorlds().get(0);
                         Location spawnLoc;
                         if (spontaneousCenter != null) {
-                            spawnLoc = spontaneousCenter.clone().add(random.nextInt(20) - 10, 0, random.nextInt(20) - 10);
+                            spawnLoc = spontaneousCenter.clone().add(ThreadLocalRandom.current().nextInt(20) - 10, 0, ThreadLocalRandom.current().nextInt(20) - 10);
                             spawnLoc.setY(world.getHighestBlockYAt(spawnLoc.getBlockX(), spawnLoc.getBlockZ()));
                         } else {
                             int rRadius = plugin.getConfig().getInt("wrath.spawn-radius", 2000);
@@ -809,7 +808,7 @@ public class WrathManager implements Listener {
                         // Уголь, обсидиан и огонь вокруг кратера
                         for (int dx = -r-2; dx <= r+2; dx++) {
                             for (int dz = -r-2; dz <= r+2; dz++) {
-                                if (random.nextInt(100) < 30) {
+                                if (ThreadLocalRandom.current().nextInt(100) < 30) {
                                     Location fLoc = spawnLoc.clone().add(dx, -1, dz);
                                     fLoc.setY(world.getHighestBlockYAt(fLoc));
                                     if (!isLocationClaimed(fLoc)) {
@@ -854,7 +853,7 @@ public class WrathManager implements Listener {
 
                         // Спавним дроидов охраны
                         for (int i = 0; i < 3; i++) {
-                            Location dLoc = chestLoc.clone().add(random.nextInt(4)-2, 1, random.nextInt(4)-2);
+                            Location dLoc = chestLoc.clone().add(ThreadLocalRandom.current().nextInt(4)-2, 1, ThreadLocalRandom.current().nextInt(4)-2);
                             dLoc.setY(world.getHighestBlockYAt(dLoc) + 1);
                             LivingEntity droid = (LivingEntity) world.spawnEntity(dLoc, EntityType.SKELETON);
                             droid.setCustomName("§b🤖 Сбойный Дроид Охраны");
@@ -905,12 +904,12 @@ public class WrathManager implements Listener {
                     p.addPotionEffect(new PotionEffect(PotionEffectType.CONFUSION, 80, 1));
 
                     // Спавн теней рядом с игроками
-                    if (random.nextInt(100) < spawnChance) {
-                        Location spawn = p.getLocation().clone().add(random.nextInt(12) - 6, 0, random.nextInt(12) - 6);
+                    if (ThreadLocalRandom.current().nextInt(100) < spawnChance) {
+                        Location spawn = p.getLocation().clone().add(ThreadLocalRandom.current().nextInt(12) - 6, 0, ThreadLocalRandom.current().nextInt(12) - 6);
                         spawn.setY(world.getHighestBlockYAt(spawn) + 1);
                         if (!isLocationClaimed(spawn)) {
                             EntityType[] shadowTypes = {EntityType.ENDERMAN, EntityType.WITHER_SKELETON, EntityType.VEX};
-                            LivingEntity shadow = (LivingEntity) world.spawnEntity(spawn, shadowTypes[random.nextInt(shadowTypes.length)]);
+                            LivingEntity shadow = (LivingEntity) world.spawnEntity(spawn, shadowTypes[ThreadLocalRandom.current().nextInt(shadowTypes.length)]);
                             shadow.setCustomName("§5§lТень");
                             shadow.setCustomNameVisible(true);
                             shadow.setGlowing(true);
@@ -948,8 +947,8 @@ public class WrathManager implements Listener {
                     if (!p.getWorld().equals(world)) continue;
 
                     // Плазменные молнии
-                    if (random.nextInt(100) < lightningChance) {
-                        Location strike = p.getLocation().clone().add(random.nextInt(12) - 6, 0, random.nextInt(12) - 6);
+                    if (ThreadLocalRandom.current().nextInt(100) < lightningChance) {
+                        Location strike = p.getLocation().clone().add(ThreadLocalRandom.current().nextInt(12) - 6, 0, ThreadLocalRandom.current().nextInt(12) - 6);
                         world.strikeLightning(strike);
                         // Обжигаем nearby
                         for (org.bukkit.entity.Entity ent : world.getNearbyEntities(strike, 3, 3, 3)) {
@@ -994,11 +993,11 @@ public class WrathManager implements Listener {
                     if (!p.getWorld().equals(world)) continue;
 
                     // Случайный запуск в небо
-                    if (random.nextInt(100) < launchChance) {
+                    if (ThreadLocalRandom.current().nextInt(100) < launchChance) {
                         p.setVelocity(new org.bukkit.util.Vector(
-                            (random.nextDouble() - 0.5) * 1.0,
+                            (ThreadLocalRandom.current().nextDouble() - 0.5) * 1.0,
                             launchForce,
-                            (random.nextDouble() - 0.5) * 1.0
+                            (ThreadLocalRandom.current().nextDouble() - 0.5) * 1.0
                         ));
                         p.addPotionEffect(new PotionEffect(PotionEffectType.CONFUSION, 60, 1));
                         p.sendMessage(ChatColor.AQUA + "🌀 Гравитация захватила вас! Вы летите вверх!");
@@ -1010,7 +1009,7 @@ public class WrathManager implements Listener {
 
                     // Подбрасываем мобов рядом с игроком
                     for (org.bukkit.entity.Entity ent : world.getNearbyEntities(p.getLocation(), 48, 24, 48)) {
-                        if (ent instanceof LivingEntity && !(ent instanceof Player) && random.nextInt(100) < 15) {
+                        if (ent instanceof LivingEntity && !(ent instanceof Player) && ThreadLocalRandom.current().nextInt(100) < 15) {
                             ent.setVelocity(new org.bukkit.util.Vector(0, 1.5, 0));
                         }
                     }
@@ -1065,8 +1064,8 @@ public class WrathManager implements Listener {
     @EventHandler
     public void onBloodMoonMobDeath(EntityDeathEvent e) {
         if (e.getEntity().getPersistentDataContainer().has(new NamespacedKey(plugin, "blood_moon_mob"), PersistentDataType.BYTE)) {
-            e.getDrops().add(new ItemStack(Material.EMERALD, 1 + random.nextInt(3)));
-            if (random.nextInt(100) < 20) e.getDrops().add(new ItemStack(Material.DIAMOND));
+            e.getDrops().add(new ItemStack(Material.EMERALD, 1 + ThreadLocalRandom.current().nextInt(3)));
+            if (ThreadLocalRandom.current().nextInt(100) < 20) e.getDrops().add(new ItemStack(Material.DIAMOND));
             e.setDroppedExp(e.getDroppedExp() + 10);
         }
     }
@@ -1096,7 +1095,7 @@ public class WrathManager implements Listener {
                             Material mat = Material.valueOf(parts[0]);
                             int min = Integer.parseInt(parts[1]);
                             int max = parts.length >= 3 ? Integer.parseInt(parts[2]) : min;
-                            int amount = min + random.nextInt(Math.max(1, max - min + 1));
+                            int amount = min + ThreadLocalRandom.current().nextInt(Math.max(1, max - min + 1));
                             e.getDrops().add(new ItemStack(mat, amount));
                         } catch (Exception ignored) {}
                     }

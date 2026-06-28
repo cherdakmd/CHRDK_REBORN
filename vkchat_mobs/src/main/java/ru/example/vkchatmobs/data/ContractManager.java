@@ -14,11 +14,10 @@ import ru.example.vkchat.VKChatPlugin;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class ContractManager {
     private final VKChatMobsPlugin plugin;
-    private final Random random = new Random();
 
     private final NamespacedKey contractTypeKey;
     private final NamespacedKey progressKey;
@@ -141,7 +140,7 @@ public class ContractManager {
         if (completed >= 25 || hunter >= 40) available.add(ContractType.LEGENDARY);
         if (completed >= 5 || hunter >= 15) available.add(ContractType.ELEMENTAL);
         if (completed >= 15 || hunter >= 30) available.add(ContractType.SLAYER);
-        ContractType selected = available.get(random.nextInt(available.size()));
+        ContractType selected = available.get(ThreadLocalRandom.current().nextInt(available.size()));
 
         PersistentDataContainer pdc = p.getPersistentDataContainer();
         pdc.set(contractTypeKey, PersistentDataType.STRING, selected.getId());
@@ -150,7 +149,7 @@ public class ContractManager {
 
         if (selected == ContractType.ELEMENTAL) {
             String[] elements = {"fire", "frost", "poison", "storm", "dark", "light", "void", "nature"};
-            String element = elements[random.nextInt(elements.length)];
+            String element = elements[ThreadLocalRandom.current().nextInt(elements.length)];
             pdc.set(contractElementKey, PersistentDataType.STRING, element);
             String elementName;
             switch (element) {

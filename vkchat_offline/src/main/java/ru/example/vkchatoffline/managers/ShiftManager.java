@@ -11,6 +11,7 @@ import ru.example.vkchatoffline.data.Expedition;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * Управление рабочими сменами.
@@ -19,7 +20,6 @@ import java.util.concurrent.ConcurrentHashMap;
 public class ShiftManager {
     private final VKChatOfflinePlugin plugin;
     private final Map<Integer, ActiveShift> activeShifts = new ConcurrentHashMap<>();
-    private final Random random = new Random();
 
     public ShiftManager(VKChatOfflinePlugin plugin) {
         this.plugin = plugin;
@@ -171,7 +171,7 @@ public class ShiftManager {
                         int actualMax = (int) (max * multiplier);
 
                         if (actualMax > min) {
-                            int amount = random.nextInt(actualMax - min + 1) + min;
+                            int amount = ThreadLocalRandom.current().nextInt(actualMax - min + 1) + min;
                             if (amount > 0) {
                                 rewards.add(new ItemStack(m, amount));
                             }

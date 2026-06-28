@@ -9,7 +9,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 import ru.example.vkchat.VKChatPlugin;
 
 import java.util.List;
-import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -17,7 +17,6 @@ public class AnnounceTask extends BukkitRunnable {
     private final VKChatAnnouncerPlugin plugin;
     private final List<String> messages;
     private int currentIndex = 0;
-    private final Random random = new Random();
 
     public AnnounceTask(VKChatAnnouncerPlugin plugin) {
         this.plugin = plugin;
@@ -29,14 +28,14 @@ public class AnnounceTask extends BukkitRunnable {
         if (Bukkit.getOnlinePlayers().isEmpty() || messages.isEmpty()) return;
 
         // Шанс запустить викторину вместо автосообщения настраивается в config.yml
-        if (random.nextInt(100) < plugin.getConfig().getInt("settings.quiz-chance", 20)) {
+        if (ThreadLocalRandom.current().nextInt(100) < plugin.getConfig().getInt("settings.quiz-chance", 20)) {
             QuizListener.askQuestion();
             return;
         }
 
         String msgLine;
         if (plugin.getConfig().getBoolean("settings.random-order", true)) {
-            msgLine = messages.get(random.nextInt(messages.size()));
+            msgLine = messages.get(ThreadLocalRandom.current().nextInt(messages.size()));
         } else {
             msgLine = messages.get(currentIndex);
             currentIndex = (currentIndex + 1) % messages.size();

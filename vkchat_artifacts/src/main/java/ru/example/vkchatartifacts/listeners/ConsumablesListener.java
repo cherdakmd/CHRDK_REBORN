@@ -26,7 +26,7 @@ import ru.example.vkchatartifacts.items.ArtifactFactory;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.UUID;
 
 public class ConsumablesListener implements Listener {
@@ -38,7 +38,6 @@ public class ConsumablesListener implements Listener {
     private final NamespacedKey levelKey;
     private final NamespacedKey mythicKey;
     private final NamespacedKey expireKey;
-    private final Random random = new Random();
 
     public static final Map<UUID, Long> ENCHANTMENT_SCROLL_BOOST = new HashMap<>();
     private final Map<UUID, Long> cooldowns = new HashMap<>();
@@ -107,7 +106,7 @@ public class ConsumablesListener implements Listener {
             p.getWorld().spawnParticle(Particle.ENCHANTMENT_TABLE, p.getLocation().add(0, 1, 0), 50, 0.5, 0.5, 0.5, 0.1);
             p.playSound(p.getLocation(), Sound.BLOCK_ENCHANTMENT_TABLE_USE, 1.0f, 1.0f);
 
-            int roll = random.nextInt(100);
+            int roll = ThreadLocalRandom.current().nextInt(100);
             if (roll < chance) {
                 offMeta.getPersistentDataContainer().set(curseKey, PersistentDataType.STRING, "NONE");
                 
@@ -195,7 +194,7 @@ public class ConsumablesListener implements Listener {
                 p.sendMessage(ChatColor.RED + "В левой руке не артефакт!");
                 return;
             }
-            String newBuff = ArtifactFactory.BUFFS[random.nextInt(ArtifactFactory.BUFFS.length)];
+            String newBuff = ArtifactFactory.BUFFS[ThreadLocalRandom.current().nextInt(ArtifactFactory.BUFFS.length)];
             offMeta.getPersistentDataContainer().set(buffKey, PersistentDataType.STRING, newBuff);
             java.util.List<String> lore = offMeta.getLore();
             if (lore != null) {

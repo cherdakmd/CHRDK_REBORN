@@ -27,10 +27,10 @@ import ru.example.vkchatoffline.managers.OfflineShopCatalog.ShopItem;
 import java.io.File;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class AdventureManager implements Listener {
     private final VKChatOfflinePlugin plugin;
-    private final Random random = new Random();
     private final Map<Integer, ActiveAdventure> active = new ConcurrentHashMap<>();
     private final Map<Integer, Long> cooldowns = new ConcurrentHashMap<>();
     private final Map<Integer, Long> injuries = new ConcurrentHashMap<>();
@@ -213,7 +213,22 @@ public class AdventureManager implements Listener {
         if (plain.equals("класс")) { chooseClass(vkId, new String[]{"!класс"}); return true; }
         if (plain.equals("спутник")) { chooseCompanion(vkId, new String[]{"!спутник"}); return true; }
         if (plain.equals("отмена")) { cancel(vkId); return true; }
-        if (plain.startsWith("открыть ")) { unlockRoute(vkId, new String[]{"!открыть", routeFromOpenButton(plain)}); return true; }
+        if (plain.startsWith("открыть ")) { 
+            // Извлекаем route ID из команды "!открыть <route>" или текста кнопки
+            String routeArg = "";
+            if (text.startsWith("!")) {
+                // Payload command: "!открыть mine"
+                String[] parts = text.split("\\s+", 3);
+                if (parts.length >= 2) routeArg = parts[1];
+            } else {
+                // Button label: "🔓 Открыть ⛏ Заброшенные Шахты"
+                routeArg = routeFromOpenButton(plain);
+            }
+            if (!routeArg.isEmpty()) {
+                unlockRoute(vkId, new String[]{"!открыть", routeArg});
+            }
+            return true; 
+        }
         if (plain.equals("волк")) { chooseCompanion(vkId, new String[]{"!спутник", "wolf"}); return true; }
         if (plain.equals("ворон")) { chooseCompanion(vkId, new String[]{"!спутник", "raven"}); return true; }
         if (plain.equals("алхимик")) { chooseCompanion(vkId, new String[]{"!спутник", "alchemist"}); return true; }
@@ -537,7 +552,7 @@ public class AdventureManager implements Listener {
                 "riddle", "ambush", "curse", "treasure", "merchant", "shrine", "rare", "gathering", "camp", "mimic", "puzzle", "duel", "portal", "artifact", "patron", "heist", "disease", "baba_yaga", "leshy", "rusalka", "domovoi", "perun", "morana", "vodyanoy", "koshchey", "zmey", "bogatyr", "oracle", "tavern", "blacksmith", "moral", "nightmare", "memory", "companion", "collection", "extra", "extra", "extra", "extra", "boss"
         };
         if (adv.stage >= adv.maxStages - 1) adv.pendingType = "boss";
-        else adv.pendingType = types[random.nextInt(types.length - 1)];
+        else adv.pendingType = types[ThreadLocalRandom.current().nextInt(types.length - 1)];
         adv.pendingTitle = eventTitle(adv.pendingType, adv.route);
         adv.waitingChoice = true;
         adv.choiceDeadline = System.currentTimeMillis() + plugin.getConfig().getLong("choice-timeout-seconds", 300) * 1000L;
@@ -602,14 +617,14 @@ public class AdventureManager implements Listener {
         if (hasOfflineSkill(adv.vkId, "sharp") && isCombatEvent(type)) modifier += 2;
         if (hasOfflineSkill(adv.vkId, "occult") && (type.equals("curse") || type.equals("riddle") || type.equals("shrine"))) modifier += 2;
 
-        int roll = 1 + random.nextInt(20);
+        int roll = 1 + ThreadLocalRandom.current().nextInt(20);
         boolean usedInspiration = false;
         int firstRoll = roll;
         boolean bad = !(roll == 20 || (roll != 1 && roll + modifier >= dc));
         if (bad && adv.inspiration > 0 && plugin.getConfig().getBoolean("mmorpg.inspiration.auto-reroll", true)) {
             adv.inspiration--;
             usedInspiration = true;
-            roll = 1 + random.nextInt(20);
+            roll = 1 + ThreadLocalRandom.current().nextInt(20);
             bad = !(roll == 20 || (roll != 1 && roll + modifier >= dc));
         }
         String action = actionName(choice, type);
@@ -627,7 +642,7 @@ public class AdventureManager implements Listener {
         if (!bad) {
             int bonus = successReward(type, routeDifficulty, choice);
             bonus += offlineEquipBonus(adv.vkId, "rep");
-            if (hasOfflineSkill(adv.vkId, "lucky") && random.nextInt(100) < 20) bonus += 20;
+            if (hasOfflineSkill(adv.vkId, "lucky") && ThreadLocalRandom.current().nextInt(100) < 20) bonus += 20;
             api().addReputation(adv.vkId, bonus);
             int xp = xpForEvent(type, routeDifficulty, true);
             adv.xpGained += xp;
@@ -660,7 +675,7 @@ public class AdventureManager implements Listener {
             msg.append("❤️ Осталось: ").append(hpBar(Math.max(0, adv.hp), adv.maxHp)).append(" ").append(Math.max(0, adv.hp)).append("/").append(adv.maxHp).append("\n");
 
             int lethalChance = lethalChance(type, routeDifficulty, choice);
-            if (adv.hp <= 0 || random.nextInt(100) < lethalChance || random.nextInt(100) < plugin.getConfig().getInt("adventures." + adv.route + ".death-chance", 5)) {
+            if (adv.hp <= 0 || ThreadLocalRandom.current().nextInt(100) < lethalChance || ThreadLocalRandom.current().nextInt(100) < plugin.getConfig().getInt("adventures." + adv.route + ".death-chance", 5)) {
                 killAdventure(adv, msg.append("\n").append(deathScene(type, adv.route)).append("\n").toString());
                 return;
             }
@@ -687,7 +702,7 @@ public class AdventureManager implements Listener {
     }
 
     private int damageFor(String type, int difficulty, int choice) {
-        return OfflineEventMath.damageFor(random, type, difficulty, choice);
+        return OfflineEventMath.damageFor(ThreadLocalRandom.current(), type, difficulty, choice);
     }
 
     private int lethalChance(String type, int difficulty, int choice) {
@@ -695,15 +710,15 @@ public class AdventureManager implements Listener {
     }
 
     private int successReward(String type, int difficulty, int choice) {
-        return OfflineEventMath.successReward(random, type, difficulty, choice);
+        return OfflineEventMath.successReward(ThreadLocalRandom.current(), type, difficulty, choice);
     }
 
     private void applyPositiveEventEffects(ActiveAdventure adv, String type, int choice, StringBuilder msg) {
         if (type.equals("shrine")) {
-            int heal = 8 + random.nextInt(10);
+            int heal = 8 + ThreadLocalRandom.current().nextInt(10);
             adv.hp = Math.min(adv.maxHp, adv.hp + heal);
             msg.append("💖 Святилище восстановило HP: +").append(heal).append("\n");
-            if (!"none".equals(adv.condition) && random.nextInt(100) < 60) {
+            if (!"none".equals(adv.condition) && ThreadLocalRandom.current().nextInt(100) < 60) {
                 msg.append("🕯 Святилище сняло состояние: ").append(conditionText(adv.condition)).append("\n");
                 adv.condition = "none";
             }
@@ -717,7 +732,7 @@ public class AdventureManager implements Listener {
             msg.append("🛒 Торговец дал скидочный жетон и подсказал безопасную тропу.\n");
             adv.hp = Math.min(adv.maxHp, adv.hp + 5);
         } else if (type.equals("camp")) {
-            int heal = 10 + random.nextInt(12);
+            int heal = 10 + ThreadLocalRandom.current().nextInt(12);
             adv.hp = Math.min(adv.maxHp, adv.hp + heal);
             adv.morale = Math.min(100, adv.morale + 18);
             adv.supplies = Math.max(0, adv.supplies - 1);
@@ -727,10 +742,10 @@ public class AdventureManager implements Listener {
                 adv.condition = "none";
             }
         } else if (type.equals("gathering")) {
-            adv.supplies += 1 + random.nextInt(2);
+            adv.supplies += 1 + ThreadLocalRandom.current().nextInt(2);
             msg.append("🥫 Найдены припасы. Текущие припасы: ").append(adv.supplies).append("\n");
         } else if (type.equals("mimic")) {
-            adv.gold += 20 + random.nextInt(30);
+            adv.gold += 20 + ThreadLocalRandom.current().nextInt(30);
             msg.append("📦 Мимик выплюнул монеты. Золото +").append(adv.gold).append(" всего\n");
         } else if (type.equals("puzzle")) {
             adv.inspiration++;
@@ -750,7 +765,7 @@ public class AdventureManager implements Listener {
             adv.blessing = randomBlessing();
             msg.append("🌟 Получено благословение: ").append(blessingText(adv.blessing)).append("\n");
         } else if (type.equals("heist")) {
-            int gold = 30 + random.nextInt(50);
+            int gold = 30 + ThreadLocalRandom.current().nextInt(50);
             adv.gold += gold;
             msg.append("🗝 Удачная кража: золото +").append(gold).append("\n");
         } else if (type.equals("disease")) {
@@ -807,9 +822,9 @@ public class AdventureManager implements Listener {
     private void applyNegativeEventEffects(ActiveAdventure adv, String type, int choice, StringBuilder msg) {
         if (type.equals("trap")) {
             msg.append("🪤 Ловушка сработала: кровь, металл и паника.\n");
-            if (random.nextInt(100) < 45) applyCondition(adv, "bleeding", msg);
+            if (ThreadLocalRandom.current().nextInt(100) < 45) applyCondition(adv, "bleeding", msg);
         } else if (type.equals("curse")) {
-            if (random.nextInt(100) < 55) applyCondition(adv, "cursed", msg);
+            if (ThreadLocalRandom.current().nextInt(100) < 55) applyCondition(adv, "cursed", msg);
             int loss = Math.max(10, api().getReputation(adv.vkId) / 100);
             api().takeReputation(adv.vkId, loss);
             msg.append("🧿 Проклятие высосало репутацию: -").append(loss).append("\n");
@@ -932,17 +947,17 @@ public class AdventureManager implements Listener {
 
     private void addIntegratedRewards(ActiveAdventure adv, java.util.List<ItemStack> items) {
         int diff = plugin.getConfig().getInt("adventures." + adv.route + ".difficulty", 1);
-        if (random.nextInt(100) < 6 + diff * 3) items.add(createGearSetFragment());
-        if (random.nextInt(100) < 8 + diff * 2) items.add(createArtifactShardReward());
-        if (random.nextInt(100) < 10 + diff * 2) items.add(createRuneTokenReward());
-        if (adv.route.equals("mine") && random.nextInt(100) < 18) items.add(namedItem(Material.IRON_NUGGET, "§7Осколок перековки", "§7Материал для будущих механик Gear"));
+        if (ThreadLocalRandom.current().nextInt(100) < 6 + diff * 3) items.add(createGearSetFragment());
+        if (ThreadLocalRandom.current().nextInt(100) < 8 + diff * 2) items.add(createArtifactShardReward());
+        if (ThreadLocalRandom.current().nextInt(100) < 10 + diff * 2) items.add(createRuneTokenReward());
+        if (adv.route.equals("mine") && ThreadLocalRandom.current().nextInt(100) < 18) items.add(namedItem(Material.IRON_NUGGET, "§7Осколок перековки", "§7Материал для будущих механик Gear"));
     }
 
     private ItemStack createGearSetFragment() {
         org.bukkit.plugin.Plugin gear = Bukkit.getPluginManager().getPlugin("VKChatGear");
         String[] sets = {"bogatyr", "sokol", "volhv", "koshchey", "tankist", "udarnik"};
         String[] names = {"Богатырь", "Ясный Сокол", "Волхв", "Бессмертный", "Танкист", "Ударник Труда"};
-        int i = random.nextInt(sets.length);
+        int i = ThreadLocalRandom.current().nextInt(sets.length);
         ItemStack item = new ItemStack(Material.PAPER);
         ItemMeta meta = item.getItemMeta();
         meta.setDisplayName("§6Фрагмент сета: " + names[i]);
@@ -984,30 +999,30 @@ public class AdventureManager implements Listener {
         if (list == null || list.isEmpty()) {
             return randomOf("Странное испытание судьбы", "Неизвестная комната", "Шанс на невозможное");
         }
-        return list.get(random.nextInt(list.size()));
+        return list.get(ThreadLocalRandom.current().nextInt(list.size()));
     }
 
     private void applyExtraPositive(ActiveAdventure adv, int choice, StringBuilder msg) {
-        int roll = random.nextInt(8);
-        if (roll == 0) { adv.gold += 20 + random.nextInt(45); msg.append("🪙 Судьба дала золото.\\n"); }
+        int roll = ThreadLocalRandom.current().nextInt(8);
+        if (roll == 0) { adv.gold += 20 + ThreadLocalRandom.current().nextInt(45); msg.append("🪙 Судьба дала золото.\\n"); }
         else if (roll == 1) { adv.relics++; msg.append("🏺 Найдена малая реликвия.\\n"); }
         else if (roll == 2) { adv.inspiration++; msg.append("✨ Сцена вдохновила героя: вдохновение +1.\\n"); }
-        else if (roll == 3) { adv.supplies += 1 + random.nextInt(2); msg.append("🥫 Найдены припасы.\\n"); }
-        else if (roll == 4) { adv.hp = Math.min(adv.maxHp, adv.hp + 10 + random.nextInt(12)); msg.append("💖 Герой восстановил здоровье.\\n"); }
+        else if (roll == 3) { adv.supplies += 1 + ThreadLocalRandom.current().nextInt(2); msg.append("🥫 Найдены припасы.\\n"); }
+        else if (roll == 4) { adv.hp = Math.min(adv.maxHp, adv.hp + 10 + ThreadLocalRandom.current().nextInt(12)); msg.append("💖 Герой восстановил здоровье.\\n"); }
         else if (roll == 5) { adv.morale = Math.min(100, adv.morale + 15); msg.append("🧠 Мораль поднялась.\\n"); }
         else if (roll == 6) { adv.blessing = randomBlessing(); msg.append("🌟 Судьба дала ").append(blessingText(adv.blessing)).append("\\n"); }
         else { if (!"none".equals(adv.condition)) { msg.append("🩹 Состояние снято: ").append(conditionText(adv.condition)).append("\\n"); adv.condition = "none"; } else { adv.gold += 15; msg.append("🪙 Небольшая добыча.\\n"); } }
     }
 
     private void applyExtraNegative(ActiveAdventure adv, int choice, StringBuilder msg) {
-        int roll = random.nextInt(8);
+        int roll = ThreadLocalRandom.current().nextInt(8);
         if (roll == 0) { adv.gold = Math.max(0, adv.gold - 20); msg.append("🪙 Потеряны монеты.\\n"); }
         else if (roll == 1) { applyCondition(adv, randomConditionFor("extra"), msg); }
         else if (roll == 2) { adv.supplies = Math.max(0, adv.supplies - 1); msg.append("🥫 Припасы испорчены.\\n"); }
         else if (roll == 3) { adv.morale = Math.max(0, adv.morale - 12); msg.append("🧠 Мораль просела.\\n"); }
         else if (roll == 4) { adv.inspiration = Math.max(0, adv.inspiration - 1); msg.append("✨ Вдохновение потеряно.\\n"); }
         else if (roll == 5) { adv.blessing = "none"; msg.append("🌑 Благословение рассеялось.\\n"); }
-        else if (roll == 6) { adv.hp -= 5 + random.nextInt(8); msg.append("💥 Дополнительный урон от странного исхода.\\n"); }
+        else if (roll == 6) { adv.hp -= 5 + ThreadLocalRandom.current().nextInt(8); msg.append("💥 Дополнительный урон от странного исхода.\\n"); }
         else { msg.append("🎲 Судьба оставила дурной знак.\\n"); adv.morale = Math.max(0, adv.morale - 5); }
     }
 
@@ -1118,20 +1133,20 @@ public class AdventureManager implements Listener {
     private void consumeStageResources(ActiveAdventure adv, String type, int choice, boolean bad, StringBuilder msg) {
         tickCondition(adv, msg);
         if (!type.equals("camp") && !type.equals("merchant")) {
-            if (random.nextInt(100) < 55) adv.supplies--;
+            if (ThreadLocalRandom.current().nextInt(100) < 55) adv.supplies--;
         }
-        if (bad) adv.morale -= 8 + random.nextInt(8);
-        else adv.morale += 2 + random.nextInt(5);
+        if (bad) adv.morale -= 8 + ThreadLocalRandom.current().nextInt(8);
+        else adv.morale += 2 + ThreadLocalRandom.current().nextInt(5);
         adv.supplies = Math.max(0, adv.supplies);
         adv.morale = Math.max(0, Math.min(100, adv.morale));
         adv.sanity = Math.max(0, Math.min(100, adv.sanity + (adv.morale - adv.sanity) / 8));
         data.set("stats." + adv.vkId + ".sanity", adv.sanity);
         if (adv.supplies <= 0 && !type.equals("gathering")) {
-            int hunger = 3 + random.nextInt(6);
+            int hunger = 3 + ThreadLocalRandom.current().nextInt(6);
             adv.hp -= hunger;
             msg.append("🍞 Нет припасов: голод наносит ").append(hunger).append(" HP.\n");
         }
-        if (adv.morale <= 15 && random.nextInt(100) < 20) {
+        if (adv.morale <= 15 && ThreadLocalRandom.current().nextInt(100) < 20) {
             msg.append("🧠 Мораль на грани: персонаж дрожит и ошибается чаще.\n");
         }
     }
@@ -1172,11 +1187,11 @@ public class AdventureManager implements Listener {
     }
 
     private void applyCondition(ActiveAdventure adv, String condition, StringBuilder msg) {
-        OfflineStatusEffects.applyCondition(random, adv, condition, msg);
+        OfflineStatusEffects.applyCondition(ThreadLocalRandom.current(), adv, condition, msg);
     }
 
     private String randomConditionFor(String type) {
-        return OfflineStatusEffects.randomConditionFor(random, type);
+        return OfflineStatusEffects.randomConditionFor(ThreadLocalRandom.current(), type);
     }
 
     private String conditionText(String condition) {
@@ -1184,11 +1199,11 @@ public class AdventureManager implements Listener {
     }
 
     private void tickCondition(ActiveAdventure adv, StringBuilder msg) {
-        OfflineStatusEffects.tickCondition(random, adv, msg);
+        OfflineStatusEffects.tickCondition(ThreadLocalRandom.current(), adv, msg);
     }
 
     private String randomBlessing() {
-        return OfflineStatusEffects.randomBlessing(random);
+        return OfflineStatusEffects.randomBlessing(ThreadLocalRandom.current());
     }
 
     private String blessingText(String blessing) {
@@ -1228,11 +1243,11 @@ public class AdventureManager implements Listener {
     }
 
     private void applyCompanionPositive(ActiveAdventure adv, String type, int choice, StringBuilder msg) {
-        OfflineCompanionManager.applyCompanionPositive(random, adv, getCompanion(adv.vkId), type, choice, msg);
+        OfflineCompanionManager.applyCompanionPositive(ThreadLocalRandom.current(), adv, getCompanion(adv.vkId), type, choice, msg);
     }
 
     private void applyCompanionNegative(ActiveAdventure adv, String type, int choice, StringBuilder msg) {
-        OfflineCompanionManager.applyCompanionNegative(random, adv, getCompanion(adv.vkId), type, choice, msg);
+        OfflineCompanionManager.applyCompanionNegative(ThreadLocalRandom.current(), adv, getCompanion(adv.vkId), type, choice, msg);
     }
 
     private void chooseCompanion(int vkId, String[] args) {
@@ -1257,7 +1272,7 @@ public class AdventureManager implements Listener {
         if (adv.waitingChoice) { api().sendKeyboard(vkId, "Сначала ответь на текущее событие.", keyboardChoices()); return; }
         if (adv.supplies <= 0) { api().sendKeyboard(vkId, "🥫 Нет припасов для отдыха.", keyboardStatusOnly()); return; }
         adv.supplies--;
-        int heal = 12 + random.nextInt(10);
+        int heal = 12 + ThreadLocalRandom.current().nextInt(10);
         adv.hp = Math.min(adv.maxHp, adv.hp + heal);
         adv.morale = Math.min(100, adv.morale + 15);
         if ("bleeding".equals(adv.condition) || "exhausted".equals(adv.condition)) adv.condition = "none";
@@ -1275,7 +1290,7 @@ public class AdventureManager implements Listener {
         if (adv.deathSavesUsed >= max) return false;
         adv.deathSavesUsed++;
         int dc = plugin.getConfig().getInt("mmorpg.death-saves.dc", 12);
-        int roll = 1 + random.nextInt(20);
+        int roll = 1 + ThreadLocalRandom.current().nextInt(20);
         int mod = Math.max(0, getAdvLevel(adv.vkId) / 4);
         if ("cleric".equals(getPlayerClass(adv.vkId))) mod += 2;
         if ("cursed".equals(adv.condition)) mod -= 2;
@@ -1595,7 +1610,7 @@ public class AdventureManager implements Listener {
     private void maybeDropKey(ActiveAdventure adv, StringBuilder msg) {
         List<String> keys = plugin.getConfig().getStringList("adventures." + adv.route + ".reward.keys");
         for (String key : keys) {
-            if (!isRouteUnlocked(adv.vkId, key) && random.nextInt(100) < plugin.getConfig().getInt("key-drop-chance", 18)) {
+            if (!isRouteUnlocked(adv.vkId, key) && ThreadLocalRandom.current().nextInt(100) < plugin.getConfig().getInt("key-drop-chance", 18)) {
                 plugin.getStashManager().addItem(adv.uuid, plugin.getStashManager().namedKey(keyName(key)));
                 msg.append("🗝 Найден ключ: ").append(cleanKeyName(key)).append("\n");
                 msg.append("📦 Ключ отправлен в /stash.\n");
@@ -1609,7 +1624,7 @@ public class AdventureManager implements Listener {
         int routeDifficulty = plugin.getConfig().getInt("adventures." + adv.route + ".difficulty", 1);
         int repMin = plugin.getConfig().getInt("adventures." + adv.route + ".reward.rep-min", 0);
         int repMax = plugin.getConfig().getInt("adventures." + adv.route + ".reward.rep-max", repMin);
-        int rep = repMin + random.nextInt(Math.max(1, repMax - repMin + 1));
+        int rep = repMin + ThreadLocalRandom.current().nextInt(Math.max(1, repMax - repMin + 1));
         rep += getProgress(adv.vkId) * 10 + routeDifficulty * 15;
         rep += adv.gold;
         rep += adv.relics * 75;
@@ -1620,7 +1635,7 @@ public class AdventureManager implements Listener {
         addProgress(adv.vkId, adv.route);
         completeCampaignForRoute(adv.vkId, adv.route);
         changeSanity(adv.vkId, 4 + routeDifficulty, null);
-        if (random.nextInt(100) < 20 + routeDifficulty * 4) discoverCollection(adv.vkId, adv.route, null);
+        if (ThreadLocalRandom.current().nextInt(100) < 20 + routeDifficulty * 4) discoverCollection(adv.vkId, adv.route, null);
 
         List<ItemStack> items = rollItems("adventures." + adv.route + ".reward.items");
         addIntegratedRewards(adv, items);
@@ -1783,7 +1798,7 @@ public class AdventureManager implements Listener {
         long now = System.currentTimeMillis();
         for (ActiveAdventure adv : new ArrayList<>(active.values())) {
             if (adv.waitingChoice && now >= adv.choiceDeadline) {
-                resolveChoice(adv, 1 + random.nextInt(4), true);
+                resolveChoice(adv, 1 + ThreadLocalRandom.current().nextInt(4), true);
             } else if (!adv.waitingChoice && now >= adv.nextEventTime) {
                 createEvent(adv);
             } else if (now >= adv.hardDeadline) {
@@ -1840,11 +1855,12 @@ public class AdventureManager implements Listener {
         UUID uuid = api().getUuidByVkId(vkId);
         if (uuid == null) { api().sendMessage(vkId, "❌ Аккаунт не привязан."); return; }
         if (args.length < 2) { api().sendMessage(vkId, "Использование: !открыть <route>"); return; }
-        String route = args[1].toLowerCase(Locale.ROOT);
+        String route = args[1].toLowerCase(Locale.ROOT).trim();
+        if (route.isEmpty()) { api().sendMessage(vkId, "Использование: !открыть <route>"); return; }
         if (isRouteUnlocked(vkId, route)) { api().sendMessage(vkId, "✅ Этот маршрут уже открыт."); return; }
-        if (plugin.getConfig().getConfigurationSection("adventures." + route) == null) { api().sendMessage(vkId, "❌ Маршрут не найден."); return; }
+        if (plugin.getConfig().getConfigurationSection("adventures." + route) == null) { api().sendMessage(vkId, "❌ Маршрут не найден: " + route); return; }
         if (!plugin.getStashManager().consumeNamedItem(uuid, Material.TRIPWIRE_HOOK, keyName(route))) {
-            api().sendMessage(vkId, "❌ В тайнике нет ключа: " + keyName(route)); return;
+            api().sendMessage(vkId, "❌ В тайнике нет ключа: " + cleanKeyName(route)); return;
         }
         data.set("unlocks." + vkId + "." + route, true);
         saveAll();
@@ -2109,7 +2125,7 @@ public class AdventureManager implements Listener {
     private String eventIcon(String type) { return OfflineTextFactory.eventIcon(type); }
 
     private String randomOf(String... values) {
-        return values[random.nextInt(values.length)];
+        return values[ThreadLocalRandom.current().nextInt(values.length)];
     }
 
     private String cleanKeyName(String route) {
@@ -2153,17 +2169,19 @@ public class AdventureManager implements Listener {
     }
 
     private String routeFromOpenButton(String text) {
-        if (text.contains("Шахты")) return "mine";
-        if (text.contains("Руины")) return "ruins";
-        if (text.contains("Болота")) return "swamp";
-        if (text.contains("Замок")) return "castle";
-        if (text.contains("Ад")) return "nether";
-        if (text.contains("Горы") || text.contains("Вершины")) return "mountain";
-        if (text.contains("Храм") || text.contains("Затонувший")) return "underwater";
-        if (text.contains("Пустын") || text.contains("Оазис")) return "desert";
-        if (text.contains("Ледяные") || text.contains("Пики")) return "frozen";
-        if (text.contains("Вулкан")) return "volcanic";
-        if (text.contains("Тени") || text.contains("Царство")) return "shadow";
+        String lower = text.toLowerCase(Locale.ROOT);
+        if (lower.contains("шахт")) return "mine";
+        if (lower.contains("руин")) return "ruins";
+        if (lower.contains("болот")) return "swamp";
+        if (lower.contains("замок") || lower.contains("замк")) return "castle";
+        if (lower.contains("ад") || lower.contains("нижний")) return "nether";
+        if (lower.contains("гор") || lower.contains("вершин")) return "mountain";
+        if (lower.contains("храм") || lower.contains("затонувш") || lower.contains("подводн")) return "underwater";
+        if (lower.contains("пустын") || lower.contains("оазис")) return "desert";
+        if (lower.contains("ледян") || lower.contains("пики") || lower.contains("фрозен")) return "frozen";
+        if (lower.contains("вулкан")) return "volcanic";
+        if (lower.contains("теней") || lower.contains("царство") || lower.contains("тень")) return "shadow";
+        if (lower.contains("лес")) return "forest";
         return "mine";
     }
 
@@ -2179,8 +2197,8 @@ public class AdventureManager implements Listener {
             try {
                 String[] p = line.split(";"); Material mat = Material.valueOf(p[0].trim().toUpperCase(Locale.ROOT));
                 int min = p.length > 1 ? Integer.parseInt(p[1].trim()) : 1; int max = p.length > 2 ? Integer.parseInt(p[2].trim()) : min; int chance = p.length > 3 ? Integer.parseInt(p[3].trim()) : 100;
-                if (random.nextInt(100) >= chance) continue;
-                int amount = min + random.nextInt(Math.max(1, max - min + 1));
+                if (ThreadLocalRandom.current().nextInt(100) >= chance) continue;
+                int amount = min + ThreadLocalRandom.current().nextInt(Math.max(1, max - min + 1));
                 while (amount > 0) { int stack = Math.min(64, amount); result.add(new ItemStack(mat, stack)); amount -= stack; }
             } catch (Exception ignored) {}
         }
@@ -2247,7 +2265,7 @@ public class AdventureManager implements Listener {
             msg = "❤️ Использовано зелье лечения: +" + heal + " HP. Осталось зелий: " + (potionCount - 1);
         } else if (adv.supplies > 0) {
             adv.supplies--;
-            int heal = 18 + random.nextInt(10);
+            int heal = 18 + ThreadLocalRandom.current().nextInt(10);
             adv.hp = Math.min(adv.maxHp, adv.hp + heal);
             adv.morale = Math.min(100, adv.morale + 5);
             if ("bleeding".equals(adv.condition) || "exhausted".equals(adv.condition)) adv.condition = "none";

@@ -30,7 +30,7 @@ import ru.example.vkchat.VKChatPlugin;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
-import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.UUID;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -47,7 +47,6 @@ public class MobListener implements Listener {
     private final NamespacedKey bossPhaseKey;
     private final NamespacedKey elementKey;
 
-    private final Random random = new Random();
     private final Map<UUID, Long> minionCooldowns = new ConcurrentHashMap<>();
     private final Map<UUID, Integer> farmedRepToday = new ConcurrentHashMap<>();
     private final Map<UUID, Long> farmResetTimes = new ConcurrentHashMap<>();
@@ -246,7 +245,7 @@ public class MobListener implements Listener {
                                 lastSpellTime.put(mob.getUniqueId().toString(), now);
 
                                 // 1. Выстрел колбой в случайного игрока
-                                Player target = nearbyPlayers.get(random.nextInt(nearbyPlayers.size()));
+                                Player target = nearbyPlayers.get(ThreadLocalRandom.current().nextInt(nearbyPlayers.size()));
                                 Bukkit.broadcastMessage("§d[Проклятый Алхимик] ПОПРОБУЙТЕ МОЙ НОВЫЙ ЯДОВИТЫЙ РЕАГЕНТ!");
                                 world.playSound(target.getLocation(), Sound.ENTITY_SPLASH_POTION_BREAK, 1.5f, 0.8f);
                                 world.spawnParticle(Particle.SPELL_WITCH, target.getLocation(), 50, 2.0, 0.5, 2.0, 0.1);
@@ -279,8 +278,8 @@ public class MobListener implements Listener {
                                     world.spawnParticle(Particle.REVERSE_PORTAL, mob.getLocation(), 50, 1.0, 1.0, 1.0, 0.1);
 
                                     // Телепорт на случайные 10 блоков
-                                    double tx = mob.getLocation().getX() + (random.nextDouble() * 20 - 10);
-                                    double tz = mob.getLocation().getZ() + (random.nextDouble() * 20 - 10);
+                                    double tx = mob.getLocation().getX() + (ThreadLocalRandom.current().nextDouble() * 20 - 10);
+                                    double tz = mob.getLocation().getZ() + (ThreadLocalRandom.current().nextDouble() * 20 - 10);
                                     double ty = mob.getWorld().getHighestBlockYAt((int) tx, (int) tz) + 1;
                                     mob.teleport(new org.bukkit.Location(mob.getWorld(), tx, ty, tz));
                                     world.spawnParticle(Particle.REVERSE_PORTAL, mob.getLocation(), 50, 1.0, 1.0, 1.0, 0.1);
@@ -316,7 +315,7 @@ public class MobListener implements Listener {
 
                                     for (int i = 0; i < 4; i++) {
                                         org.bukkit.entity.Entity enderman = mob.getWorld().spawnEntity(
-                                            mob.getLocation().add(random.nextDouble() * 4 - 2, 0, random.nextDouble() * 4 - 2),
+                                            mob.getLocation().add(ThreadLocalRandom.current().nextDouble() * 4 - 2, 0, ThreadLocalRandom.current().nextDouble() * 4 - 2),
                                             org.bukkit.entity.EntityType.ENDERMAN
                                         );
                                         if (enderman instanceof LivingEntity) {
@@ -359,7 +358,7 @@ public class MobListener implements Listener {
         // --- [НОВОЕ] РЕДКИЙ СПАВН МИРОВЫХ СУПЕР-БОССОВ (шанс 0.2%) ---
         // Антифарм: глобальный кулдаун + проверка на мобофабрику
         long now = System.currentTimeMillis();
-        if (e.getSpawnReason() == CreatureSpawnEvent.SpawnReason.NATURAL && random.nextInt(1000) < 2) {
+        if (e.getSpawnReason() == CreatureSpawnEvent.SpawnReason.NATURAL && ThreadLocalRandom.current().nextInt(1000) < 2) {
             // Глобальный кулдаун между супер-боссами
             if (now - lastSuperBossSpawnTime < SUPER_BOSS_COOLDOWN_MS) {
                 // Too soon, skip boss spawn
@@ -446,7 +445,7 @@ public class MobListener implements Listener {
                 plugin.getConfig().getDouble("mini_bosses.blood-moon-spawn-chance", 15.0) : 
                 plugin.getConfig().getDouble("mini_bosses.spawn-chance", 5.0);
                 
-        if (random.nextInt(100) < bossChance) {
+        if (ThreadLocalRandom.current().nextInt(100) < bossChance) {
             isMiniBoss = true;
             rank = 10; // Фиксированный Ранг 10 для мини-боссов
             double bossMult = plugin.getConfig().getDouble("mini_bosses.stat-multiplier", 2.0);
@@ -495,7 +494,7 @@ public class MobListener implements Listener {
     }
 
     private void spawnSuperBoss(LivingEntity mob) {
-        int r = random.nextInt(4);
+        int r = ThreadLocalRandom.current().nextInt(4);
         String name = "Древний Воевода";
         String bId = "warlord";
         double hpVal = 500.0;
@@ -675,7 +674,7 @@ public class MobListener implements Listener {
                     // Призыв 4 эндерменов при входе во 2 фазу
                     for (int i = 0; i < 4; i++) {
                         org.bukkit.entity.Entity enderman = mob.getWorld().spawnEntity(
-                            mob.getLocation().add(random.nextDouble() * 4 - 2, 0, random.nextDouble() * 4 - 2),
+                            mob.getLocation().add(ThreadLocalRandom.current().nextDouble() * 4 - 2, 0, ThreadLocalRandom.current().nextDouble() * 4 - 2),
                             org.bukkit.entity.EntityType.ENDERMAN
                         );
                         if (enderman instanceof LivingEntity) {
@@ -719,7 +718,7 @@ public class MobListener implements Listener {
             int minRank = plugin.getConfig().getInt("abilities.fire_strike.min-rank", 4);
             if (rank >= minRank) {
                 int chance = plugin.getConfig().getInt("abilities.fire_strike.chance", 25);
-                if (random.nextInt(100) < chance) {
+                if (ThreadLocalRandom.current().nextInt(100) < chance) {
                     int duration = plugin.getConfig().getInt("abilities.fire_strike.duration-seconds", 4);
                     player.setFireTicks(duration * 20);
                     player.sendMessage(org.bukkit.ChatColor.RED + "☠ Огненный удар! " + mob.getCustomName() + " поджег тебя!");
@@ -732,7 +731,7 @@ public class MobListener implements Listener {
             int minRank = plugin.getConfig().getInt("abilities.web_weaver.min-rank", 5);
             if (rank >= minRank) {
                 int chance = plugin.getConfig().getInt("abilities.web_weaver.chance", 15);
-                if (random.nextInt(100) < chance) {
+                if (ThreadLocalRandom.current().nextInt(100) < chance) {
                     int duration = plugin.getConfig().getInt("abilities.web_weaver.slowness-duration-seconds", 5);
                     player.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.SLOW, duration * 20, 2));
                     player.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.BLINDNESS, 40, 1));
@@ -753,7 +752,7 @@ public class MobListener implements Listener {
         }
 
         // 3. [НОВОЕ] Ядовитый Взрыв (Poison Burst, Ранг >= 6, шанс 15%)
-        if (rank >= 6 && random.nextInt(100) < 15) {
+        if (rank >= 6 && ThreadLocalRandom.current().nextInt(100) < 15) {
             player.getWorld().spawnParticle(Particle.SPELL_WITCH, player.getLocation(), 40, 1.0, 0.5, 1.0, 0.1);
             player.getWorld().playSound(player.getLocation(), org.bukkit.Sound.ENTITY_WITCH_THROW, 1f, 0.8f);
             
@@ -766,7 +765,7 @@ public class MobListener implements Listener {
         }
 
         // 4. [НОВОЕ] Гравитационный Толчок (Gravity Thrust, Ранг >= 8, шанс 10%)
-        if (rank >= 8 && random.nextInt(100) < 10) {
+        if (rank >= 8 && ThreadLocalRandom.current().nextInt(100) < 10) {
             player.getWorld().spawnParticle(Particle.CLOUD, player.getLocation().add(0, 1, 0), 30, 0.5, 0.5, 0.5, 0.1);
             player.getWorld().playSound(player.getLocation(), org.bukkit.Sound.ENTITY_BAT_TAKEOFF, 1f, 0.5f);
             player.setVelocity(new Vector(0, 0.75, 0));
@@ -788,7 +787,7 @@ public class MobListener implements Listener {
             int minRank = plugin.getConfig().getInt("abilities.minion_summon.min-rank", 6);
             if (rank >= minRank || isMiniBoss) {
                 int chance = isMiniBoss ? 20 : plugin.getConfig().getInt("abilities.minion_summon.chance", 10);
-                if (random.nextInt(100) < chance) {
+                if (ThreadLocalRandom.current().nextInt(100) < chance) {
                     long now = System.currentTimeMillis();
                     long cd = plugin.getConfig().getInt("abilities.minion_summon.cooldown-seconds", 15) * 1000L;
                     if (now - minionCooldowns.getOrDefault(mob.getUniqueId(), 0L) >= cd) {
@@ -803,7 +802,7 @@ public class MobListener implements Listener {
                         }
 
                         for (int i = 0; i < 2; i++) {
-                            org.bukkit.entity.Entity entity = mob.getWorld().spawnEntity(mob.getLocation().add(random.nextDouble() * 2 - 1, 0, random.nextDouble() * 2 - 1), minionType);
+                            org.bukkit.entity.Entity entity = mob.getWorld().spawnEntity(mob.getLocation().add(ThreadLocalRandom.current().nextDouble() * 2 - 1, 0, ThreadLocalRandom.current().nextDouble() * 2 - 1), minionType);
                             if (entity instanceof LivingEntity) {
                                 LivingEntity minion = (LivingEntity) entity;
                                 minion.setCustomName(org.bukkit.ChatColor.RED + "Прислужник " + mob.getType().name());
@@ -957,11 +956,11 @@ public class MobListener implements Listener {
         }
 
         // --- [НОВОЕ] ВЫПАДЕНИЕ КРИСТАЛЛОВ И СВИТКОВ С МОБОВ РАНГА 9-10 (шанс 5%) ---
-        if (rank >= 9 && killer != null && random.nextInt(100) < 5) {
+        if (rank >= 9 && killer != null && ThreadLocalRandom.current().nextInt(100) < 5) {
             org.bukkit.plugin.Plugin gearPlugin = Bukkit.getPluginManager().getPlugin("VKChatGear");
             if (gearPlugin != null && gearPlugin.isEnabled()) {
                 ItemStack dropToGive = null;
-                int itemRoll = random.nextInt(6);
+                int itemRoll = ThreadLocalRandom.current().nextInt(6);
                 if (itemRoll == 0) {
                     // Свиток сохранения
                     dropToGive = new ItemStack(Material.PAPER);
@@ -1038,20 +1037,20 @@ public class MobListener implements Listener {
                 // С супер-боссов 100% выпадает Осколок Артефакта и 2-3 Жетона Рун
                 mob.getWorld().dropItemNaturally(mob.getLocation(), getArtifactShard());
                 ItemStack rt = getRuneToken();
-                rt.setAmount(2 + random.nextInt(2));
+                rt.setAmount(2 + ThreadLocalRandom.current().nextInt(2));
                 mob.getWorld().dropItemNaturally(mob.getLocation(), rt);
 
                 // void_walker: редкие дропы — ELYTRA (1%), TOTEM (3%), SHULKER (5%)
                 if (bossType.equals("void_walker")) {
-                    if (random.nextInt(100) < 1) {
+                    if (ThreadLocalRandom.current().nextInt(100) < 1) {
                         mob.getWorld().dropItemNaturally(mob.getLocation(), new ItemStack(Material.ELYTRA));
                         killer.sendMessage("§b✨ ЛЕГЕНДАРНЫЙ ДРОП! С Странника Бездны выпали КРЫЛЬЯ!");
                     }
-                    if (random.nextInt(100) < 3) {
+                    if (ThreadLocalRandom.current().nextInt(100) < 3) {
                         mob.getWorld().dropItemNaturally(mob.getLocation(), new ItemStack(Material.TOTEM_OF_UNDYING));
                         killer.sendMessage("§e✨ РЕДКИЙ ДРОП! С Странника Бездны выпал ТОТЕМ БЕССМЕРТИЯ!");
                     }
-                    if (random.nextInt(100) < 5) {
+                    if (ThreadLocalRandom.current().nextInt(100) < 5) {
                         mob.getWorld().dropItemNaturally(mob.getLocation(), new ItemStack(Material.SHULKER_BOX));
                         killer.sendMessage("§d✨ РЕДКИЙ ДРОП! С Странника Бездны выпала ШАЛКЕР-КОРОБКА!");
                     }
@@ -1061,7 +1060,7 @@ public class MobListener implements Listener {
             } else if (isMiniBoss) {
                 // С мини-боссов масштабируемый шанс: 5% + 3% за ранг, макс. 50%
                 int runeChance = Math.min(50, 5 + rank * 3);
-                if (random.nextInt(100) < runeChance) {
+                if (ThreadLocalRandom.current().nextInt(100) < runeChance) {
                     mob.getWorld().dropItemNaturally(mob.getLocation(), getRuneToken());
                     killer.sendMessage("§6✨ НАХОДКА! С мини-босса выпал Древний Жетон Рун!");
                 }
@@ -1073,17 +1072,17 @@ public class MobListener implements Listener {
             double minMult = plugin.getConfig().getDouble("loot.extra-rewards.min-multiplier", 3.0);
             if (multiplier >= minMult) {
                 int chance = plugin.getConfig().getInt("loot.extra-rewards.chance", 15);
-                if (random.nextInt(100) < chance) {
+                if (ThreadLocalRandom.current().nextInt(100) < chance) {
                     java.util.List<String> items = plugin.getConfig().getStringList("loot.extra-rewards.items");
                     if (!items.isEmpty()) {
-                        String randomItem = items.get(random.nextInt(items.size()));
+                        String randomItem = items.get(ThreadLocalRandom.current().nextInt(items.size()));
                         String[] parts = randomItem.split(";");
                         if (parts.length == 3) {
                             try {
                                 org.bukkit.Material mat = org.bukkit.Material.valueOf(parts[0]);
                                 int min = Integer.parseInt(parts[1]);
                                 int max = Integer.parseInt(parts[2]);
-                                int amount = random.nextInt(max - min + 1) + min;
+                                int amount = ThreadLocalRandom.current().nextInt(max - min + 1) + min;
                                 
                                 mob.getWorld().dropItemNaturally(mob.getLocation(), new ItemStack(mat, amount));
                             } catch (Exception ignored) {}
@@ -1104,7 +1103,7 @@ public class MobListener implements Listener {
                             org.bukkit.Material mat = org.bukkit.Material.valueOf(parts[0]);
                             int min = Integer.parseInt(parts[1]);
                             int max = Integer.parseInt(parts[2]);
-                            int amount = random.nextInt(max - min + 1) + min;
+                            int amount = ThreadLocalRandom.current().nextInt(max - min + 1) + min;
                             mob.getWorld().dropItemNaturally(mob.getLocation(), new ItemStack(mat, amount));
                         } catch (Exception ignored) {}
                     }
@@ -1199,7 +1198,7 @@ public class MobListener implements Listener {
             return new ItemStack(Material.DIAMOND, 3);
         }
         
-        int roll = random.nextInt(100);
+        int roll = ThreadLocalRandom.current().nextInt(100);
         if (roll < 25) { // Common Crystal
             ItemStack crystal = new ItemStack(Material.EMERALD);
             ItemMeta meta = crystal.getItemMeta();
@@ -1260,7 +1259,7 @@ public class MobListener implements Listener {
                 "Аура Спешки", "Печать Души", "Полет Ветра", "Магнит Руд", "Аура Вампиризма", "Ледяное Касание", "Ядовитое Облако",
                 "Рефлексы Паука", "Магматический Шаг", "Метеоритный Дождь"
             };
-            int index = random.nextInt(runes.length);
+            int index = ThreadLocalRandom.current().nextInt(runes.length);
             String id = runes[index];
             String name = runeNames[index];
             
@@ -1286,9 +1285,9 @@ public class MobListener implements Listener {
             return new ItemStack(Material.DIAMOND, 5);
         }
         
-        int roll = random.nextInt(100);
+        int roll = ThreadLocalRandom.current().nextInt(100);
         if (roll < 70) { // Random Artifact
-            boolean isMythic = random.nextInt(100) < 15; // 15% mythic!
+            boolean isMythic = ThreadLocalRandom.current().nextInt(100) < 15; // 15% mythic!
             return ru.example.vkchatartifacts.items.ArtifactFactory.generateArtifact(
                 (ru.example.vkchatartifacts.VKChatArtifactsPlugin) artifactsPlugin,
                 isMythic

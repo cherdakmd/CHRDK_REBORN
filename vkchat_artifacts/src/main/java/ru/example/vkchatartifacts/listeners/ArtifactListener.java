@@ -25,7 +25,7 @@ import ru.example.vkchat.api.events.ReputationChangeEvent;
 
 import java.util.Iterator;
 import java.util.List;
-import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.Set;
 import java.util.HashSet;
 import java.util.UUID;
@@ -44,7 +44,6 @@ public class ArtifactListener implements Listener {
     private final NamespacedKey mythicKey;
     private final NamespacedKey expireKey;
     private final NamespacedKey curseGrowthKey;
-    private final Random random = new Random();
     private final Set<Integer> boostingIds = Collections.synchronizedSet(new HashSet<>());
     private final java.util.Map<java.util.UUID, Long> revivalCooldowns = new java.util.concurrent.ConcurrentHashMap<>();
     private final Set<UUID> processing = new HashSet<>(); // Защита от рекурсии
@@ -228,21 +227,21 @@ public class ArtifactListener implements Listener {
                     if (curse.equals("HUNGER")) p.addPotionEffect(new PotionEffect(PotionEffectType.HUNGER, 100, 1, false, false));
                     if (curse.equals("BLINDNESS")) p.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 100, 0, false, false));
                     if (curse.equals("DECAY")) hasDecay = true;
-                    if (curse.equals("NIGHTMARE") && random.nextInt(100) < 1) {
+                    if (curse.equals("NIGHTMARE") && ThreadLocalRandom.current().nextInt(100) < 1) {
                         p.addPotionEffect(new PotionEffect(PotionEffectType.CONFUSION, 60, 0, false, false));
                     }
                     if (curse.equals("GREED")) {
                         hasGreed = true;
                     }
-                    if (curse.equals("CHAOS") && random.nextInt(100) < 10) {
+                    if (curse.equals("CHAOS") && ThreadLocalRandom.current().nextInt(100) < 10) {
                         PotionEffectType[] chaosEffects = {
                             PotionEffectType.SPEED, PotionEffectType.SLOW, PotionEffectType.INCREASE_DAMAGE,
                             PotionEffectType.WEAKNESS, PotionEffectType.REGENERATION, PotionEffectType.POISON,
                             PotionEffectType.FIRE_RESISTANCE, PotionEffectType.JUMP, PotionEffectType.BLINDNESS,
                             PotionEffectType.NIGHT_VISION, PotionEffectType.DAMAGE_RESISTANCE, PotionEffectType.HUNGER
                         };
-                        PotionEffectType chosen = chaosEffects[random.nextInt(chaosEffects.length)];
-                        p.addPotionEffect(new PotionEffect(chosen, 200, random.nextInt(2), false, false));
+                        PotionEffectType chosen = chaosEffects[ThreadLocalRandom.current().nextInt(chaosEffects.length)];
+                        p.addPotionEffect(new PotionEffect(chosen, 200, ThreadLocalRandom.current().nextInt(2), false, false));
                     }
                 } else if (curse != null && !curse.equals("NONE") && setAbsorbsCurses) {
                     // Сет полностью поглотил проклятие!
@@ -507,6 +506,7 @@ public class ArtifactListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGH)
     public void onDamage(EntityDamageByEntityEvent e) {
+        if (e.isCancelled()) return;
         UUID targetId = e.getEntity().getUniqueId();
         if (processing.contains(targetId)) return;
         processing.add(targetId);
@@ -535,7 +535,7 @@ public class ArtifactListener implements Listener {
                     double heal = e.getDamage() * (level * 0.1);
                     p.setHealth(Math.min(p.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue(), p.getHealth() + heal));
                 } else if ("CRITICAL".equals(buff)) {
-                    if (random.nextInt(100) < (level * 5)) {
+                    if (ThreadLocalRandom.current().nextInt(100) < (level * 5)) {
                         e.setDamage(e.getDamage() * 2);
                         p.getWorld().spawnParticle(org.bukkit.Particle.CRIT_MAGIC, e.getEntity().getLocation().add(0, 1, 0), 15);
                     }
@@ -544,7 +544,7 @@ public class ArtifactListener implements Listener {
                 } else if ("POISON_STRIKE".equals(buff) && e.getEntity() instanceof org.bukkit.entity.LivingEntity) {
                     ((org.bukkit.entity.LivingEntity) e.getEntity()).addPotionEffect(new PotionEffect(PotionEffectType.POISON, 60, level - 1, false, false));
                 } else if ("LIGHTNING_STRIKE".equals(buff)) {
-                    if (random.nextInt(100) < (level * 10)) {
+                    if (ThreadLocalRandom.current().nextInt(100) < (level * 10)) {
                         e.getEntity().getWorld().strikeLightningEffect(e.getEntity().getLocation());
                         if (e.getEntity() instanceof org.bukkit.entity.LivingEntity) {
                             ((org.bukkit.entity.LivingEntity) e.getEntity()).damage(4.0 * level, p);
@@ -562,7 +562,7 @@ public class ArtifactListener implements Listener {
                 } else if ("FLAME_TONGUE".equals(buff) && e.getEntity() instanceof org.bukkit.entity.LivingEntity) {
                     ((org.bukkit.entity.LivingEntity) e.getEntity()).setFireTicks(40 + level * 20);
                 } else if ("ECHO_STRIKE".equals(buff)) {
-                    if (random.nextInt(100) < (level * 10)) {
+                    if (ThreadLocalRandom.current().nextInt(100) < (level * 10)) {
                         e.setDamage(e.getDamage() * 2);
                         p.getWorld().spawnParticle(org.bukkit.Particle.CRIT_MAGIC, e.getEntity().getLocation().add(0, 1, 0), 20);
                         p.getWorld().playSound(p.getLocation(), org.bukkit.Sound.ENTITY_PLAYER_ATTACK_CRIT, 1.0f, 1.2f);
@@ -610,7 +610,7 @@ public class ArtifactListener implements Listener {
                     if ("THORNS".equals(buff) && e.getDamager() instanceof org.bukkit.entity.LivingEntity) {
                         ((org.bukkit.entity.LivingEntity) e.getDamager()).damage(level * 1.5, p);
                     } else if ("DODGE_CHANCE".equals(buff)) {
-                        if (random.nextInt(100) < (level * 5)) {
+                        if (ThreadLocalRandom.current().nextInt(100) < (level * 5)) {
                             e.setCancelled(true);
                             p.sendMessage(org.bukkit.ChatColor.GREEN + "⚡ Уклонение! Вы увернулись от удара!");
                             p.getWorld().spawnParticle(org.bukkit.Particle.SWEEP_ATTACK, p.getLocation().add(0, 1, 0), 5);
@@ -740,7 +740,7 @@ public class ArtifactListener implements Listener {
         }
         if (hasArtifactBuff(p, "LOOT_FIND")) {
             int level = getArtifactBuffLevel(p, "LOOT_FIND");
-            if (random.nextInt(100) < (level * 25)) {
+            if (ThreadLocalRandom.current().nextInt(100) < (level * 25)) {
                 for (ItemStack drop : e.getDrops()) {
                     if (drop != null && drop.getType() != Material.AIR) {
                         ItemStack bonus = drop.clone();

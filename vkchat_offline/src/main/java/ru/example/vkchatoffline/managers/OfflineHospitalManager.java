@@ -6,6 +6,7 @@ import ru.example.vkchatoffline.VKChatOfflinePlugin;
 import ru.example.vkchatoffline.data.ActiveAdventure;
 
 import java.util.*;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 
@@ -21,7 +22,6 @@ public class OfflineHospitalManager {
     private final Map<Integer, ActiveAdventure> active;
     private final BiConsumer<Integer, String> journal;
     private final Runnable saveAll;
-    private final Random random = new Random();
 
     public OfflineHospitalManager(VKChatOfflinePlugin plugin,
                                   Supplier<FileConfiguration> data,
@@ -51,7 +51,7 @@ public class OfflineHospitalManager {
         ActiveAdventure adv = active.get(vkId);
         if (adv != null) adv.sanity = now;
         if (msg != null && delta != 0) msg.append("🧠 Рассудок: ").append(delta > 0 ? "+" : "").append(delta).append("% (").append(now).append("%)\n");
-        if (now <= 20 && random.nextInt(100) < 20) addTrauma(vkId, "nightmares");
+        if (now <= 20 && ThreadLocalRandom.current().nextInt(100) < 20) addTrauma(vkId, "nightmares");
     }
 
     public List<String> getTraumas(int vkId) {
@@ -73,7 +73,7 @@ public class OfflineHospitalManager {
 
     public void addRandomTrauma(int vkId) {
         String[] pool = {"deep_wound", "nightmares", "shaky_hands", "bad_omen"};
-        addTrauma(vkId, pool[random.nextInt(pool.length)]);
+        addTrauma(vkId, pool[ThreadLocalRandom.current().nextInt(pool.length)]);
     }
 
     public String traumaName(String id) {
@@ -123,7 +123,7 @@ public class OfflineHospitalManager {
 
     public void maybeAddPhobia(int vkId, String route, String type, StringBuilder msg) {
         if (!"none".equals(getPhobia(vkId))) return;
-        if (random.nextInt(100) < 25) {
+        if (ThreadLocalRandom.current().nextInt(100) < 25) {
             String ph = phobiaForRoute(route);
             setPhobia(vkId, ph);
             if (msg != null) msg.append("🧠 Появилась фобия: ").append(phobiaName(ph)).append("\n");

@@ -17,14 +17,14 @@ import ru.example.vkchatevents.VKChatEventsPlugin;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 
 public class QuestManager implements Listener {
     private final VKChatEventsPlugin plugin;
-    private final Map<UUID, Map<String, Integer>> playerProgress = new HashMap<>();
+    private final Map<UUID, Map<String, Integer>> playerProgress = new ConcurrentHashMap<>();
     private final File dataFile;
 
     public QuestManager(VKChatEventsPlugin plugin) {

@@ -19,6 +19,7 @@ import ru.example.vkchatnations.data.ChunkClaim;
 import ru.example.vkchatnations.data.NationManager;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class ClaimDefenseManager {
 
@@ -26,8 +27,8 @@ public class ClaimDefenseManager {
     private final NationManager nationManager;
     private long lastAutoTrigger = 0;
 
-    private final Map<UUID, ActiveDefense> activeDefenses = new HashMap<>();
-    private final Map<String, Long> nationCooldowns = new HashMap<>();
+    private final Map<UUID, ActiveDefense> activeDefenses = new ConcurrentHashMap<>();
+    private final Map<String, Long> nationCooldowns = new ConcurrentHashMap<>();
 
     public ClaimDefenseManager(VKChatNationsPlugin plugin) {
         this.plugin = plugin;

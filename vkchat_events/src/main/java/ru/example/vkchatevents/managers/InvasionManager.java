@@ -32,11 +32,10 @@ import ru.example.vkchatevents.util.ClaimProtection;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class InvasionManager implements Listener {
     private final VKChatEventsPlugin plugin;
-    private final Random random = new Random();
     private final NamespacedKey voidKey;
 
     private boolean invasionActive = false;
@@ -154,13 +153,13 @@ public class InvasionManager implements Listener {
     }
 
     private void spawnVoidMob() {
-        Location spawnLoc = riftLocation.clone().add(random.nextInt(10) - 5, 1, random.nextInt(10) - 5);
+        Location spawnLoc = riftLocation.clone().add(ThreadLocalRandom.current().nextInt(10) - 5, 1, ThreadLocalRandom.current().nextInt(10) - 5);
         int highestY = spawnLoc.getWorld().getHighestBlockYAt(spawnLoc.getBlockX(), spawnLoc.getBlockZ());
         spawnLoc.setY(highestY + 1);
 
         if (ClaimProtection.isLocationClaimed(spawnLoc)) return;
 
-        int type = random.nextInt(3);
+        int type = ThreadLocalRandom.current().nextInt(3);
         LivingEntity mob;
         if (type == 0) {
             mob = (LivingEntity) spawnLoc.getWorld().spawnEntity(spawnLoc, EntityType.ZOMBIE);
@@ -241,7 +240,7 @@ public class InvasionManager implements Listener {
                 Material mat = Material.valueOf(parts[0].toUpperCase());
                 int min = Integer.parseInt(parts[1]);
                 int max = Integer.parseInt(parts[2]);
-                int amount = min + random.nextInt(max - min + 1);
+                int amount = min + ThreadLocalRandom.current().nextInt(max - min + 1);
                 
                 if (amount > 0) {
                     riftLocation.getWorld().dropItemNaturally(riftLocation, new ItemStack(mat, amount));

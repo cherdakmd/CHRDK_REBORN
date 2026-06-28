@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class MarketManager {
     private final VKChatMarketPlugin plugin;
@@ -21,7 +22,6 @@ public class MarketManager {
     private final Map<String, Integer> dailyVolume = new ConcurrentHashMap<>();
     private final java.util.List<String> history = new CopyOnWriteArrayList<>();
     private String trendDate = "";
-    private final java.util.Random random = new java.util.Random();
 
     // Экономические кризисы и события
     private String activeEventName = null;
@@ -177,7 +177,7 @@ public class MarketManager {
         double min = plugin.getConfig().getDouble("market2.trends.min-multiplier", 0.75);
         double max = plugin.getConfig().getDouble("market2.trends.max-multiplier", 1.35);
         for (String itemId : plugin.getConfig().getConfigurationSection("items").getKeys(false)) {
-            double roll = min + random.nextDouble() * Math.max(0.01, max - min);
+            double roll = min + ThreadLocalRandom.current().nextDouble() * Math.max(0.01, max - min);
             dailyTrends.put(itemId, Math.round(roll * 100.0) / 100.0);
         }
         addHistory("Новый торговый день: обновлены тренды цен.");
@@ -256,13 +256,13 @@ public class MarketManager {
         }
         
         // Шанс 20% на новое событие каждые 30 минут
-        if (new java.util.Random().nextInt(100) >= 20) {
+        if (ThreadLocalRandom.current().nextInt(100) >= 20) {
             return;
         }
         
         if (plugin.getConfig().getConfigurationSection("items") == null) return;
         
-        int eventRoll = new java.util.Random().nextInt(16);
+        int eventRoll = ThreadLocalRandom.current().nextInt(16);
         String msg = "";
         
         switch (eventRoll) {

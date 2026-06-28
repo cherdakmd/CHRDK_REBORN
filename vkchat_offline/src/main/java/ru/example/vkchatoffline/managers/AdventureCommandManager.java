@@ -14,6 +14,7 @@ import ru.example.vkchatoffline.utils.EventGenerator;
 import ru.example.vkchatoffline.utils.EventResult;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -23,10 +24,10 @@ import java.util.concurrent.TimeUnit;
 public class AdventureCommandManager {
     private final VKChatOfflinePlugin plugin;
     private final FileConfiguration config;
-    private final Map<Integer, Expedition> activeExpeditions = new HashMap<>();
-    private final Map<Integer, String> playerPets = new HashMap<>();
+    private final Map<Integer, Expedition> activeExpeditions = new ConcurrentHashMap<>();
+    private final Map<Integer, String> playerPets = new ConcurrentHashMap<>();
     private final ExpeditionStorage expeditionStorage;
-    private final Map<Integer, EventResult> pendingEvents = new HashMap<>();
+    private final Map<Integer, EventResult> pendingEvents = new ConcurrentHashMap<>();
     private final List<Riddle> riddles = new ArrayList<>();
     private EventGenerator eventGenerator;
 

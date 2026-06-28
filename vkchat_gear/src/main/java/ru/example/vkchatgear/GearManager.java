@@ -13,10 +13,10 @@ import org.bukkit.persistence.PersistentDataType;
 import ru.example.vkchat.VKChatPlugin;
 
 import java.util.*;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class GearManager {
     private final VKChatGearPlugin plugin;
-    private final Random random = new Random();
     
     private final List<Enchantment> swordEnchants = Arrays.asList(Enchantment.DAMAGE_ALL, Enchantment.FIRE_ASPECT, Enchantment.KNOCKBACK, Enchantment.SWEEPING_EDGE, Enchantment.DURABILITY, Enchantment.LOOT_BONUS_MOBS);
     private final List<Enchantment> axeEnchants = Arrays.asList(Enchantment.DAMAGE_ALL, Enchantment.DURABILITY, Enchantment.LOOT_BONUS_MOBS, Enchantment.DIG_SPEED);
@@ -159,7 +159,7 @@ public class GearManager {
         if (item == null || !item.hasItemMeta()) return;
         List<String> keys = new ArrayList<>(plugin.getConfig().getConfigurationSection("hardcore-forging.defects.list").getKeys(false));
         if (keys.isEmpty()) return;
-        String key = keys.get(random.nextInt(keys.size()));
+        String key = keys.get(ThreadLocalRandom.current().nextInt(keys.size()));
         ItemMeta meta = item.getItemMeta();
         if (meta.getPersistentDataContainer().has(new NamespacedKey(plugin, "defect_" + key), PersistentDataType.INTEGER)) return;
         List<String> lore = meta.hasLore() ? meta.getLore() : new ArrayList<>();
@@ -432,7 +432,7 @@ public class GearManager {
             Collections.shuffle(pool);
             for (int i = 0; i < Math.min(vanillaAmount, pool.size()); i++) {
                 Enchantment e = pool.get(i);
-                int lvl = random.nextInt(e.getMaxLevel()) + 1;
+                int lvl = ThreadLocalRandom.current().nextInt(e.getMaxLevel()) + 1;
                 meta.addEnchant(e, lvl, true);
                 appliedEnchantKeys.add(e.getKey().getKey().toLowerCase());
             }
@@ -448,7 +448,7 @@ public class GearManager {
                     if (applied >= excellentAmount) break;
                     String eeKey = e.getKey().getKey().toLowerCase();
                     if (!appliedEnchantKeys.contains(eeKey)) {
-                        int lvl = random.nextInt(e.getMaxLevel()) + 1;
+                        int lvl = ThreadLocalRandom.current().nextInt(e.getMaxLevel()) + 1;
                         meta.addEnchant(e, lvl, true);
                         appliedEnchantKeys.add(eeKey);
                         applied++;
@@ -552,11 +552,11 @@ public class GearManager {
     }
 
     public String generateCoolName(String base) {
-        boolean isSoviet = random.nextBoolean();
+        boolean isSoviet = ThreadLocalRandom.current().nextBoolean();
         List<String> dict = plugin.getConfig().getStringList(isSoviet ? "names.soviet" : "names.slavic");
         if (dict.isEmpty()) return base;
         
-        String prefix = dict.get(random.nextInt(dict.size()));
+        String prefix = dict.get(ThreadLocalRandom.current().nextInt(dict.size()));
         return prefix + " " + base;
     }
 
@@ -602,7 +602,7 @@ public class GearManager {
         rareChance *= multiplier;
         uncChance *= multiplier;
 
-        double roll = random.nextDouble() * 100.0;
+        double roll = ThreadLocalRandom.current().nextDouble() * 100.0;
         double current = 0;
 
         if (roll < (current += legChance)) return "legendary";

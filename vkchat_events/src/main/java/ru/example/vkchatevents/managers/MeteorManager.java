@@ -17,11 +17,10 @@ import ru.example.vkchatevents.util.ClaimProtection;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class MeteorManager implements Listener {
     private final VKChatEventsPlugin plugin;
-    private final Random random = new Random();
     
     private boolean meteorActive = false;
     private Location meteorCore = null;
@@ -66,10 +65,10 @@ public class MeteorManager implements Listener {
                         Location bLoc = center.clone().add(dx, dy, dz);
                         if (ClaimProtection.isLocationClaimed(bLoc)) continue;
                         Block b = bLoc.getBlock();
-                        if (random.nextInt(100) < 70) {
+                        if (ThreadLocalRandom.current().nextInt(100) < 70) {
                             b.setType(Material.MAGMA_BLOCK);
                             meteorBlocks.add(b.getLocation());
-                        } else if (random.nextInt(100) < 50) {
+                        } else if (ThreadLocalRandom.current().nextInt(100) < 50) {
                             b.setType(Material.OBSIDIAN);
                             meteorBlocks.add(b.getLocation());
                         }

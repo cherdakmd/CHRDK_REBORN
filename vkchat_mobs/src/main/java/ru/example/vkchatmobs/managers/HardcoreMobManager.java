@@ -24,6 +24,7 @@ import ru.example.vkchatmobs.listeners.MobListener;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * Новая надстройка над vkchat_mobs: хардкорные элитки, архетипы, телеграфы,
@@ -32,7 +33,6 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class HardcoreMobManager implements Listener {
     private final VKChatMobsPlugin plugin;
-    private final Random random = new Random();
 
     private final NamespacedKey eliteKey;
     private final NamespacedKey archetypeKey;
@@ -87,7 +87,7 @@ public class HardcoreMobManager implements Listener {
         if (isNightOrCave(mob.getLocation())) chance += plugin.getConfig().getDouble("hardcore-mobs.elites.night-cave-bonus", 3.0);
         if (isBloodMoonLike()) chance += plugin.getConfig().getDouble("hardcore-mobs.elites.event-bonus", 8.0);
 
-        if (random.nextDouble() * 100.0 <= chance) {
+        if (ThreadLocalRandom.current().nextDouble() * 100.0 <= chance) {
             makeElite(mob, "elite", null, null, false);
         }
     }
@@ -106,8 +106,8 @@ public class HardcoreMobManager implements Listener {
     }
 
     public void makeElite(LivingEntity mob, String tier, String forcedArchetype, String forcedElement, boolean adminOrEvent) {
-        String archetype = forcedArchetype != null ? forcedArchetype : ARCHETYPES[random.nextInt(ARCHETYPES.length)];
-        String element = forcedElement != null ? forcedElement : ELEMENTS[random.nextInt(ELEMENTS.length)];
+        String archetype = forcedArchetype != null ? forcedArchetype : ARCHETYPES[ThreadLocalRandom.current().nextInt(ARCHETYPES.length)];
+        String element = forcedElement != null ? forcedElement : ELEMENTS[ThreadLocalRandom.current().nextInt(ELEMENTS.length)];
         tier = normalizeTier(tier);
 
         mob.getPersistentDataContainer().set(eliteKey, PersistentDataType.INTEGER, 1);
@@ -251,7 +251,7 @@ public class HardcoreMobManager implements Listener {
         }
         if (archetype.equals("summoner")) {
             for (int i = 0; i < 3; i++) {
-                Zombie minion = mob.getWorld().spawn(mob.getLocation().add(random.nextDouble() * 4 - 2, 0, random.nextDouble() * 4 - 2), Zombie.class);
+                Zombie minion = mob.getWorld().spawn(mob.getLocation().add(ThreadLocalRandom.current().nextDouble() * 4 - 2, 0, ThreadLocalRandom.current().nextDouble() * 4 - 2), Zombie.class);
                 minion.setCustomName("§cПризванный слуга");
                 minion.setCustomNameVisible(true);
                 minion.getPersistentDataContainer().set(eliteKey, PersistentDataType.INTEGER, 1);
@@ -282,7 +282,7 @@ public class HardcoreMobManager implements Listener {
                 }
                 break;
             case "void":
-                p.teleport(p.getLocation().add(random.nextDouble() * 6 - 3, 0, random.nextDouble() * 6 - 3));
+                p.teleport(p.getLocation().add(ThreadLocalRandom.current().nextDouble() * 6 - 3, 0, ThreadLocalRandom.current().nextDouble() * 6 - 3));
                 p.addPotionEffect(new PotionEffect(PotionEffectType.CONFUSION, 60, 1));
                 p.getWorld().spawnParticle(Particle.PORTAL, p.getLocation().add(0, 1, 0), 40, 0.5, 0.5, 0.5, 0.1);
                 break;
@@ -310,7 +310,7 @@ public class HardcoreMobManager implements Listener {
                 p.getWorld().spawnParticle(Particle.BLOCK_DUST, p.getLocation().add(0, 0.5, 0), 40, 0.5, 0.5, 0.5, 0.02, org.bukkit.Material.DIRT.createBlockData());
                 break;
             case "crystal":
-                if (random.nextInt(100) < 20) {
+                if (ThreadLocalRandom.current().nextInt(100) < 20) {
                     double reflect = p.getHealth() * 0.3;
                     p.damage(reflect);
                     p.sendMessage("§d✦ Кристаллический отражённый урон!");
@@ -340,13 +340,13 @@ public class HardcoreMobManager implements Listener {
             if (vkId != -1) VKChatPlugin.getInstance().getApi().addReputation(vkId, rep);
         } catch (Throwable ignored) {}
 
-        if (random.nextInt(100) < plugin.getConfig().getInt("hardcore-mobs.rewards.rune_token_chance." + tier, 10)) {
+        if (ThreadLocalRandom.current().nextInt(100) < plugin.getConfig().getInt("hardcore-mobs.rewards.rune_token_chance." + tier, 10)) {
             e.getDrops().add(MobListener.getRuneToken());
         }
-        if ((tier.equals("raid") || tier.equals("world")) && random.nextInt(100) < plugin.getConfig().getInt("hardcore-mobs.rewards.artifact-shard-chance." + tier, 20)) {
+        if ((tier.equals("raid") || tier.equals("world")) && ThreadLocalRandom.current().nextInt(100) < plugin.getConfig().getInt("hardcore-mobs.rewards.artifact-shard-chance." + tier, 20)) {
             e.getDrops().add(MobListener.getArtifactShard());
         }
-        if (random.nextInt(100) < plugin.getConfig().getInt("hardcore-mobs.rewards.set-fragment-chance." + tier, 5)) {
+        if (ThreadLocalRandom.current().nextInt(100) < plugin.getConfig().getInt("hardcore-mobs.rewards.set-fragment-chance." + tier, 5)) {
             ItemStack frag = VKChatMobsPlugin.createSetFragment(plugin);
             if (frag != null) e.getDrops().add(frag);
         }
@@ -377,7 +377,7 @@ public class HardcoreMobManager implements Listener {
 
     private void spawnMinion(LivingEntity owner) {
         if (owner.getWorld().getNearbyEntities(owner.getLocation(), 8, 8, 8, e -> e instanceof Monster).size() > 12) return;
-        Entity e = owner.getWorld().spawnEntity(owner.getLocation().clone().add(random.nextDouble() * 2 - 1, 0, random.nextDouble() * 2 - 1), EntityType.SILVERFISH);
+        Entity e = owner.getWorld().spawnEntity(owner.getLocation().clone().add(ThreadLocalRandom.current().nextDouble() * 2 - 1, 0, ThreadLocalRandom.current().nextDouble() * 2 - 1), EntityType.SILVERFISH);
         if (e instanceof LivingEntity) {
             ((LivingEntity) e).setCustomName(ChatColor.DARK_PURPLE + "Призванная тень");
         }

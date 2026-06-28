@@ -10,10 +10,9 @@ import ru.example.vkchatartifacts.VKChatArtifactsPlugin;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class ArtifactFactory {
-    private static final Random random = new Random();
     
     public static final String[] BUFFS = {
         "HEALTH", "DAMAGE", "SPEED", "REGENERATION", "VAMPIRISM", "THORNS", "FIRE_RESISTANCE", "LEVITATION", 
@@ -30,20 +29,20 @@ public class ArtifactFactory {
 
     public static ItemStack generateArtifact(VKChatArtifactsPlugin plugin, boolean isMythic) {
         Material[] possibleMats = {Material.NETHER_STAR, Material.TOTEM_OF_UNDYING, Material.HEART_OF_THE_SEA, Material.DRAGON_BREATH, Material.GHAST_TEAR, Material.BLAZE_POWDER, Material.RABBIT_FOOT, Material.MAGMA_CREAM, Material.END_CRYSTAL, Material.CONDUIT, Material.SCUTE, Material.END_ROD, Material.CHORUS_FRUIT};
-        Material mat = possibleMats[random.nextInt(possibleMats.length)];
+        Material mat = possibleMats[ThreadLocalRandom.current().nextInt(possibleMats.length)];
         
         ItemStack item = new ItemStack(mat);
         ItemMeta meta = item.getItemMeta();
         
-        String buff = BUFFS[random.nextInt(BUFFS.length)];
-        String curse = isMythic ? "NONE" : CURSES[random.nextInt(CURSES.length)];
-        int level = random.nextInt(3) + 1; 
+        String buff = BUFFS[ThreadLocalRandom.current().nextInt(BUFFS.length)];
+        String curse = isMythic ? "NONE" : CURSES[ThreadLocalRandom.current().nextInt(CURSES.length)];
+        int level = ThreadLocalRandom.current().nextInt(3) + 1; 
         
         if (isMythic) level = 5;
 
         String specialArtifact = null;
         if (isMythic) {
-            double roll = random.nextDouble() * 100;
+            double roll = ThreadLocalRandom.current().nextDouble() * 100;
             if (roll < 0.3) {
                 specialArtifact = "DRAGON_HEART";
                 buff = "DRAGON_BLOOD";

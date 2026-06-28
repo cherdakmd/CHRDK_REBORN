@@ -186,17 +186,22 @@ public class VKChatDonatePayPlugin extends JavaPlugin implements CommandExecutor
 
     private String httpGet(String url) throws Exception {
         HttpURLConnection con = (HttpURLConnection) new URL(url).openConnection();
-        con.setRequestMethod("GET");
-        con.setConnectTimeout(getConfig().getInt("api.request-timeout-ms", 10000));
-        con.setReadTimeout(getConfig().getInt("api.request-timeout-ms", 10000));
-        con.setRequestProperty("User-Agent", "VKChatDonatePay/2.0.0");
-        int code = con.getResponseCode();
-        BufferedReader br = new BufferedReader(new InputStreamReader(code >= 200 && code < 300 ? con.getInputStream() : con.getErrorStream(), StandardCharsets.UTF_8));
-        StringBuilder sb = new StringBuilder();
-        String line;
-        while ((line = br.readLine()) != null) sb.append(line);
-        if (code < 200 || code >= 300) throw new IllegalStateException("HTTP " + code + ": " + sb);
-        return sb.toString();
+        try {
+            con.setRequestMethod("GET");
+            con.setConnectTimeout(getConfig().getInt("api.request-timeout-ms", 10000));
+            con.setReadTimeout(getConfig().getInt("api.request-timeout-ms", 10000));
+            con.setRequestProperty("User-Agent", "VKChatDonatePay/2.0.0");
+            int code = con.getResponseCode();
+            try (BufferedReader br = new BufferedReader(new InputStreamReader(code >= 200 && code < 300 ? con.getInputStream() : con.getErrorStream(), StandardCharsets.UTF_8))) {
+                StringBuilder sb = new StringBuilder();
+                String line;
+                while ((line = br.readLine()) != null) sb.append(line);
+                if (code < 200 || code >= 300) throw new IllegalStateException("HTTP " + code + ": " + sb);
+                return sb.toString();
+            }
+        } finally {
+            con.disconnect();
+        }
     }
 
     private void processDonation(JsonObject tx) {
