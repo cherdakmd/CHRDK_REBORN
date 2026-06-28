@@ -139,7 +139,7 @@ public class VKRouletteListener implements Listener {
 
         // Ряд 1: Ставки
         kb.append("[");
-        int[] bets = {100, 250, 500, 1000, 2500};
+        int[] bets = {100, 500, 1000, 5000};
         for (int i = 0; i < bets.length; i++) {
             if (i > 0) kb.append(",");
             String color = bets[i] == currentBet ? "positive" : "secondary";
@@ -152,21 +152,6 @@ public class VKRouletteListener implements Listener {
         kb.append("{\"action\":{\"type\":\"text\",\"label\":\"🎰 Крутить\",\"payload\":\"{\\\"cmd\\\":\\\"!вкрулеткарутить\\\"}\"},\"color\":\"positive\"}");
         kb.append(",");
         kb.append("{\"action\":{\"type\":\"text\",\"label\":\"☠ Русская\",\"payload\":\"{\\\"cmd\\\":\\\"!вкрулеткарусская\\\"}\"},\"color\":\"negative\"}");
-        kb.append(",");
-        if (tokens >= 5) {
-            kb.append("{\"action\":{\"type\":\"text\",\"label\":\"⚡ DoN\",\"payload\":\"{\\\"cmd\\\":\\\"!вкрулеткадабл\\\"}\"},\"color\":\"primary\"}");
-        } else {
-            kb.append("{\"action\":{\"type\":\"text\",\"label\":\"⚡ DoN\",\"payload\":\"{\\\"cmd\\\":\\\"!вкрулеткадабл\\\"}\"},\"color\":\"secondary\"}");
-        }
-        kb.append("],");
-
-        // Ряд 3: Доп
-        kb.append("[");
-        kb.append("{\"action\":{\"type\":\"text\",\"label\":\"🍀 Удача\",\"payload\":\"{\\\"cmd\\\":\\\"!вклаки\\\"}\"},\"color\":\"secondary\"}");
-        kb.append(",");
-        kb.append("{\"action\":{\"type\":\"text\",\"label\":\"📊 Стат\",\"payload\":\"{\\\"cmd\\\":\\\"!вкрулеткастат\\\"}\"},\"color\":\"secondary\"}");
-        kb.append(",");
-        kb.append("{\"action\":{\"type\":\"text\",\"label\":\"🏆 Топ\",\"payload\":\"{\\\"cmd\\\":\\\"!вкрулеткатоп\\\"}\"},\"color\":\"secondary\"}");
         kb.append("]");
 
         kb.append("]}");
