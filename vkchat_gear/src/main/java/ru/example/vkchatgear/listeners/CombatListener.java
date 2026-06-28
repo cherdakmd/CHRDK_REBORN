@@ -30,9 +30,12 @@ public class CombatListener implements Listener {
     private final Map<UUID, Long> meteorCooldowns = new ConcurrentHashMap<>();
     private final Map<UUID, Long> meteorShowerCooldowns = new ConcurrentHashMap<>();
     private final Map<UUID, Long> messageCooldowns = new ConcurrentHashMap<>();
+    private final Map<UUID, Long> enchantCooldowns = new ConcurrentHashMap<>();
     private static final long METEOR_COOLDOWN_MS = 3000; // 3 сек
     private static final long METEOR_SHOWER_COOLDOWN_MS = 10000; // 10 сек
     private static final long MESSAGE_COOLDOWN_MS = 2000; // 2 сек
+    private static final long ENCHANT_COOLDOWN_MS = 1500; // 1.5 сек между прооками зачарований
+    private static final int MAX_PROCS_PER_HIT = 3; // макс 3 зачарования за удар
 
     private boolean checkCooldown(Map<UUID, Long> map, UUID uuid, long cooldownMs) {
         long now = System.currentTimeMillis();
@@ -476,44 +479,56 @@ public class CombatListener implements Listener {
 
                 if (meta.hasLore()) {
                     List<String> lore = meta.getLore();
+                    int procs = 0;
+                    UUID pUid = p.getUniqueId();
                     
-                    if (hasEnchant(lore, "Вампиризм")) {
+                    if (procs < MAX_PROCS_PER_HIT && hasEnchant(lore, "Вампиризм")) {
                         double heal = e.getFinalDamage() * 0.2;
                         p.setHealth(Math.min(p.getHealth() + heal, p.getAttribute(org.bukkit.attribute.Attribute.GENERIC_MAX_HEALTH).getValue()));
                         p.getWorld().spawnParticle(org.bukkit.Particle.HEART, p.getLocation().add(0, 1, 0), 3, 0.3, 0.3, 0.3);
+                        procs++;
                     }
-                    if (hasEnchant(lore, "Отравление")) {
+                    if (procs < MAX_PROCS_PER_HIT && hasEnchant(lore, "Отравление")) {
                         target.addPotionEffect(new PotionEffect(PotionEffectType.POISON, 100, 1));
+                        procs++;
                     }
                     // Метеорит (Пассивно шанс 10%, кулдаун 3 сек)
-                    if (hasEnchant(lore, "Метеоритный Удар") && random.nextInt(100) < 10 && checkCooldown(meteorCooldowns, p.getUniqueId(), METEOR_COOLDOWN_MS)) {
+                    if (procs < MAX_PROCS_PER_HIT && hasEnchant(lore, "Метеоритный Удар") && random.nextInt(100) < 10 && checkCooldown(meteorCooldowns, pUid, METEOR_COOLDOWN_MS)) {
                         target.getWorld().createExplosion(target.getLocation(), 1.5f, false, false, p);
+                        procs++;
                     }
-                    if (hasEnchant(lore, "Грозовой Разряд") && random.nextInt(100) < 15) {
+                    if (procs < MAX_PROCS_PER_HIT && hasEnchant(lore, "Грозовой Разряд") && random.nextInt(100) < 15 && checkCooldown(enchantCooldowns, pUid, ENCHANT_COOLDOWN_MS)) {
                         target.getWorld().strikeLightningEffect(target.getLocation());
                         target.damage(5.0, p);
+                        procs++;
                     }
-                    if (hasEnchant(lore, "Окоченение")) {
+                    if (procs < MAX_PROCS_PER_HIT && hasEnchant(lore, "Окоченение")) {
                         target.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, 60, 2));
+                        procs++;
                     }
-                    if (hasEnchant(lore, "Мрак") && random.nextInt(100) < 20) {
+                    if (procs < MAX_PROCS_PER_HIT && hasEnchant(lore, "Мрак") && random.nextInt(100) < 20) {
                         target.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 60, 0));
+                        procs++;
                     }
-                    if (hasEnchant(lore, "Гниль")) {
+                    if (procs < MAX_PROCS_PER_HIT && hasEnchant(lore, "Гниль")) {
                         target.addPotionEffect(new PotionEffect(PotionEffectType.WITHER, 100, 1));
+                        procs++;
                     }
-                    if (hasEnchant(lore, "Подбрасывание") && random.nextInt(100) < 15) {
+                    if (procs < MAX_PROCS_PER_HIT && hasEnchant(lore, "Подбрасывание") && random.nextInt(100) < 15) {
                         target.addPotionEffect(new PotionEffect(PotionEffectType.LEVITATION, 20, 4));
+                        procs++;
                     }
-                    if (hasEnchant(lore, "Бронебойность")) {
+                    if (procs < MAX_PROCS_PER_HIT && hasEnchant(lore, "Бронебойность")) {
                         e.setDamage(EntityDamageByEntityEvent.DamageModifier.ARMOR, 0); // Игнор брони (частичный)
                         e.setDamage(e.getDamage() * 1.08);
+                        procs++;
                     }
-                    if (hasEnchant(lore, "Берсерк")) {
+                    if (procs < MAX_PROCS_PER_HIT && hasEnchant(lore, "Берсерк")) {
                         double missingHp = p.getAttribute(org.bukkit.attribute.Attribute.GENERIC_MAX_HEALTH).getValue() - p.getHealth();
                         e.setDamage(e.getDamage() + (missingHp * 0.5)); // +0.5 урона за каждое отсутствующее ХП
+                        procs++;
                     }
-                    if (hasEnchant(lore, "Разоружение") && random.nextInt(100) < 5) {
+                    if (procs < MAX_PROCS_PER_HIT && hasEnchant(lore, "Разоружение") && random.nextInt(100) < 5) {
                         if (target instanceof Player) {
                             Player tPlayer = (Player) target;
                             ItemStack hand = tPlayer.getInventory().getItemInMainHand();
@@ -523,93 +538,107 @@ public class CombatListener implements Listener {
                                 tPlayer.sendMessage(org.bukkit.ChatColor.RED + " У вас выбили оружие из рук!");
                             }
                         }
+                        procs++;
                     }
-                    if (hasEnchant(lore, "Жнец Душ") && random.nextInt(100) < 5) {
+                    if (procs < MAX_PROCS_PER_HIT && hasEnchant(lore, "Жнец Душ") && random.nextInt(100) < 5) {
                         if (!(target instanceof org.bukkit.entity.Boss)) {
                             if ((target.getHealth() / target.getAttribute(org.bukkit.attribute.Attribute.GENERIC_MAX_HEALTH).getValue()) <= 0.15) {
                                 target.setHealth(0);
                                 p.getWorld().spawnParticle(org.bukkit.Particle.SOUL, target.getLocation().add(0, 1, 0), 50, 0.5, 0.5, 0.5, 0.1);
                             }
                         }
+                        procs++;
                     }
                     
-                    if (hasEnchant(lore, "Критический Удар") && random.nextInt(100) < 15) {
+                    if (procs < MAX_PROCS_PER_HIT && hasEnchant(lore, "Критический Удар") && random.nextInt(100) < 15) {
                         e.setDamage(e.getDamage() * 1.35);
                         p.getWorld().spawnParticle(org.bukkit.Particle.CRIT_MAGIC, target.getLocation(), 20);
+                        procs++;
                     }
-                    if (hasEnchant(lore, "Взрыв Иссушения") && random.nextInt(100) < 10) {
+                    if (procs < MAX_PROCS_PER_HIT && hasEnchant(lore, "Взрыв Иссушения") && random.nextInt(100) < 10 && checkCooldown(enchantCooldowns, pUid, ENCHANT_COOLDOWN_MS)) {
                         for (org.bukkit.entity.Entity ent : target.getNearbyEntities(3, 3, 3)) {
                             if (ent instanceof LivingEntity && ent != p) {
                                 ((LivingEntity) ent).addPotionEffect(new PotionEffect(PotionEffectType.WITHER, 60, 1));
                             }
                         }
+                        procs++;
                     }
-                    if (hasEnchant(lore, "Ядовитое Облако") && random.nextInt(100) < 15) {
+                    if (procs < MAX_PROCS_PER_HIT && hasEnchant(lore, "Ядовитое Облако") && random.nextInt(100) < 15 && checkCooldown(enchantCooldowns, pUid, ENCHANT_COOLDOWN_MS)) {
                         for (org.bukkit.entity.Entity ent : target.getNearbyEntities(3, 3, 3)) {
                             if (ent instanceof LivingEntity && ent != p) {
                                 ((LivingEntity) ent).addPotionEffect(new PotionEffect(PotionEffectType.POISON, 60, 0));
                             }
                         }
+                        procs++;
                     }
-                    if (hasEnchant(lore, "Удар Грома") && random.nextInt(100) < 10) {
+                    if (procs < MAX_PROCS_PER_HIT && hasEnchant(lore, "Удар Грома") && random.nextInt(100) < 10 && checkCooldown(enchantCooldowns, pUid, ENCHANT_COOLDOWN_MS)) {
                         target.getWorld().strikeLightningEffect(target.getLocation());
                         for (org.bukkit.entity.Entity ent : target.getNearbyEntities(3, 3, 3)) {
                             if (ent instanceof LivingEntity && ent != p) {
                                 ((LivingEntity) ent).damage(5.0);
                             }
                         }
+                        procs++;
                     }
-                    if (hasEnchant(lore, "Аура Вампира")) {
+                    if (procs < MAX_PROCS_PER_HIT && hasEnchant(lore, "Аура Вампира")) {
                         double heal = e.getFinalDamage() * 0.3;
                         p.setHealth(Math.min(p.getHealth() + heal, p.getAttribute(org.bukkit.attribute.Attribute.GENERIC_MAX_HEALTH).getValue()));
+                        procs++;
                     }
 
-                    if (hasEnchant(lore, "Казнь")) {
+                    if (procs < MAX_PROCS_PER_HIT && hasEnchant(lore, "Казнь")) {
                         if ((target.getHealth() / target.getAttribute(org.bukkit.attribute.Attribute.GENERIC_MAX_HEALTH).getValue()) <= 0.3) {
                             e.setDamage(e.getDamage() * 1.25);
                             p.getWorld().spawnParticle(org.bukkit.Particle.CRIT, target.getLocation().add(0, 1, 0), 10, 0.5, 0.5, 0.5);
                         }
+                        procs++;
                     }
 
-                    if (hasEnchant(lore, "Похищение Жизни")) {
+                    if (procs < MAX_PROCS_PER_HIT && hasEnchant(lore, "Похищение Жизни")) {
                         p.setHealth(Math.min(p.getHealth() + 1.0, p.getAttribute(org.bukkit.attribute.Attribute.GENERIC_MAX_HEALTH).getValue()));
+                        procs++;
                     }
-                    if (hasEnchant(lore, "Огненный Удар")) {
+                    if (procs < MAX_PROCS_PER_HIT && hasEnchant(lore, "Огненный Удар")) {
                         target.setFireTicks(80);
+                        procs++;
                     }
-                    if (hasEnchant(lore, "Паралич") && random.nextInt(100) < 10) {
+                    if (procs < MAX_PROCS_PER_HIT && hasEnchant(lore, "Паралич") && random.nextInt(100) < 10) {
                         target.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, 40, 5));
                         target.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 40, 0));
                         sendCombatMessage(p, org.bukkit.ChatColor.YELLOW + " Цель парализована!");
+                        procs++;
                     }
 
                     // 1. Метеоритный Дождь (Шанс 10% вызвать серию взрывов вокруг цели, кулдаун 10 сек)
-                    if (hasEnchant(lore, "Метеоритный Дождь") && random.nextInt(100) < 10 && checkCooldown(meteorShowerCooldowns, p.getUniqueId(), METEOR_SHOWER_COOLDOWN_MS)) {
+                    if (procs < MAX_PROCS_PER_HIT && hasEnchant(lore, "Метеоритный Дождь") && random.nextInt(100) < 10 && checkCooldown(meteorShowerCooldowns, p.getUniqueId(), METEOR_SHOWER_COOLDOWN_MS) && checkCooldown(enchantCooldowns, pUid, ENCHANT_COOLDOWN_MS)) {
                         sendCombatMessage(p, org.bukkit.ChatColor.GOLD + "☄️ [Метеоритный Дождь] Огненная волна накрыла врагов вокруг!");
                         for (int k = 0; k < 3; k++) {
                             org.bukkit.Location loc = target.getLocation().clone().add(random.nextInt(6) - 3, 0, random.nextInt(6) - 3);
                             target.getWorld().createExplosion(loc, 1.0f, false, false, p);
                         }
+                        procs++;
                     }
 
                     // 2. Ледяное Касание (Шанс 15% заморозить на 3 сек)
-                    if (hasEnchant(lore, "Ледяное Касание") && random.nextInt(100) < 15) {
+                    if (procs < MAX_PROCS_PER_HIT && hasEnchant(lore, "Ледяное Касание") && random.nextInt(100) < 15) {
                         target.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, 60, 9)); // Медлительность X
                         target.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 60, 0));
                         sendCombatMessage(p, org.bukkit.ChatColor.BLUE + "❄️ [Ледяное Касание] Вы заморозили цель на 3 секунды!");
                         target.getWorld().spawnParticle(org.bukkit.Particle.SNOWBALL, target.getLocation().add(0, 1.0, 0), 30, 0.3, 0.5, 0.3, 0.1);
+                        procs++;
                     }
 
                     // 3. Распад (Шанс 5% на двойной урон и Иссушение III)
-                    if (hasEnchant(lore, "Распад") && random.nextInt(100) < 5) {
+                    if (procs < MAX_PROCS_PER_HIT && hasEnchant(lore, "Распад") && random.nextInt(100) < 5) {
                         e.setDamage(e.getDamage() * 1.45);
                         target.addPotionEffect(new PotionEffect(PotionEffectType.WITHER, 100, 2)); // Иссушение III
                         sendCombatMessage(p, org.bukkit.ChatColor.DARK_RED + "☠️ [Распад] Цель дезинтегрирована! Двойной урон и увядание III!");
                         target.getWorld().spawnParticle(org.bukkit.Particle.PORTAL, target.getLocation().add(0, 1.0, 0), 30, 0.4, 0.5, 0.4, 0.1);
+                        procs++;
                     }
 
                     // 4. Аура Вампиризма (AOE похищение ХП у врагов вокруг)
-                    if (hasEnchant(lore, "Аура Вампиризма") && random.nextInt(100) < 15) {
+                    if (procs < MAX_PROCS_PER_HIT && hasEnchant(lore, "Аура Вампиризма") && random.nextInt(100) < 15 && checkCooldown(enchantCooldowns, pUid, ENCHANT_COOLDOWN_MS)) {
                         double totalHeal = 0.0;
                         int count = 0;
                         for (org.bukkit.entity.Entity near : target.getNearbyEntities(4, 4, 4)) {
@@ -635,10 +664,11 @@ public class CombatListener implements Listener {
                             }
                             p.playSound(p.getLocation(), org.bukkit.Sound.ENTITY_BAT_DEATH, 1.0f, 0.5f);
                         }
+                        procs++;
                     }
 
                     // soul_drain: 15% chance, heal attacker 2 HP, damage target 3 HP, 8% Wither I 3s
-                    if (hasEnchant(lore, "Вытягивание душ") && random.nextInt(100) < 15) {
+                    if (procs < MAX_PROCS_PER_HIT && hasEnchant(lore, "Вытягивание душ") && random.nextInt(100) < 15) {
                         target.damage(3.0, p);
                         p.setHealth(Math.min(p.getHealth() + 2.0, p.getAttribute(org.bukkit.attribute.Attribute.GENERIC_MAX_HEALTH).getValue()));
                         target.getWorld().spawnParticle(org.bukkit.Particle.SOUL, target.getLocation().add(0, 1.0, 0), 15, 0.3, 0.5, 0.3, 0.05);
@@ -647,10 +677,11 @@ public class CombatListener implements Listener {
                             target.addPotionEffect(new PotionEffect(PotionEffectType.WITHER, 60, 0));
                             sendCombatMessage(p, org.bukkit.ChatColor.DARK_PURPLE + "☠ [Вытягивание душ] Цель поражена Иссушением!");
                         }
+                        procs++;
                     }
 
                     // chain_lightning: 10% chance, lightning on target + chain to 2 nearby (3 blocks) for 4 damage
-                    if (hasEnchant(lore, "Цепная молния") && random.nextInt(100) < 10) {
+                    if (procs < MAX_PROCS_PER_HIT && hasEnchant(lore, "Цепная молния") && random.nextInt(100) < 10 && checkCooldown(enchantCooldowns, pUid, ENCHANT_COOLDOWN_MS)) {
                         target.getWorld().strikeLightningEffect(target.getLocation());
                         target.damage(4.0, p);
                         sendCombatMessage(p, org.bukkit.ChatColor.AQUA + "⚡ [Цепная молния] Разряд поразил цель!");
@@ -667,10 +698,11 @@ public class CombatListener implements Listener {
                         if (chained > 0) {
                             sendCombatMessage(p, org.bukkit.ChatColor.AQUA + "⚡ [Цепная молния] Молния перескочила на " + chained + " врагов!");
                         }
+                        procs++;
                     }
 
                     // void_strike: 8% chance, teleport behind target (add 1 to Z), 1.5x damage
-                    if (hasEnchant(lore, "Удар Бездны") && random.nextInt(100) < 8) {
+                    if (procs < MAX_PROCS_PER_HIT && hasEnchant(lore, "Удар Бездны") && random.nextInt(100) < 8) {
                         org.bukkit.Location behind = target.getLocation().clone();
                         behind.setZ(behind.getZ() + 1);
                         behind.setDirection(target.getLocation().toVector().subtract(behind.toVector()));
@@ -679,6 +711,7 @@ public class CombatListener implements Listener {
                         target.getWorld().spawnParticle(org.bukkit.Particle.PORTAL, target.getLocation().add(0, 1.0, 0), 30, 0.3, 0.5, 0.3, 0.1);
                         sendCombatMessage(p, org.bukkit.ChatColor.DARK_GRAY + "⚔ [Удар Бездны] Вы телепортировались за спину врага!");
                         target.sendMessage(org.bukkit.ChatColor.DARK_GRAY + "⚔ [Удар Бездны] Противник материализовался у вас за спиной!");
+                        procs++;
                     }
                 }
             }
