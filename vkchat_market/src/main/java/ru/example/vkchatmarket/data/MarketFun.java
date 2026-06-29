@@ -220,7 +220,7 @@ public class MarketFun {
         inv.setItem(45, actionItem(Material.ARROW, ChatColor.WHITE + "🏠 Назад", ""));
         inv.setItem(47, actionItem(Material.ENDER_CHEST, ChatColor.LIGHT_PURPLE + "📦 Призы из ВК",
                 "Забрать выигранные предметы",
-                VKChatPlugin.getInstance().getVKRouletteManager() != null && VKChatPlugin.getInstance().getVKRouletteManager().hasPendingItems(vkId) ?
+                VKChatPlugin.getInstance().getRouletteManager() != null && VKChatPlugin.getInstance().getRouletteManager().hasPendingItems(vkId) ?
                         ChatColor.GREEN + "Есть призы!" : ChatColor.GRAY + "Нет призов"));
         inv.setItem(49, actionItem(Material.CHEST, ChatColor.GOLD + "🎁 Мистический бокс",
                 "Боксов: " + mysteryBox.getOrDefault(p.getName(), 0)));
@@ -812,7 +812,7 @@ public class MarketFun {
     // ========================================
 
     public void claimVKPrizes(Player p) {
-        if (VKChatPlugin.getInstance().getVKRouletteManager() == null) {
+        if (VKChatPlugin.getInstance().getRouletteManager() == null) {
             p.sendMessage(ChatColor.RED + "Модуль рулетки не загружен!");
             return;
         }
@@ -823,12 +823,12 @@ public class MarketFun {
             return;
         }
 
-        if (!VKChatPlugin.getInstance().getVKRouletteManager().hasPendingItems(vkId)) {
+        if (!VKChatPlugin.getInstance().getRouletteManager().hasPendingItems(vkId)) {
             p.sendMessage(ChatColor.GRAY + "Нет ожидающих предметов. Играй в рулетку в ВК!");
             return;
         }
 
-        java.util.List<String> items = VKChatPlugin.getInstance().getVKRouletteManager().takePendingItems(vkId);
+        java.util.List<String> items = VKChatPlugin.getInstance().getRouletteManager().takePendingItems(vkId);
         if (items == null || items.isEmpty()) {
             p.sendMessage(ChatColor.GRAY + "Нет предметов.");
             return;

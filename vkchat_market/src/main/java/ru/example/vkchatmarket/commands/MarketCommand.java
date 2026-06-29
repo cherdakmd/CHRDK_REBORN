@@ -51,22 +51,22 @@ public class MarketCommand implements CommandExecutor, TabCompleter {
             p.sendMessage(org.bukkit.ChatColor.GOLD + "История рынка:");
             for (String line : plugin.getMarketManager().getHistoryTail(10)) p.sendMessage(org.bukkit.ChatColor.GRAY + "• " + line);
         } else if (args.length > 0 && (args[0].equalsIgnoreCase("roulette") || args[0].equalsIgnoreCase("рулетка"))) {
-            plugin.getMarketRoulette().openRouletteGUI(p);
+            ru.example.vkchat.VKChatPlugin.getInstance().getRouletteManager().openInGameGUI(p);
         } else if (args.length > 0 && (args[0].equalsIgnoreCase("russian") || args[0].equalsIgnoreCase("русская"))) {
-            plugin.getMarketRoulette().spin(p, "russian");
+            // Русская рулетка через GUI
+            ru.example.vkchat.VKChatPlugin.getInstance().getRouletteManager().openInGameGUI(p);
         } else if (args.length > 0 && args[0].equalsIgnoreCase("double")) {
-            plugin.getMarketRoulette().doubleOrNothing(p);
+            // Double через GUI
+            ru.example.vkchat.VKChatPlugin.getInstance().getRouletteManager().openInGameGUI(p);
         } else if (args.length > 0 && args[0].equalsIgnoreCase("gift") && args.length > 1) {
-            plugin.getMarketFun().giftSpin(p, args[1]);
+            p.sendMessage(org.bukkit.ChatColor.GRAY + "Подарки доступны через VK рулетку (!рулетка в ЛС)");
         } else if (args.length > 0 && args[0].equalsIgnoreCase("autospin")) {
-            // Автоспин через GUI
-            plugin.getMarketRoulette().openRouletteGUI(p);
+            ru.example.vkchat.VKChatPlugin.getInstance().getRouletteManager().openInGameGUI(p);
         } else if (args.length > 0 && args[0].equalsIgnoreCase("stats")) {
-            p.sendMessage(plugin.getMarketRoulette().getFullStats(p));
-        } else if (args.length > 0 && args[0].equalsIgnoreCase("spins")) {
-            showSpinHistory(p);
+            int vkId = ru.example.vkchat.VKChatPlugin.getInstance().getApi().getLinkedVkId(p);
+            if (vkId != -1) p.sendMessage(ru.example.vkchat.VKChatPlugin.getInstance().getRouletteManager().getFullStats(vkId));
         } else if (args.length > 0 && args[0].equalsIgnoreCase("top")) {
-            showLeaderboard(p);
+            ru.example.vkchat.VKChatPlugin.getInstance().getRouletteManager().showLeaderboard(p);
         } else if (args.length > 0 && (args[0].equalsIgnoreCase("quest") || args[0].equalsIgnoreCase("квест"))) {
             showQuestInfo(p);
         } else if (args.length > 0 && (args[0].equalsIgnoreCase("flash") || args[0].equalsIgnoreCase("flashsale"))) {
@@ -106,22 +106,6 @@ public class MarketCommand implements CommandExecutor, TabCompleter {
         p.sendMessage(org.bukkit.ChatColor.GRAY + "Осталось: " + remaining + " сек.");
     }
 
-    private void showSpinHistory(Player p) {
-        var history = plugin.getMarketFun().getSpinHistory(p.getName());
-        p.sendMessage(org.bukkit.ChatColor.GOLD + "═══ 🎰 История рулетки ═══");
-        if (history.isEmpty()) {
-            p.sendMessage(org.bukkit.ChatColor.GRAY + "Пока пусто. Крути рулетку!");
-        } else {
-            for (int i = history.size() - 1; i >= Math.max(0, history.size() - 10); i--) {
-                p.sendMessage(org.bukkit.ChatColor.GRAY + "• " + history.get(i));
-            }
-        }
-    }
-
-    private void showLeaderboard(Player p) {
-        plugin.getMarketRoulette().showLeaderboard(p);
-    }
-
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String label, String[] args) {
         List<String> completions = new ArrayList<>();
@@ -129,7 +113,7 @@ public class MarketCommand implements CommandExecutor, TabCompleter {
 
         if (args.length == 1) {
             completions.addAll(Arrays.asList("spawnnpc", "trends", "тренды", "history", "история",
-                "roulette", "рулетка", "russian", "double", "gift", "autospin", "stats", "spins", "top",
+                "roulette", "рулетка", "stats", "top",
                 "quest", "квест", "flash", "flashsale"));
         }
 

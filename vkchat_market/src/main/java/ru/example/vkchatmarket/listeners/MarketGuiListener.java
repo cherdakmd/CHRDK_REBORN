@@ -285,7 +285,7 @@ public class MarketGuiListener implements Listener {
             e.setCancelled(true);
             if (!(e.getWhoClicked() instanceof Player)) return;
             Player p = (Player) e.getWhoClicked();
-            plugin.getMarketRoulette().handleClick(p, e.getRawSlot());
+            ru.example.vkchat.VKChatPlugin.getInstance().getRouletteManager().handleInGameClick(p, e.getRawSlot());
             return;
         }
 
@@ -307,7 +307,7 @@ public class MarketGuiListener implements Listener {
 
         if (meta.getPersistentDataContainer().has(rouletteKey, PersistentDataType.INTEGER)) {
             e.setCancelled(true);
-            plugin.getMarketRoulette().openRouletteGUI(p);
+            ru.example.vkchat.VKChatPlugin.getInstance().getRouletteManager().openInGameGUI(p);
             return;
         }
 
@@ -483,7 +483,7 @@ public class MarketGuiListener implements Listener {
         p.sendMessage(ChatColor.GREEN + "💰 Продано " + count + " шт. → " + rep + " реп.");
         p.playSound(p.getLocation(), org.bukkit.Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1f, 1f);
         plugin.getMarketFun().recordQuestProgress(p, itemId, count, "sell");
-        plugin.getMarketRoulette().earnTokens(p.getUniqueId(), Math.max(1, count / 10)); // Токены за торговлю
+        ru.example.vkchat.VKChatPlugin.getInstance().getRouletteManager().earnTokens(vkId, Math.max(1, count / 10)); // Токены за торговлю
     }
 
     private void buyItems(Player p, String itemId, int amount) {
