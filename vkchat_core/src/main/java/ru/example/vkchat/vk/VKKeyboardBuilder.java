@@ -164,7 +164,7 @@ public class VKKeyboardBuilder {
 
         // Ряд 1: Ставки
         kb.append("[");
-        int[] bets = {250, 500, 1000};
+        int[] bets = {100, 250, 500, 1000, 2500};
         for (int i = 0; i < bets.length; i++) {
             if (i > 0) kb.append(",");
             String color = bets[i] == currentBet ? "positive" : "secondary";

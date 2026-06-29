@@ -73,10 +73,10 @@ jobs-reputation:
   level-bonus-per-level: 0.01
   max-level-bonus: 0.50
   donate-multipliers:
-    spark: 2.50
-    flame: 4.50
-    star: 7.00
-    legend: 11.00
+    spark: 1.50
+    flame: 2.50
+    star: 3.50
+    legend: 5.00
   jobs:
     miner:
       enabled: true

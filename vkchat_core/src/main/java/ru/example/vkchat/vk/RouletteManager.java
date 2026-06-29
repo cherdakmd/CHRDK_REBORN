@@ -264,8 +264,8 @@ public class RouletteManager {
                 return;
             }
             int bet = Integer.parseInt(numStr);
-            if (bet < 100 || bet > 10000) {
-                plugin.getVkManager().sendMessage(peer, "❌ Ставка: 100-10000 реп!");
+            if (bet < 100 || bet > 5000) {
+                plugin.getVkManager().sendMessage(peer, "❌ Ставка: 100-5000 реп!");
                 return;
             }
             bets.put(fromId, bet);

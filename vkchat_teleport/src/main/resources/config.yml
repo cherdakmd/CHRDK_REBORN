@@ -4,7 +4,7 @@
 
 teleportation:
   rtp:
-    cost: 10
+    cost: 50
     cooldown: 3600
     min-x: -5000
     max-x: 5000
@@ -12,12 +12,12 @@ teleportation:
     max-z: 5000
 
   home:
-    cost: 5
+    cost: 25
     cooldown: 1800
     max-homes: 3
 
   tpa:
-    cost: 20
+    cost: 75
     cooldown: 1200
 
   warmup:
@@ -25,9 +25,9 @@ teleportation:
     cancel-on-move: true
     cancel-on-damage: true
 
-  # DonatePay-бонусы нашего комплекса: скидка на телепорты.
+  # DonatePay-бонусы: скидка на телепорты
   donate-discount:
-    spark: 0.30
-    flame: 0.80
-    star: 1.50
-    legend: 2.50
+    spark: 0.10
+    flame: 0.25
+    star: 0.40
+    legend: 0.60
