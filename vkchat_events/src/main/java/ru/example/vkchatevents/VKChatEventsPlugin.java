@@ -66,6 +66,10 @@ public class VKChatEventsPlugin extends JavaPlugin {
     private StatisticsManager statisticsManager;
     private VotingManager votingManager;
     private ComboManager comboManager;
+    private ActivityManager activityManager;
+    private CombatManager combatManager;
+    private SocialManager socialManager;
+    private EvolutionManager evolutionManager;
 
     @Override
     public void onEnable() {
@@ -94,6 +98,10 @@ public class VKChatEventsPlugin extends JavaPlugin {
         statisticsManager = new StatisticsManager(this);
         votingManager = new VotingManager(this);
         comboManager = new ComboManager(this);
+        activityManager = new ActivityManager(this);
+        combatManager = new CombatManager(this);
+        socialManager = new SocialManager(this);
+        evolutionManager = new EvolutionManager(this);
 
         // Регистрация событий
         getServer().getPluginManager().registerEvents(wrathManager, this);
@@ -103,6 +111,10 @@ public class VKChatEventsPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(dailyRewardManager, this);
         getServer().getPluginManager().registerEvents(challengeManager, this);
         getServer().getPluginManager().registerEvents(statisticsManager, this);
+        getServer().getPluginManager().registerEvents(activityManager, this);
+        getServer().getPluginManager().registerEvents(combatManager, this);
+        getServer().getPluginManager().registerEvents(socialManager, this);
+        getServer().getPluginManager().registerEvents(evolutionManager, this);
 
         // Регистрация команд
         EventsCommand eventsCommand = new EventsCommand(this);
@@ -168,4 +180,8 @@ public class VKChatEventsPlugin extends JavaPlugin {
     public StatisticsManager getStatisticsManager() { return statisticsManager; }
     public VotingManager getVotingManager() { return votingManager; }
     public ComboManager getComboManager() { return comboManager; }
+    public ActivityManager getActivityManager() { return activityManager; }
+    public CombatManager getCombatManager() { return combatManager; }
+    public SocialManager getSocialManager() { return socialManager; }
+    public EvolutionManager getEvolutionManager() { return evolutionManager; }
 }

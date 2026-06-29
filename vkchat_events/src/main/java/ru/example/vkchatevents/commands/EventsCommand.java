@@ -2,7 +2,6 @@ package ru.example.vkchatevents.commands;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -18,12 +17,13 @@ import ru.example.vkchatevents.VKChatEventsPlugin;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.UUID;
 
+/**
+ * GUI дашборд событий v3.0
+ */
 public class EventsCommand implements CommandExecutor, Listener {
     private final VKChatEventsPlugin plugin;
-    private final String GUI_TITLE = ChatColor.GOLD + "📅 События и Квесты Сервера";
+    private final String GUI_TITLE = ChatColor.GOLD + "📅 События и Активности";
 
     public EventsCommand(VKChatEventsPlugin plugin) {
         this.plugin = plugin;
@@ -33,173 +33,150 @@ public class EventsCommand implements CommandExecutor, Listener {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!(sender instanceof Player)) {
-            sender.sendMessage(ChatColor.RED + "Эту команду могут выполнять только игроки!");
+            sender.sendMessage(ChatColor.RED + "Только для игроков!");
             return true;
         }
-
-        openEventsDashboard((Player) sender);
+        openDashboard((Player) sender);
         return true;
     }
 
-    private String getCataclysmFriendlyName(String key) {
-        if (key == null) return null;
-        switch (key.toLowerCase()) {
-            case "acid_rain": return "🌧️ Кислотный Дождь";
-            case "earthquake": return "🌋 Землетрясение";
-            case "tempest": return "⛈️ Грозовой Шторм";
-            case "meteor_shower": return "☄️ Метеоритный Дождь";
-            case "blizzard": return "❄️ Ледяной Буран";
-            case "eclipse": return "🌑 Солнечное Затмение";
-            case "reputation_bloom": return "✨ Золотой Век (Благословение)";
-            case "angelic_grace": return "😇 Ангельская Благодать";
-            case "star_shower": return "🌠 Звездопад Желаний";
-            case "geysers": return "♨️ Поле Гейзеров";
-            case "station_fall": return "☄️ Падение Станции";
-            case "blood_moon_hunt": return "🌕 Кровавая Луна";
-            case "treasure_comet": return "💎 Комета Сокровищ";
-            default: return "⚡ Аномальное Явление";
-        }
-    }
+    public void openDashboard(Player p) {
+        Inventory inv = Bukkit.createInventory(null, 54, GUI_TITLE);
 
-    public void openEventsDashboard(Player p) {
-        Inventory inv = Bukkit.createInventory(null, 27, GUI_TITLE);
-
-        // Заполнение фоновым серым стеклом
-        ItemStack glass = new ItemStack(Material.GRAY_STAINED_GLASS_PANE);
+        // Стекло
+        ItemStack glass = new ItemStack(Material.BLACK_STAINED_GLASS_PANE);
         ItemMeta glassMeta = glass.getItemMeta();
         glassMeta.setDisplayName(" ");
         glass.setItemMeta(glassMeta);
-        for (int i = 0; i < 27; i++) {
-            inv.setItem(i, glass);
-        }
+        for (int i = 0; i < 54; i++) inv.setItem(i, glass);
 
-        // 1. Разлом Бездны (Слот 11)
+        // === СУЩЕСТВУЮЩИЕ СИСТЕМЫ ===
+
+        // 1. Разлом Бездны (Слот 10)
         boolean invasionActive = plugin.getInvasionManager().isActive();
-        Location invasionLoc = plugin.getInvasionManager().getActiveLocation();
-        ItemStack invasionItem = new ItemStack(Material.OBSIDIAN);
-        ItemMeta iMeta = invasionItem.getItemMeta();
-        iMeta.setDisplayName(ChatColor.DARK_PURPLE + "🌌 Разлом Бездны");
-        List<String> iLore = new ArrayList<>();
-        if (invasionActive && invasionLoc != null) {
-            iLore.add(ChatColor.GREEN + "● РАЗЛОМ ОТКРЫТ");
-            iLore.add(ChatColor.GRAY + "Координаты вторжения:");
-            iLore.add(ChatColor.YELLOW + "  X: " + invasionLoc.getBlockX() + " | Z: " + invasionLoc.getBlockZ());
-            iLore.add("");
-            iLore.add(ChatColor.GRAY + "Уничтожайте мобов и закройте");
-            iLore.add(ChatColor.GRAY + "разлом, чтобы спасти мир!");
-        } else {
-            iLore.add(ChatColor.RED + "○ Закрыт / Ожидание");
-            iLore.add(ChatColor.GRAY + "Твари Бездны затаились в глубинах.");
-        }
-        iMeta.setLore(iLore);
-        invasionItem.setItemMeta(iMeta);
-        inv.setItem(11, invasionItem);
+        inv.setItem(10, createItem(Material.OBSIDIAN, ChatColor.DARK_PURPLE + "🌌 Разлом Бездны",
+                invasionActive ? ChatColor.GREEN + "● АКТИВНО" : ChatColor.RED + "○ Закрыт"));
 
-        // 2. Мировой Босс (Слот 12)
+        // 2. Босс (Слот 11)
         boolean bossActive = plugin.getWrathManager().isActive();
-        Location bossLoc = plugin.getWrathManager().getActiveLocation();
-        ItemStack bossItem = new ItemStack(Material.WITHER_SKELETON_SKULL);
-        ItemMeta bMeta = bossItem.getItemMeta();
-        bMeta.setDisplayName(ChatColor.DARK_RED + "☠️ Аватар Гнева (Босс)");
-        List<String> bLore = new ArrayList<>();
-        if (bossActive && bossLoc != null) {
-            bLore.add(ChatColor.GREEN + "● БОСС ПРИЗВАН");
-            bLore.add(ChatColor.GRAY + "Координаты босса:");
-            bLore.add(ChatColor.YELLOW + "  X: " + (int)bossLoc.getX() + " | Z: " + (int)bossLoc.getZ());
-            bLore.add("");
-            bLore.add(ChatColor.GRAY + "Соберите рейд и сразите Аватара");
-            bLore.add(ChatColor.GRAY + "ради ценнейшего легендарного лута!");
-        } else {
-            bLore.add(ChatColor.RED + "○ Не призван");
-            bLore.add(ChatColor.GRAY + "Босс спит в своей темнице.");
-        }
-        bMeta.setLore(bLore);
-        bossItem.setItemMeta(bMeta);
-        inv.setItem(12, bossItem);
+        inv.setItem(11, createItem(Material.WITHER_SKELETON_SKULL, ChatColor.DARK_RED + "☠️ Аватар Гнева",
+                bossActive ? ChatColor.GREEN + "● БОСС ПРИЗВАН" : ChatColor.RED + "○ Не призван"));
 
-        // 3. Активный катаклизм/благословение (Слот 13)
-        String activeCatKey = plugin.getWrathManager().getActiveCataclysm();
-        String activeCatFriendly = getCataclysmFriendlyName(activeCatKey);
-        ItemStack catItem = new ItemStack(Material.CLOCK);
-        ItemMeta cMeta = catItem.getItemMeta();
-        cMeta.setDisplayName(ChatColor.AQUA + "🌤️ Глобальная погода / Катаклизмы");
-        List<String> cLore = new ArrayList<>();
-        if (activeCatFriendly != null) {
-            cLore.add(ChatColor.GREEN + "● АКТИВНО: " + ChatColor.YELLOW + activeCatFriendly);
-            cLore.add("");
-            cLore.add(ChatColor.GRAY + "В мире действует глобальное");
-            cLore.add(ChatColor.GRAY + "событие. Будьте осторожны!");
-        } else {
-            cLore.add(ChatColor.YELLOW + "○ Тихая погода");
-            cLore.add(ChatColor.GRAY + "В мире нет активных катаклизмов.");
-        }
-        cMeta.setLore(cLore);
-        catItem.setItemMeta(cMeta);
-        inv.setItem(13, catItem);
+        // 3. Катаклизм (Слот 12)
+        String cataclysm = plugin.getWrathManager().getActiveCataclysm();
+        inv.setItem(12, createItem(Material.CLOCK, ChatColor.AQUA + "🌤️ Катаклизм",
+                cataclysm != null ? ChatColor.GREEN + "● " + cataclysm : ChatColor.YELLOW + "○ Тихо"));
 
-        // 6. Сюжетные Квесты (Слот 16)
-        ItemStack questItem = new ItemStack(Material.BOOK);
-        ItemMeta qMeta = questItem.getItemMeta();
-        qMeta.setDisplayName(ChatColor.YELLOW + "📕 Ваши сюжетные квесты");
-        List<String> qLore = new ArrayList<>();
-        Map<String, Integer> progressMap = plugin.getQuestManager().getPlayerQuestProgress(p.getUniqueId());
-        
-        qLore.add(ChatColor.GRAY + "Ваш текущий прогресс цепочек:");
-        qLore.add("");
-        
-        // Шахтер
-        int pMiner = progressMap.getOrDefault("miner_path", 0);
-        int rMiner = plugin.getConfig().getInt("quests.chains.miner_path.amount", 50);
-        qLore.add(ChatColor.GOLD + "⛏️ Путь Шахтера:");
-        qLore.add(ChatColor.GRAY + "  Цель: Убить 50 зомби в шахте.");
-        qLore.add(ChatColor.GRAY + "  Прогресс: " + ChatColor.YELLOW + pMiner + "/" + rMiner);
-        
-        qLore.add("");
-        
-        // Кузнец
-        int pSmith = progressMap.getOrDefault("blacksmith_path", 0);
-        int rSmith = plugin.getConfig().getInt("quests.chains.blacksmith_path.amount", 10);
-        qLore.add(ChatColor.GOLD + "🔨 Путь Кузнеца:");
-        qLore.add(ChatColor.GRAY + "  Цель: Скрафтить 10 алмазных мечей.");
-        qLore.add(ChatColor.GRAY + "  Прогресс: " + ChatColor.YELLOW + pSmith + "/" + rSmith);
-        
-        qMeta.setLore(qLore);
-        questItem.setItemMeta(qMeta);
-        inv.setItem(16, questItem);
+        // 4. Квесты (Слот 13)
+        inv.setItem(13, createItem(Material.BOOK, ChatColor.YELLOW + "📋 Квесты",
+                ChatColor.GRAY + "Сюжетные квесты-цепочки"));
 
-        // 7. Баунти контракты (Слот 17)
-        ItemStack bountyItem = new ItemStack(Material.WRITABLE_BOOK);
-        ItemMeta bnyMeta = bountyItem.getItemMeta();
-        bnyMeta.setDisplayName(ChatColor.RED + "🎯 Контракты на убийство (Bounty)");
-        List<String> bnyLore = new ArrayList<>();
-        bnyLore.add(ChatColor.GRAY + "Активные заказы игроков:");
-        bnyLore.add("");
-        
-        Map<UUID, Integer> activeBounties = plugin.getBountyManager().getBounties();
-        if (activeBounties.isEmpty()) {
-            bnyLore.add(ChatColor.GRAY + "  Заказов нет. Вы можете объявить");
-            bnyLore.add(ChatColor.GRAY + "  награду за голову игрока в ВК");
-            bnyLore.add(ChatColor.GRAY + "  командой: " + ChatColor.YELLOW + "!заказ <ник> <реп.>");
-        } else {
-            for (Map.Entry<UUID, Integer> entry : activeBounties.entrySet()) {
-                String targetName = Bukkit.getOfflinePlayer(entry.getKey()).getName();
-                if (targetName != null) {
-                    bnyLore.add(ChatColor.YELLOW + "  • " + ChatColor.RED + targetName + 
-                            ChatColor.GRAY + " — Награда: " + ChatColor.GOLD + entry.getValue() + " реп. ВК");
-                }
-            }
-        }
-        bnyMeta.setLore(bnyLore);
-        bountyItem.setItemMeta(bnyMeta);
-        inv.setItem(17, bountyItem);
+        // 5. Контракты (Слот 14)
+        inv.setItem(14, createItem(Material.WRITABLE_BOOK, ChatColor.RED + "🎯 Контракты",
+                ChatColor.GRAY + "Баунти на игроков"));
+
+        // === НОВЫЕ СИСТЕМЫ ===
+
+        // 6. Ежедневная награда (Слот 19)
+        inv.setItem(19, createItem(Material.GOLD_INGOT, ChatColor.GOLD + "🎁 Ежедневная награда",
+                ChatColor.GRAY + "Получай реп за вход каждый день!"));
+
+        // 7. Испытания (Слот 20)
+        inv.setItem(20, createItem(Material.PAPER, ChatColor.AQUA + "📋 Испытания",
+                ChatColor.GRAY + "Ежедневные задания с наградами"));
+
+        // 8. Магазин событий (Слот 21)
+        inv.setItem(21, createItem(Material.EMERALD, ChatColor.GREEN + "🛒 Магазин событий",
+                ChatColor.GRAY + "Бусты и бонусы за очки"));
+
+        // 9. Достижения (Слот 22)
+        inv.setItem(22, createItem(Material.NETHER_STAR, ChatColor.GOLD + "🏅 Достижения",
+                ChatColor.GRAY + "20 достижений событий"));
+
+        // 10. Таблица лидеров (Слот 23)
+        inv.setItem(23, createItem(Material.DIAMOND, ChatColor.YELLOW + "🏆 Лидерборд",
+                ChatColor.GRAY + "Лучшие игроки сервера"));
+
+        // 11. Статистика (Слот 24)
+        inv.setItem(24, createItem(Material.PAPER, ChatColor.AQUA + "📊 Статистика",
+                ChatColor.GRAY + "Твоя статистика"));
+
+        // 12. Предсказание (Слот 29)
+        inv.setItem(29, createItem(Material.ENDER_EYE, ChatColor.LIGHT_PURPLE + "🔮 Предсказание",
+                ChatColor.GRAY + "Узнай что ждёт тебя сегодня!"));
+
+        // 13. Комбо (Слот 30)
+        inv.setItem(30, createItem(Material.FIREWORK_ROCKET, ChatColor.YELLOW + "🔥 Комбо",
+                ChatColor.GRAY + "Бонусы за серию действий"));
+
+        // 14. Активность (Слот 31)
+        inv.setItem(31, createItem(Material.CLOCK, ChatColor.GREEN + "📈 Активность",
+                ChatColor.GRAY + "Твоя активность на сервере"));
+
+        // 15. PvP (Слот 32)
+        inv.setItem(32, createItem(Material.IRON_SWORD, ChatColor.RED + "⚔ PvP",
+                ChatColor.GRAY + "Статистика боёв"));
+
+        // 16. Эволюция (Слот 33)
+        inv.setItem(33, createItem(Material.BEACON, ChatColor.LIGHT_PURPLE + "🧬 Эволюция",
+                ChatColor.GRAY + "Развивай своего персонажа"));
 
         p.openInventory(inv);
     }
 
     @EventHandler
     public void onClick(InventoryClickEvent e) {
-        if (e.getView().getTitle().equals(GUI_TITLE)) {
-            e.setCancelled(true);
+        if (!e.getView().getTitle().equals(GUI_TITLE)) return;
+        e.setCancelled(true);
+        if (!(e.getWhoClicked() instanceof Player)) return;
+        Player p = (Player) e.getWhoClicked();
+
+        switch (e.getRawSlot()) {
+            case 10: // Разлом
+                p.sendMessage(ChatColor.DARK_PURPLE + "Разлом Бездны: " +
+                        (plugin.getInvasionManager().isActive() ? "Активен" : "Закрыт"));
+                break;
+            case 11: // Босс
+                p.sendMessage(ChatColor.DARK_RED + "Аватар Гнева: " +
+                        (plugin.getWrathManager().isActive() ? "Жив" : "Не призван"));
+                break;
+            case 19: // Ежедневная награда
+                p.sendMessage(ChatColor.GOLD + "🎁 Ежедневная награда: заходи на сервер каждый день!");
+                break;
+            case 20: // Испытания
+                p.sendMessage(ChatColor.AQUA + "📋 Испытания: убивай мобов, добывай ресурсы, крафти!");
+                break;
+            case 29: // Предсказание
+                if (plugin.getActivityManager() != null) {
+                    p.sendMessage(ChatColor.LIGHT_PURPLE + "🔮 " + plugin.getActivityManager().getPrediction(p.getUniqueId()));
+                }
+                break;
+            case 31: // Активность
+                if (plugin.getActivityManager() != null) {
+                    p.sendMessage(plugin.getActivityManager().getStats(p.getUniqueId()));
+                }
+                break;
+            case 32: // PvP
+                if (plugin.getCombatManager() != null) {
+                    p.sendMessage(plugin.getCombatManager().getPvPStats(p.getUniqueId()));
+                }
+                break;
+            case 33: // Эволюция
+                if (plugin.getEvolutionManager() != null) {
+                    p.sendMessage(plugin.getEvolutionManager().getEvolutionStats(p.getUniqueId()));
+                }
+                break;
         }
+    }
+
+    private ItemStack createItem(Material mat, String name, String lore) {
+        ItemStack item = new ItemStack(mat);
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName(name);
+        List<String> loreList = new ArrayList<>();
+        loreList.add(lore);
+        meta.setLore(loreList);
+        item.setItemMeta(meta);
+        return item;
     }
 }
