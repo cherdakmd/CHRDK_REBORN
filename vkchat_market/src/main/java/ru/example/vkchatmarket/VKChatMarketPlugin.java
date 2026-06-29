@@ -5,12 +5,14 @@ import org.bukkit.plugin.java.JavaPlugin;
 import ru.example.vkchatmarket.commands.MarketCommand;
 import ru.example.vkchatmarket.data.MarketFun;
 import ru.example.vkchatmarket.data.MarketManager;
+import ru.example.vkchatmarket.data.MarketRoulette;
 import ru.example.vkchatmarket.listeners.MarketGuiListener;
 
 public class VKChatMarketPlugin extends JavaPlugin {
     private static VKChatMarketPlugin instance;
     private MarketManager marketManager;
     private MarketFun marketFun;
+    private MarketRoulette marketRoulette;
 
 
     private void migrateConfigDefaults() {
@@ -54,6 +56,7 @@ public class VKChatMarketPlugin extends JavaPlugin {
 
         marketManager = new MarketManager(this);
         marketFun = new MarketFun(this);
+        marketRoulette = new MarketRoulette(this);
         
         MarketCommand marketCmd = new MarketCommand(this);
         getCommand("market").setExecutor(marketCmd);
@@ -92,5 +95,9 @@ public class VKChatMarketPlugin extends JavaPlugin {
 
     public MarketFun getMarketFun() {
         return marketFun;
+    }
+
+    public MarketRoulette getMarketRoulette() {
+        return marketRoulette;
     }
 }

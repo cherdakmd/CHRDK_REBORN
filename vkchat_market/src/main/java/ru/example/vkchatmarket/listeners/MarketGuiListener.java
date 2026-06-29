@@ -281,11 +281,11 @@ public class MarketGuiListener implements Listener {
     @EventHandler
     public void onClick(InventoryClickEvent e) {
         // Обработка кликов в GUI рулетки (отдельный заголовок)
-        if (e.getView().getTitle().contains("Рулетка")) {
+        if (e.getView().getTitle().contains("РУЛЕТКА") || e.getView().getTitle().contains("рулетка")) {
             e.setCancelled(true);
             if (!(e.getWhoClicked() instanceof Player)) return;
             Player p = (Player) e.getWhoClicked();
-            plugin.getMarketFun().handleGUIClick(p, e.getRawSlot());
+            plugin.getMarketRoulette().handleClick(p, e.getRawSlot());
             return;
         }
 
