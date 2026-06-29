@@ -83,15 +83,20 @@ public class ReputationManager {
     public void deductPoints(int vkId, int amount) {
         plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
             try (Connection conn = plugin.getDatabaseManager().getConnection()) {
-                int oldPoints = getPoints(vkId);
-                int newPoints = Math.max(0, oldPoints - amount);
-                
-                PreparedStatement ps = conn.prepareStatement("UPDATE vkchat_reputation SET points = ? WHERE vk_id = ?");
-                ps.setInt(1, newPoints);
+                // [FIX] Атомарная операция вместо SELECT + UPDATE
+                PreparedStatement ps;
+                if (plugin.getConfig().getBoolean("database.use-mysql", false)) {
+                    ps = conn.prepareStatement("UPDATE vkchat_reputation SET points = GREATEST(0, points - ?) WHERE vk_id = ?");
+                } else {
+                    ps = conn.prepareStatement("UPDATE vkchat_reputation SET points = MAX(0, points - ?) WHERE vk_id = ?");
+                }
+                ps.setInt(1, amount);
                 ps.setInt(2, vkId);
                 ps.executeUpdate();
                 
-                plugin.getServer().getPluginManager().callEvent(new ru.example.vkchat.api.events.ReputationChangeEvent(vkId, oldPoints, newPoints));
+                // Получаем новое значение для события
+                int newPoints = getPoints(vkId);
+                plugin.getServer().getPluginManager().callEvent(new ru.example.vkchat.api.events.ReputationChangeEvent(vkId, newPoints + amount, newPoints));
             } catch (SQLException e) {
                 e.printStackTrace();
             }

@@ -145,6 +145,10 @@ public class DatabaseManager {
         if (dataSource == null) {
             connect();
         }
+        // [FIX] Проверяем что dataSource был успешно создан
+        if (dataSource == null) {
+            throw new SQLException("Database connection pool is null - database may be unavailable");
+        }
         return dataSource.getConnection();
     }
 

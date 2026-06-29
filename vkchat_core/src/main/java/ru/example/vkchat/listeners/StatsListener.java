@@ -30,6 +30,36 @@ public class StatsListener implements Listener {
 
     public StatsListener(VKChatPlugin plugin) {
         this.plugin = plugin;
+        startCleanupTask();
+    }
+
+    /**
+     * [FIX] Периодическая очистка неактивных данных
+     */
+    private void startCleanupTask() {
+        plugin.getServer().getScheduler().runTaskTimerAsynchronously(plugin, () -> {
+            cleanupInactiveData();
+        }, 12000L, 12000L); // Каждые 10 минут
+    }
+
+    private void cleanupInactiveData() {
+        long now = System.currentTimeMillis();
+        long maxInactive = 3600000; // 1 час
+
+        // Очищаем killCooldowns старше 1 часа
+        killCooldowns.entrySet().removeIf(e -> now - e.getValue() > maxInactive);
+
+        // Очищаем killStreaks для оффлайн игроков
+        killStreaks.entrySet().removeIf(e -> {
+            Player p = plugin.getServer().getPlayer(e.getKey());
+            return p == null || !p.isOnline();
+        });
+
+        // Очищаем deathStreaks для оффлайн игроков
+        deathStreaks.entrySet().removeIf(e -> {
+            Player p = plugin.getServer().getPlayer(e.getKey());
+            return p == null || !p.isOnline();
+        });
     }
 
     @EventHandler

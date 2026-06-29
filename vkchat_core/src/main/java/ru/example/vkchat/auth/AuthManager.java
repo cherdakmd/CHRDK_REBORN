@@ -9,6 +9,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -39,6 +40,75 @@ public class AuthManager {
 
     public AuthManager(VKChatPlugin plugin) {
         this.plugin = plugin;
+        startCleanupTask();
+    }
+
+    /**
+     * [FIX] Периодическая очистка неактивных данных для предотвращения утечки памяти
+     */
+    private void startCleanupTask() {
+        plugin.getServer().getScheduler().runTaskTimerAsynchronously(plugin, () -> {
+            cleanupInactiveData();
+        }, 12000L, 12000L); // Каждые 10 минут
+    }
+
+    private void cleanupInactiveData() {
+        long now = System.currentTimeMillis();
+        long maxInactive = 3600000; // 1 час
+
+        // Очищаем lockouts которые истекли
+        lockouts.entrySet().removeIf(e -> now - e.getValue() > LOCKOUT_DURATION_MS);
+
+        // Очищаем await2faExpiry которые истекли
+        await2faExpiry.entrySet().removeIf(e -> now - e.getValue() > TWO_FA_EXPIRY_MS);
+
+        // Очищаем joinTimes для оффлайн игроков
+        joinTimes.entrySet().removeIf(e -> {
+            org.bukkit.entity.Player p = plugin.getServer().getPlayer(e.getKey());
+            return p == null || !p.isOnline();
+        });
+
+        // Очищаем loggedIn для оффлайн игроков
+        loggedIn.entrySet().removeIf(e -> {
+            org.bukkit.entity.Player p = plugin.getServer().getPlayer(e.getKey());
+            return p == null || !p.isOnline();
+        });
+
+        // Очищаем lastActivity для оффлайн игроков
+        lastActivity.entrySet().removeIf(e -> {
+            org.bukkit.entity.Player p = plugin.getServer().getPlayer(e.getKey());
+            return p == null || !p.isOnline();
+        });
+
+        // Очищаем await2fa для оффлайн игроков
+        await2fa.entrySet().removeIf(e -> {
+            org.bukkit.entity.Player p = plugin.getServer().getPlayer(e.getKey());
+            return p == null || !p.isOnline();
+        });
+
+        // Очищаем await2faAttempts для оффлайн игроков
+        await2faAttempts.entrySet().removeIf(e -> {
+            org.bukkit.entity.Player p = plugin.getServer().getPlayer(e.getKey());
+            return p == null || !p.isOnline();
+        });
+
+        // Очищаем failedAttempts для оффлайн игроков
+        failedAttempts.entrySet().removeIf(e -> {
+            org.bukkit.entity.Player p = plugin.getServer().getPlayer(e.getKey());
+            return p == null || !p.isOnline();
+        });
+
+        // Очищаем frozenAccounts для оффлайн игроков (только если не заморожен)
+        frozenAccounts.entrySet().removeIf(e -> !e.getValue());
+
+        // Очищаем loginHistory старше 24 часов
+        loginHistory.entrySet().removeIf(e -> {
+            List<String> history = e.getValue();
+            if (history.isEmpty()) return true;
+            // Оставляем только последние 10 записей
+            while (history.size() > 10) history.remove(0);
+            return false;
+        });
     }
 
     public void save() {

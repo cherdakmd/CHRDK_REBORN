@@ -99,6 +99,8 @@ public class AuthListener implements Listener {
     @EventHandler(priority = EventPriority.LOWEST)
     public void onMove(PlayerMoveEvent e) {
         if (!plugin.getAuthManager().isFullyAuthorized(e.getPlayer())) {
+            // [FIX] Проверка на null для getTo()
+            if (e.getTo() == null) return;
             // Allow head rotation, but block movement
             if (e.getFrom().getX() != e.getTo().getX() || e.getFrom().getY() != e.getTo().getY() || e.getFrom().getZ() != e.getTo().getZ()) {
                 e.getPlayer().teleport(e.getFrom());

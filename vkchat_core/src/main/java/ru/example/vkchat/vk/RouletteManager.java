@@ -123,6 +123,29 @@ public class RouletteManager {
 
     public RouletteManager(VKChatPlugin plugin) {
         this.plugin = plugin;
+        startCleanupTask();
+    }
+
+    /**
+     * [FIX] Периодическая очистка неактивных данных для предотвращения утечки памяти
+     */
+    private void startCleanupTask() {
+        plugin.getServer().getScheduler().runTaskTimerAsynchronously(plugin, () -> {
+            cleanupInactiveData();
+        }, 12000L, 12000L); // Каждые 10 минут
+    }
+
+    private void cleanupInactiveData() {
+        long now = System.currentTimeMillis();
+        long maxInactive = 3600000; // 1 час
+
+        // Очищаем cooldown старше 1 часа
+        cooldown.entrySet().removeIf(e -> now - e.getValue() > maxInactive);
+
+        // Логируем размеры для мониторинга
+        if (totalSpins.size() > 1000) {
+            plugin.getLogger().info("[Roulette] Активных игроков: " + totalSpins.size());
+        }
     }
 
     // ═══ ДОНATE ПРОВЕРКИ ═══
