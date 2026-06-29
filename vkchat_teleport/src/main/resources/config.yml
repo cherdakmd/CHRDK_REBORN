@@ -31,3 +31,35 @@ teleportation:
     flame: 0.25
     star: 0.40
     legend: 0.60
+
+  # Кулдаун для донатеров (секунды, меньше = быстрее)
+  donate-cooldown:
+    rtp:
+      spark: 1800      # 30 мин (было 60)
+      flame: 900       # 15 мин
+      star: 300        # 5 мин
+      legend: 60       # 1 мин
+    home:
+      spark: 900       # 15 мин (было 30)
+      flame: 300       # 5 мин
+      star: 60         # 1 мин
+      legend: 0        # без кд
+    tpa:
+      spark: 600       # 10 мин (было 20)
+      flame: 300       # 5 мин
+      star: 60         # 1 мин
+      legend: 0        # без кд
+
+  # Время каста для донатеров (секунды)
+  donate-warmup:
+    spark: 2
+    flame: 1
+    star: 0            # мгновенно
+    legend: 0          # мгновенно
+
+  # Максимум домов для донатеров
+  donate-max-homes:
+    spark: 5
+    flame: 8
+    star: 12
+    legend: 20

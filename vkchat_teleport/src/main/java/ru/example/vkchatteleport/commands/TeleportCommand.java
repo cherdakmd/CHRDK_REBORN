@@ -136,36 +136,38 @@ public class TeleportCommand implements CommandExecutor, TabCompleter {
     // ==========================================
     private void handleRtp(Player p, int vkId) {
         int currentRep = VKChatPlugin.getInstance().getApi().getReputation(vkId);
-        // Случайный телепорт стоит 1% от текущего баланса репутации (минимум 5)
-        int cost = (int) Math.ceil(currentRep * 0.01);
-        if (cost < 5) cost = 5;
-        cost = Math.min(currentRep, applyDonateDiscount(p, cost));
+        int cost = plugin.getConfig().getInt("teleportation.rtp.cost", 50);
+        cost = Math.max(1, applyDonateDiscount(p, cost));
 
-        int cooldown = plugin.getConfig().getInt("teleportation.rtp.cooldown", 3600);
+        int cooldown = getDonateCooldown(p, "rtp");
 
         long cdRemaining = plugin.getTeleportManager().getCooldownRemaining("rtp", p.getUniqueId(), cooldown);
         if (cdRemaining > 0) {
-            p.sendMessage(ChatColor.RED + "⏳ Команда на перезарядке! Подождите " + ChatColor.GOLD + cdRemaining + ChatColor.RED + " сек.");
+            p.sendMessage(ChatColor.RED + "⏳ Команда на перезарядке! Подождите " + ChatColor.GOLD + formatTime(cdRemaining));
+            if (!hasDonateStatus(p)) {
+                p.sendMessage(ChatColor.YELLOW + "💡 Уменьшить КД можно через донат: " + ChatColor.AQUA + "!донат");
+            }
             return;
         }
 
         if (currentRep < cost) {
-            p.sendMessage(ChatColor.RED + "❌ Недостаточно репутации! Для случайного телепорта требуется: " + ChatColor.GOLD + cost + ChatColor.RED + " реп. ВК.");
+            p.sendMessage(ChatColor.RED + "❌ Недостаточно репутации! Нужно: " + ChatColor.GOLD + cost + ChatColor.RED + " реп.");
             return;
         }
 
-        p.sendMessage(ChatColor.YELLOW + "🔍 Поиск безопасной точки для телепортации...");
+        p.sendMessage(ChatColor.YELLOW + "🔍 Поиск безопасной точки...");
 
         Location safeLoc = findSafeLocation(p);
         if (safeLoc == null) {
-            p.sendMessage(ChatColor.RED + "❌ Не удалось найти безопасное место для телепортации. Попробуйте еще раз!");
+            p.sendMessage(ChatColor.RED + "❌ Не удалось найти безопасное место!");
             return;
         }
 
+        int warmup = getDonateWarmup(p);
         plugin.getTeleportManager().startTeleportWarmup(
                 p,
                 safeLoc,
-                ChatColor.GREEN + "✨ Вы успешно телепортировались в случайную точку за " + ChatColor.GOLD + cost + ChatColor.GREEN + " реп. ВК!",
+                ChatColor.GREEN + "✨ Телепортация за " + ChatColor.GOLD + cost + ChatColor.GREEN + " реп!",
                 cost,
                 "rtp",
                 null
@@ -176,11 +178,63 @@ public class TeleportCommand implements CommandExecutor, TabCompleter {
     private int applyDonateDiscount(Player p, int cost) {
         if (cost <= 0 || p == null) return cost;
         double discount = 0.0;
-        if (p.hasPermission("vkchat.donate.teleport.legend") || p.hasPermission("vkchat.donate.status.legend")) discount = plugin.getConfig().getDouble("teleportation.donate-discount.legend", 2.50);
-        else if (p.hasPermission("vkchat.donate.teleport.star") || p.hasPermission("vkchat.donate.status.star")) discount = plugin.getConfig().getDouble("teleportation.donate-discount.star", 1.50);
-        else if (p.hasPermission("vkchat.donate.teleport.flame") || p.hasPermission("vkchat.donate.status.flame")) discount = plugin.getConfig().getDouble("teleportation.donate-discount.flame", 0.80);
-        else if (p.hasPermission("vkchat.donate.teleport.spark") || p.hasPermission("vkchat.donate.status.spark")) discount = plugin.getConfig().getDouble("teleportation.donate-discount.spark", 0.30);
+        if (p.hasPermission("vkchat.donate.teleport.legend") || p.hasPermission("vkchat.donate.status.legend")) discount = plugin.getConfig().getDouble("teleportation.donate-discount.legend", 0.60);
+        else if (p.hasPermission("vkchat.donate.teleport.star") || p.hasPermission("vkchat.donate.status.star")) discount = plugin.getConfig().getDouble("teleportation.donate-discount.star", 0.40);
+        else if (p.hasPermission("vkchat.donate.teleport.flame") || p.hasPermission("vkchat.donate.status.flame")) discount = plugin.getConfig().getDouble("teleportation.donate-discount.flame", 0.25);
+        else if (p.hasPermission("vkchat.donate.teleport.spark") || p.hasPermission("vkchat.donate.status.spark")) discount = plugin.getConfig().getDouble("teleportation.donate-discount.spark", 0.10);
         return Math.max(1, (int)Math.ceil(cost * (1.0 - Math.min(0.95, Math.max(0.0, discount)))));
+    }
+
+    private int getDonateCooldown(Player p, String type) {
+        int defaultCooldown = plugin.getConfig().getInt("teleportation." + type + ".cooldown", 3600);
+        if (p.hasPermission("vkchat.donate.teleport.legend") || p.hasPermission("vkchat.donate.status.legend"))
+            return plugin.getConfig().getInt("teleportation.donate-cooldown." + type + ".legend", defaultCooldown);
+        if (p.hasPermission("vkchat.donate.teleport.star") || p.hasPermission("vkchat.donate.status.star"))
+            return plugin.getConfig().getInt("teleportation.donate-cooldown." + type + ".star", defaultCooldown);
+        if (p.hasPermission("vkchat.donate.teleport.flame") || p.hasPermission("vkchat.donate.status.flame"))
+            return plugin.getConfig().getInt("teleportation.donate-cooldown." + type + ".flame", defaultCooldown);
+        if (p.hasPermission("vkchat.donate.teleport.spark") || p.hasPermission("vkchat.donate.status.spark"))
+            return plugin.getConfig().getInt("teleportation.donate-cooldown." + type + ".spark", defaultCooldown);
+        return defaultCooldown;
+    }
+
+    private int getDonateWarmup(Player p) {
+        int defaultWarmup = plugin.getConfig().getInt("teleportation.warmup.delay", 3);
+        if (p.hasPermission("vkchat.donate.teleport.legend") || p.hasPermission("vkchat.donate.status.legend"))
+            return plugin.getConfig().getInt("teleportation.donate-warmup.legend", 0);
+        if (p.hasPermission("vkchat.donate.teleport.star") || p.hasPermission("vkchat.donate.status.star"))
+            return plugin.getConfig().getInt("teleportation.donate-warmup.star", 0);
+        if (p.hasPermission("vkchat.donate.teleport.flame") || p.hasPermission("vkchat.donate.status.flame"))
+            return plugin.getConfig().getInt("teleportation.donate-warmup.flame", 1);
+        if (p.hasPermission("vkchat.donate.teleport.spark") || p.hasPermission("vkchat.donate.status.spark"))
+            return plugin.getConfig().getInt("teleportation.donate-warmup.spark", 2);
+        return defaultWarmup;
+    }
+
+    private int getDonateMaxHomes(Player p) {
+        int defaultMax = plugin.getConfig().getInt("teleportation.home.max-homes", 3);
+        if (p.hasPermission("vkchat.donate.teleport.legend") || p.hasPermission("vkchat.donate.status.legend"))
+            return plugin.getConfig().getInt("teleportation.donate-max-homes.legend", 20);
+        if (p.hasPermission("vkchat.donate.teleport.star") || p.hasPermission("vkchat.donate.status.star"))
+            return plugin.getConfig().getInt("teleportation.donate-max-homes.star", 12);
+        if (p.hasPermission("vkchat.donate.teleport.flame") || p.hasPermission("vkchat.donate.status.flame"))
+            return plugin.getConfig().getInt("teleportation.donate-max-homes.flame", 8);
+        if (p.hasPermission("vkchat.donate.teleport.spark") || p.hasPermission("vkchat.donate.status.spark"))
+            return plugin.getConfig().getInt("teleportation.donate-max-homes.spark", 5);
+        return defaultMax;
+    }
+
+    private boolean hasDonateStatus(Player p) {
+        return p.hasPermission("vkchat.donate.status.spark") ||
+               p.hasPermission("vkchat.donate.status.flame") ||
+               p.hasPermission("vkchat.donate.status.star") ||
+               p.hasPermission("vkchat.donate.status.legend");
+    }
+
+    private String formatTime(long seconds) {
+        if (seconds < 60) return seconds + " сек";
+        if (seconds < 3600) return (seconds / 60) + " мин " + (seconds % 60) + " сек";
+        return (seconds / 3600) + " ч " + ((seconds % 3600) / 60) + " мин";
     }
 
     private Location findSafeLocation(Player p) {
@@ -249,7 +303,7 @@ public class TeleportCommand implements CommandExecutor, TabCompleter {
             }
         }
 
-        int maxHomes = plugin.getConfig().getInt("teleportation.home.max-homes", 3);
+        int maxHomes = getDonateMaxHomes(p);
         int currentCount = plugin.getTeleportManager().getHomeCount(p.getUniqueId());
         boolean alreadyExists = plugin.getTeleportManager().getHome(p.getUniqueId(), homeName) != null;
 
@@ -301,21 +355,22 @@ public class TeleportCommand implements CommandExecutor, TabCompleter {
         }
 
         int currentRep = VKChatPlugin.getInstance().getApi().getReputation(vkId);
-        // Телепортация домой стоит 0.5% от текущего баланса репутации (минимум 3)
-        int cost = (int) Math.ceil(currentRep * 0.005);
-        if (cost < 3) cost = 3;
-        cost = Math.min(currentRep, applyDonateDiscount(p, cost));
+        int cost = plugin.getConfig().getInt("teleportation.home.cost", 25);
+        cost = Math.max(1, applyDonateDiscount(p, cost));
 
-        int cooldown = plugin.getConfig().getInt("teleportation.home.cooldown", 1800);
+        int cooldown = getDonateCooldown(p, "home");
 
         long cdRemaining = plugin.getTeleportManager().getCooldownRemaining("home", p.getUniqueId(), cooldown);
         if (cdRemaining > 0) {
-            p.sendMessage(ChatColor.RED + "⏳ Телепортация на перезарядке! Подождите " + ChatColor.GOLD + cdRemaining + ChatColor.RED + " сек.");
+            p.sendMessage(ChatColor.RED + "⏳ Телепортация на перезарядке! Подождите " + ChatColor.GOLD + formatTime(cdRemaining));
+            if (!hasDonateStatus(p)) {
+                p.sendMessage(ChatColor.YELLOW + "💡 Уменьшить КД можно через донат: " + ChatColor.AQUA + "!донат");
+            }
             return;
         }
 
         if (currentRep < cost) {
-            p.sendMessage(ChatColor.RED + "❌ Недостаточно репутации! Для телепортации домой требуется: " + ChatColor.GOLD + cost + ChatColor.RED + " реп. ВК.");
+            p.sendMessage(ChatColor.RED + "❌ Недостаточно репутации! Нужно: " + ChatColor.GOLD + cost + ChatColor.RED + " реп.");
             return;
         }
 
@@ -323,7 +378,7 @@ public class TeleportCommand implements CommandExecutor, TabCompleter {
         plugin.getTeleportManager().startTeleportWarmup(
                 p,
                 target,
-                ChatColor.GREEN + "✨ Вы телепортировались в дом '" + ChatColor.YELLOW + finalHomeName + ChatColor.GREEN + "' за " + ChatColor.GOLD + cost + ChatColor.GREEN + " реп. ВК!",
+                ChatColor.GREEN + "✨ Телепортация в дом '" + ChatColor.YELLOW + finalHomeName + ChatColor.GREEN + "' за " + ChatColor.GOLD + cost + ChatColor.GREEN + " реп!",
                 cost,
                 "home",
                 null
@@ -386,21 +441,22 @@ public class TeleportCommand implements CommandExecutor, TabCompleter {
         }
 
         int currentRep = VKChatPlugin.getInstance().getApi().getReputation(vkId);
-        // Запрос TPA стоит 2% от текущего баланса репутации отправителя (минимум 10)
-        int cost = (int) Math.ceil(currentRep * 0.02);
-        if (cost < 10) cost = 10;
-        cost = Math.min(currentRep, applyDonateDiscount(p, cost));
+        int cost = plugin.getConfig().getInt("teleportation.tpa.cost", 75);
+        cost = Math.max(1, applyDonateDiscount(p, cost));
 
-        int cooldown = plugin.getConfig().getInt("teleportation.tpa.cooldown", 3600);
+        int cooldown = getDonateCooldown(p, "tpa");
 
         long cdRemaining = plugin.getTeleportManager().getCooldownRemaining("tpa", p.getUniqueId(), cooldown);
         if (cdRemaining > 0) {
-            p.sendMessage(ChatColor.RED + "⏳ Запрос на телепортацию на перезарядке! Подождите " + ChatColor.GOLD + cdRemaining + ChatColor.RED + " сек.");
+            p.sendMessage(ChatColor.RED + "⏳ Запрос на перезарядке! Подождите " + ChatColor.GOLD + formatTime(cdRemaining));
+            if (!hasDonateStatus(p)) {
+                p.sendMessage(ChatColor.YELLOW + "💡 Уменьшить КД можно через донат: " + ChatColor.AQUA + "!донат");
+            }
             return;
         }
 
         if (currentRep < cost) {
-            p.sendMessage(ChatColor.RED + "❌ Недостаточно репутации! Для отправки запроса TPA требуется: " + ChatColor.GOLD + cost + ChatColor.RED + " реп. ВК.");
+            p.sendMessage(ChatColor.RED + "❌ Недостаточно репутации! Нужно: " + ChatColor.GOLD + cost + ChatColor.RED + " реп.");
             return;
         }
 
