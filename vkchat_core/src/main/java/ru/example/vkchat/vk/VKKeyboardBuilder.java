@@ -162,9 +162,9 @@ public class VKKeyboardBuilder {
     public static String rouletteMenu(int currentBet) {
         StringBuilder kb = new StringBuilder("{\"inline\":true,\"buttons\":[");
 
-        // Ряд 1: Ставки
+        // Ряд 1: Ставки (3 кнопки)
         kb.append("[");
-        int[] bets = {100, 250, 500, 1000, 2500};
+        int[] bets = {250, 500, 1000};
         for (int i = 0; i < bets.length; i++) {
             if (i > 0) kb.append(",");
             String color = bets[i] == currentBet ? "positive" : "secondary";
@@ -177,24 +177,6 @@ public class VKKeyboardBuilder {
         kb.append("{\"action\":{\"type\":\"text\",\"label\":\"🎰 Крутить\",\"payload\":\"{\\\"cmd\\\":\\\"!рулеткакрутить\\\"}\"},\"color\":\"positive\"}");
         kb.append(",");
         kb.append("{\"action\":{\"type\":\"text\",\"label\":\"☠ Русская\",\"payload\":\"{\\\"cmd\\\":\\\"!рулеткарусская\\\"}\"},\"color\":\"negative\"}");
-        kb.append("],");
-
-        // Ряд 3: Double / Бокс / Достижения
-        kb.append("[");
-        kb.append("{\"action\":{\"type\":\"text\",\"label\":\"⚡ Double\",\"payload\":\"{\\\"cmd\\\":\\\"!рулеткадабл\\\"}\"},\"color\":\"primary\"}");
-        kb.append(",");
-        kb.append("{\"action\":{\"type\":\"text\",\"label\":\"📦 Бокс\",\"payload\":\"{\\\"cmd\\\":\\\"!рулеткабокс\\\"}\"},\"color\":\"primary\"}");
-        kb.append(",");
-        kb.append("{\"action\":{\"type\":\"text\",\"label\":\"🏅 Достижения\",\"payload\":\"{\\\"cmd\\\":\\\"!рулеткадостижения\\\"}\"},\"color\":\"secondary\"}");
-        kb.append("],");
-
-        // Ряд 4: Призы / Стат / Топ
-        kb.append("[");
-        kb.append("{\"action\":{\"type\":\"text\",\"label\":\"📦 Призы\",\"payload\":\"{\\\"cmd\\\":\\\"!рулеткапризы\\\"}\"},\"color\":\"primary\"}");
-        kb.append(",");
-        kb.append("{\"action\":{\"type\":\"text\",\"label\":\"📊 Стат\",\"payload\":\"{\\\"cmd\\\":\\\"!рулеткастат\\\"}\"},\"color\":\"secondary\"}");
-        kb.append(",");
-        kb.append("{\"action\":{\"type\":\"text\",\"label\":\"🏆 Топ\",\"payload\":\"{\\\"cmd\\\":\\\"!рулеткатоп\\\"}\"},\"color\":\"secondary\"}");
         kb.append("]");
 
         kb.append("]}");
