@@ -104,11 +104,6 @@ public class InvasionManager implements Listener {
             Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "tellraw " + p.getName() + " [\"\",{\"text\":\"[" + ChatColor.LIGHT_PURPLE + "Телепорт к Разлому" + ChatColor.WHITE + "]\",\"clickEvent\":{\"action\":\"run_command\",\"value\":\"/vk tp " + x + " " + y + " " + z + "\"},\"hoverEvent\":{\"action\":\"show_text\",\"value\":\"Нажмите для телепортации\"}}]");
         }
 
-        // Broadcast in VK
-        if (Bukkit.getPluginManager().getPlugin("VKChat") != null) {
-            VKChatPlugin.getInstance().getApi().sendToMainChat("\u26A0\uFE0F Вторжение из Бездны!\n" + msg + "\nРазрушьте разлом, чтобы получить ценный лут и спасти сервер!");
-        }
-
         startWaves();
     }
 

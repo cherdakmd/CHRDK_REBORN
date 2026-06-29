@@ -311,6 +311,5 @@ public class MobsEvents2Manager implements Listener {
 
     private void announce(String msg) {
         if (plugin.getConfig().getBoolean("events2.announcements.chat", true)) Bukkit.broadcastMessage(ChatColor.GOLD + msg);
-        if (plugin.getConfig().getBoolean("events2.announcements.vk", true)) try { VKChatPlugin.getInstance().getApi().sendToMainChat(ChatColor.stripColor(msg)); } catch (Throwable ignored) {}
     }
 }

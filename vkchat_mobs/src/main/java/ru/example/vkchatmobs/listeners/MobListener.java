@@ -543,13 +543,6 @@ public class MobListener implements Listener {
         // Создаем глобальный анонс о призыве босса
         String alert = ChatColor.RED + "☠️ [МИРОВОЙ БОСС] " + ChatColor.GOLD + "" + ChatColor.BOLD + finalName + ChatColor.RED + " пробудился в мире " + ChatColor.YELLOW + world + ChatColor.RED + " на координатах " + ChatColor.AQUA + "X:" + x + " Z:" + z + ChatColor.RED + "! В бой!";
         Bukkit.broadcastMessage(alert);
-        
-        // VK-сообщение с кулдауном (не спамить если боссы спавнятся часто)
-        if (canSendVkMessage("super_boss_spawn")) {
-            try {
-                VKChatPlugin.getInstance().getApi().sendToMainChat(ChatColor.stripColor(alert));
-            } catch (Throwable ignored) {}
-        }
 
         mob.setCustomName(ChatColor.translateAlternateColorCodes('&', "&d&l☠ " + finalName + " ☠"));
         mob.setCustomNameVisible(true);

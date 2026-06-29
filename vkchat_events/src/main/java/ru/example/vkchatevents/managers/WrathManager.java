@@ -167,10 +167,6 @@ public class WrathManager implements Listener {
                 world.setThundering(true);
             }
         }
-
-        if (Bukkit.getPluginManager().getPlugin("VKChat") != null) {
-            VKChatPlugin.getInstance().getApi().sendToMainChat("⚡ Гнев Богов!\n" + msg);
-        }
     }
 
     // ==========================================

@@ -143,14 +143,6 @@ public class HardcoreMobManager implements Listener {
         if (tier.equals("raid") || tier.equals("world")) {
             String msg = ChatColor.DARK_RED + "☠ [ОХОТА] " + ChatColor.GOLD + strip(formatName(tier, archetype, element, mob)) + ChatColor.RED + " появился: X " + mob.getLocation().getBlockX() + " Z " + mob.getLocation().getBlockZ();
             Bukkit.broadcastMessage(msg);
-            // VK-сообщение с кулдауном
-            String vkKey = "hardcore_" + tier;
-            Long lastVk = vkMessageCooldowns.get(vkKey);
-            long now = System.currentTimeMillis();
-            if (lastVk == null || now - lastVk >= VK_MSG_COOLDOWN_MS) {
-                vkMessageCooldowns.put(vkKey, now);
-                try { VKChatPlugin.getInstance().getApi().sendToMainChat(ChatColor.stripColor(msg)); } catch (Throwable ignored) {}
-            }
         }
     }
 
@@ -355,7 +347,6 @@ public class HardcoreMobManager implements Listener {
         if (tier.equals("raid") || tier.equals("world")) {
             String msg = "🏆 " + killer.getName() + " победил " + ChatColor.stripColor(mob.getCustomName()) + "!";
             Bukkit.broadcastMessage(ChatColor.GOLD + msg);
-            try { VKChatPlugin.getInstance().getApi().sendToMainChat(msg); } catch (Throwable ignored) {}
         }
     }
 
