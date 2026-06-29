@@ -228,7 +228,6 @@ public class ConsumablesListener implements Listener {
                     case "AQUATIC_SPEED": buffLore = ChatColor.GREEN + "➕ Скорость под водой " + lvl + " ур."; break;
                     case "FIRE_WALKER": buffLore = ChatColor.GREEN + "➕ Огненный Шаг (Хождение по лаве)"; break;
                     case "XP_BOOST": buffLore = ChatColor.GREEN + "➕ Бонус к опыту +" + (lvl * 15) + "%"; break;
-                    case "REP_BOOST": buffLore = ChatColor.GREEN + "➕ Бонус к репутации ВК +" + (lvl * 5) + "%"; break;
                     case "DOUBLE_JUMP": buffLore = ChatColor.GREEN + "➕ Двойной прыжок"; break;
                     case "DODGE_CHANCE": buffLore = ChatColor.GREEN + "➕ Шанс уклонения " + (lvl * 5) + "%"; break;
                     case "KNOCKBACK_RESIST": buffLore = ChatColor.GREEN + "➕ Сопротивление отбрасыванию " + (lvl * 30) + "%"; break;
@@ -482,7 +481,6 @@ public class ConsumablesListener implements Listener {
             case "AQUATIC_SPEED": return "Скорость под водой " + level + " ур.";
             case "FIRE_WALKER": return "Огненный Шаг (Хождение по лаве)";
             case "XP_BOOST": return "Бонус к опыту +" + (level * 15) + "%";
-            case "REP_BOOST": return "Бонус к репутации ВК +" + (level * 5) + "%";
             case "DOUBLE_JUMP": return "Двойной прыжок";
             case "DODGE_CHANCE": return "Шанс уклонения " + (level * 5) + "%";
             case "KNOCKBACK_RESIST": return "Сопротивление отбрасыванию " + (level * 30) + "%";

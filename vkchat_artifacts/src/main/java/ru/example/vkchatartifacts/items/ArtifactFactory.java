@@ -18,7 +18,7 @@ public class ArtifactFactory {
         "HEALTH", "DAMAGE", "SPEED", "REGENERATION", "VAMPIRISM", "THORNS", "FIRE_RESISTANCE", "LEVITATION", 
         "CRITICAL", "ABSORPTION", "NIGHT_VISION", "HASTE", "WATER_BREATHING", "JUMP_BOOST", "LUCK", "WITHER_TOUCH", 
         "POISON_STRIKE", "FREEZE_AURA", "LIGHTNING_STRIKE", "GHOST_WALK", "TRUE_STRIKE", "STEEL_SKIN", "AQUATIC_SPEED", 
-        "FIRE_WALKER", "XP_BOOST", "REP_BOOST", "DOUBLE_JUMP", "DODGE_CHANCE", "KNOCKBACK_RESIST", "MAX_HEALTH_BOOST",
+        "FIRE_WALKER", "XP_BOOST", "DOUBLE_JUMP", "DODGE_CHANCE", "KNOCKBACK_RESIST", "MAX_HEALTH_BOOST",
         "HERO_OF_VILLAGE", "STRENGTH_BOOST", "RESISTANCE", "SATURATION", "LUCK_OF_THE_SEA",
         "SOUL_DRAIN", "FROST_BITE", "MANA_SHIELD", "TELEKINESIS", "ENDER_SHIFT",
         "BERSERKER", "ARCANE_BURST", "SHADOW_STEP", "LIFESTEAL_AURA", "IRON_WILL",
@@ -124,7 +124,6 @@ public class ArtifactFactory {
             case "AQUATIC_SPEED": lore.add(ChatColor.GREEN + "➕ Скорость под водой " + level + " ур."); break;
             case "FIRE_WALKER": lore.add(ChatColor.GREEN + "➕ Огненный Шаг (Хождение по лаве)"); break;
             case "XP_BOOST": lore.add(ChatColor.GREEN + "➕ Бонус к опыту +" + (level * 15) + "%"); break;
-            case "REP_BOOST": lore.add(ChatColor.GREEN + "➕ Бонус к репутации ВК +" + (level * 5) + "%"); break;
             case "DOUBLE_JUMP": lore.add(ChatColor.GREEN + "➕ Двойной прыжок"); break;
             case "DODGE_CHANCE": lore.add(ChatColor.GREEN + "➕ Шанс уклонения " + (level * 5) + "%"); break;
             case "KNOCKBACK_RESIST": lore.add(ChatColor.GREEN + "➕ Сопротивление отбрасыванию " + (level * 30) + "%"); break;

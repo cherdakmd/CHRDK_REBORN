@@ -480,12 +480,8 @@ public class ArtifactListener implements Listener {
             if (item == null || !item.hasItemMeta()) continue;
             ItemMeta meta = item.getItemMeta();
             if (meta.getPersistentDataContainer().has(isArtifactKey, PersistentDataType.INTEGER)) {
-                String buff = meta.getPersistentDataContainer().get(buffKey, PersistentDataType.STRING);
-                int level = meta.getPersistentDataContainer().get(levelKey, PersistentDataType.INTEGER);
                 String curseType = meta.getPersistentDataContainer().get(curseKey, PersistentDataType.STRING);
-                if ("REP_BOOST".equals(buff)) {
-                    multiplier += (level * 0.05);
-                } else if ("GREED".equals(curseType)) {
+                if ("GREED".equals(curseType)) {
                     multiplier += 0.5;
                 }
             }
