@@ -2,22 +2,18 @@ package ru.example.vkchatevents;
 
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
-import ru.example.vkchatevents.managers.AirdropManager;
 import ru.example.vkchatevents.managers.BountyManager;
 import ru.example.vkchatevents.managers.QuestManager;
 import ru.example.vkchatevents.managers.InvasionManager;
-import ru.example.vkchatevents.managers.MeteorManager;
 import ru.example.vkchatevents.managers.WrathManager;
 import ru.example.vkchatevents.tasks.ReminderTask;
 
 
 public class VKChatEventsPlugin extends JavaPlugin {
     private static VKChatEventsPlugin instance;
-    private AirdropManager airdropManager;
     private BountyManager bountyManager;
     private QuestManager questManager;
-        private InvasionManager invasionManager;
-    private MeteorManager meteorManager;
+    private InvasionManager invasionManager;
     private WrathManager wrathManager;
 
 
@@ -62,22 +58,18 @@ public class VKChatEventsPlugin extends JavaPlugin {
             return;
         }
 
-        airdropManager = new AirdropManager(this);
         bountyManager = new BountyManager(this);
         questManager = new QuestManager(this);
-                invasionManager = new InvasionManager(this);
-        meteorManager = new MeteorManager(this);
+        invasionManager = new InvasionManager(this);
         wrathManager = new WrathManager(this);
         
-        getServer().getPluginManager().registerEvents(meteorManager, this);
         getServer().getPluginManager().registerEvents(wrathManager, this);
         
-        // Напоминания об активных событиях на сервере и в ВК (настраивается в config.yml)
+        // Напоминания об активных событиях на сервере и в ВК
         int reminderSec = getConfig().getInt("reminders.interval", 600);
         long reminderTicks = reminderSec * 20L;
         new ReminderTask(this).runTaskTimer(this, reminderTicks, reminderTicks);
         
-        getServer().getPluginManager().registerEvents(airdropManager, this);
         getServer().getPluginManager().registerEvents(questManager, this);
         getServer().getPluginManager().registerEvents(bountyManager, this);
         getServer().getPluginManager().registerEvents(invasionManager, this);
@@ -87,7 +79,7 @@ public class VKChatEventsPlugin extends JavaPlugin {
         getCommand("events").setExecutor(eventsCommand);
 
         getLogger().info("--------------------------------------------------");
-        getLogger().info("VKChatEvents (Аирдропы, Квесты, Баунти, Вторжения) ЗАПУЩЕН!");
+        getLogger().info("VKChatEvents (Квесты, Баунти, Вторжения) ЗАПУЩЕН!");
         getLogger().info("Проект: https://vk.com/chrdk_reborn");
         getLogger().info("Телеграм: https://t.me/cherdakmd");
         getLogger().info("--------------------------------------------------");
@@ -95,15 +87,12 @@ public class VKChatEventsPlugin extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        // Чистим все запущенные шедулеры плагина во избежание дублирования и спама при перезагрузках
         getServer().getScheduler().cancelTasks(this);
     }
 
     public static VKChatEventsPlugin getInstance() { return instance; }
-    public AirdropManager getAirdropManager() { return airdropManager; }
     public BountyManager getBountyManager() { return bountyManager; }
     public QuestManager getQuestManager() { return questManager; }
-        public InvasionManager getInvasionManager() { return invasionManager; }
-    public MeteorManager getMeteorManager() { return meteorManager; }
+    public InvasionManager getInvasionManager() { return invasionManager; }
     public WrathManager getWrathManager() { return wrathManager; }
 }

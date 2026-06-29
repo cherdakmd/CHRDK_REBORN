@@ -73,49 +73,7 @@ public class EventsCommand implements CommandExecutor, Listener {
             inv.setItem(i, glass);
         }
 
-        // 1. Метеорит (Слот 10)
-        boolean meteorActive = plugin.getMeteorManager().isActive();
-        Location meteorLoc = plugin.getMeteorManager().getActiveLocation();
-        ItemStack meteorItem = new ItemStack(Material.ANCIENT_DEBRIS);
-        ItemMeta mMeta = meteorItem.getItemMeta();
-        mMeta.setDisplayName(ChatColor.GOLD + "☄️ Космический Метеорит");
-        List<String> mLore = new ArrayList<>();
-        if (meteorActive && meteorLoc != null) {
-            mLore.add(ChatColor.GREEN + "● АКТИВНО");
-            mLore.add(ChatColor.GRAY + "Координаты приземления:");
-            mLore.add(ChatColor.YELLOW + "  X: " + meteorLoc.getBlockX() + " | Z: " + meteorLoc.getBlockZ());
-            mLore.add("");
-            mLore.add(ChatColor.GRAY + "Добудьте древнее ядро,");
-            mLore.add(ChatColor.GRAY + "пока метеорит не остыл полностью!");
-        } else {
-            mLore.add(ChatColor.RED + "○ Остыл / Ожидание");
-            mLore.add(ChatColor.GRAY + "Космические аномалии затихли.");
-        }
-        mMeta.setLore(mLore);
-        meteorItem.setItemMeta(mMeta);
-        inv.setItem(10, meteorItem);
-
-        // 2. Аирдроп (Слот 11)
-        boolean airdropActive = plugin.getAirdropManager().isActive();
-        ItemStack airdropItem = new ItemStack(Material.CHEST);
-        ItemMeta aMeta = airdropItem.getItemMeta();
-        aMeta.setDisplayName(ChatColor.LIGHT_PURPLE + "📦 Военный Аирдроп");
-        List<String> aLore = new ArrayList<>();
-        if (airdropActive) {
-            aLore.add(ChatColor.GREEN + "● СБРОШЕН: " + plugin.getAirdropManager().getActiveTierName());
-            aLore.add("");
-            aLore.add(ChatColor.GRAY + "Аирдроп упал в случайном месте.");
-            aLore.add(ChatColor.GRAY + "Запросите координаты в ВК ");
-            aLore.add(ChatColor.GRAY + "с помощью команды: " + ChatColor.YELLOW + "!аирдроп");
-        } else {
-            aLore.add(ChatColor.RED + "○ Ожидание падения");
-            aLore.add(ChatColor.GRAY + "Следите за небом и анонсами!");
-        }
-        aMeta.setLore(aLore);
-        airdropItem.setItemMeta(aMeta);
-        inv.setItem(11, airdropItem);
-
-        // 3. Разлом Бездны (Слот 12)
+        // 1. Разлом Бездны (Слот 11)
         boolean invasionActive = plugin.getInvasionManager().isActive();
         Location invasionLoc = plugin.getInvasionManager().getActiveLocation();
         ItemStack invasionItem = new ItemStack(Material.OBSIDIAN);
@@ -135,9 +93,9 @@ public class EventsCommand implements CommandExecutor, Listener {
         }
         iMeta.setLore(iLore);
         invasionItem.setItemMeta(iMeta);
-        inv.setItem(12, invasionItem);
+        inv.setItem(11, invasionItem);
 
-        // 4. Мировой Босс (Слот 13)
+        // 2. Мировой Босс (Слот 12)
         boolean bossActive = plugin.getWrathManager().isActive();
         Location bossLoc = plugin.getWrathManager().getActiveLocation();
         ItemStack bossItem = new ItemStack(Material.WITHER_SKELETON_SKULL);
@@ -157,9 +115,9 @@ public class EventsCommand implements CommandExecutor, Listener {
         }
         bMeta.setLore(bLore);
         bossItem.setItemMeta(bMeta);
-        inv.setItem(13, bossItem);
+        inv.setItem(12, bossItem);
 
-        // 5. Активный катаклизм/благословение (Слот 14)
+        // 3. Активный катаклизм/благословение (Слот 13)
         String activeCatKey = plugin.getWrathManager().getActiveCataclysm();
         String activeCatFriendly = getCataclysmFriendlyName(activeCatKey);
         ItemStack catItem = new ItemStack(Material.CLOCK);
@@ -177,7 +135,7 @@ public class EventsCommand implements CommandExecutor, Listener {
         }
         cMeta.setLore(cLore);
         catItem.setItemMeta(cMeta);
-        inv.setItem(14, catItem);
+        inv.setItem(13, catItem);
 
         // 6. Сюжетные Квесты (Слот 16)
         ItemStack questItem = new ItemStack(Material.BOOK);
