@@ -50,37 +50,6 @@ public class MarketCommand implements CommandExecutor, TabCompleter {
         } else if (args.length > 0 && (args[0].equalsIgnoreCase("history") || args[0].equalsIgnoreCase("история"))) {
             p.sendMessage(org.bukkit.ChatColor.GOLD + "История рынка:");
             for (String line : plugin.getMarketManager().getHistoryTail(10)) p.sendMessage(org.bukkit.ChatColor.GRAY + "• " + line);
-        } else if (args.length > 0 && (args[0].equalsIgnoreCase("roulette") || args[0].equalsIgnoreCase("рулетка"))) {
-            // Рулетка доступна только через VK
-            int vkId = ru.example.vkchat.VKChatPlugin.getInstance().getApi().getLinkedVkId(p);
-            if (vkId == -1) {
-                p.sendMessage(org.bukkit.ChatColor.RED + "❌ Привяжи ВК (/vklink) для доступа к рулетке!");
-            } else {
-                p.sendMessage(org.bukkit.ChatColor.GOLD + "🎰 Рулетка доступна в ЛС бота ВКонтакте!");
-                p.sendMessage(org.bukkit.ChatColor.YELLOW + "Напиши боту: " + org.bukkit.ChatColor.GREEN + "!рулетка");
-                p.sendMessage(org.bukkit.ChatColor.GRAY + "Там можно крутить, выбирать ставки и забирать призы!");
-                // Показать ожидающие предметы
-                if (ru.example.vkchat.VKChatPlugin.getInstance().getRouletteManager().hasPendingItems(vkId)) {
-                    p.sendMessage(org.bukkit.ChatColor.LIGHT_PURPLE + "📦 У тебя есть ожидающие призы! Забери их:");
-                    // Забрать предметы
-                    var items = ru.example.vkchat.VKChatPlugin.getInstance().getRouletteManager().takePendingItems(vkId);
-                    if (items != null && !items.isEmpty()) {
-                        int given = 0, lost = 0;
-                        for (String item : items) {
-                            String[] parts = item.split(";");
-                            try {
-                                org.bukkit.Material mat = org.bukkit.Material.valueOf(parts[0]);
-                                int amount = Integer.parseInt(parts[1]);
-                                if (p.getInventory().addItem(new org.bukkit.inventory.ItemStack(mat, amount)).isEmpty()) given++;
-                                else lost++;
-                            } catch (Exception e) { lost++; }
-                        }
-                        p.sendMessage(org.bukkit.ChatColor.GREEN + "📦 Получено: " + given);
-                        if (lost > 0) p.sendMessage(org.bukkit.ChatColor.RED + "⚠ Не удалось: " + lost + " (инвентарь полон)");
-                        p.playSound(p.getLocation(), org.bukkit.Sound.ENTITY_PLAYER_LEVELUP, 1f, 1f);
-                    }
-                }
-            }
         } else if (args.length > 0 && (args[0].equalsIgnoreCase("quest") || args[0].equalsIgnoreCase("квест"))) {
             showQuestInfo(p);
         } else if (args.length > 0 && (args[0].equalsIgnoreCase("flash") || args[0].equalsIgnoreCase("flashsale"))) {
@@ -127,7 +96,7 @@ public class MarketCommand implements CommandExecutor, TabCompleter {
 
         if (args.length == 1) {
             completions.addAll(Arrays.asList("spawnnpc", "trends", "тренды", "history", "история",
-                "roulette", "рулетка", "quest", "квест", "flash", "flashsale"));
+                "quest", "квест", "flash", "flashsale"));
         }
 
         return completions.stream().filter(s -> last.isEmpty() || s.toLowerCase().startsWith(last)).collect(Collectors.toList());

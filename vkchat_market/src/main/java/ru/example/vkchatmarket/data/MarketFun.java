@@ -14,8 +14,6 @@ import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * MarketFun — Flash Sale и Квесты дня
- * 
- * Рулетка вынесена в vkchat_core → RouletteManager
  */
 public class MarketFun {
     private final VKChatMarketPlugin plugin;

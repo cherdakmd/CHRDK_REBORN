@@ -103,15 +103,14 @@ public class VKKeyboardBuilder {
         return new VKKeyboardBuilder()
                 .oneTime(false)
                 .positive("🏕 Походы", "!поход")
-                .textButton("🎰 Рулетка", "!рулетка", "negative")
-                .row()
                 .textButton("👤 Аккаунт", "!аккаунт", "primary")
+                .row()
                 .secondary("📊 Профиль", "!профиль")
-                .row()
                 .secondary("⭐ Рейтинг", "!рейтинг")
-                .secondary("🎁 Бонус", "!бонус")
                 .row()
+                .secondary("🎁 Бонус", "!бонус")
                 .secondary("💼 Работы", "!работы")
+                .row()
                 .secondary("🛟 Помощь", "!помощь")
                 .build();
     }
@@ -155,60 +154,6 @@ public class VKKeyboardBuilder {
                 .row()
                 .secondary("◀ Назад", "!меню")
                 .build();
-    }
-
-    // ==================== МЕНЮ РУЛЕТКИ ====================
-
-    public static String rouletteMenu(int currentBet) {
-        StringBuilder kb = new StringBuilder("{\"inline\":true,\"buttons\":[");
-
-        // Ряд 1: Ставки (4 кнопки)
-        kb.append("[");
-        int[] bets = {100, 250, 500, 1000};
-        for (int i = 0; i < bets.length; i++) {
-            if (i > 0) kb.append(",");
-            String color = bets[i] == currentBet ? "positive" : "secondary";
-            kb.append("{\"action\":{\"type\":\"text\",\"label\":\"").append(bets[i]).append("\",\"payload\":\"{\\\"cmd\\\":\\\"!ставка ").append(bets[i]).append("\\\"}\"},\"color\":\"").append(color).append("\"}");
-        }
-        kb.append("],");
-
-        // Ряд 2: Крутить / Русская / Double
-        kb.append("[");
-        kb.append("{\"action\":{\"type\":\"text\",\"label\":\"🎰 Крутить\",\"payload\":\"{\\\"cmd\\\":\\\"!рулеткакрутить\\\"}\"},\"color\":\"positive\"}");
-        kb.append(",");
-        kb.append("{\"action\":{\"type\":\"text\",\"label\":\"☠ Русская\",\"payload\":\"{\\\"cmd\\\":\\\"!рулеткарусская\\\"}\"},\"color\":\"negative\"}");
-        kb.append(",");
-        kb.append("{\"action\":{\"type\":\"text\",\"label\":\"⚡ Double\",\"payload\":\"{\\\"cmd\\\":\\\"!рулеткадабл\\\"}\"},\"color\":\"primary\"}");
-        kb.append("],");
-
-        // Ряд 3: Стат / Топ / Бокс
-        kb.append("[");
-        kb.append("{\"action\":{\"type\":\"text\",\"label\":\"📊 Стат\",\"payload\":\"{\\\"cmd\\\":\\\"!рулеткастат\\\"}\"},\"color\":\"secondary\"}");
-        kb.append(",");
-        kb.append("{\"action\":{\"type\":\"text\",\"label\":\"🏆 Топ\",\"payload\":\"{\\\"cmd\\\":\\\"!рулеткатоп\\\"}\"},\"color\":\"secondary\"}");
-        kb.append(",");
-        kb.append("{\"action\":{\"type\":\"text\",\"label\":\"📦 Бокс\",\"payload\":\"{\\\"cmd\\\":\\\"!рулеткабокс\\\"}\"},\"color\":\"primary\"}");
-        kb.append("],");
-
-        // Ряд 4: Призы / Удача / Токены
-        kb.append("[");
-        kb.append("{\"action\":{\"type\":\"text\",\"label\":\"📦 Призы\",\"payload\":\"{\\\"cmd\\\":\\\"!рулеткапризы\\\"}\"},\"color\":\"primary\"}");
-        kb.append(",");
-        kb.append("{\"action\":{\"type\":\"text\",\"label\":\"🍀 Удача\",\"payload\":\"{\\\"cmd\\\":\\\"!рулеткалаки\\\"}\"},\"color\":\"secondary\"}");
-        kb.append(",");
-        kb.append("{\"action\":{\"type\":\"text\",\"label\":\"🎟 Токены\",\"payload\":\"{\\\"cmd\\\":\\\"!рулеткатокены\\\"}\"},\"color\":\"secondary\"}");
-        kb.append("]");
-
-        kb.append("]}");
-        return kb.toString();
-    }
-
-    public static String rouletteAfterSpin() {
-        return "{\"inline\":true,\"buttons\":[" +
-                "[{\"action\":{\"type\":\"text\",\"label\":\"🎰 Ещё раз\",\"payload\":\"{\\\"cmd\\\":\\\"!рулеткакрутить\\\"}\"},\"color\":\"positive\"}," +
-                "{\"action\":{\"type\":\"text\",\"label\":\"☠ Русская\",\"payload\":\"{\\\"cmd\\\":\\\"!рулеткарусская\\\"}\"},\"color\":\"negative\"}," +
-                "{\"action\":{\"type\":\"text\",\"label\":\"📦 Призы\",\"payload\":\"{\\\"cmd\\\":\\\"!рулеткапризы\\\"}\"},\"color\":\"primary\"}]" +
-                "]}";
     }
 
     // ==================== 2FA КЛАВИАТУРА ====================
@@ -261,9 +206,8 @@ public class VKKeyboardBuilder {
                 .textButton("⭐ Рейтинг", "!рейтинг", "primary")
                 .row()
                 .textButton("🏕 Поход", "!поход", "positive")
-                .textButton("🎰 Рулетка", "!рулетка", "negative")
-                .row()
                 .textButton("🎁 Бонус", "!бонус", "secondary")
+                .row()
                 .textButton("🛟 Меню", "!меню", "secondary")
                 .build();
     }

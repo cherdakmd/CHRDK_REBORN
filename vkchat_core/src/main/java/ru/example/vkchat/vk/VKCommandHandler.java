@@ -40,11 +40,6 @@ public class VKCommandHandler {
                     " !топреп - Богачи чата\n\n" +
                     " 🏕 Походы:\n" +
                     " !поход - Оффлайн-экспедиция\n\n" +
-                    " 🎰 Рулетка:\n" +
-                    " !рулетка - Меню рулетки\n" +
-                    " !рулеткакрутить - Крутить\n" +
-                    " !рулеткарусская - Русская (x3)\n" +
-                    " !ставка <число> - Установить ставку\n\n" +
                     " 💰 Экономика:\n" +
                     " !бонус - Ежедневный бонус\n" +
                     " !сейф - Взлом сейфа\n" +
@@ -412,18 +407,6 @@ public class VKCommandHandler {
                 plugin.getReputationManager().deductPoints(fromId, bet);
                 plugin.getVkManager().sendMessage(peer, fromId, "😭 Эх, ты проиграл " + bet + " очков... \nТвой баланс: " + plugin.getReputationManager().getPoints(fromId));
             }
-        } else if (cmd.equals("!рулетка") || cmd.equals("!roulette") ||
-                   cmd.equals("!рулеткакрутить") || cmd.equals("!rspin") ||
-                   cmd.equals("!рулеткарусская") || cmd.equals("!rrussian") ||
-                   cmd.equals("!рулеткадабл") || cmd.equals("!rdouble") ||
-                   cmd.equals("!рулеткастат") || cmd.equals("!rstats") ||
-                   cmd.equals("!рулеткатоп") || cmd.equals("!rtop") ||
-                   cmd.startsWith("!ставка") || cmd.equals("!rbet") ||
-                   cmd.equals("!рулеткалаки") || cmd.equals("!rlucky") ||
-                   cmd.equals("!рулеткатокены") || cmd.equals("!rtokens") ||
-                   cmd.equals("!рулеткапризы") || cmd.equals("!rprizes") ||
-                   cmd.equals("!рулеткабокс") || cmd.equals("!rbox")) {
-            plugin.getRouletteManager().handleCommand(fromId, peer, text);
         } else if (cmd.equals("!аккаунт") || cmd.equals("!account")) {
             // Меню управления аккаунтом (только в ЛС)
             if (peer < 2000000000) {

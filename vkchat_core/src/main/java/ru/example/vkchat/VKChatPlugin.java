@@ -10,7 +10,6 @@ import ru.example.vkchat.listeners.*;
 import ru.example.vkchat.commands.MCCommands;
 import ru.example.vkchat.tasks.*;
 import ru.example.vkchat.vk.VKFeaturesManager;
-import ru.example.vkchat.vk.RouletteManager;
 import ru.example.vkchat.managers.CoreManagers;
 import ru.example.vkchat.hardcore.BloodMoonManager;
 import ru.example.vkchat.api.VKChatAPI;
@@ -31,7 +30,6 @@ public class VKChatPlugin extends JavaPlugin {
     private VKChatAPI api;
     private WarnManager warnManager;
     private DatabaseManager databaseManager;
-    private RouletteManager rouletteManager;
 
     private boolean vaultEnabled = false;
 
@@ -61,7 +59,6 @@ public class VKChatPlugin extends JavaPlugin {
         bloodMoonManager = new BloodMoonManager(this);
         api = new VKChatAPI(this);
         warnManager = new WarnManager(this);
-        rouletteManager = new RouletteManager(this);
 
         registerListeners();
         registerCommands();
@@ -268,10 +265,6 @@ public class VKChatPlugin extends JavaPlugin {
 
     public ru.example.vkchat.vk.RiddleManager getRiddleManager() {
         return vkFeaturesManager != null ? vkFeaturesManager.getRiddleManager() : null;
-    }
-
-    public RouletteManager getRouletteManager() {
-        return rouletteManager;
     }
 
     public void reloadAll() {
