@@ -79,34 +79,34 @@ public class MarketGuiListener implements Listener {
     }
 
     private static String getDonorStatus(Player p) {
-        if (p.hasPermission("vkchat.donate.status.legend")) return "Легенда";
-        if (p.hasPermission("vkchat.donate.status.star")) return "Звезда";
-        if (p.hasPermission("vkchat.donate.status.flame")) return "Пламя";
-        if (p.hasPermission("vkchat.donate.status.spark")) return "Искра";
+        if (p.hasPermission("vkchat.donate.market.legend") || p.hasPermission("vkchat.donate.status.legend")) return "Легенда";
+        if (p.hasPermission("vkchat.donate.market.star") || p.hasPermission("vkchat.donate.status.star")) return "Звезда";
+        if (p.hasPermission("vkchat.donate.market.flame") || p.hasPermission("vkchat.donate.status.flame")) return "Пламя";
+        if (p.hasPermission("vkchat.donate.market.spark") || p.hasPermission("vkchat.donate.status.spark")) return "Искра";
         return "";
     }
 
     private static String getSellBonus(Player p) {
-        if (p.hasPermission("vkchat.donate.status.legend")) return "+100%";
-        if (p.hasPermission("vkchat.donate.status.star")) return "+60%";
-        if (p.hasPermission("vkchat.donate.status.flame")) return "+40%";
-        if (p.hasPermission("vkchat.donate.status.spark")) return "+20%";
+        if (p.hasPermission("vkchat.donate.market.legend") || p.hasPermission("vkchat.donate.status.legend")) return "+100%";
+        if (p.hasPermission("vkchat.donate.market.star") || p.hasPermission("vkchat.donate.status.star")) return "+60%";
+        if (p.hasPermission("vkchat.donate.market.flame") || p.hasPermission("vkchat.donate.status.flame")) return "+40%";
+        if (p.hasPermission("vkchat.donate.market.spark") || p.hasPermission("vkchat.donate.status.spark")) return "+20%";
         return "нет";
     }
 
     private static String getBuyBonus(Player p) {
-        if (p.hasPermission("vkchat.donate.status.legend")) return "-30%";
-        if (p.hasPermission("vkchat.donate.status.star")) return "-20%";
-        if (p.hasPermission("vkchat.donate.status.flame")) return "-10%";
-        if (p.hasPermission("vkchat.donate.status.spark")) return "-5%";
+        if (p.hasPermission("vkchat.donate.market.legend") || p.hasPermission("vkchat.donate.status.legend")) return "-25%";
+        if (p.hasPermission("vkchat.donate.market.star") || p.hasPermission("vkchat.donate.status.star")) return "-20%";
+        if (p.hasPermission("vkchat.donate.market.flame") || p.hasPermission("vkchat.donate.status.flame")) return "-10%";
+        if (p.hasPermission("vkchat.donate.market.spark") || p.hasPermission("vkchat.donate.status.spark")) return "-5%";
         return "нет";
     }
 
     private static String getLimitBonus(Player p) {
-        if (p.hasPermission("vkchat.donate.status.legend")) return "+5 к лимиту";
-        if (p.hasPermission("vkchat.donate.status.star")) return "+3 к лимиту";
-        if (p.hasPermission("vkchat.donate.status.flame")) return "+2 к лимиту";
-        if (p.hasPermission("vkchat.donate.status.spark")) return "+1 к лимиту";
+        if (p.hasPermission("vkchat.donate.market.legend") || p.hasPermission("vkchat.donate.status.legend")) return "+5 к лимиту";
+        if (p.hasPermission("vkchat.donate.market.star") || p.hasPermission("vkchat.donate.status.star")) return "+3 к лимиту";
+        if (p.hasPermission("vkchat.donate.market.flame") || p.hasPermission("vkchat.donate.status.flame")) return "+2 к лимиту";
+        if (p.hasPermission("vkchat.donate.market.spark") || p.hasPermission("vkchat.donate.status.spark")) return "+1 к лимиту";
         return "нет";
     }
 

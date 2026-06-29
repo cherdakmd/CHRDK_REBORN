@@ -227,10 +227,10 @@ public class TeleportCommand implements CommandExecutor, TabCompleter {
     }
 
     private boolean hasDonateStatus(Player p) {
-        return p.hasPermission("vkchat.donate.status.spark") ||
-               p.hasPermission("vkchat.donate.status.flame") ||
-               p.hasPermission("vkchat.donate.status.star") ||
-               p.hasPermission("vkchat.donate.status.legend");
+        return p.hasPermission("vkchat.donate.teleport.spark") || p.hasPermission("vkchat.donate.status.spark") ||
+               p.hasPermission("vkchat.donate.teleport.flame") || p.hasPermission("vkchat.donate.status.flame") ||
+               p.hasPermission("vkchat.donate.teleport.star") || p.hasPermission("vkchat.donate.status.star") ||
+               p.hasPermission("vkchat.donate.teleport.legend") || p.hasPermission("vkchat.donate.status.legend");
     }
 
     private String formatTime(long seconds) {

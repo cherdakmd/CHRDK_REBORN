@@ -376,10 +376,10 @@ public class JobsDataManager {
     }
 
     private double getDonateStatusMultiplier(org.bukkit.entity.Player p) {
-        if (p.hasPermission("vkchat.donate.status.legend")) return plugin.getConfig().getDouble("jobs-reputation.donate-multipliers.legend", 11.00);
-        if (p.hasPermission("vkchat.donate.status.star")) return plugin.getConfig().getDouble("jobs-reputation.donate-multipliers.star", 7.00);
-        if (p.hasPermission("vkchat.donate.status.flame")) return plugin.getConfig().getDouble("jobs-reputation.donate-multipliers.flame", 4.50);
-        if (p.hasPermission("vkchat.donate.status.spark")) return plugin.getConfig().getDouble("jobs-reputation.donate-multipliers.spark", 2.50);
+        if (p.hasPermission("vkchat.donate.jobs.legend") || p.hasPermission("vkchat.donate.status.legend")) return plugin.getConfig().getDouble("jobs-reputation.donate-multipliers.legend", 5.00);
+        if (p.hasPermission("vkchat.donate.jobs.star") || p.hasPermission("vkchat.donate.status.star")) return plugin.getConfig().getDouble("jobs-reputation.donate-multipliers.star", 3.50);
+        if (p.hasPermission("vkchat.donate.jobs.flame") || p.hasPermission("vkchat.donate.status.flame")) return plugin.getConfig().getDouble("jobs-reputation.donate-multipliers.flame", 2.50);
+        if (p.hasPermission("vkchat.donate.jobs.spark") || p.hasPermission("vkchat.donate.status.spark")) return plugin.getConfig().getDouble("jobs-reputation.donate-multipliers.spark", 1.50);
         return 1.0;
     }
 
