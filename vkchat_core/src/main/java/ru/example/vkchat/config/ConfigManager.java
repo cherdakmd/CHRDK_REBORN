@@ -13,6 +13,9 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 import java.util.Date;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -111,14 +114,41 @@ public class ConfigManager {
         YamlConfiguration userConfig = YamlConfiguration.loadConfiguration(file);
         userConfig.setDefaults(defConfig);
         boolean hasMissing = hasMissingKeys(userConfig, defConfig);
-        if (hasMissing) backupConfigFile(file, resourceName);
+        boolean hasObsolete = hasObsoleteKeys(userConfig, defConfig);
+        if (hasMissing || hasObsolete) backupConfigFile(file, resourceName);
         userConfig.options().copyDefaults(true);
+        if (hasObsolete) {
+            removeObsoleteKeys(userConfig, defConfig);
+            plugin.getLogger().info(resourceName + ": удалены устаревшие ключи.");
+        }
         try {
             userConfig.save(file);
-            if (hasMissing) plugin.getLogger().info(resourceName + " автоматически обновлён: недостающие ключи добавлены, старые значения сохранены.");
+            if (hasMissing) plugin.getLogger().info(resourceName + " автоматически обновлён: недостающие ключи добавлены.");
         } catch (IOException e) {
             plugin.getLogger().warning("Не удалось сохранить обновленный конфиг " + resourceName + ": " + e.getMessage());
             e.printStackTrace();
+        }
+    }
+
+    private boolean hasObsoleteKeys(FileConfiguration userConfig, YamlConfiguration defConfig) {
+        for (String key : userConfig.getKeys(true)) {
+            if (!defConfig.isSet(key) && !key.equals("config-version")) return true;
+        }
+        return false;
+    }
+
+    private void removeObsoleteKeys(FileConfiguration userConfig, YamlConfiguration defConfig) {
+        List<String> toRemove = new ArrayList<>();
+        for (String key : userConfig.getKeys(true)) {
+            if (!defConfig.isSet(key) && !key.equals("config-version")) {
+                toRemove.add(key);
+            }
+        }
+        for (String key : toRemove) {
+            userConfig.set(key, null);
+        }
+        if (!toRemove.isEmpty()) {
+            plugin.getLogger().info("Удалено устаревших ключей: " + toRemove.size());
         }
     }
 

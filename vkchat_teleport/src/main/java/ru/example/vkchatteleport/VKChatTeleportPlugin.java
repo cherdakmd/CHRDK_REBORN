@@ -47,47 +47,16 @@ public class VKChatTeleportPlugin extends JavaPlugin {
     }
 
     private void migrateConfig() {
-        try {
-            int currentVersion = getConfig().getInt("config-version", 0);
-            if (currentVersion >= CONFIG_VERSION) return;
-
-            java.io.File configFile = new java.io.File(getDataFolder(), "config.yml");
-            if (configFile.exists()) {
-                String stamp = new java.text.SimpleDateFormat("yyyyMMdd-HHmmss").format(new java.util.Date());
-                java.io.File backup = new java.io.File(getDataFolder(), "config.yml.bak-" + stamp);
-                java.nio.file.Files.copy(configFile.toPath(), backup.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING);
-            }
-
-            // Принудительно обновляем критические значения
-            java.io.InputStream defStream = getResource("config.yml");
-            if (defStream != null) {
-                org.bukkit.configuration.file.YamlConfiguration defConfig = org.bukkit.configuration.file.YamlConfiguration.loadConfiguration(
-                        new java.io.InputStreamReader(defStream, java.nio.charset.StandardCharsets.UTF_8));
-                
-                String[] forceKeys = {
-                    "teleportation.rtp.cost",
-                    "teleportation.home.cost", 
-                    "teleportation.tpa.cost",
-                    "teleportation.rtp.cooldown",
-                    "teleportation.home.cooldown",
-                    "teleportation.tpa.cooldown"
-                };
-                
-                for (String key : forceKeys) {
-                    if (defConfig.isSet(key)) {
-                        getConfig().set(key, defConfig.get(key));
-                    }
-                }
-            }
-
-            getConfig().set("config-version", CONFIG_VERSION);
-            getConfig().options().copyDefaults(true);
-            saveConfig();
-            reloadConfig();
-            getLogger().info("Конфиг телепортации обновлён до v" + CONFIG_VERSION);
-        } catch (Exception e) {
-            getLogger().warning("Ошибка миграции конфига телепортации: " + e.getMessage());
-        }
+        // Принудительно обновляемые ключи
+        String[] forceKeys = {
+            "teleportation.rtp.cost",
+            "teleportation.home.cost",
+            "teleportation.tpa.cost",
+            "teleportation.rtp.cooldown",
+            "teleportation.home.cooldown",
+            "teleportation.tpa.cooldown"
+        };
+        ru.example.vkchat.config.ConfigMigrationUtil.migrate(this, "config.yml", forceKeys);
     }
 
     public static VKChatTeleportPlugin getInstance() {

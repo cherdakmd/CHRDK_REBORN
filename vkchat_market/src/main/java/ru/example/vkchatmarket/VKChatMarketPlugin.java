@@ -2,6 +2,7 @@ package ru.example.vkchatmarket;
 
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
+import ru.example.vkchat.config.ConfigMigrationUtil;
 import ru.example.vkchatmarket.commands.MarketCommand;
 import ru.example.vkchatmarket.data.MarketFun;
 import ru.example.vkchatmarket.data.MarketManager;
@@ -12,72 +13,15 @@ public class VKChatMarketPlugin extends JavaPlugin {
     private MarketManager marketManager;
     private MarketFun marketFun;
 
-
-    private static final int CONFIG_VERSION = 2; // Увеличивать при изменении критических значений
-
     private void migrateConfigDefaults() {
-        try {
-            reloadConfig();
-            java.io.InputStream defStream = getResource("config.yml");
-            if (defStream == null) return;
-            org.bukkit.configuration.file.YamlConfiguration defConfig = org.bukkit.configuration.file.YamlConfiguration.loadConfiguration(new java.io.InputStreamReader(defStream, java.nio.charset.StandardCharsets.UTF_8));
-            getConfig().setDefaults(defConfig);
-
-            int currentVersion = getConfig().getInt("config-version", 0);
-            boolean needsUpdate = false;
-
-            // Проверка на новые ключи
-            for (String key : defConfig.getKeys(true)) {
-                if (!getConfig().isSet(key)) { needsUpdate = true; break; }
-            }
-
-            // Проверка версии конфига
-            if (currentVersion < CONFIG_VERSION) {
-                needsUpdate = true;
-                getLogger().info("Конфиг устарел (v" + currentVersion + " -> v" + CONFIG_VERSION + "), обновляю...");
-            }
-
-            if (!needsUpdate) return;
-
-            // Создаём бэкап
-            java.io.File configFile = new java.io.File(getDataFolder(), "config.yml");
-            if (configFile.exists()) {
-                String stamp = new java.text.SimpleDateFormat("yyyyMMdd-HHmmss").format(new java.util.Date());
-                java.io.File backup = new java.io.File(getDataFolder(), "config.yml.bak-" + stamp);
-                java.nio.file.Files.copy(configFile.toPath(), backup.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING);
-                getLogger().info("Бэкап конфига: " + backup.getName());
-            }
-
-            // Принудительное обновление критических значений
-            if (currentVersion < CONFIG_VERSION) {
-                forceUpdateCriticalValues(defConfig);
-            }
-
-            getConfig().options().copyDefaults(true);
-            getConfig().set("config-version", CONFIG_VERSION);
-            saveConfig();
-            reloadConfig();
-            getLogger().info("config.yml обновлён до v" + CONFIG_VERSION);
-        } catch (Exception e) {
-            getLogger().warning("Ошибка миграции config.yml: " + e.getMessage());
-        }
-    }
-
-    private void forceUpdateCriticalValues(org.bukkit.configuration.file.YamlConfiguration defConfig) {
-        // Принудительно обновляем эти ключи при смене версии
-        String[] forceUpdateKeys = {
-            "market2.donate.sell-multiplier.legend",
-            "market2.donate.buy-multiplier.legend",
-            "market2.donate.sell-multiplier.star",
-            "market2.donate.buy-multiplier.star",
-            "market2.trade-impact",
+        // Устаревшие ключи для удаления
+        String[] obsoleteKeys = {
+            "market2.volatility-factor",
+            "market2.roulette.cost",
+            "market2.roulette.cooldown-ms",
+            "market2.roulette.gift-cost"
         };
-
-        for (String key : forceUpdateKeys) {
-            if (defConfig.isSet(key)) {
-                getConfig().set(key, defConfig.get(key));
-            }
-        }
+        ConfigMigrationUtil.migrate(this, "config.yml", obsoleteKeys);
     }
 
     @Override
