@@ -31,6 +31,16 @@ public class StashManager {
     }
 
     public synchronized List<ItemStack> getItems(UUID uuid) {
+        // Пробуем Base64 формат
+        String base64 = data.getString("players." + uuid + ".items_base64", null);
+        if (base64 != null && !base64.isEmpty()) {
+            try {
+                return ru.example.vkchatoffline.utils.Base64Util.fromBase64(base64);
+            } catch (Exception e) {
+                plugin.getLogger().warning("Ошибка чтения stash Base64 для " + uuid);
+            }
+        }
+        // Фоллбэк на старый формат
         List<String> raw = data.getStringList("players." + uuid + ".items");
         List<ItemStack> items = new ArrayList<>();
         for (String line : raw) {
@@ -41,17 +51,31 @@ public class StashManager {
     }
 
     public synchronized void saveItems(UUID uuid, List<ItemStack> items) {
-        List<String> raw = new ArrayList<>();
+        // Фильтруем невалидные
+        List<ItemStack> valid = new ArrayList<>();
         for (ItemStack item : items) {
             if (item != null && item.getType() != Material.AIR && item.getAmount() > 0) {
+                valid.add(item);
+            }
+        }
+        // Сохраняем в Base64 (сохраняет все метаданные)
+        try {
+            String base64 = ru.example.vkchatoffline.utils.Base64Util.toBase64(valid);
+            data.set("players." + uuid + ".items_base64", base64);
+            data.set("players." + uuid + ".items", null); // Удаляем старый формат
+        } catch (Exception e) {
+            plugin.getLogger().warning("Ошибка сохранения stash Base64 для " + uuid + ": " + e.getMessage());
+            // Фоллбэк на старый формат
+            List<String> raw = new ArrayList<>();
+            for (ItemStack item : valid) {
                 String encoded = item.getType().name() + ";" + item.getAmount();
                 if (item.hasItemMeta() && item.getItemMeta().hasDisplayName()) {
                     encoded += ";name=" + item.getItemMeta().getDisplayName().replace(";", "§");
                 }
                 raw.add(encoded);
             }
+            data.set("players." + uuid + ".items", raw);
         }
-        data.set("players." + uuid + ".items", raw);
         save();
     }
 
