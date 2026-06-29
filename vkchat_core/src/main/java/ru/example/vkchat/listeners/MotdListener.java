@@ -59,12 +59,8 @@ public class MotdListener implements Listener {
                 org.bukkit.plugin.Plugin marketPlugin = Bukkit.getPluginManager().getPlugin("VKChatMarket");
                 if (marketPlugin != null && marketPlugin.isEnabled()) {
                     Object marketMgr = marketPlugin.getClass().getMethod("getMarketManager").invoke(marketPlugin);
-                    java.lang.reflect.Field evtNameField = marketMgr.getClass().getDeclaredField("activeEventName");
-                    java.lang.reflect.Field expTimeField = marketMgr.getClass().getDeclaredField("activeEventExpireTime");
-                    evtNameField.setAccessible(true);
-                    expTimeField.setAccessible(true);
-                    String evtName = (String) evtNameField.get(marketMgr);
-                    long expTime = (long) expTimeField.get(marketMgr);
+                    String evtName = (String) marketMgr.getClass().getMethod("getActiveEventName").invoke(marketMgr);
+                    long expTime = (long) marketMgr.getClass().getMethod("getActiveEventExpireTime").invoke(marketMgr);
                     
                     if (evtName != null && System.currentTimeMillis() < expTime) {
                         line2 = "&a&l📈 БИРЖА: На динамическом рынке началось событие " + evtName + "!";

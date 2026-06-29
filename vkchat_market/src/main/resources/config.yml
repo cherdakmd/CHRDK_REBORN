@@ -917,7 +917,6 @@ market2:
   cycle:
     chance: 0.05             # 5% шанс на смену цикла
     duration-ms: 1800000     # 30 минут
-  volatility-factor: 0.05   # (устарело, не используется)
   trade-impact: 0.05        # Каждый предмет двигает цену на 5%. 1 покупка = +5% к цене
   limited-rotation:
     enabled: true
@@ -926,10 +925,6 @@ market2:
   history:
     min-volume-log: 16
     max-entries: 100
-  roulette:
-    cost: 500                # Стоимость крутки
-    cooldown-ms: 300000      # Кулдаун 5 минут
-    gift-cost: 1000          # Стоимость подарка спина
   flash-sale:
     chance: 0.10             # 10% шанс каждые 10 минут
     duration-ms: 300000      # 5 минут
