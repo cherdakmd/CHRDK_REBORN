@@ -910,6 +910,24 @@ market2:
       flame: 0.90
       star: 0.80
       legend: 0.70
+    # Бонусные лимиты на лимитированные предметы
+    limited-bonus:
+      spark: 1        # +1 к дневному лимиту
+      flame: 2
+      star: 3
+      legend: 5
+    # Скорость восстановления цен (больше = быстрее)
+    recovery-multiplier:
+      spark: 1.2
+      flame: 1.5
+      star: 2.0
+      legend: 3.0
+    # Максимум токенов в день
+    daily-token-limit:
+      spark: 50
+      flame: 100
+      star: 200
+      legend: 999
   trends:
     min-multiplier: 0.50     # -50% в кризисе
     max-multiplier: 2.00     # +100% в ажиотаже

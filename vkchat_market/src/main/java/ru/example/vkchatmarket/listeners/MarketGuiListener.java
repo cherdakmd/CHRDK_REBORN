@@ -54,6 +54,16 @@ public class MarketGuiListener implements Listener {
         Inventory inv = Bukkit.createInventory(null, 54, baseTitle + ChatColor.DARK_GRAY + " <menu>");
         for (int i = 0; i < 54; i++) inv.setItem(i, helpItem(Material.BLACK_STAINED_GLASS_PANE, " "));
         inv.setItem(4, infoItem(plugin, 0, 1, getConfiguredItems(plugin, "all").size(), p, "menu"));
+
+        // Показать статус донатера
+        String donorStatus = getDonorStatus(p);
+        if (!donorStatus.isEmpty()) {
+            inv.setItem(3, helpItem(Material.NETHER_STAR, ChatColor.GOLD + "⭐ " + donorStatus,
+                    ChatColor.GRAY + "Продажа: " + getSellBonus(p),
+                    ChatColor.GRAY + "Покупка: " + getBuyBonus(p),
+                    ChatColor.GRAY + "Лимиты: " + getLimitBonus(p)));
+        }
+
         inv.setItem(10, categoryItem(plugin, Material.IRON_INGOT, "ores", ChatColor.GRAY + "⛏ Руды и слитки", "Железо, золото, алмазы, незерит"));
         inv.setItem(12, categoryItem(plugin, Material.BREAD, "food", ChatColor.GOLD + "🍞 Еда и ферма", "Еда, урожай, фермерские ресурсы"));
         inv.setItem(14, categoryItem(plugin, Material.OAK_LOG, "wood", ChatColor.YELLOW + "🌲 Дерево", "Все виды брёвен и древесины"));
@@ -66,6 +76,38 @@ public class MarketGuiListener implements Listener {
         inv.setItem(43, sellAllItem(plugin));
         inv.setItem(49, helpItem(Material.PAPER, ChatColor.AQUA + "Подсказка", ChatColor.GRAY + "Редкие предметы убраны из /shop.", ChatColor.GRAY + "Артефакты, тотемы и особый лут добываются в RPG/ивентах.", ChatColor.RED + "Предметы с lore не продаются."));
         p.openInventory(inv);
+    }
+
+    private static String getDonorStatus(Player p) {
+        if (p.hasPermission("vkchat.donate.status.legend")) return "Легенда";
+        if (p.hasPermission("vkchat.donate.status.star")) return "Звезда";
+        if (p.hasPermission("vkchat.donate.status.flame")) return "Пламя";
+        if (p.hasPermission("vkchat.donate.status.spark")) return "Искра";
+        return "";
+    }
+
+    private static String getSellBonus(Player p) {
+        if (p.hasPermission("vkchat.donate.status.legend")) return "+100%";
+        if (p.hasPermission("vkchat.donate.status.star")) return "+60%";
+        if (p.hasPermission("vkchat.donate.status.flame")) return "+40%";
+        if (p.hasPermission("vkchat.donate.status.spark")) return "+20%";
+        return "нет";
+    }
+
+    private static String getBuyBonus(Player p) {
+        if (p.hasPermission("vkchat.donate.status.legend")) return "-30%";
+        if (p.hasPermission("vkchat.donate.status.star")) return "-20%";
+        if (p.hasPermission("vkchat.donate.status.flame")) return "-10%";
+        if (p.hasPermission("vkchat.donate.status.spark")) return "-5%";
+        return "нет";
+    }
+
+    private static String getLimitBonus(Player p) {
+        if (p.hasPermission("vkchat.donate.status.legend")) return "+5 к лимиту";
+        if (p.hasPermission("vkchat.donate.status.star")) return "+3 к лимиту";
+        if (p.hasPermission("vkchat.donate.status.flame")) return "+2 к лимиту";
+        if (p.hasPermission("vkchat.donate.status.spark")) return "+1 к лимиту";
+        return "нет";
     }
 
     public static void openGui(VKChatMarketPlugin plugin, Player p, int page) {
