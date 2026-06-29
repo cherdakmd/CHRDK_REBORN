@@ -193,9 +193,6 @@ public class WrathManager implements Listener {
 
             String alert = "⛈️ ВНИМАНИЕ! Начинается Кислотный Дождь! Кислота плавит плоть и разъедает броню! Найдите укрытие под крышей!";
             Bukkit.broadcastMessage(ChatColor.RED + alert);
-            if (Bukkit.getPluginManager().getPlugin("VKChat") != null) {
-                VKChatPlugin.getInstance().getApi().sendToMainChat("🌧️ Кислотный Дождь!\n" + ChatColor.stripColor(alert));
-            }
 
             cataclysmTaskId = Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin, () -> {
                 if (System.currentTimeMillis() >= cataclysmEndTime) {
@@ -233,10 +230,7 @@ public class WrathManager implements Listener {
             cataclysmEndTime = System.currentTimeMillis() + 60000L; // 1 минута
 
             String alert = "🌋 ВНИМАНИЕ! Начинается мощнейшее Землетрясение! Земля трескается и уходит из-под ног! Остерегайтесь провалов!";
-            Bukkit.broadcastMessage(ChatColor.GOLD + alert);
-            if (Bukkit.getPluginManager().getPlugin("VKChat") != null) {
-                VKChatPlugin.getInstance().getApi().sendToMainChat("🌋 Землетрясение!\n" + ChatColor.stripColor(alert));
-            }
+            Bukkit.broadcastMessage(ChatColor.RED + alert);
 
             cataclysmTaskId = Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin, () -> {
                 if (System.currentTimeMillis() >= cataclysmEndTime) {
@@ -297,9 +291,7 @@ public class WrathManager implements Listener {
 
             String alert = "⛈️ ВНИМАНИЕ! Разразился Грозовой Шторм! Молнии бьют беспощадно, а ураганный ветер сносит игроков!";
             Bukkit.broadcastMessage(ChatColor.LIGHT_PURPLE + alert);
-            if (Bukkit.getPluginManager().getPlugin("VKChat") != null) {
-                VKChatPlugin.getInstance().getApi().sendToMainChat("⛈️ Грозовой Шторм!\n" + ChatColor.stripColor(alert));
-            }
+
 
             cataclysmTaskId = Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin, () -> {
                 if (System.currentTimeMillis() >= cataclysmEndTime) {
@@ -334,9 +326,7 @@ public class WrathManager implements Listener {
 
             String alert = "☄️ ВНИМАНИЕ! Начинается Метеоритный Дождь! Горящие кометы падают прямо с небес! Остерегайтесь взрывов!";
             Bukkit.broadcastMessage(ChatColor.GOLD + alert);
-            if (Bukkit.getPluginManager().getPlugin("VKChat") != null) {
-                VKChatPlugin.getInstance().getApi().sendToMainChat("☄️ Метеоритный Дождь!\n" + ChatColor.stripColor(alert));
-            }
+
 
             cataclysmTaskId = Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin, () -> {
                 if (System.currentTimeMillis() >= cataclysmEndTime) {
@@ -365,9 +355,7 @@ public class WrathManager implements Listener {
 
             String alert = "❄️ ВНИМАНИЕ! Начинается Снежный Буран! Температура падает! Держитесь источников тепла (костры, факелы, лава), чтобы не замерзнуть!";
             Bukkit.broadcastMessage(ChatColor.AQUA + alert);
-            if (Bukkit.getPluginManager().getPlugin("VKChat") != null) {
-                VKChatPlugin.getInstance().getApi().sendToMainChat("❄️ Снежный Буран!\n" + ChatColor.stripColor(alert));
-            }
+
 
             cataclysmTaskId = Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin, () -> {
                 if (System.currentTimeMillis() >= cataclysmEndTime) {
@@ -418,7 +406,6 @@ public class WrathManager implements Listener {
             String alert = "🌑 ВНИМАНИЕ! Начинается Солнечное Затмение! Тьма поглотила солнце, а Твари Безды восстали из своих могил!";
             Bukkit.broadcastMessage(ChatColor.DARK_GRAY + alert);
             if (Bukkit.getPluginManager().getPlugin("VKChat") != null) {
-                VKChatPlugin.getInstance().getApi().sendToMainChat("🌑 Солнечное Затмение!\n" + ChatColor.stripColor(alert));
             }
 
             cataclysmTaskId = Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin, () -> {
@@ -459,7 +446,6 @@ public class WrathManager implements Listener {
             String alert = "✨ ВНИМАНИЕ! Начинается ЗОЛОТОЙ ВЕК! Боги благословили этот мир! Все игроки получили Удачу и Героя Деревни, а цены продажи на Бирже выросли на 50%!";
             Bukkit.broadcastMessage(ChatColor.GREEN + alert);
             if (Bukkit.getPluginManager().getPlugin("VKChat") != null) {
-                VKChatPlugin.getInstance().getApi().sendToMainChat("✨ Золотой Век!\n" + ChatColor.stripColor(alert));
             }
 
             // Прямая интеграция с vkchat_market (рефлексивно выставляем Королевскую ярмарку!)
@@ -504,7 +490,6 @@ public class WrathManager implements Listener {
             String alert = "😇 ВНИМАНИЕ! Пролилась АНГЕЛЬСКАЯ БЛАГОДАТЬ! Свет небес исцеляет ваши раны! Все болезни и проклятия сняты, игроки получили Регенерацию и Сытость!";
             Bukkit.broadcastMessage(ChatColor.LIGHT_PURPLE + alert);
             if (Bukkit.getPluginManager().getPlugin("VKChat") != null) {
-                VKChatPlugin.getInstance().getApi().sendToMainChat("😇 Ангельская Благодать!\n" + ChatColor.stripColor(alert));
             }
 
             cataclysmTaskId = Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin, () -> {
@@ -541,7 +526,6 @@ public class WrathManager implements Listener {
             String alert = "🌠 ВНИМАНИЕ! Начинается сказочный ЗВЕЗДОПАД ЖЕЛАНИЙ! Падающие кометы оставляют глубокие кратеры и ценные сокровища на Диких землях!";
             Bukkit.broadcastMessage(ChatColor.GOLD + alert);
             if (Bukkit.getPluginManager().getPlugin("VKChat") != null) {
-                VKChatPlugin.getInstance().getApi().sendToMainChat("🌠 Звездопад Желаний!\n" + ChatColor.stripColor(alert));
             }
 
             cataclysmTaskId = Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin, () -> {
@@ -612,7 +596,6 @@ public class WrathManager implements Listener {
             String alert = "🌋 ВНИМАНИЕ! Раскаленные ГЕЙЗЕРЫ прорывают земную кору! Из недр бьют столбы кипящей воды и пара, оставляя глубокие провалы!";
             Bukkit.broadcastMessage(ChatColor.RED + alert);
             if (Bukkit.getPluginManager().getPlugin("VKChat") != null) {
-                VKChatPlugin.getInstance().getApi().sendToMainChat("🌋 Гейзеры земли!\n" + ChatColor.stripColor(alert));
             }
 
             cataclysmTaskId = Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin, () -> {
@@ -685,7 +668,6 @@ public class WrathManager implements Listener {
             String alert = "🌕 ВНИМАНИЕ! Восходит Кровавая Луна! В Диких Землях открылась охота на усиленных монстров с повышенным лутом.";
             Bukkit.broadcastMessage(ChatColor.DARK_RED + alert);
             if (Bukkit.getPluginManager().getPlugin("VKChat") != null) {
-                VKChatPlugin.getInstance().getApi().sendToMainChat("🌕 Кровавая Луна!\n" + ChatColor.stripColor(alert));
             }
 
             cataclysmTaskId = Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin, () -> {
@@ -725,7 +707,6 @@ public class WrathManager implements Listener {
             String alert = "💎 Комета Сокровищ рассыпалась над Дикими Землями! Тайник появился на X: " + chestLoc.getBlockX() + " Z: " + chestLoc.getBlockZ() + ".";
             Bukkit.broadcastMessage(ChatColor.AQUA + alert);
             if (Bukkit.getPluginManager().getPlugin("VKChat") != null) {
-                VKChatPlugin.getInstance().getApi().sendToMainChat("💎 Комета Сокровищ!\n" + ChatColor.stripColor(alert));
             }
 
             Block chestBlock = chestLoc.getBlock();
@@ -744,7 +725,6 @@ public class WrathManager implements Listener {
             String alert = "☄️ ВНИМАНИЕ! Вышедшая из строя Космическая Станция теряет орбиту и падает на землю! Ищите обломки на Диких Землях!";
             Bukkit.broadcastMessage(ChatColor.DARK_PURPLE + alert);
             if (Bukkit.getPluginManager().getPlugin("VKChat") != null) {
-                VKChatPlugin.getInstance().getApi().sendToMainChat("☄️ Космическая Станция!\n" + ChatColor.stripColor(alert));
             }
 
             // Запускаем 10 секундный обратный отсчет перед падением
@@ -865,7 +845,6 @@ public class WrathManager implements Listener {
                         String finishAlert = "☄️ БУУУМ! Космическая Станция столкнулась с землей на координатах X: " + spawnLoc.getBlockX() + " Z: " + spawnLoc.getBlockZ() + "! Спешите взломать ее защищенный отсек!";
                         Bukkit.broadcastMessage(ChatColor.GOLD + finishAlert);
                         if (Bukkit.getPluginManager().getPlugin("VKChat") != null) {
-                            VKChatPlugin.getInstance().getApi().sendToMainChat("☄️ Падение Станции!\n" + ChatColor.stripColor(finishAlert));
                         }
 
                         stopCataclysm();
@@ -884,7 +863,6 @@ public class WrathManager implements Listener {
             String alert = "🌫️ ВНИМАНИЕ! Над сервером навис Плотный Туман Теней! Из мрака материализуются призрачные охотники, а видимость падает до нуля!";
             Bukkit.broadcastMessage(ChatColor.DARK_PURPLE + alert);
             if (Bukkit.getPluginManager().getPlugin("VKChat") != null) {
-                VKChatPlugin.getInstance().getApi().sendToMainChat("🌫️ Туман Теней!\n" + ChatColor.stripColor(alert));
             }
 
             cataclysmTaskId = Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin, () -> {
@@ -930,7 +908,6 @@ public class WrathManager implements Listener {
             String alert = "⚡ ВНИМАНИЕ! Начинается ПЛАЗМЕННЫЙ ШТОРМ! Электрические разряды пронзают небо, а все мобы получают ускорение и ярость!";
             Bukkit.broadcastMessage(ChatColor.YELLOW + alert);
             if (Bukkit.getPluginManager().getPlugin("VKChat") != null) {
-                VKChatPlugin.getInstance().getApi().sendToMainChat("⚡ Плазменный Шторм!\n" + ChatColor.stripColor(alert));
             }
 
             cataclysmTaskId = Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin, () -> {
@@ -976,7 +953,6 @@ public class WrathManager implements Listener {
             String alert = "🌀 ВНИМАНИЕ! Происходит Извращение Гравитации! Игроков随机 подбрасывает в воздух, а предметы летают хаотично!";
             Bukkit.broadcastMessage(ChatColor.AQUA + alert);
             if (Bukkit.getPluginManager().getPlugin("VKChat") != null) {
-                VKChatPlugin.getInstance().getApi().sendToMainChat("🌀 Извращение Гравитации!\n" + ChatColor.stripColor(alert));
             }
 
             cataclysmTaskId = Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin, () -> {
@@ -1020,9 +996,7 @@ public class WrathManager implements Listener {
             cataclysmTaskId = -1;
         }
         Bukkit.broadcastMessage(ChatColor.GREEN + "🍃 Стихия успокоилась. Катаклизм успешно завершен!");
-        if (Bukkit.getPluginManager().getPlugin("VKChat") != null) {
-            VKChatPlugin.getInstance().getApi().sendToMainChat("☀️ Погода наладилась. Катаклизм завершен.");
-        }
+
         World world = Bukkit.getWorlds().get(0);
         world.setStorm(false);
         world.setThundering(false);
@@ -1078,7 +1052,6 @@ public class WrathManager implements Listener {
                 p.sendMessage(ChatColor.GREEN + "[Гнев Богов] " + msg);
             }
             if (Bukkit.getPluginManager().getPlugin("VKChat") != null) {
-                VKChatPlugin.getInstance().getApi().sendToMainChat("☀️ " + msg);
             }
 
             // Конфигурируемый лут босса

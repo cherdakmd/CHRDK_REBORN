@@ -34,7 +34,6 @@ public class ReminderTask extends BukkitRunnable {
         }
 
         if (hasReminders && Bukkit.getPluginManager().getPlugin("VKChat") != null) {
-            VKChatPlugin.getInstance().getApi().sendToMainChat(vkMessage.toString());
         }
     }
 

@@ -101,7 +101,6 @@ public class BountyManager implements Listener {
             
             String bc = " ЗАКАЗ! На голову " + target.getName() + " добавлено " + amount + " репутации! (Всего: " + (current+amount) + ")";
             Bukkit.broadcastMessage(ChatColor.RED + bc);
-            VKChatPlugin.getInstance().getApi().sendToMainChat(bc);
         }
     }
 
@@ -119,7 +118,6 @@ public class BountyManager implements Listener {
                 VKChatPlugin.getInstance().getApi().addReputation(killerVkId, reward);
                 String msg = "⚔ Наемник " + killer.getName() + " убил " + victim.getName() + " и забрал награду " + reward + " репутации!";
                 Bukkit.broadcastMessage(ChatColor.GREEN + msg);
-                VKChatPlugin.getInstance().getApi().sendToMainChat(msg);
             }
         }
     }

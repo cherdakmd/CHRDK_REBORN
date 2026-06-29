@@ -221,7 +221,6 @@ public class InvasionManager implements Listener {
         }
 
         if (Bukkit.getPluginManager().getPlugin("VKChat") != null) {
-            VKChatPlugin.getInstance().getApi().sendToMainChat("\u2728 " + msg);
         }
 
         dropLoot();

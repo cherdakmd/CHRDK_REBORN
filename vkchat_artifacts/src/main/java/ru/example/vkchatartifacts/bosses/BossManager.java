@@ -82,9 +82,6 @@ public class BossManager extends BukkitRunnable implements Listener {
                           "&5&m=================================================";
         Bukkit.broadcastMessage(ChatColor.translateAlternateColorCodes('&', preMsgMC));
 
-        String preMsgVK = " ДРЕВНЕЕ ЗЛО ПРОБУЖДАЕТСЯ!\n" + ChatColor.stripColor(name) + " появится на координатах X: " + x + ", Z: " + z + " ровно через " + (preAnnounce/60) + " минут!\nСобирайте союзников, за его голову дадут мощный Артефакт!";
-        sendVkChat(preMsgVK);
-
         Bukkit.getScheduler().runTaskLater(plugin, () -> {
             String typeStr = bossConfig.getString("type", "ZOMBIE");
             EntityType type = EntityType.valueOf(typeStr);
@@ -118,8 +115,7 @@ public class BossManager extends BukkitRunnable implements Listener {
             }
 
             Bukkit.broadcastMessage(ChatColor.translateAlternateColorCodes('&', "&d&l⚡ БОСС ПОЯВИЛСЯ! Сражение началось!"));
-            sendVkChat("⚡ БОСС ПОЯВИЛСЯ! " + ChatColor.stripColor(name) + " вошел в этот мир. Кто же заберет артефакт?");
-            
+
         }, preAnnounce * 20L);
     }
 
@@ -246,9 +242,6 @@ public class BossManager extends BukkitRunnable implements Listener {
                     
                     String mcMsg = plugin.getConfig().getString("artifacts.messages.mythic-announce-mc").replace("{player}", pName);
                     Bukkit.broadcastMessage(ChatColor.translateAlternateColorCodes('&', mcMsg));
-                    
-                    String vkMsg = plugin.getConfig().getString("artifacts.messages.mythic-announce-vk").replace("{player}", pName);
-                    sendVkChat(vkMsg);
                 }
             }
             
@@ -256,17 +249,5 @@ public class BossManager extends BukkitRunnable implements Listener {
             activeBossId = null;
             skillCooldowns.clear();
         }
-    }
-    
-    private void sendVkChat(String msg) {
-        try {
-            Object corePlugin = Bukkit.getPluginManager().getPlugin("VKChat");
-            if (corePlugin != null) {
-                Method getApiMethod = corePlugin.getClass().getMethod("getApi");
-                Object vkApi = getApiMethod.invoke(corePlugin);
-                Method m = vkApi.getClass().getMethod("sendToMainChat", String.class);
-                m.invoke(vkApi, msg);
-            }
-        } catch (Exception ignored) { }
     }
 }
