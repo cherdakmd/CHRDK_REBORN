@@ -281,16 +281,18 @@ public class MarketGuiListener implements Listener {
     @EventHandler
     public void onClick(InventoryClickEvent e) {
         // Обработка кликов в GUI рулетки (отдельный заголовок)
-        if (e.getView().getTitle().contains("РУЛЕТКА") || e.getView().getTitle().contains("рулетка")) {
+        String title = e.getView().getTitle();
+        if (title.contains("РУЛЕТКА") || title.contains("рулетка") || title.contains("Рулетка")) {
             e.setCancelled(true);
             if (!(e.getWhoClicked() instanceof Player)) return;
             Player p = (Player) e.getWhoClicked();
+            plugin.getLogger().info("[Roulette] Клик в GUI: slot=" + e.getRawSlot() + " player=" + p.getName());
             plugin.getMarketRoulette().handleClick(p, e.getRawSlot());
             return;
         }
 
         String baseTitle = ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("settings.gui-title", "&8Динамический Рынок"));
-        if (!e.getView().getTitle().startsWith(baseTitle)) return;
+        if (!title.startsWith(baseTitle)) return;
         e.setCancelled(true);
         if (!(e.getWhoClicked() instanceof Player)) return;
         Player p = (Player) e.getWhoClicked();

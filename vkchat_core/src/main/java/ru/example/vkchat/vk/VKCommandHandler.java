@@ -27,7 +27,10 @@ public class VKCommandHandler {
             // Вызываем кастомный ивент для сторонних плагинов
             ru.example.vkchat.api.VKCommandEvent cmdEvent = new ru.example.vkchat.api.VKCommandEvent(peer, fromId, cmd, args);
             Bukkit.getPluginManager().callEvent(cmdEvent);
-            if (cmdEvent.isCancelled()) return;
+            if (cmdEvent.isCancelled()) {
+                plugin.getLogger().info("[VK] Команда отменена плагином: " + cmd + " от " + fromId);
+                return;
+            }
         }
 
         if (cmd.equals("!помощь") || cmd.equals("!help") || cmd.equals("!клавиатура")) {
@@ -422,6 +425,7 @@ public class VKCommandHandler {
                    cmd.equals("!рулеткалаки") || cmd.equals("!rlucky") ||
                    cmd.equals("!рулеткатокены") || cmd.equals("!rtokens") ||
                    cmd.equals("!рулеткапризы") || cmd.equals("!rprizes")) {
+            plugin.getLogger().info("[VK] Рулетка команда: " + cmd + " от " + fromId + " peer=" + peer);
             plugin.getVKRouletteManager().handleCommand(fromId, peer, cmd);
         } else if (cmd.equals("!аккаунт") || cmd.equals("!account")) {
             // Меню управления аккаунтом (только в ЛС)
