@@ -5,7 +5,7 @@
 teleportation:
   rtp:
     cost: 50
-    cooldown: 3600
+    cooldown: 60
     min-x: -5000
     max-x: 5000
     min-z: -5000
@@ -13,12 +13,12 @@ teleportation:
 
   home:
     cost: 25
-    cooldown: 1800
+    cooldown: 60
     max-homes: 3
 
   tpa:
     cost: 75
-    cooldown: 1200
+    cooldown: 60
 
   warmup:
     delay: 3
@@ -35,20 +35,20 @@ teleportation:
   # Кулдаун для донатеров (секунды, меньше = быстрее)
   donate-cooldown:
     rtp:
-      spark: 1800      # 30 мин (было 60)
-      flame: 900       # 15 мин
-      star: 300        # 5 мин
-      legend: 60       # 1 мин
+      spark: 45        # 45 сек (было 60)
+      flame: 30        # 30 сек
+      star: 15         # 15 сек
+      legend: 0        # без кд
     home:
-      spark: 900       # 15 мин (было 30)
-      flame: 300       # 5 мин
-      star: 60         # 1 мин
-      legend: 0        # без кд
+      spark: 45
+      flame: 30
+      star: 15
+      legend: 0
     tpa:
-      spark: 600       # 10 мин (было 20)
-      flame: 300       # 5 мин
-      star: 60         # 1 мин
-      legend: 0        # без кд
+      spark: 45
+      flame: 30
+      star: 15
+      legend: 0
 
   # Время каста для донатеров (секунды)
   donate-warmup:

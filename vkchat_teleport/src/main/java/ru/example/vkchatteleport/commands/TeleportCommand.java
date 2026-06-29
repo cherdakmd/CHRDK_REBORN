@@ -14,6 +14,7 @@ import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 import ru.example.vkchatteleport.VKChatTeleportPlugin;
 import ru.example.vkchatteleport.manager.TeleportManager;
+import ru.example.vkchatteleport.features.TeleportFeatures;
 import ru.example.vkchat.VKChatPlugin;
 
 import java.util.ArrayList;
@@ -25,9 +26,11 @@ import java.util.stream.Collectors;
 
 public class TeleportCommand implements CommandExecutor, TabCompleter {
     private final VKChatTeleportPlugin plugin;
+    private final TeleportFeatures features;
 
     public TeleportCommand(VKChatTeleportPlugin plugin) {
         this.plugin = plugin;
+        this.features = new TeleportFeatures(plugin);
     }
 
     @Override
@@ -135,23 +138,44 @@ public class TeleportCommand implements CommandExecutor, TabCompleter {
     // СЛУЧАЙНЫЙ ТЕЛЕПОРТ (/rtp)
     // ==========================================
     private void handleRtp(Player p, int vkId) {
+        // [33] Проверка удачной телепортации
+        if (features.hasLuckyTeleport(p.getUniqueId())) {
+            Location safeLoc = findSafeLocation(p);
+            if (safeLoc != null) {
+                p.teleport(safeLoc);
+                p.sendMessage(ChatColor.GREEN + "🍀 Удачная телепортация! Бесплатно!");
+                p.playSound(p.getLocation(), Sound.UI_TOAST_CHALLENGE_COMPLETE, 1f, 1f);
+                features.recordTeleport(p.getUniqueId(), (int) p.getLocation().distance(safeLoc));
+                return;
+            }
+        }
+
         int currentRep = VKChatPlugin.getInstance().getApi().getReputation(vkId);
         int cost = plugin.getConfig().getInt("teleportation.rtp.cost", 50);
         cost = Math.max(1, applyDonateDiscount(p, cost));
+
+        // [25] Скидка за достижения
+        double achDiscount = features.getAchievementDiscount(p.getUniqueId());
+        if (achDiscount > 0) {
+            cost = (int) (cost * (1.0 - achDiscount));
+        }
+
+        // [34] Сезонный множитель
+        cost = (int) (cost * features.getSeasonalMultiplier());
 
         int cooldown = getDonateCooldown(p, "rtp");
 
         long cdRemaining = plugin.getTeleportManager().getCooldownRemaining("rtp", p.getUniqueId(), cooldown);
         if (cdRemaining > 0) {
-            p.sendMessage(ChatColor.RED + "⏳ Команда на перезарядке! Подождите " + ChatColor.GOLD + formatTime(cdRemaining));
+            p.sendMessage(ChatColor.RED + "⏳ Подождите " + ChatColor.GOLD + formatTime(cdRemaining));
             if (!hasDonateStatus(p)) {
-                p.sendMessage(ChatColor.YELLOW + "💡 Уменьшить КД можно через донат: " + ChatColor.AQUA + "!донат");
+                p.sendMessage(ChatColor.YELLOW + "💡 Уменьшить КД: " + ChatColor.AQUA + "!донат");
             }
             return;
         }
 
         if (currentRep < cost) {
-            p.sendMessage(ChatColor.RED + "❌ Недостаточно репутации! Нужно: " + ChatColor.GOLD + cost + ChatColor.RED + " реп.");
+            p.sendMessage(ChatColor.RED + "❌ Нужно " + ChatColor.GOLD + cost + ChatColor.RED + " реп.");
             return;
         }
 
@@ -163,11 +187,13 @@ public class TeleportCommand implements CommandExecutor, TabCompleter {
             return;
         }
 
-        int warmup = getDonateWarmup(p);
+        int distance = (int) p.getLocation().distance(safeLoc);
+        features.recordTeleport(p.getUniqueId(), distance);
+
         plugin.getTeleportManager().startTeleportWarmup(
                 p,
                 safeLoc,
-                ChatColor.GREEN + "✨ Телепортация за " + ChatColor.GOLD + cost + ChatColor.GREEN + " реп!",
+                ChatColor.GREEN + "✨ Телепортация за " + ChatColor.GOLD + cost + ChatColor.GREEN + " реп! (" + distance + " блоков)",
                 cost,
                 "rtp",
                 null
