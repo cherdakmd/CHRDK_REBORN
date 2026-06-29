@@ -83,11 +83,26 @@ public class WarnManager {
         if (durationMillis <= 0) return;
         Date expires = new Date(System.currentTimeMillis() + durationMillis);
         String banReason = "Автобан за " + count + " предупреждений. Последняя причина: " + reason;
-        Bukkit.getBanList(BanList.Type.NAME).addBan(targetName, banReason, expires, "VKChatWarns");
+
+        // [FIX] Бан по UUID + IP вместо имени
         Player online = Bukkit.getPlayerExact(targetName);
         if (online != null) {
+            String uuid = online.getUniqueId().toString();
+            String ip = online.getAddress() != null ? online.getAddress().getAddress().getHostAddress() : "unknown";
+
+            // Бан по UUID
+            Bukkit.getBanList(BanList.Type.NAME).addBan(uuid, banReason, expires, "VKChatWarns");
+            // Бан по IP
+            if (!ip.equals("unknown")) {
+                Bukkit.getBanList(BanList.Type.IP).addBan(ip, banReason, expires, "VKChatWarns");
+            }
+
             online.kickPlayer(ChatColor.RED + banReason + "\n" + ChatColor.YELLOW + "Бан до: " + new SimpleDateFormat("dd.MM.yyyy HH:mm").format(expires));
+        } else {
+            // Если игрок оффлайн, бан по имени (fallback)
+            Bukkit.getBanList(BanList.Type.NAME).addBan(targetName, banReason, expires, "VKChatWarns");
         }
+
         Bukkit.broadcastMessage(ChatColor.DARK_RED + "⛔ " + targetName + " забанен за " + count + " варнов до " + new SimpleDateFormat("dd.MM.yyyy HH:mm").format(expires));
         try { plugin.getVkManager().sendToMainChat("⛔ " + targetName + " забанен за " + count + " варнов до " + new SimpleDateFormat("dd.MM.yyyy HH:mm").format(expires)); } catch (Throwable ignored) {}
     }

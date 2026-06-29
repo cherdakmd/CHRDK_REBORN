@@ -94,14 +94,17 @@ public class AuthManager {
                         boolean isLocalIp = currentIp.equals("127.0.0.1") || currentIp.equals("0:0:0:0:0:0:0:1") || currentIp.equalsIgnoreCase("localhost");
                         boolean require2faAlways = plugin.getConfig().getBoolean("security.require-2fa-always", false);
 
-                        // Проверка 2FA при входе (с нового IP, при локальном IP без форвардинга, или всегда если включено)
+                        // Проверка 2FA при входе
                         boolean trigger2fa = false;
                         if (plugin.getConfig().getBoolean("security.2fa-enabled", true)) {
                             if (require2faAlways) {
                                 trigger2fa = true;
                             } else if (isLocalIp) {
-                                // Безопасность: если IP локальный, мы не можем доверять ему, поэтому принудительно запрашиваем 2FA для защиты от взломов BungeeCord!
-                                trigger2fa = true;
+                                // [FIX] Пропуск 2FA для локального IP если включено
+                                boolean skipLocal = plugin.getConfig().getBoolean("security.skip-2fa-local-ip", false);
+                                if (!skipLocal) {
+                                    trigger2fa = true;
+                                }
                             } else if (plugin.getConfig().getBoolean("security.require-on-new-ip", true)) {
                                 if (savedIp != null && !savedIp.equals(currentIp)) {
                                     trigger2fa = true;
