@@ -459,6 +459,9 @@ public class ArtifactListener implements Listener {
         int diff = e.getNewAmount() - e.getOldAmount();
         if (diff <= 0) return;
 
+        // [FIX] Не бустить маленькие изменения (сообщения в чате +1)
+        if (diff < 10) return;
+
         Player player = null;
         try {
             for (Player p : plugin.getServer().getOnlinePlayers()) {
