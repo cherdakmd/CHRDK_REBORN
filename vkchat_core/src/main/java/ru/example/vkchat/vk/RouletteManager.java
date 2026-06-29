@@ -1,7 +1,6 @@
 package ru.example.vkchat.vk;
 
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import ru.example.vkchat.VKChatPlugin;
 
 import java.util.*;
@@ -466,11 +465,11 @@ public class RouletteManager {
 
         // ═══ ВЫДАЧА ПРИЗА ═══
         StringBuilder result = new StringBuilder("\n");
-        ChatColor tierColor = getTierColor(tier);
 
-        result.append(tierColor).append("  ╔═══════════════════════════════╗\n");
-        result.append(tierColor).append("  ║  ").append(getTierEmoji(tier)).append(" ").append(name).append("\n");
-        result.append(tierColor).append("  ╚═══════════════════════════════╝\n\n");
+
+        result.append("  ╔═══════════════════════════════╗\n");
+        result.append("  ║  ").append(getTierEmoji(tier)).append(" ").append(name).append("\n");
+        result.append("  ╚═══════════════════════════════╝\n\n");
 
         if (type.equals("death")) {
             int loss = Math.abs(baseValue);
@@ -478,12 +477,12 @@ public class RouletteManager {
             if (prizeInsurance.contains(fromId)) {
                 loss /= 2;
                 prizeInsurance.remove(fromId);
-                result.append(ChatColor.YELLOW).append("📦 Страховка! Потеря уменьшена!\n");
+                result.append("📦 Страховка! Потеря уменьшена!\n");
             }
             plugin.getReputationManager().deductPoints(fromId, loss);
             totalRepLost.merge(fromId, loss, Integer::sum);
-            result.append(ChatColor.RED).append("💀 -").append(loss).append(" реп!\n");
-            result.append(ChatColor.WHITE).append("💰 Баланс: ").append(plugin.getReputationManager().getPoints(fromId));
+            result.append("💀 -").append(loss).append(" реп!\n");
+            result.append("💰 Баланс: ").append(plugin.getReputationManager().getPoints(fromId));
 
         } else if (type.equals("mini_jackpot")) {
             int jackpot = (int) (miniJackpot * streakMult * donateMult);
@@ -491,8 +490,8 @@ public class RouletteManager {
             plugin.getReputationManager().addPoints(fromId, jackpot);
             totalRepWon.merge(fromId, jackpot, Integer::sum);
             miniJackpot = 5000;
-            result.append(ChatColor.GOLD).append("🏆 МИНИ ДЖЕКПОТ! +").append(jackpot).append(" реп!\n");
-            result.append(ChatColor.WHITE).append("💰 Баланс: ").append(plugin.getReputationManager().getPoints(fromId));
+            result.append("🏆 МИНИ ДЖЕКПОТ! +").append(jackpot).append(" реп!\n");
+            result.append("💰 Баланс: ").append(plugin.getReputationManager().getPoints(fromId));
             plugin.getVkManager().sendToMainChat("🏆 Игрок выиграл МИНИ ДЖЕКПОТ: +" + jackpot + " реп!");
 
         } else if (type.equals("mega_jackpot")) {
@@ -501,8 +500,8 @@ public class RouletteManager {
             plugin.getReputationManager().addPoints(fromId, jackpot);
             totalRepWon.merge(fromId, jackpot, Integer::sum);
             megaJackpot = 50000;
-            result.append(ChatColor.LIGHT_PURPLE).append(ChatColor.BOLD).append("💎 МЕГА ДЖЕКПОТ! +").append(jackpot).append(" реп!\n");
-            result.append(ChatColor.WHITE).append("💰 Баланс: ").append(plugin.getReputationManager().getPoints(fromId));
+            result.append("💎 МЕГА ДЖЕКПОТ! +").append(jackpot).append(" реп!\n");
+            result.append("💰 Баланс: ").append(plugin.getReputationManager().getPoints(fromId));
             String epicMsg = "💎💰 ═══════════════════════════════ 💰💎\n" +
                     "🎰 ИГРОК СОРВАЛ МЕГА ДЖЕКПОТ!\n" +
                     "💰 Сумма: " + jackpot + " репутации!\n" +
@@ -513,59 +512,59 @@ public class RouletteManager {
             int bonus = (int) (baseValue * streakMult * donateMult);
             if (isLucky) {
                 bonus = (int) (bonus * 1.5);
-                result.append(ChatColor.GREEN).append("🍀 Счастливое число!\n");
+                result.append("🍀 Счастливое число!\n");
             }
             plugin.getReputationManager().addPoints(fromId, bonus);
             totalRepWon.merge(fromId, bonus, Integer::sum);
-            result.append(ChatColor.GREEN).append("🎉 +").append(bonus).append(" реп!\n");
-            result.append(ChatColor.WHITE).append("💰 Баланс: ").append(plugin.getReputationManager().getPoints(fromId));
+            result.append("🎉 +").append(bonus).append(" реп!\n");
+            result.append("💰 Баланс: ").append(plugin.getReputationManager().getPoints(fromId));
 
         } else if (type.equals("item")) {
             pendingItems.putIfAbsent(fromId, new ArrayList<>());
             pendingItems.get(fromId).add(name);
-            result.append(ChatColor.GREEN).append("📦 Предмет готов! Забери: /рулетка\n");
+            result.append("📦 Предмет готов! Забери: /рулетка\n");
 
         } else if (type.equals("token")) {
             int tok = baseValue;
             tokens.merge(fromId, tok, Integer::sum);
-            result.append(ChatColor.GOLD).append("🎟 +").append(tok).append(" токенов!");
+            result.append("🎟 +").append(tok).append(" токенов!");
 
         } else if (type.equals("lucky")) {
             int num = 10 + ThreadLocalRandom.current().nextInt(40);
             luckyNumber.put(fromId, num);
-            result.append(ChatColor.GREEN).append("🍀 Шанс: ").append(num).append("% на x1.5!");
+            result.append("🍀 Шанс: ").append(num).append("% на x1.5!");
 
         } else if (type.equals("mystery")) {
             mysteryBox.merge(fromId, 1, Integer::sum);
-            result.append(ChatColor.DARK_PURPLE).append("📦 Мистический бокс! Открой: !рулеткабокс");
+            result.append("📦 Мистический бокс! Открой: !рулеткабокс");
 
         } else if (type.equals("xp")) {
             addXP(fromId, baseValue);
-            result.append(ChatColor.AQUA).append("⬆ +").append(baseValue).append(" XP рулетки!");
+            result.append("⬆ +").append(baseValue).append(" XP рулетки!");
 
         } else if (type.equals("shield")) {
             streakShield.add(fromId);
-            result.append(ChatColor.AQUA).append("🛡 Щит стрика активирован!");
+            result.append("🛡 Щит стрика активирован!");
 
         } else if (type.equals("insurance")) {
             prizeInsurance.add(fromId);
-            result.append(ChatColor.YELLOW).append("📦 Страховка активирована!");
+            result.append("📦 Страховка активирована!");
 
         } else {
             // Пусто
-            result.append(ChatColor.GRAY).append("💀 В следующий раз повезёт!");
+            result.append("💀 В следующий раз повезёт!");
             if (ThreadLocalRandom.current().nextDouble() < 0.3) {
                 doubleOrNothing.put(fromId, 0.0);
-                result.append("\n\n").append(ChatColor.YELLOW).append("⚡ Double or Nothing? !рулеткадабл");
+                result.append("\n\n⚡ Double or Nothing? !рулеткадабл");
             }
         }
 
         // Стрик
         int newStreak = winStreak.getOrDefault(fromId, 0);
-        if (newStreak > 1) result.append("\n").append(ChatColor.RED).append("🔥 Стрик: x").append(newStreak);
+        if (newStreak > 1) result.append("\n🔥 Стрик: x").append(newStreak);
 
         // Донат бонус
-        if (isDonor(fromId) && isWin) result.append("\n").append(ChatColor.GOLD).append("⭐ Бонус донатера!");
+        if (isDonor(fromId) && isWin) result.append("\n⭐ Бонус донатера!");
 
         plugin.getVkManager().sendKeyboard(peer, result.toString(), VKKeyboardBuilder.rouletteAfterSpin());
     }
@@ -729,17 +728,6 @@ public class RouletteManager {
     }
 
     // ═══ УТИЛИТЫ ═══
-    private ChatColor getTierColor(String tier) {
-        switch (tier) {
-            case "legendary": return ChatColor.GOLD;
-            case "jackpot": return ChatColor.LIGHT_PURPLE;
-            case "rare": return ChatColor.AQUA;
-            case "uncommon": return ChatColor.GREEN;
-            case "death": return ChatColor.DARK_RED;
-            default: return ChatColor.WHITE;
-        }
-    }
-
     private String getTierEmoji(String tier) {
         switch (tier) {
             case "legendary": return "🏆";
