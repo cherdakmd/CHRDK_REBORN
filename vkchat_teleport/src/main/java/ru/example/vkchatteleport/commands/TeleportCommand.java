@@ -138,30 +138,9 @@ public class TeleportCommand implements CommandExecutor, TabCompleter {
     // СЛУЧАЙНЫЙ ТЕЛЕПОРТ (/rtp)
     // ==========================================
     private void handleRtp(Player p, int vkId) {
-        // [33] Проверка удачной телепортации
-        if (features.hasLuckyTeleport(p.getUniqueId())) {
-            Location safeLoc = findSafeLocation(p);
-            if (safeLoc != null) {
-                p.teleport(safeLoc);
-                p.sendMessage(ChatColor.GREEN + "🍀 Удачная телепортация! Бесплатно!");
-                p.playSound(p.getLocation(), Sound.UI_TOAST_CHALLENGE_COMPLETE, 1f, 1f);
-                features.recordTeleport(p.getUniqueId(), (int) p.getLocation().distance(safeLoc));
-                return;
-            }
-        }
-
         int currentRep = VKChatPlugin.getInstance().getApi().getReputation(vkId);
-        int cost = plugin.getConfig().getInt("teleportation.rtp.cost", 50);
+        int cost = plugin.getConfig().getInt("teleportation.rtp.cost", 250);
         cost = Math.max(1, applyDonateDiscount(p, cost));
-
-        // [25] Скидка за достижения
-        double achDiscount = features.getAchievementDiscount(p.getUniqueId());
-        if (achDiscount > 0) {
-            cost = (int) (cost * (1.0 - achDiscount));
-        }
-
-        // [34] Сезонный множитель
-        cost = (int) (cost * features.getSeasonalMultiplier());
 
         int cooldown = getDonateCooldown(p, "rtp");
 
@@ -187,13 +166,10 @@ public class TeleportCommand implements CommandExecutor, TabCompleter {
             return;
         }
 
-        int distance = (int) p.getLocation().distance(safeLoc);
-        features.recordTeleport(p.getUniqueId(), distance);
-
         plugin.getTeleportManager().startTeleportWarmup(
                 p,
                 safeLoc,
-                ChatColor.GREEN + "✨ Телепортация за " + ChatColor.GOLD + cost + ChatColor.GREEN + " реп! (" + distance + " блоков)",
+                ChatColor.GREEN + "✨ Телепортация за " + ChatColor.GOLD + cost + ChatColor.GREEN + " реп!",
                 cost,
                 "rtp",
                 null
@@ -212,7 +188,7 @@ public class TeleportCommand implements CommandExecutor, TabCompleter {
     }
 
     private int getDonateCooldown(Player p, String type) {
-        int defaultCooldown = plugin.getConfig().getInt("teleportation." + type + ".cooldown", 3600);
+        int defaultCooldown = plugin.getConfig().getInt("teleportation." + type + ".cooldown", 60);
         if (p.hasPermission("vkchat.donate.teleport.legend") || p.hasPermission("vkchat.donate.status.legend"))
             return plugin.getConfig().getInt("teleportation.donate-cooldown." + type + ".legend", defaultCooldown);
         if (p.hasPermission("vkchat.donate.teleport.star") || p.hasPermission("vkchat.donate.status.star"))
@@ -381,7 +357,7 @@ public class TeleportCommand implements CommandExecutor, TabCompleter {
         }
 
         int currentRep = VKChatPlugin.getInstance().getApi().getReputation(vkId);
-        int cost = plugin.getConfig().getInt("teleportation.home.cost", 25);
+        int cost = plugin.getConfig().getInt("teleportation.home.cost", 250);
         cost = Math.max(1, applyDonateDiscount(p, cost));
 
         int cooldown = getDonateCooldown(p, "home");
@@ -467,7 +443,7 @@ public class TeleportCommand implements CommandExecutor, TabCompleter {
         }
 
         int currentRep = VKChatPlugin.getInstance().getApi().getReputation(vkId);
-        int cost = plugin.getConfig().getInt("teleportation.tpa.cost", 75);
+        int cost = plugin.getConfig().getInt("teleportation.tpa.cost", 250);
         cost = Math.max(1, applyDonateDiscount(p, cost));
 
         int cooldown = getDonateCooldown(p, "tpa");
