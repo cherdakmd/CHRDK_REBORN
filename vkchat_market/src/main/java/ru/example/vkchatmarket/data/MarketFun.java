@@ -218,6 +218,10 @@ public class MarketFun {
 
         // Нижний ряд
         inv.setItem(45, actionItem(Material.ARROW, ChatColor.WHITE + "🏠 Назад", ""));
+        inv.setItem(47, actionItem(Material.ENDER_CHEST, ChatColor.LIGHT_PURPLE + "📦 Призы из ВК",
+                "Забрать выигранные предметы",
+                plugin.getVKRouletteListener() != null && plugin.getVKRouletteListener().hasPendingItems(vkId) ?
+                        ChatColor.GREEN + "Есть призы!" : ChatColor.GRAY + "Нет призов"));
         inv.setItem(49, actionItem(Material.CHEST, ChatColor.GOLD + "🎁 Мистический бокс",
                 "Боксов: " + mysteryBox.getOrDefault(p.getName(), 0)));
         inv.setItem(53, actionItem(Material.COMPASS, ChatColor.AQUA + "📋 Квест дня",
@@ -316,6 +320,9 @@ public class MarketFun {
                 break;
             case 45: // Назад
                 MarketGuiListener.openCategoryMenu(plugin, p);
+                break;
+            case 47: // Призы из ВК
+                claimVKPrizes(p);
                 break;
             case 49: // Мистический бокс
                 openMysteryBox(p);
@@ -798,6 +805,58 @@ public class MarketFun {
                 p.sendMessage(ChatColor.GRAY + "💀 Бокс оказался пустым...");
             }
         }, 40L);
+    }
+
+    // ========================================
+    // ЗАБОР ПРИЗОВ ИЗ VK РУЛЕТКИ
+    // ========================================
+
+    public void claimVKPrizes(Player p) {
+        if (plugin.getVKRouletteListener() == null) {
+            p.sendMessage(ChatColor.RED + "Модуль рулетки не загружен!");
+            return;
+        }
+
+        int vkId = VKChatPlugin.getInstance().getApi().getLinkedVkId(p);
+        if (vkId == -1) {
+            p.sendMessage(ChatColor.RED + "Привяжи ВК (/vklink)!");
+            return;
+        }
+
+        if (!plugin.getVKRouletteListener().hasPendingItems(vkId)) {
+            p.sendMessage(ChatColor.GRAY + "Нет ожидающих предметов. Играй в рулетку в ВК!");
+            return;
+        }
+
+        java.util.List<String> items = plugin.getVKRouletteListener().takePendingItems(vkId);
+        if (items == null || items.isEmpty()) {
+            p.sendMessage(ChatColor.GRAY + "Нет предметов.");
+            return;
+        }
+
+        int given = 0;
+        int lost = 0;
+        for (String item : items) {
+            String[] parts = item.split(";");
+            try {
+                Material mat = Material.valueOf(parts[0]);
+                int amount = Integer.parseInt(parts[1]);
+                if (p.getInventory().addItem(new org.bukkit.inventory.ItemStack(mat, amount)).isEmpty()) {
+                    given++;
+                } else {
+                    lost++;
+                }
+            } catch (Exception e) {
+                lost++;
+            }
+        }
+
+        p.sendMessage(ChatColor.GREEN + "📦 Получено предметов: " + given);
+        if (lost > 0) {
+            p.sendMessage(ChatColor.RED + "⚠ Не удалось выдать: " + lost + " (инвентарь полон)");
+        }
+        p.playSound(p.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1f, 1f);
+        openBetGUI(p);
     }
 
     // ========================================
