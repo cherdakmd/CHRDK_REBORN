@@ -462,7 +462,7 @@ public class AdventureManager implements Listener {
         sb.append("⛺ CHRDK ADVENTURES\n\n");
         sb.append("👤 ").append(className(getPlayerClass(vkId))).append(" | ").append(companionName(getCompanion(vkId))).append("\n");
         sb.append("LVL ").append(getAdvLevel(vkId)).append(" | XP ").append(getAdvXp(vkId)).append("/").append(xpToNext(getAdvLevel(vkId))).append("\n");
-        sb.append("🎒 Лут: /stash | 🗝 ключи в тайнике\n");
+        sb.append("🎒 Лут: /stash\n");
         sb.append("☠ Смерть: штраф, кулдаун и травма\n");
         sb.append("🛒 Магазин: !магазин | Навыки: !навыки\n");
         sb.append("📖 Кампания: !кампания | 🧠 Психика: !психика | 🏥 Госпиталь: !госпиталь\n\n");
@@ -1884,7 +1884,7 @@ public class AdventureManager implements Listener {
         String text;
         switch (q) {
             case 1: text = "❓ Начало: выйди с сервера, напиши !поход, выбери маршрут кнопкой."; break;
-            case 2: text = "🗺 Маршруты открываются ключами. Закрытый маршрут можно открыть командой !открыть <id>, если ключ лежит в /stash."; break;
+            case 2: text = "🗺 Маршруты открываются с уровнем. Прокачивай героя в походах!"; break;
             case 3: text = "⏳ Статус: !статуспохода. Бот пишет только когда нужен выбор."; break;
             case 4: text = "🎒 Награды: репутация начисляется в ВК, предметы идут в тайник. Смотри !тайник, забирай /stash."; break;
             case 5: text = "☠ Смерть: потеря репутации, кулдаун, травма, наград нет."; break;

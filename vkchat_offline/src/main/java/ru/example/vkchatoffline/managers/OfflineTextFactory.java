@@ -17,13 +17,14 @@ public final class OfflineTextFactory {
         int cost = config.getInt(path + "cost", 0);
         int death = config.getInt(path + "death-chance", 5);
         int difficulty = config.getInt(path + "difficulty", 1);
+        int requiredLevel = config.getInt(path + "required-level", 1);
         StringBuilder sb = new StringBuilder();
         sb.append(unlocked ? "✅ " : "🔒 ").append(routeEmoji(key)).append(" ")
                 .append(config.getString(path + "name", key)).append("\n");
         sb.append("   ").append(difficultyStars(difficulty)).append(" | ").append(stages).append(" эт.")
                 .append(" | ").append(cost).append(" реп.")
                 .append(" | смерть ").append(death).append("%\n");
-        if (!unlocked) sb.append("   ключ: ").append(cleanKeyName).append("\n");
+        if (!unlocked) sb.append("   🎖 Требуется уровень: ").append(requiredLevel).append("\n");
         return sb.toString();
     }
 
