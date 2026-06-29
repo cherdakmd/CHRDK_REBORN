@@ -6,33 +6,41 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadLocalRandom;
 
+/**
+ * VK Рулетка v2.0 — Полная переработка
+ * 
+ * Фичи:
+ * 1. Выбор ставки кнопками
+ * 2. Обычная крутка
+ * 3. Русская рулетка (x3)
+ * 4. Double or Nothing
+ * 5. Стрики (+10% за победу)
+ * 6. Счастливое число
+ * 7. Токены
+ * 8. Предметы в ожидающие
+ * 9. Статистика
+ * 10. Лидерборд
+ * 11. Анимация
+ * 12. Настраиваемый КД
+ */
 public class VKRouletteManager {
     private final VKChatPlugin plugin;
 
-    // Ставки
     private final Map<Integer, Integer> bets = new ConcurrentHashMap<>();
-    // Кулдаун
     private final Map<Integer, Long> cooldown = new ConcurrentHashMap<>();
-    // Double or Nothing
     private final Map<Integer, Double> doubleOrNothing = new ConcurrentHashMap<>();
-    // Стрики
     private final Map<Integer, Integer> winStreak = new ConcurrentHashMap<>();
-    // Статистика
     private final Map<Integer, Integer> totalSpins = new ConcurrentHashMap<>();
     private final Map<Integer, Integer> totalWins = new ConcurrentHashMap<>();
     private final Map<Integer, Integer> totalRepWon = new ConcurrentHashMap<>();
     private final Map<Integer, Integer> totalRepLost = new ConcurrentHashMap<>();
-    // Токены
     private final Map<Integer, Integer> tokens = new ConcurrentHashMap<>();
-    // Счастливое число
     private final Map<Integer, Integer> luckyNumber = new ConcurrentHashMap<>();
-    // Анимация
     private final Set<Integer> spinning = ConcurrentHashMap.newKeySet();
-    // Ожидающие предметы (vkId -> список "MATERIAL;amount")
     private final Map<Integer, List<String>> pendingItems = new ConcurrentHashMap<>();
+    private int jackpotPool = 5000;
 
-    // Призы
-    private static final String[][] NORMAL_PRIZES = {
+    private static final String[][] PRIZES = {
         {"💎 Алмаз", "item", "DIAMOND;1"},
         {"🔮 Эндер-жемчуг x3", "item", "ENDER_PEARL;3"},
         {"🔥 Огненный стержень x2", "item", "BLAZE_ROD;2"},
@@ -42,11 +50,11 @@ public class VKRouletteManager {
         {"🧪 Опыт-бутылки x10", "item", "EXPERIENCE_BOTTLE;10"},
         {"🪙 +200 реп", "rep", "200"},
         {"💰 +500 реп", "rep", "500"},
-        {"🏆 ДЖЕКПОТ!", "jackpot", "2000"},
+        {"🏆 ДЖЕКПОТ!", "jackpot", "0"},
         {"💀 Пусто", "empty", "0"},
         {"🪙 +100 реп", "rep", "100"},
         {"🍎 Золотое яблоко x2", "item", "GOLDEN_APPLE;2"},
-        {"✨ Мистический +300 реп", "rep", "300"},
+        {"✨ +300 реп", "rep", "300"},
         {"🍀 Счастливое число", "lucky", "0"},
         {"🎟 Токены x3", "token", "3"},
         {"🧊 Алмазный блок", "item", "DIAMOND_BLOCK;1"},
@@ -56,7 +64,7 @@ public class VKRouletteManager {
     private static final String[][] RUSSIAN_PRIZES = {
         {"💎💎 Алмаз x3", "item", "DIAMOND;3"},
         {"💀💀 НЕЗЕРИТОВЫЙ СЛИТОК", "item", "NETHERITE_INGOT;1"},
-        {"🏆 ДЖЕКПОТ x2!", "jackpot", "5000"},
+        {"🏆 ДЖЕКПОТ x2!", "jackpot", "0"},
         {"💰 +1000 реп", "rep", "1000"},
         {"💀 ПОТЕРЯЛ 500 реп!", "death", "-500"},
         {"🍎 Золотое яблоко x5", "item", "GOLDEN_APPLE;5"},
@@ -66,20 +74,15 @@ public class VKRouletteManager {
         {"🪙 +300 реп", "rep", "300"},
         {"💀 -200 реп", "death", "-200"},
         {"🔮 Эндер-жемчуг x16", "item", "ENDER_PEARL;16"},
-        {"⚔ Алмазный меч x2", "item", "DIAMOND_SWORD;2"},
     };
 
     public VKRouletteManager(VKChatPlugin plugin) {
         this.plugin = plugin;
     }
 
-    // ========================================
-    // ГЛАВНОЕ МЕНЮ
-    // ========================================
+    // ═══ ГЛАВНОЕ МЕНЮ ═══
 
     public void openMainMenu(int fromId, int peer) {
-        plugin.getLogger().info("[Roulette] openMainMenu: fromId=" + fromId + " peer=" + peer + " isDM=" + (peer < 2000000000));
-
         if (peer >= 2000000000) {
             plugin.getVkManager().sendMessage(peer, "🎰 Рулетка работает только в ЛС бота!");
             return;
@@ -94,31 +97,27 @@ public class VKRouletteManager {
         List<String> pending = pendingItems.get(fromId);
 
         StringBuilder msg = new StringBuilder();
-        msg.append("╔═══════════════════════════╗\n");
-        msg.append("║     🎰 РУЛЕТКА 🎰         ║\n");
-        msg.append("╚═══════════════════════════╝\n\n");
+        msg.append("╔═══════════════════════╗\n");
+        msg.append("║    🎰 РУЛЕТКА 🎰      ║\n");
+        msg.append("╚═══════════════════════╝\n\n");
         msg.append("💰 Баланс: ").append(rep).append(" реп\n");
         msg.append("🎯 Ставка: ").append(bet).append(" реп\n");
         msg.append("🔥 Стрик: ").append(streak).append("\n");
         msg.append("🎟 Токены: ").append(tok).append("\n");
         msg.append("📊 Винрейт: ").append(spins > 0 ? (wins * 100 / spins) : 0).append("%\n");
+        msg.append("🏆 Джекпот: ").append(jackpotPool).append(" реп\n");
 
         if (pending != null && !pending.isEmpty()) {
-            msg.append("\n📦 Предметов ждёт: ").append(pending.size()).append(" (/рулетка)");
+            msg.append("\n📦 Призов ждёт: ").append(pending.size()).append(" (!рулеткапризы)");
         }
 
         msg.append("\n\nВыбери действие:");
-
         plugin.getVkManager().sendKeyboard(peer, msg.toString(), VKKeyboardBuilder.rouletteMenu(bet));
     }
 
-    // ========================================
-    // ОБРАБОТКА КОМАНД
-    // ========================================
+    // ═══ ОБРАБОТКА КОМАНД ═══
 
     public void handleCommand(int fromId, int peer, String cmd) {
-        plugin.getLogger().info("[Roulette] Команда: " + cmd + " от " + fromId + " peer=" + peer);
-
         if (cmd.equals("!рулетка") || cmd.equals("!roulette")) {
             openMainMenu(fromId, peer);
         } else if (cmd.equals("!рулеткакрутить") || cmd.equals("!rspin")) {
@@ -131,7 +130,7 @@ public class VKRouletteManager {
             showStats(fromId, peer);
         } else if (cmd.equals("!рулеткатоп") || cmd.equals("!rtop")) {
             showTop(peer);
-        } else if (cmd.startsWith("!ставка") || cmd.equals("!rbet")) {
+        } else if (cmd.startsWith("!ставка")) {
             handleBet(fromId, peer, cmd);
         } else if (cmd.equals("!рулеткалаки") || cmd.equals("!rlucky")) {
             setLuckyNumber(fromId, peer);
@@ -142,9 +141,7 @@ public class VKRouletteManager {
         }
     }
 
-    // ========================================
-    // СТАВКА
-    // ========================================
+    // ═══ СТАВКА ═══
 
     private void handleBet(int fromId, int peer, String cmd) {
         try {
@@ -162,9 +159,7 @@ public class VKRouletteManager {
         }
     }
 
-    // ========================================
-    // КРУТКА
-    // ========================================
+    // ═══ КРУТКА ═══
 
     public void spin(int fromId, int peer, String mode) {
         if (spinning.contains(fromId)) {
@@ -175,12 +170,15 @@ public class VKRouletteManager {
         int bet = bets.getOrDefault(fromId, 500);
         if (mode.equals("russian")) bet *= 3;
 
-        long cooldownMs = 60000;
+        // КД из конфига (по умолчанию 5 сек)
+        long cooldownMs = plugin.getConfig().getLong("roulette.vk-cooldown-ms", 5000);
         Long last = cooldown.get(fromId);
         if (last != null && System.currentTimeMillis() - last < cooldownMs) {
             long remaining = (cooldownMs - (System.currentTimeMillis() - last)) / 1000;
-            plugin.getVkManager().sendMessage(peer, "⏳ Подожди " + remaining + " сек.");
-            return;
+            if (remaining > 0) {
+                plugin.getVkManager().sendMessage(peer, "⏳ Подожди " + remaining + " сек.");
+                return;
+            }
         }
 
         int rep = plugin.getReputationManager().getPoints(fromId);
@@ -193,18 +191,14 @@ public class VKRouletteManager {
         cooldown.put(fromId, System.currentTimeMillis());
         totalSpins.merge(fromId, 1, Integer::sum);
         spinning.add(fromId);
+        jackpotPool += bet / 10;
 
         // Анимация
-        String header;
-        if (mode.equals("russian")) {
-            header = "☠ ═══ РУССКАЯ РУЛЕТКА ═══\n💰 Ставка: " + bet + " реп\n⚠ Шанс выжить: 50%";
-        } else {
-            header = "🎰 ═══ РУЛЕТКА ═══\n💰 Ставка: " + bet + " реп";
-        }
-
+        String header = mode.equals("russian") ?
+            "☠ ═══ РУССКАЯ РУЛЕТКА ═══\n💰 Ставка: " + bet + " реп\n⚠ Шанс выжить: 50%" :
+            "🎰 ═══ РУЛЕТКА ═══\n💰 Ставка: " + bet + " реп";
         plugin.getVkManager().sendMessage(peer, header);
 
-        // Кадры анимации
         String[][] frames = {
             {"🎰", "💎", "🍀", "⭐", "🔥"},
             {"💎", "⭐", "🔥", "💰", "🎰"},
@@ -219,37 +213,31 @@ public class VKRouletteManager {
                 @Override
                 public void run() {
                     StringBuilder anim = new StringBuilder();
-                    for (String s : frames[frame]) {
-                        anim.append(s).append(" ");
-                    }
+                    for (String s : frames[frame]) anim.append(s).append(" ");
                     plugin.getVkManager().sendMessage(peer, anim.toString());
                 }
             }, 500L + i * 400L);
         }
 
-        // Результат через 3 сек
         final int finalBet = bet;
-        final String finalMode = mode;
         new java.util.Timer().schedule(new java.util.TimerTask() {
             @Override
             public void run() {
                 spinning.remove(fromId);
-                processResult(fromId, peer, finalMode, finalBet);
+                processResult(fromId, peer, mode, finalBet);
             }
         }, 3000L);
     }
 
     private void processResult(int fromId, int peer, String mode, int bet) {
-        String[][] prizes = mode.equals("russian") ? RUSSIAN_PRIZES : NORMAL_PRIZES;
+        String[][] prizes = mode.equals("russian") ? RUSSIAN_PRIZES : PRIZES;
         String[] prize = prizes[ThreadLocalRandom.current().nextInt(prizes.length)];
-
         String name = prize[0];
         String type = prize[1];
         String data = prize[2];
 
         int streak = winStreak.getOrDefault(fromId, 0);
         double mult = 1.0 + (streak * 0.1);
-
         int lucky = luckyNumber.getOrDefault(fromId, 0);
         boolean isLucky = lucky > 0 && ThreadLocalRandom.current().nextInt(100) < lucky;
 
@@ -261,39 +249,34 @@ public class VKRouletteManager {
             winStreak.put(fromId, 0);
         }
 
-        StringBuilder result = new StringBuilder();
-        result.append("\n");
+        StringBuilder result = new StringBuilder("\n");
 
         if (type.equals("death")) {
             int loss = Math.abs(Integer.parseInt(data));
             plugin.getReputationManager().deductPoints(fromId, loss);
             totalRepLost.merge(fromId, loss, Integer::sum);
-            result.append("💀 ").append(name).append("\n");
-            result.append("📉 -").append(loss).append(" реп!\n");
+            result.append("💀 ").append(name).append("\n📉 -").append(loss).append(" реп!\n");
             result.append("💰 Баланс: ").append(plugin.getReputationManager().getPoints(fromId));
 
         } else if (type.equals("jackpot")) {
-            int jackpot = (int) (Integer.parseInt(data) * mult);
+            int jackpot = (int) (jackpotPool * mult);
             if (isLucky) jackpot = (int) (jackpot * 1.5);
             plugin.getReputationManager().addPoints(fromId, jackpot);
             totalRepWon.merge(fromId, jackpot, Integer::sum);
-            result.append("🏆💰 ").append(name).append("\n");
-            result.append("🎉 +").append(jackpot).append(" реп!\n");
+            jackpotPool = 5000;
+            result.append("🏆💰 ").append(name).append("\n🎉 +").append(jackpot).append(" реп!\n");
             result.append("💰 Баланс: ").append(plugin.getReputationManager().getPoints(fromId));
             plugin.getVkManager().sendToMainChat("🏆 Игрок сорвал ДЖЕКПОТ в рулетке: +" + jackpot + " реп!");
 
         } else if (type.equals("token")) {
             int tok = Integer.parseInt(data);
             tokens.merge(fromId, tok, Integer::sum);
-            result.append("🎟 ").append(name).append("\n");
-            result.append("🎟 +").append(tok).append(" токенов!\n");
-            result.append("💰 Всего: ").append(tokens.get(fromId));
+            result.append("🎟 ").append(name).append("\n🎟 +").append(tok).append(" токенов!");
 
         } else if (type.equals("lucky")) {
             int num = 10 + ThreadLocalRandom.current().nextInt(40);
             luckyNumber.put(fromId, num);
-            result.append("🍀 ").append(name).append("\n");
-            result.append("🍀 Шанс: ").append(num).append("% на x1.5!");
+            result.append("🍀 ").append(name).append("\n🍀 Шанс: ").append(num).append("% на x1.5!");
 
         } else if (type.equals("rep")) {
             int bonus = (int) (Integer.parseInt(data) * mult);
@@ -303,41 +286,31 @@ public class VKRouletteManager {
             }
             plugin.getReputationManager().addPoints(fromId, bonus);
             totalRepWon.merge(fromId, bonus, Integer::sum);
-            result.append("🪙 ").append(name).append("\n");
-            result.append("🎉 +").append(bonus).append(" реп!\n");
+            result.append("🪙 ").append(name).append("\n🎉 +").append(bonus).append(" реп!\n");
             result.append("💰 Баланс: ").append(plugin.getReputationManager().getPoints(fromId));
 
         } else if (type.equals("item")) {
             pendingItems.putIfAbsent(fromId, new ArrayList<>());
             pendingItems.get(fromId).add(data);
-            result.append("🎉 ").append(name).append("\n");
-            result.append("📦 Предмет готов! Забери на сервере: /рулетка\n");
-            result.append("📦 Всего предметов: ").append(pendingItems.get(fromId).size());
+            result.append("🎉 ").append(name).append("\n📦 Предмет готов! Забери: /рулетка\n");
+            result.append("📦 Всего: ").append(pendingItems.get(fromId).size());
 
         } else {
-            result.append("💀 ").append(name).append("\n");
-            result.append("😅 В следующий раз повезёт!");
+            result.append("💀 ").append(name).append("\n😅 В следующий раз повезёт!");
             if (ThreadLocalRandom.current().nextDouble() < 0.3) {
                 doubleOrNothing.put(fromId, 0.0);
-                result.append("\n\n⚡ Double or Nothing? Напиши !рулеткадабл");
+                result.append("\n\n⚡ Double or Nothing? !рулеткадабл");
             }
         }
 
         int newStreak = winStreak.getOrDefault(fromId, 0);
-        if (newStreak > 1) {
-            result.append("\n🔥 Стрик: x").append(newStreak);
-        }
-
-        if (isLucky && !type.equals("lucky")) {
-            result.append("\n🍀 Удача сработала!");
-        }
+        if (newStreak > 1) result.append("\n🔥 Стрик: x").append(newStreak);
+        if (isLucky && !type.equals("lucky")) result.append("\n🍀 Удача сработала!");
 
         plugin.getVkManager().sendKeyboard(peer, result.toString(), VKKeyboardBuilder.rouletteAfterSpin());
     }
 
-    // ========================================
-    // DOUBLE OR NOTHING
-    // ========================================
+    // ═══ DOUBLE OR NOTHING ═══
 
     private void doubleOrNothing(int fromId, int peer) {
         Double pending = this.doubleOrNothing.remove(fromId);
@@ -346,7 +319,7 @@ public class VKRouletteManager {
             return;
         }
 
-        plugin.getVkManager().sendMessage(peer, "⚡ ═══ DOUBLE OR NOTHING ═══\n\nКрутится...");
+        plugin.getVkManager().sendMessage(peer, "⚡ DOUBLE OR NOTHING...\nКрутится...");
 
         new java.util.Timer().schedule(new java.util.TimerTask() {
             @Override
@@ -357,23 +330,21 @@ public class VKRouletteManager {
                     plugin.getReputationManager().addPoints(fromId, bonus);
                     totalRepWon.merge(fromId, bonus, Integer::sum);
                     plugin.getVkManager().sendKeyboard(peer,
-                            "🎉 ═══ DOUBLE! ═══\n\n✅ +" + bonus + " реп!\n💰 Баланс: " + plugin.getReputationManager().getPoints(fromId),
+                            "🎉 DOUBLE! +" + bonus + " реп!\n💰 Баланс: " + plugin.getReputationManager().getPoints(fromId),
                             VKKeyboardBuilder.rouletteAfterSpin());
                 } else {
                     int loss = 100 + ThreadLocalRandom.current().nextInt(300);
                     plugin.getReputationManager().deductPoints(fromId, loss);
                     totalRepLost.merge(fromId, loss, Integer::sum);
                     plugin.getVkManager().sendKeyboard(peer,
-                            "💀 ═══ NOTHING! ═══\n\n❌ -" + loss + " реп!\n💰 Баланс: " + plugin.getReputationManager().getPoints(fromId),
+                            "💀 NOTHING! -" + loss + " реп!\n💰 Баланс: " + plugin.getReputationManager().getPoints(fromId),
                             VKKeyboardBuilder.rouletteAfterSpin());
                 }
             }
         }, 2000);
     }
 
-    // ========================================
-    // СТАТИСТИКА
-    // ========================================
+    // ═══ СТАТИСТИКА ═══
 
     private void showStats(int fromId, int peer) {
         int spins = totalSpins.getOrDefault(fromId, 0);
@@ -392,7 +363,8 @@ public class VKRouletteManager {
                 "🔥 Стрик: " + streak + "\n" +
                 "🎟 Токены: " + tok + "\n" +
                 "🍀 Удача: " + (lucky > 0 ? lucky + "%" : "нет") + "\n" +
-                "📊 Винрейт: " + (spins > 0 ? (wins * 100 / spins) : 0) + "%";
+                "📊 Винрейт: " + (spins > 0 ? (wins * 100 / spins) : 0) + "%\n" +
+                "🏆 Джекпот: " + jackpotPool + " реп";
 
         plugin.getVkManager().sendKeyboard(peer, msg, VKKeyboardBuilder.rouletteAfterSpin());
     }
@@ -406,17 +378,11 @@ public class VKRouletteManager {
             Map.Entry<Integer, Integer> entry = sorted.get(i);
             msg.append(i + 1).append(". ID").append(entry.getKey()).append(" — +").append(entry.getValue()).append(" реп\n");
         }
-
-        if (sorted.isEmpty()) {
-            msg.append("Пока нет данных.");
-        }
-
+        if (sorted.isEmpty()) msg.append("Пока нет данных.");
         plugin.getVkManager().sendMessage(peer, msg.toString());
     }
 
-    // ========================================
-    // СЧАСТЛИВОЕ ЧИСЛО И ТОКЕНЫ
-    // ========================================
+    // ═══ СЧАСТЛИВОЕ ЧИСЛО И ТОКЕНЫ ═══
 
     private void setLuckyNumber(int fromId, int peer) {
         int num = 5 + ThreadLocalRandom.current().nextInt(45);
@@ -428,12 +394,10 @@ public class VKRouletteManager {
 
     private void showTokens(int fromId, int peer) {
         int tok = tokens.getOrDefault(fromId, 0);
-        plugin.getVkManager().sendMessage(peer, "🎟 Токены: " + tok + "\n\nНужно 5 для бесплатного спина\nЗарабатываешь за торговлю на рынке");
+        plugin.getVkManager().sendMessage(peer, "🎟 Токены: " + tok + "\n\nЗарабатываешь за торговлю на рынке");
     }
 
-    // ========================================
-    // ОЖИДАЮЩИЕ ПРЕДМЕТЫ
-    // ========================================
+    // ═══ ОЖИДАЮЩИЕ ПРЕДМЕТЫ ═══
 
     private void showPendingItems(int fromId, int peer) {
         List<String> items = pendingItems.get(fromId);
@@ -442,10 +406,7 @@ public class VKRouletteManager {
             return;
         }
 
-        StringBuilder msg = new StringBuilder();
-        msg.append("📦 ═══ ТВОИ ПРИЗЫ ═══\n\n");
-        msg.append("Забери в игре: /рулетка\n\n");
-
+        StringBuilder msg = new StringBuilder("📦 ═══ ТВОИ ПРИЗЫ ═══\n\nЗабери в игре: /рулетка\n\n");
         Map<String, Integer> grouped = new LinkedHashMap<>();
         for (String item : items) {
             String[] parts = item.split(";");
@@ -456,15 +417,11 @@ public class VKRouletteManager {
         for (Map.Entry<String, Integer> entry : grouped.entrySet()) {
             msg.append(i++).append(". ").append(entry.getKey()).append(" x").append(entry.getValue()).append("\n");
         }
-
         msg.append("\nВсего: ").append(items.size()).append(" приз(ов)");
-
         plugin.getVkManager().sendMessage(peer, msg.toString());
     }
 
-    // ========================================
-    // ПУБЛИЧНЫЕ МЕТОДЫ
-    // ========================================
+    // ═══ ПУБЛИЧНЫЕ МЕТОДЫ ═══
 
     public List<String> takePendingItems(int vkId) {
         return pendingItems.remove(vkId);
