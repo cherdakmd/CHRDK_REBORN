@@ -280,6 +280,15 @@ public class MarketGuiListener implements Listener {
 
     @EventHandler
     public void onClick(InventoryClickEvent e) {
+        // Обработка кликов в GUI рулетки (отдельный заголовок)
+        if (e.getView().getTitle().contains("Рулетка")) {
+            e.setCancelled(true);
+            if (!(e.getWhoClicked() instanceof Player)) return;
+            Player p = (Player) e.getWhoClicked();
+            plugin.getMarketFun().handleGUIClick(p, e.getRawSlot());
+            return;
+        }
+
         String baseTitle = ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("settings.gui-title", "&8Динамический Рынок"));
         if (!e.getView().getTitle().startsWith(baseTitle)) return;
         e.setCancelled(true);
@@ -299,13 +308,6 @@ public class MarketGuiListener implements Listener {
         if (meta.getPersistentDataContainer().has(rouletteKey, PersistentDataType.INTEGER)) {
             e.setCancelled(true);
             plugin.getMarketFun().openBetGUI(p);
-            return;
-        }
-
-        // Обработка кликов в GUI рулетки
-        if (e.getView().getTitle().contains("🎰 Рулетка")) {
-            e.setCancelled(true);
-            plugin.getMarketFun().handleGUIClick(p, e.getRawSlot());
             return;
         }
 
