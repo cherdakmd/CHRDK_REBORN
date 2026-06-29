@@ -109,6 +109,12 @@ public class VKRouletteManager {
             return;
         }
 
+        // Обработка числа как ставки (например "1000")
+        if (cmd.matches("\\d+")) {
+            handleBet(fromId, peer, "!ставка " + cmd);
+            return;
+        }
+
         if (cmd.equals("!рулетка") || cmd.equals("!roulette")) {
             openMainMenu(fromId, peer);
         } else if (cmd.equals("!рулеткакрутить") || cmd.equals("!rspin")) {
@@ -136,8 +142,13 @@ public class VKRouletteManager {
 
     private void handleBet(int fromId, int peer, String cmd) {
         try {
-            String[] parts = cmd.split(" ");
-            int bet = Integer.parseInt(parts[parts.length - 1]);
+            // Извлекаем число из команды
+            String numStr = cmd.replaceAll("[^0-9]", "").trim();
+            if (numStr.isEmpty()) {
+                plugin.getVkManager().sendMessage(peer, "❌ Формат: !ставка 500");
+                return;
+            }
+            int bet = Integer.parseInt(numStr);
             if (bet < 100 || bet > 10000) {
                 plugin.getVkManager().sendMessage(peer, "❌ Ставка: 100-10000 реп!");
                 return;
