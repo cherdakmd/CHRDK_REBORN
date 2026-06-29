@@ -500,10 +500,12 @@ public class AdventureManager implements Listener {
         ConfigurationSection route = plugin.getConfig().getConfigurationSection("adventures." + key);
         if (route == null) { api().sendMessage(vkId, "❌ Маршрут не найден. Напиши !поход."); return; }
         if (!isRouteUnlocked(vkId, key)) {
+            int requiredLevel = plugin.getConfig().getInt("adventures." + key + ".required-level", 999);
+            int playerLevel = progressManager.getAdvLevel(vkId);
             api().sendKeyboard(vkId, "🔒 Маршрут закрыт\n\n" +
                     routeEmoji(key) + " " + route.getString("name", key) + "\n" +
-                    "🗝 Нужен ключ: " + cleanKeyName(key) + "\n\n" +
-                    "Если ключ в тайнике — нажми «Открыть».", keyboardUnlock(key));
+                    "🎖 Нужен уровень: " + requiredLevel + " (у тебя " + playerLevel + ")\n\n" +
+                    "Прокачивайся в походах!", keyboardMain());
             return;
         }
 
@@ -1643,13 +1645,13 @@ public class AdventureManager implements Listener {
     }
 
     private void maybeDropKey(ActiveAdventure adv, StringBuilder msg) {
-        List<String> keys = plugin.getConfig().getStringList("adventures." + adv.route + ".reward.keys");
-        for (String key : keys) {
-            if (!isRouteUnlocked(adv.vkId, key) && ThreadLocalRandom.current().nextInt(100) < plugin.getConfig().getInt("key-drop-chance", 18)) {
-                plugin.getStashManager().addItem(adv.uuid, plugin.getStashManager().namedKey(keyName(key)));
-                msg.append("🗝 Найден ключ: ").append(cleanKeyName(key)).append("\n");
-                msg.append("📦 Ключ отправлен в /stash.\n");
-                break;
+        // Система ключей заменена на уровни. Бонусный XP за удачу.
+        if (ThreadLocalRandom.current().nextInt(100) < 25) {
+            int bonusXp = 10 + ThreadLocalRandom.current().nextInt(20);
+            int levels = progressManager.addAdventureXp(adv.vkId, bonusXp);
+            msg.append("⭐ Бонусный опыт: +").append(bonusXp).append(" XP\n");
+            if (levels > 0) {
+                msg.append("🎖 Уровень повышен! Новые маршруты могут открыться!\n");
             }
         }
     }
@@ -1901,9 +1903,15 @@ public class AdventureManager implements Listener {
         if (route.isEmpty()) { api().sendMessage(vkId, "Использование: !открыть <route>"); return; }
         if (isRouteUnlocked(vkId, route)) { api().sendMessage(vkId, "✅ Этот маршрут уже открыт."); return; }
         if (plugin.getConfig().getConfigurationSection("adventures." + route) == null) { api().sendMessage(vkId, "❌ Маршрут не найден: " + route); return; }
-        if (!plugin.getStashManager().consumeNamedItem(uuid, Material.TRIPWIRE_HOOK, keyName(route))) {
-            api().sendMessage(vkId, "❌ В тайнике нет ключа: " + cleanKeyName(route)); return;
+
+        // Проверка уровня
+        int requiredLevel = plugin.getConfig().getInt("adventures." + route + ".required-level", 999);
+        int playerLevel = progressManager.getAdvLevel(vkId);
+        if (playerLevel < requiredLevel) {
+            api().sendMessage(vkId, "🔒 Нужен уровень походника: " + requiredLevel + " (у тебя " + playerLevel + ")");
+            return;
         }
+
         data.set("unlocks." + vkId + "." + route, true);
         saveAll();
         api().sendKeyboard(vkId, "🔓 Маршрут открыт\n\n" +
@@ -2234,7 +2242,18 @@ public class AdventureManager implements Listener {
     }
 
     private boolean isVkAdmin(int vkId) { return plugin.getConfig().getIntegerList("vk-admins").contains(vkId); }
-    private boolean isRouteUnlocked(int vkId, String route) { return plugin.getConfig().getBoolean("adventures." + route + ".default-unlocked", false) || data.getBoolean("unlocks." + vkId + "." + route, false); }
+    private boolean isRouteUnlocked(int vkId, String route) {
+        if (plugin.getConfig().getBoolean("adventures." + route + ".default-unlocked", false)) return true;
+        if (data.getBoolean("unlocks." + vkId + "." + route, false)) return true;
+        // Авто-открытие по уровню
+        int requiredLevel = plugin.getConfig().getInt("adventures." + route + ".required-level", 999);
+        int playerLevel = progressManager.getAdvLevel(vkId);
+        if (playerLevel >= requiredLevel) {
+            data.set("unlocks." + vkId + "." + route, true);
+            return true;
+        }
+        return false;
+    }
     private String keyName(String route) { return "§6Ключ: " + plugin.getConfig().getString("adventures." + route + ".name", route); }
     private int getProgress(int vkId) { return progressManager.getProgress(vkId); }
     private void addProgress(int vkId, String route) { progressManager.addProgress(vkId, route); }
