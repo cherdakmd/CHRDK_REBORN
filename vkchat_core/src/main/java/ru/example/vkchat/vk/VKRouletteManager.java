@@ -78,6 +78,8 @@ public class VKRouletteManager {
     // ========================================
 
     public void openMainMenu(int fromId, int peer) {
+        plugin.getLogger().info("[Roulette] openMainMenu: fromId=" + fromId + " peer=" + peer + " isDM=" + (peer < 2000000000));
+
         if (peer >= 2000000000) {
             plugin.getVkManager().sendMessage(peer, "🎰 Рулетка работает только в ЛС бота!");
             return;
@@ -115,6 +117,8 @@ public class VKRouletteManager {
     // ========================================
 
     public void handleCommand(int fromId, int peer, String cmd) {
+        plugin.getLogger().info("[Roulette] Команда: " + cmd + " от " + fromId + " peer=" + peer);
+
         if (cmd.equals("!рулетка") || cmd.equals("!roulette")) {
             openMainMenu(fromId, peer);
         } else if (cmd.equals("!рулеткакрутить") || cmd.equals("!rspin")) {
