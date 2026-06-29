@@ -105,14 +105,18 @@ public class RouletteManager {
 
     // ═══ ОБРАБОТКА КОМАНД ═══
 
-    public void handleCommand(int fromId, int peer, String cmd) {
+    public void handleCommand(int fromId, int peer, String text) {
+        String[] parts = text.split(" ");
+        String cmd = parts[0].toLowerCase();
+
         if (!cmd.equals("!рулетка") && !cmd.equals("!roulette") && peer >= 2000000000) {
             plugin.getVkManager().sendMessage(peer, "🎰 Рулетка работает только в ЛС бота!");
             return;
         }
 
-        if (cmd.matches("\\d+")) {
-            handleBet(fromId, peer, "!ставка " + cmd);
+        // Обработка числа как ставки (например "1000")
+        if (text.matches("\\d+")) {
+            handleBet(fromId, peer, "!ставка " + text);
             return;
         }
 
@@ -129,7 +133,7 @@ public class RouletteManager {
         } else if (cmd.equals("!рулеткатоп") || cmd.equals("!rtop")) {
             showTop(peer);
         } else if (cmd.startsWith("!ставка") || cmd.equals("!rbet")) {
-            handleBet(fromId, peer, cmd);
+            handleBet(fromId, peer, text);
         } else if (cmd.equals("!рулеткалаки") || cmd.equals("!rlucky")) {
             setLuckyNumber(fromId, peer);
         } else if (cmd.equals("!рулеткатокены") || cmd.equals("!rtokens")) {
