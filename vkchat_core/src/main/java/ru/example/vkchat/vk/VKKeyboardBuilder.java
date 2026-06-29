@@ -98,20 +98,20 @@ public class VKKeyboardBuilder {
     
     /**
      * Главное меню при входе в ЛС бота.
-     * Два режима: Походы и Управление аккаунтом.
      */
     public static String mainDmMenu() {
         return new VKKeyboardBuilder()
                 .oneTime(false)
                 .positive("🏕 Походы", "!поход")
-                .textButton("👤 Аккаунт", "!аккаунт", "primary")
-                .row()
                 .textButton("🎰 Рулетка", "!рулетка", "negative")
+                .row()
+                .textButton("👤 Аккаунт", "!аккаунт", "primary")
                 .secondary("📊 Профиль", "!профиль")
                 .row()
                 .secondary("⭐ Рейтинг", "!рейтинг")
                 .secondary("🎁 Бонус", "!бонус")
                 .row()
+                .secondary("💼 Работы", "!работы")
                 .secondary("🛟 Помощь", "!помощь")
                 .build();
     }
@@ -240,10 +240,10 @@ public class VKKeyboardBuilder {
                 .textButton("👤 Профиль", "!профиль", "primary")
                 .textButton("⭐ Рейтинг", "!рейтинг", "primary")
                 .row()
-                .textButton("💼 Работы", "!работы", "secondary")
-                .textButton("🎁 Бонус", "!бонус", "secondary")
+                .textButton("🏕 Поход", "!поход", "positive")
+                .textButton("🎰 Рулетка", "!рулетка", "negative")
                 .row()
-                .textButton("🎒 Поход", "!поход", "positive")
+                .textButton("🎁 Бонус", "!бонус", "secondary")
                 .textButton("🛟 Меню", "!меню", "secondary")
                 .build();
     }

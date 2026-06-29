@@ -99,8 +99,9 @@ public class BossManager extends BukkitRunnable implements Listener {
                 
                 AttributeInstance hp = activeBoss.getAttribute(Attribute.GENERIC_MAX_HEALTH);
                 if (hp != null) {
-                    hp.setBaseValue(bossConfig.getDouble("health", 1000.0));
-                    activeBoss.setHealth(bossConfig.getDouble("health", 1000.0));
+                    double health = Math.min(1024.0, bossConfig.getDouble("health", 1000.0));
+                    hp.setBaseValue(health);
+                    activeBoss.setHealth(health);
                 }
                 
                 AttributeInstance dmg = activeBoss.getAttribute(Attribute.GENERIC_ATTACK_DAMAGE);
