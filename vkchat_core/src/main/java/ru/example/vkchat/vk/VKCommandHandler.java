@@ -412,8 +412,17 @@ public class VKCommandHandler {
                 plugin.getReputationManager().deductPoints(fromId, bet);
                 plugin.getVkManager().sendMessage(peer, fromId, "😭 Эх, ты проиграл " + bet + " очков... \nТвой баланс: " + plugin.getReputationManager().getPoints(fromId));
             }
-        } else if (cmd.equals("!рулетка") || cmd.equals("!roulette")) {
-            plugin.getMiniGamesManager().playRoulette(fromId, peer);
+        } else if (cmd.equals("!рулетка") || cmd.equals("!roulette") ||
+                   cmd.equals("!рулеткакрутить") || cmd.equals("!rspin") ||
+                   cmd.equals("!рулеткарусская") || cmd.equals("!rrussian") ||
+                   cmd.equals("!рулеткадабл") || cmd.equals("!rdouble") ||
+                   cmd.equals("!рулеткастат") || cmd.equals("!rstats") ||
+                   cmd.equals("!рулеткатоп") || cmd.equals("!rtop") ||
+                   cmd.startsWith("!ставка") || cmd.equals("!rbet") ||
+                   cmd.equals("!рулеткалаки") || cmd.equals("!rlucky") ||
+                   cmd.equals("!рулеткатокены") || cmd.equals("!rtokens") ||
+                   cmd.equals("!рулеткапризы") || cmd.equals("!rprizes")) {
+            plugin.getVKRouletteManager().handleCommand(fromId, peer, cmd);
         } else if (cmd.equals("!аккаунт") || cmd.equals("!account")) {
             // Меню управления аккаунтом (только в ЛС)
             if (peer < 2000000000) {

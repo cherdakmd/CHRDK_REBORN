@@ -128,7 +128,7 @@ public class MarketCommand implements CommandExecutor, TabCompleter {
     }
 
     private void claimRoulettePrizes(Player p) {
-        var listener = plugin.getVKRouletteListener();
+        var listener = ru.example.vkchat.VKChatPlugin.getInstance().getVKRouletteManager();
         if (listener == null) {
             p.sendMessage(org.bukkit.ChatColor.RED + "Модуль рулетки не загружен!");
             return;
