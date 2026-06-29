@@ -96,7 +96,6 @@ public class MarketCommand implements CommandExecutor, TabCompleter {
 
         if (args.length == 1) {
             completions.addAll(Arrays.asList("spawnnpc", "trends", "тренды", "history", "история",
-                "roulette", "рулетка", "stats", "top",
                 "quest", "квест", "flash", "flashsale"));
         }
 

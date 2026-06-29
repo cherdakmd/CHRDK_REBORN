@@ -427,13 +427,4 @@ public class RouletteManager {
         List<String> items = pendingItems.get(vkId);
         return items != null && !items.isEmpty();
     }
-
-    public int getPendingCount(int vkId) {
-        List<String> items = pendingItems.get(vkId);
-        return items != null ? items.size() : 0;
-    }
-
-    public void earnTokens(int vkId, int amount) {
-        tokens.merge(vkId, amount, Integer::sum);
-    }
 }
