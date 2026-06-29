@@ -421,7 +421,8 @@ public class VKCommandHandler {
                    cmd.startsWith("!ставка") || cmd.equals("!rbet") ||
                    cmd.equals("!рулеткалаки") || cmd.equals("!rlucky") ||
                    cmd.equals("!рулеткатокены") || cmd.equals("!rtokens") ||
-                   cmd.equals("!рулеткапризы") || cmd.equals("!rprizes")) {
+                   cmd.equals("!рулеткапризы") || cmd.equals("!rprizes") ||
+                   cmd.equals("!рулеткабокс") || cmd.equals("!rbox")) {
             plugin.getRouletteManager().handleCommand(fromId, peer, text);
         } else if (cmd.equals("!аккаунт") || cmd.equals("!account")) {
             // Меню управления аккаунтом (только в ЛС)
