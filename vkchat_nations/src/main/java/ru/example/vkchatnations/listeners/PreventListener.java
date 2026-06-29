@@ -59,8 +59,11 @@ public class PreventListener implements Listener {
     public void onCommand(PlayerCommandPreprocessEvent e) {
         Player p = e.getPlayer();
         if (isAwaitingNationSelection(p)) {
+            // Разрешаем команду выбора нации
+            String cmd = e.getMessage().toLowerCase();
+            if (cmd.startsWith("/nation") || cmd.startsWith("/нация")) return;
             e.setCancelled(true);
-            p.sendMessage(ChatColor.RED + "⚠️ Команды заблокированы до выбора Нации!");
+            p.sendMessage(ChatColor.RED + "⚠️ Команды заблокированы до выбора Нации! Напиши /nation");
         }
     }
 

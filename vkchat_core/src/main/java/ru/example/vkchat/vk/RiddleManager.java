@@ -83,7 +83,6 @@ public class RiddleManager {
             
             currentAnswer = String.valueOf(result);
             active = true;
-            plugin.getVkManager().sendToMainChat(" Математика!\n\nСколько будет: " + a + " " + sign + " " + b + " ?\n\nПервый ответивший получит небольшую награду!");
             
         } else {
             // Классические загадки
@@ -92,8 +91,6 @@ public class RiddleManager {
             String question = keys.get(random.nextInt(keys.size()));
             currentAnswer = riddles.get(question);
             active = true;
-            
-            plugin.getVkManager().sendToMainChat(" Время загадки!\n\n" + question + "\n\nПервый, кто напишет правильный ответ, получит очки репутации!");
         }
     }
 
@@ -105,9 +102,6 @@ public class RiddleManager {
             int reward = plugin.getConfig().getInt("riddles.reward", 5);
             
             plugin.getReputationManager().addPoints(vkId, reward);
-            String vkMsg = " Правильно! Пользователь получает " + reward + " очков репутации. Ответ был: " + currentAnswer;
-            
-            plugin.getVkManager().sendToMainChat(org.bukkit.ChatColor.stripColor(vkMsg));
             return true;
         }
         return false;

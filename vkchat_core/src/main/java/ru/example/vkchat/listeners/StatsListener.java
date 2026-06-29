@@ -208,17 +208,6 @@ public class StatsListener implements Listener {
             victim.playSound(victim.getLocation(), Sound.ENTITY_VILLAGER_DEATH, 1f, 0.8f);
         } catch (Exception ignored) {}
 
-        // ===== ВК СООБЩЕНИЕ (с кулдауном) =====
-        String vkMsg = "⚔ " + killer.getName() + " убил " + victim.getName() + " (-" + actualLoss + " → +" + totalGain + " реп)";
-        if (killStreak >= streakBonusThreshold) {
-            vkMsg += " [Серия x" + killStreak + "]";
-        }
-        long nowVk = System.currentTimeMillis();
-        if (nowVk - lastPvpVkMessage >= PVP_VK_MSG_COOLDOWN_MS) {
-            lastPvpVkMessage = nowVk;
-            plugin.getVkManager().sendToMainChat(vkMsg);
-        }
-
         sendDeathMessage(victim, killer, e, repMsg);
     }
 

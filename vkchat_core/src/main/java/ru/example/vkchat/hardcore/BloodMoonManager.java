@@ -36,7 +36,6 @@ public class BloodMoonManager extends BukkitRunnable {
                     isBloodMoonActive = true;
                     String msg = "&4&lКРОВАВАЯ ЛУНА ВЗОШЛА! &cМонстры стали свирепее, но лут богаче!";
                     Bukkit.broadcastMessage(ChatColor.translateAlternateColorCodes('&', msg));
-                    plugin.getVkManager().sendToMainChat(" КРОВАВАЯ ЛУНА ВЗОШЛА НА СЕРВЕРЕ! Самое время зайти и пофармить х3 лут и репутацию!");
                 }
             }
         } else {

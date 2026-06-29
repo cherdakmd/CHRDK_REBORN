@@ -53,9 +53,6 @@ public class WallCheckerTask extends BukkitRunnable {
                     
                     String mcMsg = plugin.getConfigManager().getMessage("vk_wall_announce_mc").replace("{link}", link);
                     plugin.getServer().broadcastMessage(mcMsg);
-                    
-                    String vkMsg = plugin.getConfigManager().getMessage("vk_wall_announce_vk").replace("{link}", link);
-                    plugin.getVkManager().sendToMainChat(org.bukkit.ChatColor.stripColor(vkMsg));
                 }
                 break;
             }

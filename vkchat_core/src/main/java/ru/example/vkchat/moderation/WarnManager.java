@@ -104,7 +104,6 @@ public class WarnManager {
         }
 
         Bukkit.broadcastMessage(ChatColor.DARK_RED + "⛔ " + targetName + " забанен за " + count + " варнов до " + new SimpleDateFormat("dd.MM.yyyy HH:mm").format(expires));
-        try { plugin.getVkManager().sendToMainChat("⛔ " + targetName + " забанен за " + count + " варнов до " + new SimpleDateFormat("dd.MM.yyyy HH:mm").format(expires)); } catch (Throwable ignored) {}
     }
 
     private long getBanDurationMillis(int warns) {

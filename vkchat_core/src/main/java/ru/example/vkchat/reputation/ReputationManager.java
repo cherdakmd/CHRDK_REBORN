@@ -25,39 +25,34 @@ public class ReputationManager {
         if (message.length() < plugin.getConfig().getInt("reputation.min-message-length", 5)) return;
         
         plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
-            try (Connection conn = plugin.getDatabaseManager().getConnection()) {
-                PreparedStatement ps = conn.prepareStatement("SELECT last_message, points FROM vkchat_reputation WHERE vk_id = ?");
-                ps.setInt(1, vkId);
-                ResultSet rs = ps.executeQuery();
-                
+            try (Connection conn = plugin.getDatabaseManager().getConnection();
+                 PreparedStatement check = conn.prepareStatement("SELECT last_message FROM vkchat_reputation WHERE vk_id = ?")) {
+                check.setInt(1, vkId);
+                ResultSet rs = check.executeQuery();
+
                 long lastTime = 0;
-                int currentPoints = 0;
                 boolean exists = false;
-                
                 if (rs.next()) {
                     exists = true;
                     lastTime = rs.getLong("last_message");
-                    currentPoints = rs.getInt("points");
                 }
-                
+
                 long now = System.currentTimeMillis();
                 int cooldown = plugin.getConfig().getInt("reputation.cooldown-seconds", 30) * 1000;
-                
+
                 if (now - lastTime > cooldown) {
                     int add = plugin.getConfig().getInt("reputation.message-reward", 1);
-                    
-                    if (exists) {
-                        PreparedStatement update = conn.prepareStatement("UPDATE vkchat_reputation SET points = ?, last_message = ? WHERE vk_id = ?");
-                        update.setInt(1, currentPoints + add);
-                        update.setLong(2, now);
-                        update.setInt(3, vkId);
-                        update.executeUpdate();
-                    } else {
-                        PreparedStatement insert = conn.prepareStatement("INSERT INTO vkchat_reputation (vk_id, points, last_message) VALUES (?, ?, ?)");
-                        insert.setInt(1, vkId);
-                        insert.setInt(2, add);
-                        insert.setLong(3, now);
-                        insert.executeUpdate();
+
+                    // [FIX] Атомарная операция — один запрос вместо SELECT + UPDATE
+                    try (PreparedStatement upsert = conn.prepareStatement(
+                            "INSERT INTO vkchat_reputation (vk_id, points, last_message) VALUES (?, ?, ?) " +
+                            "ON DUPLICATE KEY UPDATE points = points + ?, last_message = ?")) {
+                        upsert.setInt(1, vkId);
+                        upsert.setInt(2, add);
+                        upsert.setLong(3, now);
+                        upsert.setInt(4, add);
+                        upsert.setLong(5, now);
+                        upsert.executeUpdate();
                     }
                 }
             } catch (SQLException e) {

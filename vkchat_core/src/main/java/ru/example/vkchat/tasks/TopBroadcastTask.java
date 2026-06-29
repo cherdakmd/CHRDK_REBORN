@@ -16,6 +16,5 @@ public class TopBroadcastTask extends BukkitRunnable {
         String msg = plugin.getConfigManager().getMessage("vk_cmd_top").replace("{top}", top);
         
         plugin.getServer().broadcastMessage(msg);
-        plugin.getVkManager().sendToMainChat(org.bukkit.ChatColor.stripColor(msg));
     }
 }

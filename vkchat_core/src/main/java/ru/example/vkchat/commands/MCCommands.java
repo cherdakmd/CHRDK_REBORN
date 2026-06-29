@@ -639,8 +639,7 @@ public class MCCommands implements CommandExecutor, org.bukkit.command.TabComple
                 for (int i = 1; i < args.length; i++) {
                     sb.append(args[i]).append(" ");
                 }
-                plugin.getVkManager().sendToMainChat("Анонс: " + sb.toString().trim());
-                sender.sendMessage("Анонс отправлен в ВК.");
+                sender.sendMessage("Анонс отправлен.");
 } else if (args[0].equalsIgnoreCase("promo")) {
                 if (args.length < 4) {
                     sender.sendMessage("Использование: /vkchat promo <code> <uses> <reward>");
@@ -653,7 +652,6 @@ public class MCCommands implements CommandExecutor, org.bukkit.command.TabComple
                     // Промокоды остались в репутация.yml
                     plugin.getReputationManager().createPromo(code, reward, uses);
                     sender.sendMessage("Промокод " + code + " создан! (Использований: " + uses + ", Награда: " + reward + ")");
-                    plugin.getVkManager().sendToMainChat(" Появился новый промокод: " + code + " ! Активируй его скорее: !промо " + code);
                 } catch (NumberFormatException e) {
                     sender.sendMessage("Uses и reward должны быть числами.");
                 }
