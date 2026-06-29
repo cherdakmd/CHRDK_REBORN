@@ -12,6 +12,7 @@ public class VKChatMarketPlugin extends JavaPlugin {
     private static VKChatMarketPlugin instance;
     private MarketManager marketManager;
     private MarketFun marketFun;
+    private VKRouletteListener vkRouletteListener;
 
 
     private void migrateConfigDefaults() {
@@ -60,7 +61,8 @@ public class VKChatMarketPlugin extends JavaPlugin {
         getCommand("market").setExecutor(marketCmd);
         getCommand("market").setTabCompleter(marketCmd);
         getServer().getPluginManager().registerEvents(new MarketGuiListener(this), this);
-        getServer().getPluginManager().registerEvents(new VKRouletteListener(this), this);
+        vkRouletteListener = new VKRouletteListener(this);
+        getServer().getPluginManager().registerEvents(vkRouletteListener, this);
 
         long interval = getConfig().getLong("settings.recovery-interval", 1200) * 20L;
         getServer().getScheduler().runTaskTimerAsynchronously(this, () -> marketManager.recoverMarket(), interval, interval);
@@ -94,5 +96,9 @@ public class VKChatMarketPlugin extends JavaPlugin {
 
     public MarketFun getMarketFun() {
         return marketFun;
+    }
+
+    public VKRouletteListener getVKRouletteListener() {
+        return vkRouletteListener;
     }
 }
