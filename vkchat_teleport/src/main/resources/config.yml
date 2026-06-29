@@ -38,17 +38,17 @@ teleportation:
       spark: 45        # 45 сек (было 60)
       flame: 30        # 30 сек
       star: 15         # 15 сек
-      legend: 0        # без кд
+      legend: 5        # 5 сек (не бесплатно!)
     home:
       spark: 45
       flame: 30
       star: 15
-      legend: 0
+      legend: 5
     tpa:
       spark: 45
       flame: 30
       star: 15
-      legend: 0
+      legend: 5
 
   # Время каста для донатеров (секунды)
   donate-warmup:
@@ -62,4 +62,4 @@ teleportation:
     spark: 5
     flame: 8
     star: 12
-    legend: 20
+    legend: 15

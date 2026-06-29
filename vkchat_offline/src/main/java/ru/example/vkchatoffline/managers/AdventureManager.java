@@ -1384,7 +1384,7 @@ public class AdventureManager implements Listener {
     private double getOfflineDonateShopMultiplier(int vkId) {
         Player p = api().getPlayerByVkId(vkId);
         if (p == null) return 1.0;
-        if (p.hasPermission("vkchat.donate.offline.legend") || p.hasPermission("vkchat.donate.status.legend")) return plugin.getConfig().getDouble("offline2.donate.shop-multiplier.legend", 0.00);
+        if (p.hasPermission("vkchat.donate.offline.legend") || p.hasPermission("vkchat.donate.status.legend")) return plugin.getConfig().getDouble("offline2.donate.shop-multiplier.legend", 0.60);
         if (p.hasPermission("vkchat.donate.offline.star") || p.hasPermission("vkchat.donate.status.star")) return plugin.getConfig().getDouble("offline2.donate.shop-multiplier.star", 0.00);
         if (p.hasPermission("vkchat.donate.offline.flame") || p.hasPermission("vkchat.donate.status.flame")) return plugin.getConfig().getDouble("offline2.donate.shop-multiplier.flame", 0.50);
         if (p.hasPermission("vkchat.donate.offline.spark") || p.hasPermission("vkchat.donate.status.spark")) return plugin.getConfig().getDouble("offline2.donate.shop-multiplier.spark", 0.80);

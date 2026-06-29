@@ -54,7 +54,7 @@ public class GearManager {
 
     private double getDonateDiscount(Player p) {
         if (p == null) return 0.0;
-        if (p.hasPermission("vkchat.donate.gear.legend") || p.hasPermission("vkchat.donate.status.legend")) return plugin.getConfig().getDouble("forge2.donate-discount.legend", 1.00);
+        if (p.hasPermission("vkchat.donate.gear.legend") || p.hasPermission("vkchat.donate.status.legend")) return plugin.getConfig().getDouble("forge2.donate-discount.legend", 0.50);
         if (p.hasPermission("vkchat.donate.gear.star") || p.hasPermission("vkchat.donate.status.star")) return plugin.getConfig().getDouble("forge2.donate-discount.star", 0.50);
         if (p.hasPermission("vkchat.donate.gear.flame") || p.hasPermission("vkchat.donate.status.flame")) return plugin.getConfig().getDouble("forge2.donate-discount.flame", 0.25);
         if (p.hasPermission("vkchat.donate.gear.spark") || p.hasPermission("vkchat.donate.status.spark")) return plugin.getConfig().getDouble("forge2.donate-discount.spark", 0.10);

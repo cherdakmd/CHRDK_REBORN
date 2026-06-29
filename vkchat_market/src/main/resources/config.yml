@@ -909,7 +909,7 @@ market2:
       spark: 0.95
       flame: 0.90
       star: 0.80
-      legend: 0.70
+      legend: 0.75
     # Бонусные лимиты на лимитированные предметы
     limited-bonus:
       spark: 1        # +1 к дневному лимиту

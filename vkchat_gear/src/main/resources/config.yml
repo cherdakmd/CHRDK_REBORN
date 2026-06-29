@@ -545,7 +545,7 @@ forge2:
     spark: 0.10
     flame: 0.25
     star: 0.40
-    legend: 0.60
+    legend: 0.50
   resources:
     uncommon:
       material: IRON_INGOT

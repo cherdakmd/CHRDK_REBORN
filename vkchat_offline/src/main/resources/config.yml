@@ -739,7 +739,7 @@ offline2:
       spark: 0.90
       flame: 0.80
       star: 0.70
-      legend: 0.50
+      legend: 0.60
     reward-multiplier:
       spark: 1.30
       flame: 1.60
