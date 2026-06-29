@@ -2154,16 +2154,12 @@ public class AdventureManager implements Listener {
             else if (sub.equals("finish")) { ActiveAdventure adv = active.get(target); if (adv != null) finishAdventure(adv, "Админ завершил поход."); api().sendMessage(peer, "Ок."); }
             else if (sub.equals("event")) { ActiveAdventure adv = active.get(target); if (adv != null) createEvent(adv); api().sendMessage(peer, "Ок."); }
             else { UUID uuid = api().getUuidByVkId(target); api().sendMessage(peer, uuid == null ? "Не привязан" : plugin.getStashManager().renderPage(uuid, 1, 20)); }
-        } else if (sub.equals("key") && args.length >= 4) {
-            int target = Integer.parseInt(args[2]); String route = args[3].toLowerCase(Locale.ROOT); UUID uuid = api().getUuidByVkId(target);
-            if (uuid != null) plugin.getStashManager().addItem(uuid, plugin.getStashManager().namedKey(keyName(route)));
-            api().sendMessage(peer, uuid == null ? "Не привязан" : "Ключ выдан.");
         }
     }
 
 
     private String routeCard(int vkId, String key, boolean unlocked) {
-        return OfflineTextFactory.routeCard(plugin.getConfig(), key, unlocked, cleanKeyName(key));
+        return OfflineTextFactory.routeCard(plugin.getConfig(), key, unlocked, "");
     }
 
     private String buildEventMessage(ActiveAdventure adv) {
@@ -2182,10 +2178,6 @@ public class AdventureManager implements Listener {
 
     private String randomOf(String... values) {
         return values[ThreadLocalRandom.current().nextInt(values.length)];
-    }
-
-    private String cleanKeyName(String route) {
-        return OfflineTextFactory.cleanKeyName(keyName(route));
     }
 
     private String routeButtonLabel(String route) {
@@ -2254,7 +2246,6 @@ public class AdventureManager implements Listener {
         }
         return false;
     }
-    private String keyName(String route) { return "§6Ключ: " + plugin.getConfig().getString("adventures." + route + ".name", route); }
     private int getProgress(int vkId) { return progressManager.getProgress(vkId); }
     private void addProgress(int vkId, String route) { progressManager.addProgress(vkId, route); }
 

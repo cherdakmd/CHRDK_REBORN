@@ -127,14 +127,8 @@ public class StashManager {
     }
 
     public ItemStack namedKey(String displayName) {
-        ItemStack item = new ItemStack(Material.TRIPWIRE_HOOK, 1);
-        ItemMeta meta = item.getItemMeta();
-        meta.setDisplayName(displayName);
-        List<String> lore = new ArrayList<>();
-        lore.add("§7Ключ для открытия маршрута оффлайн-походов");
-        meta.setLore(lore);
-        item.setItemMeta(meta);
-        return item;
+        // Устарело - ключи удалены
+        return null;
     }
 
     private ItemStack parseItem(String line) {
