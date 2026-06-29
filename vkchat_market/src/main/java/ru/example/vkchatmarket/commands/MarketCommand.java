@@ -118,61 +118,7 @@ public class MarketCommand implements CommandExecutor, TabCompleter {
     }
 
     private void showLeaderboard(Player p) {
-        var lb = plugin.getMarketFun().getLeaderboard(10);
-        p.sendMessage(org.bukkit.ChatColor.GOLD + "═══ 🏆 Топ игроков рулетки ═══");
-        if (lb.isEmpty()) {
-            p.sendMessage(org.bukkit.ChatColor.GRAY + "Пока нет данных.");
-        } else {
-            for (String line : lb) p.sendMessage(org.bukkit.ChatColor.YELLOW + line);
-        }
-    }
-
-    private void claimRoulettePrizes(Player p) {
-        var listener = ru.example.vkchat.VKChatPlugin.getInstance().getVKRouletteManager();
-        if (listener == null) {
-            p.sendMessage(org.bukkit.ChatColor.RED + "Модуль рулетки не загружен!");
-            return;
-        }
-
-        int vkId = ru.example.vkchat.VKChatPlugin.getInstance().getApi().getLinkedVkId(p);
-        if (vkId == -1) {
-            p.sendMessage(org.bukkit.ChatColor.RED + "Привяжи ВК (/vklink)!");
-            return;
-        }
-
-        if (!listener.hasPendingItems(vkId)) {
-            p.sendMessage(org.bukkit.ChatColor.GRAY + "Нет ожидающих предметов. Играй в рулетку в ВК!");
-            return;
-        }
-
-        java.util.List<String> items = listener.takePendingItems(vkId);
-        if (items == null || items.isEmpty()) {
-            p.sendMessage(org.bukkit.ChatColor.GRAY + "Нет предметов.");
-            return;
-        }
-
-        int given = 0;
-        int lost = 0;
-        for (String item : items) {
-            String[] parts = item.split(";");
-            try {
-                org.bukkit.Material mat = org.bukkit.Material.valueOf(parts[0]);
-                int amount = Integer.parseInt(parts[1]);
-                if (p.getInventory().addItem(new org.bukkit.inventory.ItemStack(mat, amount)).isEmpty()) {
-                    given++;
-                } else {
-                    lost++;
-                }
-            } catch (Exception e) {
-                lost++;
-            }
-        }
-
-        p.sendMessage(org.bukkit.ChatColor.GREEN + "📦 Получено предметов: " + given);
-        if (lost > 0) {
-            p.sendMessage(org.bukkit.ChatColor.RED + "⚠ Не удалось выдать: " + lost + " (инвентарь полон)");
-        }
-        p.playSound(p.getLocation(), org.bukkit.Sound.ENTITY_PLAYER_LEVELUP, 1f, 1f);
+        plugin.getMarketRoulette().showLeaderboard(p);
     }
 
     @Override

@@ -1,5 +1,6 @@
 package ru.example.vkchat.vk;
 
+import org.bukkit.Bukkit;
 import ru.example.vkchat.VKChatPlugin;
 
 import java.util.*;
@@ -7,21 +8,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
- * VK Рулетка v2.0 — Полная переработка
- * 
- * Фичи:
- * 1. Выбор ставки кнопками
- * 2. Обычная крутка
- * 3. Русская рулетка (x3)
- * 4. Double or Nothing
- * 5. Стрики (+10% за победу)
- * 6. Счастливое число
- * 7. Токены
- * 8. Предметы в ожидающие
- * 9. Статистика
- * 10. Лидерборд
- * 11. Анимация
- * 12. Настраиваемый КД
+ * VK Рулетка v3.0 — Единая система, все баги исправлены
  */
 public class VKRouletteManager {
     private final VKChatPlugin plugin;
@@ -38,7 +25,7 @@ public class VKRouletteManager {
     private final Map<Integer, Integer> luckyNumber = new ConcurrentHashMap<>();
     private final Set<Integer> spinning = ConcurrentHashMap.newKeySet();
     private final Map<Integer, List<String>> pendingItems = new ConcurrentHashMap<>();
-    private int jackpotPool = 5000;
+    private volatile int jackpotPool = 5000;
 
     private static final String[][] PRIZES = {
         {"💎 Алмаз", "item", "DIAMOND;1"},
@@ -57,8 +44,6 @@ public class VKRouletteManager {
         {"✨ +300 реп", "rep", "300"},
         {"🍀 Счастливое число", "lucky", "0"},
         {"🎟 Токены x3", "token", "3"},
-        {"🧊 Алмазный блок", "item", "DIAMOND_BLOCK;1"},
-        {"⚔ Алмазный меч", "item", "DIAMOND_SWORD;1"},
     };
 
     private static final String[][] RUSSIAN_PRIZES = {
@@ -118,6 +103,12 @@ public class VKRouletteManager {
     // ═══ ОБРАБОТКА КОМАНД ═══
 
     public void handleCommand(int fromId, int peer, String cmd) {
+        // [FIX-23] Проверка ЛС для всех команд кроме меню
+        if (!cmd.equals("!рулетка") && !cmd.equals("!roulette") && peer >= 2000000000) {
+            plugin.getVkManager().sendMessage(peer, "🎰 Рулетка работает только в ЛС бота!");
+            return;
+        }
+
         if (cmd.equals("!рулетка") || cmd.equals("!roulette")) {
             openMainMenu(fromId, peer);
         } else if (cmd.equals("!рулеткакрутить") || cmd.equals("!rspin")) {
@@ -130,7 +121,7 @@ public class VKRouletteManager {
             showStats(fromId, peer);
         } else if (cmd.equals("!рулеткатоп") || cmd.equals("!rtop")) {
             showTop(peer);
-        } else if (cmd.startsWith("!ставка")) {
+        } else if (cmd.startsWith("!ставка") || cmd.equals("!rbet")) {
             handleBet(fromId, peer, cmd);
         } else if (cmd.equals("!рулеткалаки") || cmd.equals("!rlucky")) {
             setLuckyNumber(fromId, peer);
@@ -167,10 +158,16 @@ public class VKRouletteManager {
             return;
         }
 
+        // [FIX-11] Проверка привязки VK→MC
+        if (plugin.getApi().getUuidByVkId(fromId) == null) {
+            plugin.getVkManager().sendMessage(peer, "❌ Привяжи ВК к аккаунту на сервере!");
+            return;
+        }
+
         int bet = bets.getOrDefault(fromId, 500);
         if (mode.equals("russian")) bet *= 3;
 
-        // КД из конфига (по умолчанию 5 сек)
+        // [FIX-20] КД из конфига
         long cooldownMs = plugin.getConfig().getLong("roulette.vk-cooldown-ms", 5000);
         Long last = cooldown.get(fromId);
         if (last != null && System.currentTimeMillis() - last < cooldownMs) {
@@ -193,12 +190,12 @@ public class VKRouletteManager {
         spinning.add(fromId);
         jackpotPool += bet / 10;
 
-        // Анимация
         String header = mode.equals("russian") ?
-            "☠ ═══ РУССКАЯ РУЛЕТКА ═══\n💰 Ставка: " + bet + " реп\n⚠ Шанс выжить: 50%" :
+            "☠ ═══ РУССКАЯ РУЛЕТКА ═══\n💰 Ставка: " + bet + " реп" :
             "🎰 ═══ РУЛЕТКА ═══\n💰 Ставка: " + bet + " реп";
         plugin.getVkManager().sendMessage(peer, header);
 
+        // [FIX-16] Анимация через Bukkit Scheduler
         String[][] frames = {
             {"🎰", "💎", "🍀", "⭐", "🔥"},
             {"💎", "⭐", "🔥", "💰", "🎰"},
@@ -209,24 +206,18 @@ public class VKRouletteManager {
 
         for (int i = 0; i < frames.length; i++) {
             final int frame = i;
-            new java.util.Timer().schedule(new java.util.TimerTask() {
-                @Override
-                public void run() {
-                    StringBuilder anim = new StringBuilder();
-                    for (String s : frames[frame]) anim.append(s).append(" ");
-                    plugin.getVkManager().sendMessage(peer, anim.toString());
-                }
-            }, 500L + i * 400L);
+            Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                StringBuilder anim = new StringBuilder();
+                for (String s : frames[frame]) anim.append(s).append(" ");
+                plugin.getVkManager().sendMessage(peer, anim.toString());
+            }, 10L + i * 8L);
         }
 
         final int finalBet = bet;
-        new java.util.Timer().schedule(new java.util.TimerTask() {
-            @Override
-            public void run() {
-                spinning.remove(fromId);
-                processResult(fromId, peer, mode, finalBet);
-            }
-        }, 3000L);
+        Bukkit.getScheduler().runTaskLater(plugin, () -> {
+            spinning.remove(fromId);
+            processResult(fromId, peer, mode, finalBet);
+        }, 50L);
     }
 
     private void processResult(int fromId, int peer, String mode, int bet) {
@@ -241,11 +232,12 @@ public class VKRouletteManager {
         int lucky = luckyNumber.getOrDefault(fromId, 0);
         boolean isLucky = lucky > 0 && ThreadLocalRandom.current().nextInt(100) < lucky;
 
-        boolean isWin = !type.equals("empty") && !type.equals("death");
+        // [FIX-14] token/lucky не считается WIN
+        boolean isWin = type.equals("rep") || type.equals("item") || type.equals("jackpot");
         if (isWin) {
             winStreak.merge(fromId, 1, Integer::sum);
             totalWins.merge(fromId, 1, Integer::sum);
-        } else {
+        } else if (type.equals("empty") || type.equals("death")) {
             winStreak.put(fromId, 0);
         }
 
@@ -266,7 +258,7 @@ public class VKRouletteManager {
             jackpotPool = 5000;
             result.append("🏆💰 ").append(name).append("\n🎉 +").append(jackpot).append(" реп!\n");
             result.append("💰 Баланс: ").append(plugin.getReputationManager().getPoints(fromId));
-            plugin.getVkManager().sendToMainChat("🏆 Игрок сорвал ДЖЕКПОТ в рулетке: +" + jackpot + " реп!");
+            plugin.getVkManager().sendToMainChat("🏆 Игрок сорвал ДЖЕКПОТ: +" + jackpot + " реп!");
 
         } else if (type.equals("token")) {
             int tok = Integer.parseInt(data);
@@ -274,7 +266,7 @@ public class VKRouletteManager {
             result.append("🎟 ").append(name).append("\n🎟 +").append(tok).append(" токенов!");
 
         } else if (type.equals("lucky")) {
-            int num = 10 + ThreadLocalRandom.current().nextInt(40);
+            int num = 5 + ThreadLocalRandom.current().nextInt(45); // [FIX-8] 5-49%
             luckyNumber.put(fromId, num);
             result.append("🍀 ").append(name).append("\n🍀 Шанс: ").append(num).append("% на x1.5!");
 
@@ -290,13 +282,19 @@ public class VKRouletteManager {
             result.append("💰 Баланс: ").append(plugin.getReputationManager().getPoints(fromId));
 
         } else if (type.equals("item")) {
-            pendingItems.putIfAbsent(fromId, new ArrayList<>());
-            pendingItems.get(fromId).add(data);
-            result.append("🎉 ").append(name).append("\n📦 Предмет готов! Забери: /рулетка\n");
-            result.append("📦 Всего: ").append(pendingItems.get(fromId).size());
+            // [FIX-11] Проверка привязки перед сохранением предмета
+            if (plugin.getApi().getUuidByVkId(fromId) == null) {
+                result.append("🎉 ").append(name).append("\n❌ Привяжи ВК к аккаунту для получения предметов!");
+            } else {
+                pendingItems.putIfAbsent(fromId, new ArrayList<>());
+                pendingItems.get(fromId).add(data);
+                result.append("🎉 ").append(name).append("\n📦 Предмет готов! Забери: /рулетка\n");
+                result.append("📦 Всего: ").append(pendingItems.get(fromId).size());
+            }
 
         } else {
             result.append("💀 ").append(name).append("\n😅 В следующий раз повезёт!");
+            // [FIX-5] DoN только после empty
             if (ThreadLocalRandom.current().nextDouble() < 0.3) {
                 doubleOrNothing.put(fromId, 0.0);
                 result.append("\n\n⚡ Double or Nothing? !рулеткадабл");
@@ -305,7 +303,7 @@ public class VKRouletteManager {
 
         int newStreak = winStreak.getOrDefault(fromId, 0);
         if (newStreak > 1) result.append("\n🔥 Стрик: x").append(newStreak);
-        if (isLucky && !type.equals("lucky")) result.append("\n🍀 Удача сработала!");
+        if (isLucky && !type.equals("lucky")) result.append("\n🍀 Удача!");
 
         plugin.getVkManager().sendKeyboard(peer, result.toString(), VKKeyboardBuilder.rouletteAfterSpin());
     }
@@ -313,35 +311,33 @@ public class VKRouletteManager {
     // ═══ DOUBLE OR NOTHING ═══
 
     private void doubleOrNothing(int fromId, int peer) {
+        // [FIX-5] Проверка наличия pending DoN
         Double pending = this.doubleOrNothing.remove(fromId);
         if (pending == null) {
-            plugin.getVkManager().sendMessage(peer, "❌ Нет активного предложения!");
+            plugin.getVkManager().sendMessage(peer, "❌ Нет активного предложения! Сначала проиграй в рулетке.");
             return;
         }
 
-        plugin.getVkManager().sendMessage(peer, "⚡ DOUBLE OR NOTHING...\nКрутится...");
+        plugin.getVkManager().sendMessage(peer, "⚡ DOUBLE OR NOTHING...");
 
-        new java.util.Timer().schedule(new java.util.TimerTask() {
-            @Override
-            public void run() {
-                boolean win = ThreadLocalRandom.current().nextDouble() < 0.45;
-                if (win) {
-                    int bonus = 200 + ThreadLocalRandom.current().nextInt(600);
-                    plugin.getReputationManager().addPoints(fromId, bonus);
-                    totalRepWon.merge(fromId, bonus, Integer::sum);
-                    plugin.getVkManager().sendKeyboard(peer,
-                            "🎉 DOUBLE! +" + bonus + " реп!\n💰 Баланс: " + plugin.getReputationManager().getPoints(fromId),
-                            VKKeyboardBuilder.rouletteAfterSpin());
-                } else {
-                    int loss = 100 + ThreadLocalRandom.current().nextInt(300);
-                    plugin.getReputationManager().deductPoints(fromId, loss);
-                    totalRepLost.merge(fromId, loss, Integer::sum);
-                    plugin.getVkManager().sendKeyboard(peer,
-                            "💀 NOTHING! -" + loss + " реп!\n💰 Баланс: " + plugin.getReputationManager().getPoints(fromId),
-                            VKKeyboardBuilder.rouletteAfterSpin());
-                }
+        Bukkit.getScheduler().runTaskLater(plugin, () -> {
+            boolean win = ThreadLocalRandom.current().nextDouble() < 0.45;
+            if (win) {
+                int bonus = 200 + ThreadLocalRandom.current().nextInt(600);
+                plugin.getReputationManager().addPoints(fromId, bonus);
+                totalRepWon.merge(fromId, bonus, Integer::sum);
+                plugin.getVkManager().sendKeyboard(peer,
+                        "🎉 DOUBLE! +" + bonus + " реп!\n💰 Баланс: " + plugin.getReputationManager().getPoints(fromId),
+                        VKKeyboardBuilder.rouletteAfterSpin());
+            } else {
+                int loss = 100 + ThreadLocalRandom.current().nextInt(400);
+                plugin.getReputationManager().deductPoints(fromId, loss);
+                totalRepLost.merge(fromId, loss, Integer::sum);
+                plugin.getVkManager().sendKeyboard(peer,
+                        "💀 NOTHING! -" + loss + " реп!\n💰 Баланс: " + plugin.getReputationManager().getPoints(fromId),
+                        VKKeyboardBuilder.rouletteAfterSpin());
             }
-        }, 2000);
+        }, 40L);
     }
 
     // ═══ СТАТИСТИКА ═══

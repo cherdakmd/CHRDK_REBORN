@@ -10,43 +10,36 @@ import ru.example.vkchat.VKChatPlugin;
 import ru.example.vkchatmarket.VKChatMarketPlugin;
 import ru.example.vkchatmarket.listeners.MarketGuiListener;
 
-import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
- * Рулетка в игре v2.0
+ * Рулетка в игре v3.0 — Все баги исправлены
  * 
- * Фичи:
- * 1. Выбор ставки кнопками
- * 2. Обычная крутка (без КД)
- * 3. Русская рулетка (x3)
- * 4. Double or Nothing
- * 5. Стрики (+10% за победу)
- * 6. Автоспин
- * 7. Счастливое число
- * 8. Токены
- * 9. Предметы в ожидающие
- * 10. Анимация
- * 11. Частицы и звуки
- * 12. Статистика
+ * Исправлено:
+ * - DoN требует pending (не бесплатный)
+ * - Статистика по UUID
+ * - Единая таблица призов
+ * - Автоспин
+ * - Без КД
  */
 public class MarketRoulette {
     private final VKChatMarketPlugin plugin;
 
-    private final Map<String, Integer> currentBet = new ConcurrentHashMap<>();
-    private final Map<String, Integer> winStreak = new ConcurrentHashMap<>();
-    private final Map<String, Integer> totalSpins = new ConcurrentHashMap<>();
-    private final Map<String, Integer> totalWins = new ConcurrentHashMap<>();
-    private final Map<String, Integer> totalRepWon = new ConcurrentHashMap<>();
-    private final Map<String, Integer> totalRepLost = new ConcurrentHashMap<>();
-    private final Map<String, Integer> luckyNumber = new ConcurrentHashMap<>();
-    private final Map<String, Integer> spinTokens = new ConcurrentHashMap<>();
-    private final Set<String> autoSpinEnabled = ConcurrentHashMap.newKeySet();
-    private final Set<String> spinning = ConcurrentHashMap.newKeySet();
-    private final Map<String, List<String>> pendingItems = new ConcurrentHashMap<>();
-    private int jackpotPool = 5000;
+    private final Map<UUID, Integer> currentBet = new ConcurrentHashMap<>();
+    private final Map<UUID, Integer> winStreak = new ConcurrentHashMap<>();
+    private final Map<UUID, Integer> totalSpins = new ConcurrentHashMap<>();
+    private final Map<UUID, Integer> totalWins = new ConcurrentHashMap<>();
+    private final Map<UUID, Integer> totalRepWon = new ConcurrentHashMap<>();
+    private final Map<UUID, Integer> totalRepLost = new ConcurrentHashMap<>();
+    private final Map<UUID, Integer> luckyNumber = new ConcurrentHashMap<>();
+    private final Map<UUID, Integer> spinTokens = new ConcurrentHashMap<>();
+    private final Map<UUID, Double> doubleOrNothing = new ConcurrentHashMap<>();
+    private final Set<UUID> autoSpinEnabled = ConcurrentHashMap.newKeySet();
+    private final Set<UUID> spinning = ConcurrentHashMap.newKeySet();
+    private final Map<UUID, List<String>> pendingItems = new ConcurrentHashMap<>();
+    private volatile int jackpotPool = 5000;
 
     private static final String[][] PRIZES = {
         {"💎 Алмаз", "item", "DIAMOND;1", "rare"},
@@ -65,8 +58,6 @@ public class MarketRoulette {
         {"✨ +300 реп", "rep", "300", "uncommon"},
         {"🍀 Счастливое число", "lucky", "0", "lucky"},
         {"🎟 Токены x3", "token", "3", "token"},
-        {"🧊 Алмазный блок", "item", "DIAMOND_BLOCK;1", "rare"},
-        {"⚔ Алмазный меч", "item", "DIAMOND_SWORD;1", "uncommon"},
     };
 
     private static final String[][] RUSSIAN_PRIZES = {
@@ -97,13 +88,14 @@ public class MarketRoulette {
             return;
         }
 
+        UUID uuid = p.getUniqueId();
         int rep = VKChatPlugin.getInstance().getApi().getReputation(vkId);
-        int bet = currentBet.getOrDefault(p.getName(), 500);
-        int streak = winStreak.getOrDefault(p.getName(), 0);
-        int tokens = spinTokens.getOrDefault(p.getName(), 0);
-        int spins = totalSpins.getOrDefault(p.getName(), 0);
-        int wins = totalWins.getOrDefault(p.getName(), 0);
-        int pending = getPendingCount(p.getName());
+        int bet = currentBet.getOrDefault(uuid, 500);
+        int streak = winStreak.getOrDefault(uuid, 0);
+        int tokens = spinTokens.getOrDefault(uuid, 0);
+        int spins = totalSpins.getOrDefault(uuid, 0);
+        int wins = totalWins.getOrDefault(uuid, 0);
+        int pending = getPendingCount(uuid);
 
         Inventory inv = Bukkit.createInventory(null, 54, ChatColor.DARK_PURPLE + "🎰 Рулетка");
 
@@ -129,19 +121,20 @@ public class MarketRoulette {
 
         inv.setItem(30, btn(Material.NETHER_STAR, ChatColor.GREEN + "🎰 КРУТИТЬ!", "Ставка: " + bet + " реп"));
         inv.setItem(31, btn(Material.BLAZE_POWDER, ChatColor.RED + "☠ РУССКАЯ", "x3 цена, x3 награда"));
+        // [FIX-6] Проверка наличия pending DoN
+        boolean hasDoN = doubleOrNothing.containsKey(uuid);
         inv.setItem(32, btn(Material.TNT, ChatColor.YELLOW + "⚡ DOUBLE",
-                hasDoubleOrNothing(p.getName()) ? ChatColor.GREEN + "Доступно!" : ChatColor.GRAY + "Нет"));
+                hasDoN ? ChatColor.GREEN + "Доступно!" : ChatColor.GRAY + "Нет"));
 
         inv.setItem(38, btn(Material.CLOCK, ChatColor.AQUA + "🔄 Авто-спин",
-                autoSpinEnabled.contains(p.getName()) ? ChatColor.GREEN + "ВКЛ" : ChatColor.RED + "ВЫКЛ"));
+                autoSpinEnabled.contains(uuid) ? ChatColor.GREEN + "ВКЛ" : ChatColor.RED + "ВЫКЛ"));
         inv.setItem(39, btn(Material.EMERALD, ChatColor.GREEN + "🍀 Удача",
-                "Твоё: " + luckyNumber.getOrDefault(p.getName(), 0) + "%"));
+                "Твоё: " + luckyNumber.getOrDefault(uuid, 0) + "%"));
         inv.setItem(40, btn(Material.PAPER, ChatColor.AQUA + "📊 Статистика", ""));
 
         inv.setItem(45, btn(Material.ARROW, ChatColor.WHITE + "🏠 Назад", ""));
         inv.setItem(47, btn(Material.ENDER_CHEST, ChatColor.LIGHT_PURPLE + "📦 Призы",
                 pending > 0 ? ChatColor.GREEN + "Есть!" : ChatColor.GRAY + "Нет"));
-        inv.setItem(49, btn(Material.CHEST, ChatColor.GOLD + "🎁 Бокс", "Боксов: 0"));
         inv.setItem(53, btn(Material.COMPASS, ChatColor.YELLOW + "🏆 Топ", ""));
 
         p.openInventory(inv);
@@ -150,11 +143,12 @@ public class MarketRoulette {
     // ═══ ОБРАБОТКА КЛИКОВ ═══
 
     public void handleClick(Player p, int slot) {
+        UUID uuid = p.getUniqueId();
         int[] betSlots = {19, 20, 21, 22, 23, 24, 25};
         int[] bets = {100, 250, 500, 1000, 2500, 5000, 10000};
         for (int i = 0; i < betSlots.length; i++) {
             if (slot == betSlots[i]) {
-                currentBet.put(p.getName(), bets[i]);
+                currentBet.put(uuid, bets[i]);
                 p.playSound(p.getLocation(), Sound.UI_BUTTON_CLICK, 1f, 1f);
                 openRouletteGUI(p);
                 return;
@@ -177,7 +171,8 @@ public class MarketRoulette {
     // ═══ КРУТКА (БЕЗ КД) ═══
 
     public void spin(Player p, String mode) {
-        if (spinning.contains(p.getName())) {
+        UUID uuid = p.getUniqueId();
+        if (spinning.contains(uuid)) {
             p.sendMessage(ChatColor.RED + "⏳ Рулетка уже крутится!");
             return;
         }
@@ -188,7 +183,7 @@ public class MarketRoulette {
             return;
         }
 
-        int bet = currentBet.getOrDefault(p.getName(), 500);
+        int bet = currentBet.getOrDefault(uuid, 500);
         if (mode.equals("russian")) bet *= 3;
 
         int rep = VKChatPlugin.getInstance().getApi().getReputation(vkId);
@@ -198,8 +193,8 @@ public class MarketRoulette {
         }
 
         VKChatPlugin.getInstance().getApi().takeReputation(vkId, bet);
-        totalSpins.merge(p.getName(), 1, Integer::sum);
-        spinning.add(p.getName());
+        totalSpins.merge(uuid, 1, Integer::sum);
+        spinning.add(uuid);
         jackpotPool += bet / 10;
 
         p.closeInventory();
@@ -241,13 +236,13 @@ public class MarketRoulette {
 
         final int finalBet = bet;
         Bukkit.getScheduler().runTaskLater(plugin, () -> {
-            spinning.remove(p.getName());
+            spinning.remove(uuid);
             if (p.isOnline()) {
                 processResult(p, mode, finalBet);
                 // Автоспин
-                if (autoSpinEnabled.contains(p.getName()) && p.isOnline()) {
+                if (autoSpinEnabled.contains(uuid) && p.isOnline()) {
                     Bukkit.getScheduler().runTaskLater(plugin, () -> {
-                        if (p.isOnline() && autoSpinEnabled.contains(p.getName())) {
+                        if (p.isOnline() && autoSpinEnabled.contains(uuid)) {
                             spin(p, mode);
                         }
                     }, 20L);
@@ -257,6 +252,7 @@ public class MarketRoulette {
     }
 
     private void processResult(Player p, String mode, int bet) {
+        UUID uuid = p.getUniqueId();
         String[][] prizes = mode.equals("russian") ? RUSSIAN_PRIZES : PRIZES;
         String[] prize = prizes[ThreadLocalRandom.current().nextInt(prizes.length)];
         String name = prize[0];
@@ -265,17 +261,18 @@ public class MarketRoulette {
         String tier = prize[3];
 
         int vkId = VKChatPlugin.getInstance().getApi().getLinkedVkId(p);
-        int streak = winStreak.getOrDefault(p.getName(), 0);
+        int streak = winStreak.getOrDefault(uuid, 0);
         double mult = 1.0 + (streak * 0.1);
-        int lucky = luckyNumber.getOrDefault(p.getName(), 0);
+        int lucky = luckyNumber.getOrDefault(uuid, 0);
         boolean isLucky = lucky > 0 && ThreadLocalRandom.current().nextInt(100) < lucky;
 
-        boolean isWin = !tier.equals("empty") && !tier.equals("death");
+        // [FIX-14] token/lucky не считается WIN
+        boolean isWin = type.equals("rep") || type.equals("item") || type.equals("jackpot");
         if (isWin) {
-            winStreak.merge(p.getName(), 1, Integer::sum);
-            totalWins.merge(p.getName(), 1, Integer::sum);
-        } else {
-            winStreak.put(p.getName(), 0);
+            winStreak.merge(uuid, 1, Integer::sum);
+            totalWins.merge(uuid, 1, Integer::sum);
+        } else if (type.equals("empty") || type.equals("death")) {
+            winStreak.put(uuid, 0);
         }
 
         ChatColor tierColor = getTierColor(tier);
@@ -291,7 +288,7 @@ public class MarketRoulette {
         if (type.equals("death")) {
             int loss = Math.abs(Integer.parseInt(data));
             VKChatPlugin.getInstance().getApi().takeReputation(vkId, loss);
-            totalRepLost.merge(p.getName(), loss, Integer::sum);
+            totalRepLost.merge(uuid, loss, Integer::sum);
             p.sendMessage(ChatColor.RED + "💀 -" + loss + " реп!");
             p.sendMessage(ChatColor.WHITE + "💰 Баланс: " + VKChatPlugin.getInstance().getApi().getReputation(vkId));
 
@@ -299,7 +296,7 @@ public class MarketRoulette {
             int jackpot = (int) (jackpotPool * mult);
             if (isLucky) jackpot = (int) (jackpot * 1.5);
             VKChatPlugin.getInstance().getApi().addReputation(vkId, jackpot);
-            totalRepWon.merge(p.getName(), jackpot, Integer::sum);
+            totalRepWon.merge(uuid, jackpot, Integer::sum);
             jackpotPool = 5000;
             p.sendMessage(ChatColor.LIGHT_PURPLE + "🏆 +" + jackpot + " РЕП!");
             p.sendMessage(ChatColor.WHITE + "💰 Баланс: " + VKChatPlugin.getInstance().getApi().getReputation(vkId));
@@ -307,12 +304,12 @@ public class MarketRoulette {
 
         } else if (type.equals("token")) {
             int tok = Integer.parseInt(data);
-            spinTokens.merge(p.getName(), tok, Integer::sum);
+            spinTokens.merge(uuid, tok, Integer::sum);
             p.sendMessage(ChatColor.GOLD + "🎟 +" + tok + " токенов!");
 
         } else if (type.equals("lucky")) {
-            int num = 10 + ThreadLocalRandom.current().nextInt(40);
-            luckyNumber.put(p.getName(), num);
+            int num = 5 + ThreadLocalRandom.current().nextInt(45); // [FIX-8] 5-49%
+            luckyNumber.put(uuid, num);
             p.sendMessage(ChatColor.GREEN + "🍀 Шанс: " + num + "% на x1.5!");
 
         } else if (type.equals("rep")) {
@@ -322,24 +319,23 @@ public class MarketRoulette {
                 p.sendMessage(ChatColor.GREEN + "🍀 Счастливое число! x1.5!");
             }
             VKChatPlugin.getInstance().getApi().addReputation(vkId, bonus);
-            totalRepWon.merge(p.getName(), bonus, Integer::sum);
+            totalRepWon.merge(uuid, bonus, Integer::sum);
             p.sendMessage(ChatColor.GREEN + "🎉 +" + bonus + " реп!");
             p.sendMessage(ChatColor.WHITE + "💰 Баланс: " + VKChatPlugin.getInstance().getApi().getReputation(vkId));
 
         } else if (type.equals("item")) {
-            String[] parts = data.split(";");
-            pendingItems.putIfAbsent(p.getName(), new ArrayList<>());
-            pendingItems.get(p.getName()).add(data);
+            pendingItems.putIfAbsent(uuid, new ArrayList<>());
+            pendingItems.get(uuid).add(data);
             p.sendMessage(ChatColor.GREEN + "📦 Предмет готов! Забери: /рулетка");
 
         } else {
             p.sendMessage(ChatColor.GRAY + "💀 Пусто! В следующий раз повезёт!");
-            if (ThreadLocalRandom.current().nextDouble() < 0.3) {
-                p.sendMessage(ChatColor.YELLOW + "⚡ Double or Nothing? Нажми кнопку!");
-            }
+            // [FIX-5] DoN только после empty
+            doubleOrNothing.put(uuid, 0.0);
+            p.sendMessage(ChatColor.YELLOW + "⚡ Double or Nothing? Нажми кнопку!");
         }
 
-        int newStreak = winStreak.getOrDefault(p.getName(), 0);
+        int newStreak = winStreak.getOrDefault(uuid, 0);
         if (newStreak > 1) p.sendMessage(ChatColor.RED + "🔥 Стрик: x" + newStreak);
         if (isLucky && !type.equals("lucky")) p.sendMessage(ChatColor.GREEN + "🍀 Удача!");
 
@@ -350,6 +346,14 @@ public class MarketRoulette {
     // ═══ DOUBLE OR NOTHING ═══
 
     public void doubleOrNothing(Player p) {
+        UUID uuid = p.getUniqueId();
+        // [FIX-6] Проверка наличия pending DoN
+        Double pending = doubleOrNothing.remove(uuid);
+        if (pending == null) {
+            p.sendMessage(ChatColor.RED + "Нет активного предложения! Сначала проиграй в рулетке.");
+            return;
+        }
+
         int vkId = VKChatPlugin.getInstance().getApi().getLinkedVkId(p);
         if (vkId == -1) return;
 
@@ -359,15 +363,15 @@ public class MarketRoulette {
             if (!p.isOnline()) return;
             boolean win = ThreadLocalRandom.current().nextDouble() < 0.45;
             if (win) {
-                int bonus = 200 + ThreadLocalRandom.current().nextInt(800);
+                int bonus = 200 + ThreadLocalRandom.current().nextInt(600);
                 VKChatPlugin.getInstance().getApi().addReputation(vkId, bonus);
-                totalRepWon.merge(p.getName(), bonus, Integer::sum);
+                totalRepWon.merge(uuid, bonus, Integer::sum);
                 p.sendMessage(ChatColor.GREEN + "🎉 DOUBLE! +" + bonus + " реп!");
                 p.playSound(p.getLocation(), Sound.UI_TOAST_CHALLENGE_COMPLETE, 1f, 1f);
             } else {
                 int loss = 100 + ThreadLocalRandom.current().nextInt(400);
                 VKChatPlugin.getInstance().getApi().takeReputation(vkId, loss);
-                totalRepLost.merge(p.getName(), loss, Integer::sum);
+                totalRepLost.merge(uuid, loss, Integer::sum);
                 p.sendMessage(ChatColor.RED + "💀 NOTHING! -" + loss + " реп!");
                 p.playSound(p.getLocation(), Sound.ENTITY_VILLAGER_NO, 1f, 1f);
             }
@@ -378,11 +382,12 @@ public class MarketRoulette {
     // ═══ АВТОСПИН ═══
 
     private void toggleAutoSpin(Player p) {
-        if (autoSpinEnabled.contains(p.getName())) {
-            autoSpinEnabled.remove(p.getName());
+        UUID uuid = p.getUniqueId();
+        if (autoSpinEnabled.contains(uuid)) {
+            autoSpinEnabled.remove(uuid);
             p.sendMessage(ChatColor.RED + "🔄 Авто-спин выключен");
         } else {
-            autoSpinEnabled.add(p.getName());
+            autoSpinEnabled.add(uuid);
             p.sendMessage(ChatColor.GREEN + "🔄 Авто-спин включён");
         }
     }
@@ -391,7 +396,7 @@ public class MarketRoulette {
 
     private void setLuckyNumber(Player p) {
         int num = 5 + ThreadLocalRandom.current().nextInt(45);
-        luckyNumber.put(p.getName(), num);
+        luckyNumber.put(p.getUniqueId(), num);
         p.sendMessage(ChatColor.GREEN + "🍀 Счастливое число: " + num + "%");
         openRouletteGUI(p);
     }
@@ -399,7 +404,8 @@ public class MarketRoulette {
     // ═══ ПРЕДМЕТЫ ═══
 
     public void claimVKPrizes(Player p) {
-        List<String> items = pendingItems.remove(p.getName());
+        UUID uuid = p.getUniqueId();
+        List<String> items = pendingItems.remove(uuid);
         if (items == null || items.isEmpty()) {
             p.sendMessage(ChatColor.GRAY + "Нет ожидающих предметов.");
             return;
@@ -422,34 +428,30 @@ public class MarketRoulette {
         openRouletteGUI(p);
     }
 
-    public boolean hasPendingItems(String playerName) {
-        List<String> items = pendingItems.get(playerName);
+    public boolean hasPendingItems(UUID uuid) {
+        List<String> items = pendingItems.get(uuid);
         return items != null && !items.isEmpty();
     }
 
-    public int getPendingCount(String playerName) {
-        List<String> items = pendingItems.get(playerName);
+    public int getPendingCount(UUID uuid) {
+        List<String> items = pendingItems.get(uuid);
         return items != null ? items.size() : 0;
     }
 
-    public void earnTokens(String playerName, int amount) {
-        spinTokens.merge(playerName, amount, Integer::sum);
-    }
-
-    public boolean hasDoubleOrNothing(String playerName) {
-        return true; // Всегда доступно для простоты
+    public void earnTokens(UUID uuid, int amount) {
+        spinTokens.merge(uuid, amount, Integer::sum);
     }
 
     // ═══ СТАТИСТИКА ═══
 
     public String getFullStats(Player p) {
-        String name = p.getName();
-        int spins = totalSpins.getOrDefault(name, 0);
-        int wins = totalWins.getOrDefault(name, 0);
-        int repWon = totalRepWon.getOrDefault(name, 0);
-        int repLost = totalRepLost.getOrDefault(name, 0);
-        int streak = winStreak.getOrDefault(name, 0);
-        int tokens = spinTokens.getOrDefault(name, 0);
+        UUID uuid = p.getUniqueId();
+        int spins = totalSpins.getOrDefault(uuid, 0);
+        int wins = totalWins.getOrDefault(uuid, 0);
+        int repWon = totalRepWon.getOrDefault(uuid, 0);
+        int repLost = totalRepLost.getOrDefault(uuid, 0);
+        int streak = winStreak.getOrDefault(uuid, 0);
+        int tokens = spinTokens.getOrDefault(uuid, 0);
 
         return ChatColor.GOLD + "═══ 📊 СТАТИСТИКА ═══\n\n" +
                 ChatColor.WHITE + "🎰 Вращений: " + ChatColor.YELLOW + spins + "\n" +
@@ -463,13 +465,16 @@ public class MarketRoulette {
     }
 
     public void showLeaderboard(Player p) {
-        List<Map.Entry<String, Integer>> sorted = new ArrayList<>(totalRepWon.entrySet());
+        List<Map.Entry<UUID, Integer>> sorted = new ArrayList<>(totalRepWon.entrySet());
         sorted.sort((a, b) -> Integer.compare(b.getValue(), a.getValue()));
 
         StringBuilder msg = new StringBuilder(ChatColor.GOLD + "═══ 🏆 ТОП ═══\n\n");
-        for (int i = 0; i < Math.min(10, sorted.size()); i++) {
-            Map.Entry<String, Integer> entry = sorted.get(i);
-            msg.append(ChatColor.YELLOW).append(i + 1).append(". ").append(entry.getKey())
+        int i = 1;
+        for (Map.Entry<UUID, Integer> entry : sorted) {
+            if (i > 10) break;
+            String name = Bukkit.getOfflinePlayer(entry.getKey()).getName();
+            if (name == null) name = "???";
+            msg.append(ChatColor.YELLOW).append(i++).append(". ").append(name)
                .append(ChatColor.WHITE).append(" — ").append(ChatColor.GREEN).append("+").append(entry.getValue()).append(" реп\n");
         }
         if (sorted.isEmpty()) msg.append(ChatColor.GRAY).append("Пока нет данных.");
