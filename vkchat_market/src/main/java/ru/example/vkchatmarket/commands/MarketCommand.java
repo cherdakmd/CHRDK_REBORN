@@ -50,23 +50,6 @@ public class MarketCommand implements CommandExecutor, TabCompleter {
         } else if (args.length > 0 && (args[0].equalsIgnoreCase("history") || args[0].equalsIgnoreCase("история"))) {
             p.sendMessage(org.bukkit.ChatColor.GOLD + "История рынка:");
             for (String line : plugin.getMarketManager().getHistoryTail(10)) p.sendMessage(org.bukkit.ChatColor.GRAY + "• " + line);
-        } else if (args.length > 0 && (args[0].equalsIgnoreCase("roulette") || args[0].equalsIgnoreCase("рулетка"))) {
-            ru.example.vkchat.VKChatPlugin.getInstance().getRouletteManager().openInGameGUI(p);
-        } else if (args.length > 0 && (args[0].equalsIgnoreCase("russian") || args[0].equalsIgnoreCase("русская"))) {
-            // Русская рулетка через GUI
-            ru.example.vkchat.VKChatPlugin.getInstance().getRouletteManager().openInGameGUI(p);
-        } else if (args.length > 0 && args[0].equalsIgnoreCase("double")) {
-            // Double через GUI
-            ru.example.vkchat.VKChatPlugin.getInstance().getRouletteManager().openInGameGUI(p);
-        } else if (args.length > 0 && args[0].equalsIgnoreCase("gift") && args.length > 1) {
-            p.sendMessage(org.bukkit.ChatColor.GRAY + "Подарки доступны через VK рулетку (!рулетка в ЛС)");
-        } else if (args.length > 0 && args[0].equalsIgnoreCase("autospin")) {
-            ru.example.vkchat.VKChatPlugin.getInstance().getRouletteManager().openInGameGUI(p);
-        } else if (args.length > 0 && args[0].equalsIgnoreCase("stats")) {
-            int vkId = ru.example.vkchat.VKChatPlugin.getInstance().getApi().getLinkedVkId(p);
-            if (vkId != -1) p.sendMessage(ru.example.vkchat.VKChatPlugin.getInstance().getRouletteManager().getFullStats(vkId));
-        } else if (args.length > 0 && args[0].equalsIgnoreCase("top")) {
-            ru.example.vkchat.VKChatPlugin.getInstance().getRouletteManager().showLeaderboard(p);
         } else if (args.length > 0 && (args[0].equalsIgnoreCase("quest") || args[0].equalsIgnoreCase("квест"))) {
             showQuestInfo(p);
         } else if (args.length > 0 && (args[0].equalsIgnoreCase("flash") || args[0].equalsIgnoreCase("flashsale"))) {

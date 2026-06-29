@@ -421,7 +421,7 @@ public class VKCommandHandler {
                    cmd.equals("!рулеткалаки") || cmd.equals("!rlucky") ||
                    cmd.equals("!рулеткатокены") || cmd.equals("!rtokens") ||
                    cmd.equals("!рулеткапризы") || cmd.equals("!rprizes")) {
-            plugin.getRouletteManager().handleVKCommand(fromId, peer, cmd);
+            plugin.getRouletteManager().handleCommand(fromId, peer, cmd);
         } else if (cmd.equals("!аккаунт") || cmd.equals("!account")) {
             // Меню управления аккаунтом (только в ЛС)
             if (peer < 2000000000) {

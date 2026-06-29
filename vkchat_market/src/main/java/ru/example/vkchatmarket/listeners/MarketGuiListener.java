@@ -63,7 +63,6 @@ public class MarketGuiListener implements Listener {
         inv.setItem(32, categoryItem(plugin, Material.COMPASS, "all", ChatColor.AQUA + "📦 Все обычные товары", "Все разрешённые товары без редкостей"));
         inv.setItem(33, categoryItem(plugin, Material.DIAMOND, "limited", ChatColor.LIGHT_PURPLE + "💎 Лимитированные редкости", "Ротация дня, дорого, лимитировано"));
         inv.setItem(34, categoryItem(plugin, Material.CLOCK, "trends", ChatColor.AQUA + "📈 Тренды дня", "Горячие товары, история и аудит экономики"));
-        inv.setItem(40, rouletteItem(plugin));
         inv.setItem(43, sellAllItem(plugin));
         inv.setItem(49, helpItem(Material.PAPER, ChatColor.AQUA + "Подсказка", ChatColor.GRAY + "Редкие предметы убраны из /shop.", ChatColor.GRAY + "Артефакты, тотемы и особый лут добываются в RPG/ивентах.", ChatColor.RED + "Предметы с lore не продаются."));
         p.openInventory(inv);
@@ -280,17 +279,8 @@ public class MarketGuiListener implements Listener {
 
     @EventHandler
     public void onClick(InventoryClickEvent e) {
-        String title = e.getView().getTitle();
-        if (title.contains("Рулетка") || title.contains("рулетка") || title.contains("РУЛЕТКА")) {
-            e.setCancelled(true);
-            if (!(e.getWhoClicked() instanceof Player)) return;
-            Player p = (Player) e.getWhoClicked();
-            ru.example.vkchat.VKChatPlugin.getInstance().getRouletteManager().handleInGameClick(p, e.getRawSlot());
-            return;
-        }
-
         String baseTitle = ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("settings.gui-title", "&8Динамический Рынок"));
-        if (!title.startsWith(baseTitle)) return;
+        if (!e.getView().getTitle().startsWith(baseTitle)) return;
         e.setCancelled(true);
         if (!(e.getWhoClicked() instanceof Player)) return;
         Player p = (Player) e.getWhoClicked();
@@ -302,14 +292,7 @@ public class MarketGuiListener implements Listener {
         NamespacedKey sellAllKey = new NamespacedKey(plugin, "market_sell_all");
         NamespacedKey confirmSellAllKey = new NamespacedKey(plugin, "market_confirm_sell_all");
         NamespacedKey limitedKey = new NamespacedKey(plugin, "market_limited_item");
-        NamespacedKey rouletteKey = new NamespacedKey(plugin, "market_roulette");
         String category = getCategoryFromTitle(e.getView().getTitle());
-
-        if (meta.getPersistentDataContainer().has(rouletteKey, PersistentDataType.INTEGER)) {
-            e.setCancelled(true);
-            ru.example.vkchat.VKChatPlugin.getInstance().getRouletteManager().openInGameGUI(p);
-            return;
-        }
 
         if (meta.getPersistentDataContainer().has(sellAllKey, PersistentDataType.INTEGER)) {
             openSellAllConfirm(p, category);
@@ -483,7 +466,6 @@ public class MarketGuiListener implements Listener {
         p.sendMessage(ChatColor.GREEN + "💰 Продано " + count + " шт. → " + rep + " реп.");
         p.playSound(p.getLocation(), org.bukkit.Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1f, 1f);
         plugin.getMarketFun().recordQuestProgress(p, itemId, count, "sell");
-        ru.example.vkchat.VKChatPlugin.getInstance().getRouletteManager().earnTokens(vkId, Math.max(1, count / 10)); // Токены за торговлю
     }
 
     private void buyItems(Player p, String itemId, int amount) {
@@ -584,26 +566,6 @@ public class MarketGuiListener implements Listener {
                 ChatColor.YELLOW + "Нажми для продажи всего"
         ));
         meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "market_sell_all"), PersistentDataType.INTEGER, 1);
-        it.setItemMeta(meta);
-        return it;
-    }
-
-    private static ItemStack rouletteItem(VKChatMarketPlugin plugin) {
-        ItemStack it = new ItemStack(Material.NETHER_STAR);
-        ItemMeta meta = it.getItemMeta();
-        int cost = plugin.getConfig().getInt("market2.roulette.cost", 500);
-        meta.setDisplayName(ChatColor.LIGHT_PURPLE + "🎰 Рулетка");
-        meta.setLore(java.util.Arrays.asList(
-                ChatColor.GRAY + "Испытай удачу!",
-                ChatColor.GRAY + "Стоимость: " + ChatColor.YELLOW + cost + " реп.",
-                ChatColor.GRAY + "Можно выиграть:",
-                ChatColor.GREEN + "  • Алмазы, Изумруды, Незерит",
-                ChatColor.GREEN + "  • Бонус репутацию",
-                ChatColor.RED + "  • Или ничего...",
-                "",
-                ChatColor.YELLOW + "Кулдаун: 5 минут"
-        ));
-        meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "market_roulette"), PersistentDataType.INTEGER, 1);
         it.setItemMeta(meta);
         return it;
     }
