@@ -53,15 +53,16 @@ public class MarketCommand implements CommandExecutor, TabCompleter {
         } else if (args.length > 0 && (args[0].equalsIgnoreCase("roulette") || args[0].equalsIgnoreCase("рулетка"))) {
             plugin.getMarketRoulette().openRouletteGUI(p);
         } else if (args.length > 0 && (args[0].equalsIgnoreCase("russian") || args[0].equalsIgnoreCase("русская"))) {
-            plugin.getMarketFun().spinRoulette(p, "russian");
+            plugin.getMarketRoulette().spin(p, "russian");
         } else if (args.length > 0 && args[0].equalsIgnoreCase("double")) {
-            plugin.getMarketFun().doubleOrNothing(p);
+            plugin.getMarketRoulette().doubleOrNothing(p);
         } else if (args.length > 0 && args[0].equalsIgnoreCase("gift") && args.length > 1) {
             plugin.getMarketFun().giftSpin(p, args[1]);
         } else if (args.length > 0 && args[0].equalsIgnoreCase("autospin")) {
-            plugin.getMarketFun().toggleAutoSpin(p);
+            // Автоспин через GUI
+            plugin.getMarketRoulette().openRouletteGUI(p);
         } else if (args.length > 0 && args[0].equalsIgnoreCase("stats")) {
-            p.sendMessage(plugin.getMarketFun().getStats(p));
+            p.sendMessage(plugin.getMarketRoulette().getFullStats(p));
         } else if (args.length > 0 && args[0].equalsIgnoreCase("spins")) {
             showSpinHistory(p);
         } else if (args.length > 0 && args[0].equalsIgnoreCase("top")) {
