@@ -27,21 +27,7 @@ public class MarketCommand implements CommandExecutor, TabCompleter {
         Player p = (Player) sender;
         
         if (args.length > 0 && args[0].equalsIgnoreCase("spawnnpc")) {
-            if (!p.hasPermission("vkchat.admin")) {
-                p.sendMessage(org.bukkit.ChatColor.RED + "Нет прав.");
-                return true;
-            }
-            
-            org.bukkit.entity.Villager npc = (org.bukkit.entity.Villager) p.getWorld().spawnEntity(p.getLocation(), org.bukkit.entity.EntityType.VILLAGER);
-            npc.setAI(false);
-            npc.setInvulnerable(true);
-            npc.setCustomName(org.bukkit.ChatColor.GOLD + "Скупщик Лута");
-            npc.setCustomNameVisible(true);
-            
-            org.bukkit.NamespacedKey key = new org.bukkit.NamespacedKey(plugin, "market_npc");
-            npc.getPersistentDataContainer().set(key, org.bukkit.persistence.PersistentDataType.BYTE, (byte) 1);
-            
-            p.sendMessage(org.bukkit.ChatColor.GREEN + "NPC-торговец успешно заспавнен!");
+            p.sendMessage(org.bukkit.ChatColor.RED + "Команда отключена.");
             return true;
         }
 
