@@ -614,9 +614,36 @@ public class VKLongPollManager {
     }
 
     public boolean isMemberOfGroupAndChat(int userId) {
+        // Проверка участия в группе
+        boolean inGroup = isGroupMember(userId);
+        if (!inGroup) {
+            plugin.getLogger().info("[VK] Пользователь " + userId + " не является участником группы " + groupId);
+            return false;
+        }
+
+        // Проверка участия в беседе (опционально)
+        boolean requireChat = plugin.getConfig().getBoolean("vk.require-chat-membership", false);
+        if (requireChat) {
+            int peerId = plugin.getConfig().getInt("vk.peer-id", 0);
+            if (peerId > 0) {
+                boolean inChat = isChatMember(userId, peerId);
+                if (!inChat) {
+                    plugin.getLogger().info("[VK] Пользователь " + userId + " не является участником беседы " + peerId);
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Проверить, является ли пользователь участником группы
+     */
+    public boolean isGroupMember(int userId) {
         try {
             String url = String.format(
-                "https://api.vk.com/method/groups.getMembers?group_id=%d&member_id=%d&access_token=%s&v=5.131",
+                "https://api.vk.com/method/groups.getMembers?group_id=%d&user_ids=%d&access_token=%s&v=5.131",
                 groupId, userId, token
             );
 
@@ -625,13 +652,65 @@ public class VKLongPollManager {
                 .build();
 
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-
             JSONObject json = new JSONObject(response.body());
+
+            if (json.has("error")) {
+                plugin.getLogger().warning("[VK] Ошибка проверки группы: " + json.getJSONObject("error").getString("error_msg"));
+                // При ошибке API НЕ кикаем игрока
+                return true;
+            }
+
             if (json.has("response")) {
-                return json.getJSONObject("response").getInt("count") > 0;
+                JSONObject resp = json.getJSONObject("response");
+                if (resp.has("items")) {
+                    return resp.getJSONArray("items").length() > 0;
+                }
+                return resp.getInt("count") > 0;
             }
         } catch (Exception e) {
             plugin.getLogger().warning("[VK] Не удалось проверить участника группы: " + e.getMessage());
+            // При ошибке сети НЕ кикаем игрока
+            return true;
+        }
+        return true; // По умолчанию пропускаем
+    }
+
+    /**
+     * Проверить, является ли пользователь участником беседы
+     */
+    public boolean isChatMember(int userId, int peerId) {
+        try {
+            int chatId = peerId - 2000000000;
+            String url = String.format(
+                "https://api.vk.com/method/messages.getConversationMembers?peer_id=%d&access_token=%s&v=5.131",
+                peerId, token
+            );
+
+            HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(url))
+                .build();
+
+            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            JSONObject json = new JSONObject(response.body());
+
+            if (json.has("error")) {
+                plugin.getLogger().warning("[VK] Ошибка проверки беседы: " + json.getJSONObject("error").getString("error_msg"));
+                // При ошибке API НЕ кикаем игрока
+                return true;
+            }
+
+            if (json.has("response")) {
+                JSONArray profiles = json.getJSONObject("response").getJSONArray("profiles");
+                for (int i = 0; i < profiles.length(); i++) {
+                    if (profiles.getJSONObject(i).getInt("id") == userId) {
+                        return true;
+                    }
+                }
+            }
+        } catch (Exception e) {
+            plugin.getLogger().warning("[VK] Не удалось проверить участника беседы: " + e.getMessage());
+            // При ошибке сети НЕ кикаем игрока
+            return true;
         }
         return false;
     }

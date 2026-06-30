@@ -54,7 +54,8 @@ vk:
   token: "YOUR_VK_GROUP_TOKEN" # Токен группы (Получать в настройках группы -> Работа с API)
   group-id: 123456789          # ID вашей группы (только цифры, без минуса)
   peer-id: 2000000001          # ID основной беседы
-  require-membership: true     # Требовать ли подписку на группу и беседу для игры
+  require-membership: true     # Требовать ли подписку на группу для игры
+  require-chat-membership: false # Требовать ли подписку на беседу (нужен токен с messages scope)
   chat-invite-link: "https://vk.me/join/zgfelZWZPZrqpNSW1whkRJ3zAZvCvqVAFjc=" # Ссылка на беседу
   group-link: "https://vk.com/chrdk_reborn"  # Ссылка на группу
   anti-spam-cooldown: 3        # Задержка между отправкой сообщений из ВК в игру (сек)
