@@ -185,15 +185,16 @@ public class AuthListener implements Listener {
 
     @EventHandler(priority = EventPriority.LOWEST)
     public void onMove(PlayerMoveEvent e) {
-        // Разрешаем движение всем (для доступа к /vklink)
-        // Блокируем только если ожидает 2FA
-        if (plugin.getTwoFactorManager() != null && plugin.getTwoFactorManager().isWaiting2fa(e.getPlayer().getUniqueId())) {
+        Player p = e.getPlayer();
+        // Разрешаем только если полностью авторизован
+        if (!plugin.getAuthManager().isFullyAuthorized(p)) {
             if (e.getTo() == null) return;
+            // Блокируем движение (разрешаем поворот головы)
             if (e.getFrom().getX() != e.getTo().getX() || e.getFrom().getY() != e.getTo().getY() || e.getFrom().getZ() != e.getTo().getZ()) {
-                e.getPlayer().teleport(e.getFrom());
+                p.teleport(e.getFrom());
             }
-        } else if (plugin.getAuthManager().isFullyAuthorized(e.getPlayer())) {
-            plugin.getAuthManager().updateLastActivity(e.getPlayer().getUniqueId());
+        } else {
+            plugin.getAuthManager().updateLastActivity(p.getUniqueId());
         }
     }
 
@@ -252,7 +253,7 @@ public class AuthListener implements Listener {
     @EventHandler(priority = EventPriority.LOWEST)
     public void onCommand(PlayerCommandPreprocessEvent e) {
         String cmd = e.getMessage().split(" ")[0].toLowerCase();
-        // Разрешаем команды авторизации и навигации
+        // Разрешаем команды авторизации и привязки
         if (cmd.equals("/vklink") || cmd.equals("/register") || cmd.equals("/login") || cmd.equals("/2fa") ||
             cmd.equals("/pass") || cmd.equals("/menu") || cmd.equals("/help") || cmd.equals("/vk")) return;
 
