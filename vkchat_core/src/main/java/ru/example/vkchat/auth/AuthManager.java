@@ -21,7 +21,6 @@ public class AuthManager {
 
     // Новые менеджеры
     private final SessionManager sessionManager;
-    private final LinkManager linkManager;
     private final TwoFactorManager twoFactorManager;
 
     private final Map<UUID, String> linkCodes = new ConcurrentHashMap<>();
@@ -35,7 +34,7 @@ public class AuthManager {
     private final Map<UUID, Long> lockouts = new ConcurrentHashMap<>();
     private final Map<UUID, Long> lastActivity = new ConcurrentHashMap<>();
     private final Map<UUID, Boolean> frozenAccounts = new ConcurrentHashMap<>();    // Замороженные аккаунты
-    private final Map<UUID, java.util.List<String>> loginHistory = new ConcurrentHashMap<>(); // История входов
+    private final Map<UUID, java.util.List<String>> loginHistory = new ConcurrentHashMap<>(); // История входов (потокобезопасная)
 
     private static final long TWO_FA_EXPIRY_MS = 5 * 60 * 1000L; // 5 минут
     private static final int MAX_2FA_ATTEMPTS = 5;
@@ -44,7 +43,6 @@ public class AuthManager {
     public AuthManager(VKChatPlugin plugin) {
         this.plugin = plugin;
         this.sessionManager = new SessionManager(plugin);
-        this.linkManager = new LinkManager(plugin);
         this.twoFactorManager = new TwoFactorManager(plugin);
         startCleanupTask();
     }
@@ -52,7 +50,6 @@ public class AuthManager {
     // ═══ ГЕТТЕРЫ НОВЫХ МЕНЕДЖЕРОВ ═══
 
     public SessionManager getSessionManager() { return sessionManager; }
-    public LinkManager getLinkManager() { return linkManager; }
     public TwoFactorManager getTwoFactorManager() { return twoFactorManager; }
 
     // ═══ МЕТОДЫ СИНХРОНИЗАЦИИ С SESSIONMANAGER ═══
@@ -135,16 +132,12 @@ public class AuthManager {
             return p == null || !p.isOnline();
         });
 
-        // Очищаем frozenAccounts для оффлайн игроков (только если не заморожен)
-        frozenAccounts.entrySet().removeIf(e -> !e.getValue());
+        // frozenAccounts не очищаем автоматически — только через unfreezeAccount()
 
-        // Очищаем loginHistory старше 24 часов
+        // Очищаем loginHistory для оффлайн игроков
         loginHistory.entrySet().removeIf(e -> {
-            List<String> history = e.getValue();
-            if (history.isEmpty()) return true;
-            // Оставляем только последние 10 записей
-            while (history.size() > 10) history.remove(0);
-            return false;
+            org.bukkit.entity.Player p = plugin.getServer().getPlayer(e.getKey());
+            return p == null || !p.isOnline();
         });
     }
 
@@ -196,78 +189,12 @@ public class AuthManager {
                     if (isRegistered && isLinked) {
                         String savedIp = rs.getString("last_ip");
                         long ipTime = rs.getLong("reg_date");
-                        String currentIp = player.getAddress().getAddress().getHostAddress();
+                        String currentIp = player.getAddress() != null ? player.getAddress().getAddress().getHostAddress() : "unknown";
                         
                         boolean isLocalIp = currentIp.equals("127.0.0.1") || currentIp.equals("0:0:0:0:0:0:0:1") || currentIp.equalsIgnoreCase("localhost");
-                        boolean require2faAlways = plugin.getConfig().getBoolean("security.require-2fa-always", false);
-
-                        // Проверка 2FA при входе
-                        boolean trigger2fa = false;
-                        if (plugin.getConfig().getBoolean("security.2fa-enabled", true)) {
-                            if (require2faAlways) {
-                                trigger2fa = true;
-                            } else if (isLocalIp) {
-                                // [FIX] Пропуск 2FA для локального IP если включено
-                                boolean skipLocal = plugin.getConfig().getBoolean("security.skip-2fa-local-ip", false);
-                                if (!skipLocal) {
-                                    trigger2fa = true;
-                                }
-                            } else if (plugin.getConfig().getBoolean("security.require-on-new-ip", true)) {
-                                if (savedIp != null && !savedIp.equals(currentIp)) {
-                                    trigger2fa = true;
-                                }
-                            }
-                        }
-
-                        if (trigger2fa) {
-                            // Проверка заморозки аккаунта
-                            if (isAccountFrozen(player.getUniqueId())) {
-                                plugin.getServer().getScheduler().runTask(plugin, () -> {
-                                    player.kickPlayer(org.bukkit.ChatColor.RED + "🔒 Ваш аккаунт заморожен. Обратитесь к администрации.");
-                                });
-                                return;
-                            }
-
-                            // Проверка блокировки за неудачные попытки
-                            if (isAccountLocked(player.getUniqueId())) {
-                                long remaining = getLockoutRemaining(player.getUniqueId());
-                                plugin.getServer().getScheduler().runTask(plugin, () -> {
-                                    player.kickPlayer(org.bukkit.ChatColor.RED + "⏳ Аккаунт заблокирован на " + remaining + " сек. из-за неудачных попыток входа.");
-                                });
-                                return;
-                            }
-
-                            int codeLength = plugin.getConfig().getInt("security.code-length", 4);
-                            StringBuilder codeBuilder = new StringBuilder();
-                            for (int i = 0; i < codeLength; i++) {
-                                codeBuilder.append(ThreadLocalRandom.current().nextInt(10));
-                            }
-                            String code = codeBuilder.toString();
-                            await2fa.put(player.getUniqueId(), code);
-                            await2faExpiry.put(player.getUniqueId(), System.currentTimeMillis() + TWO_FA_EXPIRY_MS);
-                            await2faAttempts.put(player.getUniqueId(), 0);
-
-                            int vkId = rs.getInt("vk_id");
-                            String msg = "🛡️ Блокировка безопасности!\nМы заметили вход с нового или локального IP-адреса.\n\nТвой одноразовый код (2FA) для подтверждения в игре: " + code + "\n\n⏱ Код действителен 5 минут.\nНикому не сообщай этот код!";
-                            
-                            String kbJson = ru.example.vkchat.vk.VKKeyboardBuilder.twoFaKeyboard(code);
-                            plugin.getVkManager().sendKeyboard(vkId, msg, kbJson);
-                            
-                            // Высылаем инструкцию игроку в чат
-                            plugin.getServer().getScheduler().runTask(plugin, () -> {
-                                player.sendMessage("");
-                                player.sendMessage(org.bukkit.ChatColor.translateAlternateColorCodes('&', "&b&m================================================="));
-                                player.sendMessage(org.bukkit.ChatColor.translateAlternateColorCodes('&', " &c&l🛡️ АКТИВИРОВАНА ДВУХФАКТОРНАЯ ЗА ЗАЩИТА (2FA)"));
-                                player.sendMessage(org.bukkit.ChatColor.translateAlternateColorCodes('&', " &fВам отправлен одноразовый код в ЛС ВКонтакте."));
-                                player.sendMessage(org.bukkit.ChatColor.translateAlternateColorCodes('&', " &fНапишите: &e/2fa <код> &fв игровой чат для входа!"));
-                                player.sendMessage(org.bukkit.ChatColor.translateAlternateColorCodes('&', "&b&m================================================="));
-                                player.sendMessage("");
-                            });
-                            return;
-                        }
 
                         // Стандартный авто-логин (работает только если IP не является локальным 127.0.0.1)
-                        if (!isLocalIp && plugin.getConfig().getBoolean("auth.auto-login-ip", true)) {
+                        if (!isLocalIp && plugin.getConfig().getBoolean("auth.auto-login-ip", false)) {
                             if (savedIp != null && savedIp.equals(currentIp) && (System.currentTimeMillis() - ipTime) < 86400000L) {
                                 loggedIn.put(player.getUniqueId(), true);
                                 plugin.getServer().getScheduler().runTask(plugin, () -> {
@@ -508,7 +435,7 @@ public class AuthManager {
      */
     public boolean is2faExpired(UUID uuid) {
         Long expiry = await2faExpiry.get(uuid);
-        if (expiry == null) return false;
+        if (expiry == null) return true; // Нет записи = истёк/не существует
         return System.currentTimeMillis() > expiry;
     }
 
@@ -594,11 +521,13 @@ public class AuthManager {
      * Добавляет запись в историю входов.
      */
     public void addLoginHistory(UUID uuid, String ip) {
-        loginHistory.putIfAbsent(uuid, new ArrayList<>());
+        loginHistory.putIfAbsent(uuid, new java.util.concurrent.CopyOnWriteArrayList<>());
         java.util.List<String> history = loginHistory.get(uuid);
         String entry = new java.text.SimpleDateFormat("dd.MM.yyyy HH:mm").format(new java.util.Date()) + " | " + ip;
         history.add(0, entry);
-        if (history.size() > 10) history.remove(history.size() - 1);
+        while (history.size() > 10) {
+            history.remove(history.size() - 1);
+        }
     }
 
     /**
@@ -855,6 +784,11 @@ public class AuthManager {
     }
 
     public boolean isFullyAuthorized(Player p) {
+        // Проверяем проходку
+        if (plugin.getPassManager() != null && plugin.getPassManager().hasPass(p.getUniqueId())) {
+            return true;
+        }
+        // Проверяем ВК-привязку
         if (!isLinked(p)) return false;
         if (plugin.getConfig().getBoolean("auth.require-auth", true)) {
             return isLoggedIn(p);

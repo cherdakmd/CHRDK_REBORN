@@ -157,30 +157,6 @@ public class TwoFactorManager {
     }
 
     /**
-     * Блокировка сессии из ВК
-     */
-    public boolean blockSession(UUID uuid, int vkId) {
-        String expectedCode = pendingCodes.get(uuid);
-        if (expectedCode == null) return false;
-
-        // Проверяем, что VK ID совпадает с привязанным
-        int linkedVkId = plugin.getAuthManager().getLinkedVkId(uuid);
-        if (linkedVkId == -1 || linkedVkId != vkId) {
-            return false; // VK ID не совпадает
-        }
-
-        cleanup(uuid);
-
-        // Уведомляем игрока
-        Player p = plugin.getServer().getPlayer(uuid);
-        if (p != null) {
-            p.kickPlayer("§cСессия заблокирована владельцем ВК-аккаунта!");
-        }
-
-        return true;
-    }
-
-    /**
      * Очистить данные 2FA
      */
     private void cleanup(UUID uuid) {

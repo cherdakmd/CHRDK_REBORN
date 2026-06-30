@@ -145,8 +145,6 @@ public class AuthListener implements Listener {
             boolean sent = plugin.getTwoFactorManager().trigger2fa(p, vkId);
             if (sent) {
                 session.state = SessionManager.SessionState.WAITING_2FA;
-                // Синхронизация со старым AuthManager
-                plugin.getAuthManager().setAwait2fa(p.getUniqueId(), String.valueOf(vkId));
             } else {
                 // Не удалось отправить 2FA — авторизуем напрямую
                 authorizePlayer(p, session);
@@ -169,8 +167,12 @@ public class AuthListener implements Listener {
 
     @EventHandler
     public void onQuit(PlayerQuitEvent e) {
-        removeSafetyPlatform(e.getPlayer());
-        plugin.getAuthManager().onQuit(e.getPlayer());
+        Player p = e.getPlayer();
+        removeSafetyPlatform(p);
+        plugin.getAuthManager().onQuit(p);
+        // Очистка новых менеджеров
+        plugin.getSessionManager().destroySession(p.getUniqueId());
+        plugin.getTwoFactorManager().onPlayerQuit(p.getUniqueId());
     }
 
     // ═══ БЛОКИРОВКА ДЕЙСТВИЙ ДО АВТОРИЗАЦИИ ═══

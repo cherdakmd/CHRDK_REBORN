@@ -5,6 +5,8 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import ru.example.vkchat.VKChatPlugin;
+import ru.example.vkchat.auth.TwoFactorManager;
+import ru.example.vkchat.auth.SessionManager;
 
 import java.io.File;
 import java.sql.Connection;
@@ -189,15 +191,27 @@ public class MCCommands implements CommandExecutor, org.bukkit.command.TabComple
             }
             
             String code = args[0].trim();
-            String savedCode = plugin.getAuthManager().getPending2faCode(p.getUniqueId());
-            if (savedCode != null && savedCode.equals(code)) {
-                plugin.getAuthManager().confirm2fa(p.getUniqueId());
+            // Используем TwoFactorManager для подтверждения
+            TwoFactorManager.TwoFactorResult result = plugin.getTwoFactorManager().confirm2fa(p.getUniqueId(), code);
+            if (result == TwoFactorManager.TwoFactorResult.SUCCESS) {
+                // Обновляем SessionManager
+                plugin.getSessionManager().setState(p.getUniqueId(), SessionManager.SessionState.LOGGED_IN);
+                // Обновляем старый AuthManager
+                plugin.getAuthManager().setLoggedIn(p.getUniqueId(), true);
+                plugin.getAuthManager().updateLastActivity(p.getUniqueId());
                 p.sendMessage("");
                 p.sendMessage(org.bukkit.ChatColor.GREEN + "✓ [2FA] Вход успешно подтвержден! Приятной игры!");
                 p.sendMessage("");
                 p.playSound(p.getLocation(), org.bukkit.Sound.ENTITY_PLAYER_LEVELUP, 1.0f, 1.0f);
+            } else if (result == TwoFactorManager.TwoFactorResult.WRONG_CODE) {
+                int remaining = plugin.getTwoFactorManager().getRemainingAttempts(p.getUniqueId());
+                p.sendMessage(org.bukkit.ChatColor.RED + "❌ Неверный код! Осталось попыток: " + remaining);
+            } else if (result == TwoFactorManager.TwoFactorResult.LOCKED) {
+                p.sendMessage(org.bukkit.ChatColor.RED + "🔒 Слишком много попыток! Подожди 5 минут.");
+            } else if (result == TwoFactorManager.TwoFactorResult.EXPIRED) {
+                p.sendMessage(org.bukkit.ChatColor.RED + "⏰ Код истёк! Перезайди на сервер.");
             } else {
-                p.sendMessage(org.bukkit.ChatColor.RED + "❌ Неверный код двухфакторной защиты! Пожалуйста, проверьте ЛС ВК.");
+                p.sendMessage(org.bukkit.ChatColor.RED + "❌ Нет ожидающего кода 2FA.");
             }
             return true;
         }
@@ -219,11 +233,13 @@ public class MCCommands implements CommandExecutor, org.bukkit.command.TabComple
             }
 
             // Шорткат: если игрок ожидает 2FA, разрешаем подтвердить код и через /login <code>
-            if (plugin.getAuthManager().isWaiting2fa(p)) {
+            if (plugin.getTwoFactorManager().isWaiting2fa(p.getUniqueId())) {
                 String code = args[0].trim();
-                String savedCode = plugin.getAuthManager().getPending2faCode(p.getUniqueId());
-                if (savedCode != null && savedCode.equals(code)) {
-                    plugin.getAuthManager().confirm2fa(p.getUniqueId());
+                TwoFactorManager.TwoFactorResult result = plugin.getTwoFactorManager().confirm2fa(p.getUniqueId(), code);
+                if (result == TwoFactorManager.TwoFactorResult.SUCCESS) {
+                    plugin.getSessionManager().setState(p.getUniqueId(), SessionManager.SessionState.LOGGED_IN);
+                    plugin.getAuthManager().setLoggedIn(p.getUniqueId(), true);
+                    plugin.getAuthManager().updateLastActivity(p.getUniqueId());
                     p.sendMessage("");
                     p.sendMessage(org.bukkit.ChatColor.GREEN + "✓ [2FA] Вход успешно подтвержден! Приятной игры!");
                     p.sendMessage("");
