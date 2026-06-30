@@ -160,7 +160,7 @@ quest:
       reward-message: "&a+75 репутации ВК"
     # === ЭТАП 4: ПЛАВКА ===
     - id: 9
-      type: "pickup"
+      type: "smelt"
       target: "IRON_INGOT"
       amount: 3
       name: "Переплавить 3 Железных Слитка"
@@ -188,7 +188,7 @@ quest:
       message: "&7Золото: {progress}/2"
       reward-message: "&a+75 репутации ВК"
     - id: 13
-      type: "pickup"
+      type: "smelt"
       target: "GOLD_INGOT"
       amount: 2
       name: "Выплавить 2 Золотых Слитка"

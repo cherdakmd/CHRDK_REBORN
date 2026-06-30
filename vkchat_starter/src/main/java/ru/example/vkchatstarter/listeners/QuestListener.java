@@ -12,6 +12,8 @@ import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.inventory.CraftItemEvent;
+import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.FurnaceInventory;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
@@ -341,6 +343,27 @@ public class QuestListener implements Listener {
         if (stage == null || !stage.type.equals("pickup")) return;
 
         if (matchesTarget(stage, e.getItem().getItemStack().getType().name())) {
+            handleProgress(p, stage, getProgress(p));
+        }
+    }
+
+    @EventHandler
+    public void onFurnaceClick(InventoryClickEvent e) {
+        if (!(e.getWhoClicked() instanceof Player)) return;
+        if (e.getInventory() == null) return;
+
+        // Проверяем, что это печка и клик по слоту результата (слот 2)
+        if (!(e.getInventory() instanceof FurnaceInventory)) return;
+        if (e.getRawSlot() != 2) return; // Слот выхода печки
+
+        Player p = (Player) e.getWhoClicked();
+        if (isSkipped(p)) return;
+
+        int stageId = getStage(p);
+        QuestStage stage = stages.get(stageId);
+        if (stage == null || !stage.type.equals("smelt")) return;
+
+        if (e.getCurrentItem() != null && matchesTarget(stage, e.getCurrentItem().getType().name())) {
             handleProgress(p, stage, getProgress(p));
         }
     }
