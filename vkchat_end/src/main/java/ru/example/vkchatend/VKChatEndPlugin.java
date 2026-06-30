@@ -17,6 +17,11 @@ public class VKChatEndPlugin extends JavaPlugin {
     private EndCorruptionManager endCorruptionManager;
     private EndRiftManager endRiftManager;
     private EndArtifactManager endArtifactManager;
+    private EndPortalManager endPortalManager;
+    private EndShulkerManager endShulkerManager;
+    private EndEnchantmentManager endEnchantmentManager;
+    private EndProgressManager endProgressManager;
+    private EndResourceManagers endResourceManagers;
 
     @Override
     public void onEnable() {
@@ -37,6 +42,11 @@ public class VKChatEndPlugin extends JavaPlugin {
         endCorruptionManager = new EndCorruptionManager(this);
         endRiftManager = new EndRiftManager(this);
         endArtifactManager = new EndArtifactManager(this);
+        endPortalManager = new EndPortalManager(this);
+        endShulkerManager = new EndShulkerManager(this);
+        endEnchantmentManager = new EndEnchantmentManager(this);
+        endProgressManager = new EndProgressManager(this);
+        endResourceManagers = new EndResourceManagers(this);
 
         // Регистрация событий
         getServer().getPluginManager().registerEvents(new EndListener(this), this);
@@ -44,6 +54,7 @@ public class VKChatEndPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(endOreManager, this);
         getServer().getPluginManager().registerEvents(endCorruptionManager, this);
         getServer().getPluginManager().registerEvents(endRiftManager, this);
+        getServer().getPluginManager().registerEvents(endPortalManager, this);
 
         // Регистрация команд
         EndCommand endCmd = new EndCommand(this);
@@ -51,10 +62,15 @@ public class VKChatEndPlugin extends JavaPlugin {
         getCommand("end").setTabCompleter(endCmd);
 
         getLogger().info("═══════════════════════════════════════");
-        getLogger().info("VKChatEnd — Плагин Энда запущен!");
+        getLogger().info("VKChatEnd v2.0 — 35 обновлений!");
         getLogger().info("Боссы: " + endBossManager.getBossCount());
         getLogger().info("Руды: " + endOreManager.getOreCount());
         getLogger().info("Артефакты: " + endArtifactManager.getArtifactCount());
+        getLogger().info("Зачарования: " + endEnchantmentManager.getEnchantmentCount());
+        getLogger().info("Зелья: " + endEnchantmentManager.getPotionCount());
+        getLogger().info("Рыба: " + endEnchantmentManager.getFishCount());
+        getLogger().info("Урожай: " + endEnchantmentManager.getCropCount());
+        getLogger().info("Достижения: " + endProgressManager.getAchievementCount());
         getLogger().info("═══════════════════════════════════════");
     }
 
@@ -73,6 +89,11 @@ public class VKChatEndPlugin extends JavaPlugin {
     public EndCorruptionManager getEndCorruptionManager() { return endCorruptionManager; }
     public EndRiftManager getEndRiftManager() { return endRiftManager; }
     public EndArtifactManager getEndArtifactManager() { return endArtifactManager; }
+    public EndPortalManager getEndPortalManager() { return endPortalManager; }
+    public EndShulkerManager getEndShulkerManager() { return endShulkerManager; }
+    public EndEnchantmentManager getEndEnchantmentManager() { return endEnchantmentManager; }
+    public EndProgressManager getEndProgressManager() { return endProgressManager; }
+    public EndResourceManagers getEndResourceManagers() { return endResourceManagers; }
 
     public World getEndWorld() {
         return Bukkit.getWorlds().stream()
