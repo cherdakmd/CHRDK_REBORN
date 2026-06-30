@@ -13,7 +13,6 @@ import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.inventory.CraftItemEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.event.inventory.FurnaceInventory;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
@@ -353,7 +352,8 @@ public class QuestListener implements Listener {
         if (e.getInventory() == null) return;
 
         // Проверяем, что это печка и клик по слоту результата (слот 2)
-        if (!(e.getInventory() instanceof FurnaceInventory)) return;
+        String invType = e.getInventory().getType().name();
+        if (!invType.equals("FURNACE") && !invType.equals("BLAST_FURNACE") && !invType.equals("SMOKER")) return;
         if (e.getRawSlot() != 2) return; // Слот выхода печки
 
         Player p = (Player) e.getWhoClicked();
