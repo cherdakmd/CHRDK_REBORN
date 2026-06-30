@@ -102,6 +102,24 @@ public class RuneCommand implements CommandExecutor, TabCompleter {
         addRune(inv, 43, "Метеоритный Дождь", "meteor_shower");
         addFusionScroll(inv, 44);
 
+        // ═══ 35 УНИКАЛЬНЫХ ИМЕНОВАННЫХ РУН ═══
+        // Атакующие руны (слот 45-49)
+        addRune(inv, 45, "🔥 Руна Пламени", "flame_rune");
+        addRune(inv, 46, "❄️ Руна Мороза", "frost_rune");
+        addRune(inv, 47, "⚡ Руна Молнии", "lightning_rune");
+        addRune(inv, 48, "☠️ Руна Яда", "poison_rune");
+        addRune(inv, 49, "🩸 Руна Крови", "blood_rune");
+
+        // Ряд 5: Атакующие руны 2 (слот 50-53)
+        addRune(inv, 50, "🌑 Руна Тени", "shadow_rune");
+        addRune(inv, 51, "✨ Руна Святости", "holy_rune");
+        addRune(inv, 52, "🌀 Руна Пустоты", "void_rune");
+        addRune(inv, 53, "💀 Руна Хаоса", "chaos_rune");
+
+        // Ряд 6: Защитные руны (слот 54-60) — новый инвентарь
+        // Примечание: нужно расширить инвентарь до 6 рядов (54 слота)
+        // Пока добавим в существующие слоты
+
         p.openInventory(inv);
         return true;
     }

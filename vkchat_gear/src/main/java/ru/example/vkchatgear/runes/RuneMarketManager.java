@@ -62,6 +62,49 @@ public class RuneMarketManager {
         basePrices.put("magma_walker", 1500);
         basePrices.put("meteor_shower", 1900);
 
+        // ═══ 35 УНИКАЛЬНЫХ ИМЕНОВАННЫХ РУН ═══
+        // Атакующие руны
+        basePrices.put("flame_rune", 2000);      // 🔥 Руна Пламени
+        basePrices.put("frost_rune", 2000);       // ❄️ Руна Мороза
+        basePrices.put("lightning_rune", 2500);   // ⚡ Руна Молнии
+        basePrices.put("poison_rune", 1800);      // ☠️ Руна Яда
+        basePrices.put("blood_rune", 2200);       // 🩸 Руна Крови
+        basePrices.put("shadow_rune", 2800);      // 🌑 Руна Тени
+        basePrices.put("holy_rune", 3000);        // ✨ Руна Святости
+        basePrices.put("void_rune", 3500);        // 🌀 Руна Пустоты
+        basePrices.put("chaos_rune", 4000);       // 💀 Руна Хаоса
+        basePrices.put("death_rune", 5000);       // ☠️ Руна Смерти
+
+        // Защитные руны
+        basePrices.put("iron_rune", 1500);        // 🛡️ Руна Железа
+        basePrices.put("stone_rune", 1500);        // 🪨 Руна Камня
+        basePrices.put("water_rune", 1800);        // 🌊 Руна Воды
+        basePrices.put("wind_rune", 2000);         // 💨 Руна Ветра
+        basePrices.put("earth_rune", 2200);        // 🌍 Руна Земли
+        basePrices.put("spirit_rune", 2500);       // 👻 Руна Духа
+        basePrices.put("time_rune", 3000);         // ⏰ Руна Времени
+        basePrices.put("space_rune", 3500);        // 🌌 Руна Пространства
+
+        // Магические руны
+        basePrices.put("arcane_rune", 2000);       // 🔮 Руна Аркан
+        basePrices.put("nature_rune", 1800);       // 🌿 Руна Природы
+        basePrices.put("fire_rune", 1500);         // 🔥 Руна Огня
+        basePrices.put("ice_rune", 1500);          // 🧊 Руна Льда
+        basePrices.put("thunder_rune", 2000);      // ⚡ Руна Грома
+        basePrices.put("darkness_rune", 2500);     // 🌑 Руна Тьмы
+        basePrices.put("light_rune", 2500);        // ☀️ Руна Света
+
+        // Утилитарные руны
+        basePrices.put("luck_rune", 1500);         // 🍀 Руна Удачи
+        basePrices.put("speed_rune", 1200);        // 💨 Руна Скорости
+        basePrices.put("strength_rune", 1200);     // 💪 Руна Силы
+        basePrices.put("health_rune", 1000);       // ❤️ Руна Здоровья
+        basePrices.put("xp_rune", 800);            // ⬆️ Руна Опыта
+        basePrices.put("loot_rune", 1200);         // 🎁 Руна Добычи
+        basePrices.put("mining_rune", 1000);       // ⛏️ Руна Добычи
+        basePrices.put("fishing_rune", 800);       // 🎣 Руна Рыбалки
+        basePrices.put("farming_rune", 800);       // 🌾 Руна Фермерства
+
         // Кристаллы и Свиток
         basePrices.put("crystal_common", 400);
         basePrices.put("crystal_rare", 900);
