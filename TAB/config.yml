@@ -1,6 +1,5 @@
 # ═══════════════════════════════════════════════════════════════
-# TAB CONFIG — CHRDK REBORN
-# https://github.com/NEZNAMY/TAB/wiki
+# TAB CONFIG — ЧРДК REBORN
 # ═══════════════════════════════════════════════════════════════
 
 # ─── HEADER & FOOTER ───
@@ -9,16 +8,18 @@ header-footer:
   designs:
     default:
       header:
-        - "<#FF6600>&m                                                    </#FFAA00>"
-        - "<#FF6600>&l⚔ CHRDK REBORN</#FFAA00> <#888888>— <#AAAAAA>Minecraft RPG Hardcore</#888888>"
-        - "<#FFAA00>&l%animation:Welcome%</#FFFFFF> <#00AAAA>&l%player%</#00AAAA><#FFAA00>&l!</#FFAA00>"
-        - "<#888888>Онлайн: <#FFFFFF>%online%</#888888> | <#888888>Ping: <#FFFFFF>%ping%</#888888>ms | <#888888>Мир: <#FFFFFF>%world%</#888888>"
+        - "&6&m                                                    "
+        - "&6&lЧРДК REBORN &7— &eMinecraft RPG Hardcore"
+        - "&7%animation:Welcome% &b&l%player%&7!"
+        - "&7Онлайн: &f%online% &7| Ping: &f%ping%&7ms | Мир: &f%world%"
         - ""
       footer:
         - ""
-        - "<#888888>Репутация ВК: <#00AAAA>%vkrep_points%</#888888> | <#888888>Донат: <#FFAA00>%luckperms-group%</#888888>"
-        - "<#888888>Время: <#FFFFFF>%time%</#888888> | <#888888>TPS: <#FFFFFF>%server_tps_1_colored%</#888888> | <#888888>RAM: <#FFFFFF>%memory-used%</#888888>/<#FFFFFF>%memory-max% MB</#888888>"
-        - "<#FF6600>&m                                                    </#FFAA00>"
+        - "&7Репутация: &e%vkrep_points% &7| Ранг: &f%luckperms-prefix%"
+        - "&7Время: &f%time% &7| TPS: &f%server_tps_1_colored% &7| RAM: &f%memory-used%&7/&f%memory-max% MB"
+        - "&eВК: &bhttps://vk.com/chrdk_reborn"
+        - "&eДонат: &chttps://donatepay.ru/don/dedworkshop"
+        - "&6&m                                                    "
 
 # ─── TABLIST NAME FORMATTING ───
 tablist-name-formatting:
@@ -42,7 +43,7 @@ playerlist-objective:
   enabled: true
   value: "%ping%"
   fancy-value: "&7Ping: %ping%ms"
-  title: "CHRDK REBORN"
+  title: "ЧРДК REBORN"
   render-type: INTEGER
   disable-condition: '%world%=disabledworld'
 
@@ -50,9 +51,9 @@ playerlist-objective:
 belowname-objective:
   enabled: true
   value: "%health%"
-  fancy-value: "&c❤ %health%"
+  fancy-value: "&c%health%"
   fancy-value-default: "NPC"
-  title: "&cЗдоровье"
+  title: "&cHP"
   disable-condition: '%world%=disabledworld'
 
 # ─── SPECTATOR FIX ───
@@ -74,7 +75,6 @@ layout:
 # ─── PING SPOOF ───
 ping-spoof:
   enabled: false
-  value: 0
 
 # ─── GLOBAL PLAYERLIST ───
 global-playerlist:
@@ -94,10 +94,10 @@ placeholder-output-replacements:
     "yes": "&7| Скрыт"
     "no": ""
   "%luckperms-group%":
-    "legend": "&6&lЛегенда"
-    "star": "&e&lЗвезда"
-    "flame": "&c&lПламя"
-    "spark": "&a&lИскра"
+    "legend": "&6Легенда"
+    "star": "&eЗвезда"
+    "flame": "&cПламя"
+    "spark": "&aИскра"
     "default": "&7Игрок"
 
 # ─── CONDITIONS ───
@@ -137,12 +137,6 @@ debug: false
 # ─── MYSQL ───
 mysql:
   enabled: false
-  host: 127.0.0.1
-  port: 3306
-  database: tab
-  username: user
-  password: password
-  useSSL: true
 
 # ─── PROXY SUPPORT ───
 proxy-support:
