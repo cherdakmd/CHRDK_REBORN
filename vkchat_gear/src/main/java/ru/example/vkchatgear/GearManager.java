@@ -467,10 +467,31 @@ public class GearManager {
     }
 
     /**
+     * Проверить, подходит ли материал для именованного предмета
+     */
+    private boolean isNamedGearMaterial(Material mat) {
+        String name = mat.name();
+        return name.contains("DIAMOND") || name.contains("NETHERITE") || 
+               name.equals("BOW") || name.equals("CROSSBOW") || name.equals("TRIDENT") ||
+               name.equals("SHIELD") || name.equals("FISHING_ROD");
+    }
+
+    /**
      * Сгенерировать именованный предмет (5% шанс при крафте)
      */
-    public ItemStack generateNamedGear(Player crafter) {
-        String[] gearDef = NAMED_GEAR[ThreadLocalRandom.current().nextInt(NAMED_GEAR.length)];
+    public ItemStack generateNamedGear(Player crafter, Material craftMaterial) {
+        // Фильтруем подходящие предметы по материалу
+        List<String[]> suitable = new ArrayList<>();
+        for (String[] gear : NAMED_GEAR) {
+            Material gearMat = Material.valueOf(gear[1]);
+            if (gearMat == craftMaterial || isCompatibleMaterial(craftMaterial, gearMat)) {
+                suitable.add(gear);
+            }
+        }
+        
+        if (suitable.isEmpty()) return null;
+        
+        String[] gearDef = suitable.get(ThreadLocalRandom.current().nextInt(suitable.size()));
         String name = gearDef[0];
         Material mat = Material.valueOf(gearDef[1]);
         String rarity = gearDef[2];
@@ -509,6 +530,30 @@ public class GearManager {
 
         item.setItemMeta(meta);
         return item;
+    }
+
+    /**
+     * Проверить совместимость материалов
+     */
+    private boolean isCompatibleMaterial(Material craftMat, Material namedMat) {
+        String craft = craftMat.name();
+        String named = namedMat.name();
+        
+        if (craft.contains("SWORD") && named.contains("SWORD")) return true;
+        if (craft.contains("AXE") && named.contains("AXE")) return true;
+        if (craft.equals("BOW") && named.equals("BOW")) return true;
+        if (craft.equals("CROSSBOW") && named.equals("CROSSBOW")) return true;
+        if (craft.equals("TRIDENT") && named.equals("TRIDENT")) return true;
+        if (craft.contains("HELMET") && named.contains("HELMET")) return true;
+        if (craft.contains("CHESTPLATE") && named.contains("CHESTPLATE")) return true;
+        if (craft.contains("LEGGINGS") && named.contains("LEGGINGS")) return true;
+        if (craft.contains("BOOTS") && named.contains("BOOTS")) return true;
+        if (craft.contains("PICKAXE") && named.contains("PICKAXE")) return true;
+        if (craft.contains("SHOVEL") && named.contains("SHOVEL")) return true;
+        if (craft.equals("FISHING_ROD") && named.equals("FISHING_ROD")) return true;
+        if (craft.equals("SHIELD") && named.equals("SHIELD")) return true;
+        
+        return false;
     }
 
     private String getEnchantDescription(String enchant, int level) {
@@ -558,9 +603,9 @@ public class GearManager {
             return item; 
         }
 
-        // 5% шанс на именованный предмет
-        if (!force && ThreadLocalRandom.current().nextDouble() < 0.05) {
-            return generateNamedGear(crafter);
+        // 5% шанс на именованный предмет (только из подходящих материалов)
+        if (!force && isNamedGearMaterial(item.getType()) && ThreadLocalRandom.current().nextDouble() < 0.05) {
+            return generateNamedGear(crafter, item.getType());
         }
 
         if (force) {
