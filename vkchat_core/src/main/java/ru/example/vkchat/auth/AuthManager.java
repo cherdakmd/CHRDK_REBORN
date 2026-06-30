@@ -19,6 +19,11 @@ import java.util.HashMap;
 public class AuthManager {
     private final VKChatPlugin plugin;
 
+    // Новые менеджеры
+    private final SessionManager sessionManager;
+    private final LinkManager linkManager;
+    private final TwoFactorManager twoFactorManager;
+
     private final Map<UUID, String> linkCodes = new ConcurrentHashMap<>();
     private final Map<String, Integer> codeToVk = new ConcurrentHashMap<>();
     private final Map<UUID, Long> joinTimes = new ConcurrentHashMap<>();
@@ -40,8 +45,17 @@ public class AuthManager {
 
     public AuthManager(VKChatPlugin plugin) {
         this.plugin = plugin;
+        this.sessionManager = new SessionManager(plugin);
+        this.linkManager = new LinkManager(plugin);
+        this.twoFactorManager = new TwoFactorManager(plugin);
         startCleanupTask();
     }
+
+    // ═══ ГЕТТЕРЫ НОВЫХ МЕНЕДЖЕРОВ ═══
+
+    public SessionManager getSessionManager() { return sessionManager; }
+    public LinkManager getLinkManager() { return linkManager; }
+    public TwoFactorManager getTwoFactorManager() { return twoFactorManager; }
 
     /**
      * [FIX] Периодическая очистка неактивных данных для предотвращения утечки памяти

@@ -19,6 +19,7 @@ import org.bukkit.event.player.*;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 import ru.example.vkchat.VKChatPlugin;
+import ru.example.vkchat.auth.SessionManager;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -26,6 +27,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+/**
+ * Обновлённый слушатель авторизации
+ * Интегрирован с новыми менеджерами: SessionManager, PassManager, MembershipManager, TwoFactorManager
+ */
 public class AuthListener implements Listener {
     private final VKChatPlugin plugin;
     private final Map<UUID, List<Location>> safetyPlatforms = new HashMap<>();
@@ -37,9 +42,68 @@ public class AuthListener implements Listener {
     @EventHandler
     public void onJoin(PlayerJoinEvent e) {
         Player p = e.getPlayer();
-        plugin.getAuthManager().onJoin(p);
 
-        // Временная безопасная платформа под ноги во время логина (фикс выпадания с одноблоковых спавнов)
+        // ═══ 1. СОЗДАЁМ СЕССИЮ ═══
+        SessionManager.PlayerSession session = plugin.getSessionManager().createSession(p);
+
+        // ═══ 2. ПРОВЕРЯЕМ ПРИВЯЗКУ ВК ═══
+        int vkId = plugin.getAuthManager().getLinkedVkId(p);
+
+        if (vkId != -1) {
+            // ВК ПРИВЯЗАН
+            session.vkId = vkId;
+
+            // Проверяем членство в группе ВК
+            if (plugin.getConfig().getBoolean("auth.link.require-membership", true)) {
+                plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
+                    boolean isMember = plugin.getMembershipManager().isFullMember(vkId);
+                    if (!isMember) {
+                        plugin.getServer().getScheduler().runTask(plugin, () -> {
+                            String kickMsg = plugin.getMembershipManager().getMembershipErrorMessage(vkId);
+                            p.kickPlayer(kickMsg);
+                        });
+                        return;
+                    }
+
+                    // Членство подтверждено — запускаем 2FA
+                    plugin.getServer().getScheduler().runTask(plugin, () -> {
+                        start2faFlow(p, vkId, session);
+                    });
+                });
+            } else {
+                // Без проверки членства — сразу 2FA
+                start2faFlow(p, vkId, session);
+            }
+        } else {
+            // ВК НЕ ПРИВЯЗАН — проверяем проходку
+            if (plugin.getPassManager().hasPass(p.getUniqueId())) {
+                // ЕСТЬ ПРОХОДКА — разрешаем вход
+                session.hasPass = true;
+                session.state = SessionManager.SessionState.PASS_HOLDER;
+                long remaining = plugin.getPassManager().getPassRemainingDays(p.getUniqueId());
+                p.sendMessage("§a✅ Добро пожаловать! У тебя есть проходка.");
+                p.sendMessage("§7Осталось: §e" + remaining + " дней");
+
+                if (remaining <= 3) {
+                    p.sendMessage("§e⚠️ Проходка скоро истекает! Привяжи ВК или продли.");
+                }
+            } else {
+                // НЕТ ВК, НЕТ ПРОХОДКИ — КИК
+                String kickMsg = "§c❌ Для игры необходимо привязать ВКонтакте!\n\n" +
+                               "§eПривязка ВК:\n" +
+                               "§71. Вступи в группу: " + plugin.getConfig().getString("vk.group-link", "https://vk.com/chrdk_reborn") + "\n" +
+                               "§72. Зайди на сервер и введи /vklink\n" +
+                               "§73. Отправь код в беседу ВК\n\n" +
+                               "§eПокупка проходки:\n" +
+                               "§7Донат 500р на DonatePay с указанием никнейма\n" +
+                               "§7Ссылка: https://donatepay.ru/don/dedworkshop\n\n" +
+                               "§7После покупки перезайди на сервер.";
+                p.kickPlayer(kickMsg);
+                return;
+            }
+        }
+
+        // ═══ 3. БЕЗОПАСНАЯ ПЛАТФОРМА ═══
         if (plugin.getConfig().getBoolean("auth.safety-platform", true)) {
             plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
                 if (!p.isOnline()) return;
@@ -61,31 +125,30 @@ public class AuthListener implements Listener {
             }, 1L);
         }
 
-        // Show big instructions slightly after join
+        // ═══ 4. ПОКАЗЫВАЕМ ИНСТРУКЦИИ ═══
         plugin.getServer().getScheduler().runTaskLater(plugin, () -> {
             if (p.isOnline() && !plugin.getAuthManager().isFullyAuthorized(p)) {
                 sendJoinInstructions(p);
             }
         }, 15L);
-        
-        if (plugin.getAuthManager().isLinked(p)) {
-            // Check group & chat membership if enabled
-            if (plugin.getConfig().getBoolean("vk.require-membership", true)) {
-                plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
-                    int vkId = plugin.getAuthManager().getLinkedVkId(p);
-                    if (vkId != -1) {
-                        boolean hasAccess = plugin.getVkManager().isMemberOfGroupAndChat(vkId);
-                        if (!hasAccess) {
-                            plugin.getServer().getScheduler().runTask(plugin, () -> {
-                                String kickMsg = plugin.getConfigManager().getMessage("vk_req_fail")
-                                        .replace("{group_link}", plugin.getConfig().getString("vk.group-link"))
-                                        .replace("{chat_link}", plugin.getConfig().getString("vk.chat-invite-link"));
-                                p.kickPlayer(kickMsg);
-                            });
-                        }
-                    }
-                });
+    }
+
+    /**
+     * Запуск 2FA потока
+     */
+    private void start2faFlow(Player p, int vkId, SessionManager.PlayerSession session) {
+        // Проверяем, нужно ли 2FA
+        if (plugin.getConfig().getBoolean("auth.2fa.enabled", true)) {
+            boolean sent = plugin.getTwoFactorManager().trigger2fa(p, vkId);
+            if (sent) {
+                session.state = SessionManager.SessionState.WAITING_2FA;
+            } else {
+                // Не удалось отправить 2FA — пропускаем
+                session.state = SessionManager.SessionState.LOGGED_IN;
             }
+        } else {
+            // 2FA отключен — сразу авторизуем
+            session.state = SessionManager.SessionState.LOGGED_IN;
         }
     }
 
@@ -95,13 +158,12 @@ public class AuthListener implements Listener {
         plugin.getAuthManager().onQuit(e.getPlayer());
     }
 
-    // --- BLOCKING ALL ACTIONS ---
+    // ═══ БЛОКИРОВКА ДЕЙСТВИЙ ДО АВТОРИЗАЦИИ ═══
+
     @EventHandler(priority = EventPriority.LOWEST)
     public void onMove(PlayerMoveEvent e) {
         if (!plugin.getAuthManager().isFullyAuthorized(e.getPlayer())) {
-            // [FIX] Проверка на null для getTo()
             if (e.getTo() == null) return;
-            // Allow head rotation, but block movement
             if (e.getFrom().getX() != e.getTo().getX() || e.getFrom().getY() != e.getTo().getY() || e.getFrom().getZ() != e.getTo().getZ()) {
                 e.getPlayer().teleport(e.getFrom());
             }
@@ -165,23 +227,26 @@ public class AuthListener implements Listener {
     @EventHandler(priority = EventPriority.LOWEST)
     public void onCommand(PlayerCommandPreprocessEvent e) {
         String cmd = e.getMessage().split(" ")[0].toLowerCase();
+        // Разрешаем команды авторизации
         if (cmd.equals("/vklink") || cmd.equals("/register") || cmd.equals("/login") || cmd.equals("/2fa")) return;
-        
+
         if (!plugin.getAuthManager().isFullyAuthorized(e.getPlayer())) {
-            // Разрешаем только /vklink, /register, /login, /2fa
-            if (!cmd.equals("/vklink") && !cmd.equals("/register") && !cmd.equals("/login") && !cmd.equals("/2fa")) {
-                e.setCancelled(true);
-                sendJoinInstructions(e.getPlayer());
-            }
+            e.setCancelled(true);
+            sendJoinInstructions(e.getPlayer());
         }
     }
 
+    /**
+     * Показать инструкции при входе
+     */
     private void sendJoinInstructions(Player p) {
-        if (plugin.getAuthManager().isWaiting2fa(p)) {
+        // Проверяем, ожидает ли 2FA
+        if (plugin.getTwoFactorManager() != null && plugin.getTwoFactorManager().isWaiting2fa(p.getUniqueId())) {
             p.sendMessage("");
-            p.sendMessage(ChatColor.translateAlternateColorCodes('&', "&b&m================================================="));
-            p.sendMessage(plugin.getConfigManager().formatColor(plugin.getConfigManager().getMessage("auth_2fa_sent")));
-            p.sendMessage(ChatColor.translateAlternateColorCodes('&', "&b&m================================================="));
+            p.sendMessage(ChatColor.translateAlternateColorCodes('&', "&e&m================================================="));
+            p.sendMessage("§e🔐 Код подтверждения отправлен в твои личные сообщения ВК!");
+            p.sendMessage("§7Введи код в чат для подтверждения входа.");
+            p.sendMessage(ChatColor.translateAlternateColorCodes('&', "&e&m================================================="));
             p.sendMessage("");
             return;
         }
@@ -214,8 +279,10 @@ public class AuthListener implements Listener {
         p.sendMessage("");
     }
 
+    // ═══ БЕЗОПАСНАЯ ПЛАТФОРМА ═══
+
     private void placeSafetyPlatform(Player p) {
-        removeSafetyPlatform(p); // убираем старую, если вдруг осталась
+        removeSafetyPlatform(p);
 
         Location loc = p.getLocation();
         World world = loc.getWorld();

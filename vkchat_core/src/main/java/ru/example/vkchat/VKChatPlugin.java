@@ -256,6 +256,14 @@ public class VKChatPlugin extends JavaPlugin {
         return membershipManager;
     }
 
+    public ru.example.vkchat.auth.SessionManager getSessionManager() {
+        return coreManagers != null ? coreManagers.getAuthManager().getSessionManager() : null;
+    }
+
+    public ru.example.vkchat.auth.TwoFactorManager getTwoFactorManager() {
+        return coreManagers != null ? coreManagers.getAuthManager().getTwoFactorManager() : null;
+    }
+
     public ru.example.vkchat.auth.AuthManager getAuthManager() {
         return coreManagers != null ? coreManagers.getAuthManager() : null;
     }
