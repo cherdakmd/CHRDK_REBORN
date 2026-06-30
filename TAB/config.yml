@@ -15,7 +15,7 @@ header-footer:
         - ""
       footer:
         - ""
-        - "&7Ранг: &f%vault_prefix%"
+        - "&7Репутация: &e%vkchat_reputation% &7| Ранг: &f%vault_prefix%"
         - "&7Время: &f%time% &7| RAM: &f%memory-used%&7/&f%memory-max% MB"
         - "&eВК: &bhttps://vk.com/chrdk_reborn"
         - "&eДонат: &chttps://donatepay.ru/don/dedworkshop"
