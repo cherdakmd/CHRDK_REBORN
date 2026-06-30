@@ -22,6 +22,10 @@ public class VKChatEndPlugin extends JavaPlugin {
     private EndEnchantmentManager endEnchantmentManager;
     private EndProgressManager endProgressManager;
     private EndResourceManagers endResourceManagers;
+    private EndMobManager endMobManager;
+    private EndAnomalyManager endAnomalyManager;
+    private EndInvasionManager endInvasionManager;
+    private EndDragonManager endDragonManager;
 
     @Override
     public void onEnable() {
@@ -47,6 +51,10 @@ public class VKChatEndPlugin extends JavaPlugin {
         endEnchantmentManager = new EndEnchantmentManager(this);
         endProgressManager = new EndProgressManager(this);
         endResourceManagers = new EndResourceManagers(this);
+        endMobManager = new EndMobManager(this);
+        endAnomalyManager = new EndAnomalyManager(this);
+        endInvasionManager = new EndInvasionManager(this);
+        endDragonManager = new EndDragonManager(this);
 
         // Регистрация событий
         getServer().getPluginManager().registerEvents(new EndListener(this), this);
@@ -55,6 +63,10 @@ public class VKChatEndPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(endCorruptionManager, this);
         getServer().getPluginManager().registerEvents(endRiftManager, this);
         getServer().getPluginManager().registerEvents(endPortalManager, this);
+        getServer().getPluginManager().registerEvents(endMobManager, this);
+        getServer().getPluginManager().registerEvents(endAnomalyManager, this);
+        getServer().getPluginManager().registerEvents(endInvasionManager, this);
+        getServer().getPluginManager().registerEvents(endDragonManager, this);
 
         // Регистрация команд
         EndCommand endCmd = new EndCommand(this);
@@ -62,7 +74,7 @@ public class VKChatEndPlugin extends JavaPlugin {
         getCommand("end").setTabCompleter(endCmd);
 
         getLogger().info("═══════════════════════════════════════");
-        getLogger().info("VKChatEnd v2.0 — 35 обновлений!");
+        getLogger().info("VKChatEnd v3.0 — 50+ обновлений!");
         getLogger().info("Боссы: " + endBossManager.getBossCount());
         getLogger().info("Руды: " + endOreManager.getOreCount());
         getLogger().info("Артефакты: " + endArtifactManager.getArtifactCount());
@@ -71,6 +83,10 @@ public class VKChatEndPlugin extends JavaPlugin {
         getLogger().info("Рыба: " + endEnchantmentManager.getFishCount());
         getLogger().info("Урожай: " + endEnchantmentManager.getCropCount());
         getLogger().info("Достижения: " + endProgressManager.getAchievementCount());
+        getLogger().info("Мобы: 13 типов");
+        getLogger().info("Аномалии: 10 типов");
+        getLogger().info("Вторжения: 5 типов");
+        getLogger().info("Дракон: 5 фаз");
         getLogger().info("═══════════════════════════════════════");
     }
 
@@ -94,6 +110,10 @@ public class VKChatEndPlugin extends JavaPlugin {
     public EndEnchantmentManager getEndEnchantmentManager() { return endEnchantmentManager; }
     public EndProgressManager getEndProgressManager() { return endProgressManager; }
     public EndResourceManagers getEndResourceManagers() { return endResourceManagers; }
+    public EndMobManager getEndMobManager() { return endMobManager; }
+    public EndAnomalyManager getEndAnomalyManager() { return endAnomalyManager; }
+    public EndInvasionManager getEndInvasionManager() { return endInvasionManager; }
+    public EndDragonManager getEndDragonManager() { return endDragonManager; }
 
     public World getEndWorld() {
         return Bukkit.getWorlds().stream()
