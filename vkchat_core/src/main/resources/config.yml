@@ -196,3 +196,65 @@ moderation:
       9: 7
       12: 30
     default-repeat-ban-days: 30
+
+# ==========================================
+#  СИСТЕМА ПРОХОДОК (для игроков без ВК)
+# ==========================================
+passes:
+  enabled: true
+  default-duration-days: 30    # Срок действия по умолчанию
+  warning-days: 3              # За сколько дней предупреждать об истечении
+
+  # Интеграция с DonatePay
+  donatepay:
+    enabled: true
+    min-amount: 500            # Минимальная сумма доната для проходки
+    auto-grant: true           # Автовыдача при донате
+
+  # Ручная выдача админом
+  admin-commands:
+    enabled: true
+    permission: "vkchat.admin.pass"
+
+  # Статистика
+  stats:
+    enabled: true
+    permission: "vkchat.admin.pass.stats"
+
+# ==========================================
+#  ДВУХФАКТОРНАЯ АУТЕНТИФИКАЦИЯ (2FA)
+# ==========================================
+auth:
+  2fa:
+    enabled: true
+    code-length: 4             # Длина кода (4-6 цифр)
+    expiry-minutes: 5          # Время действия кода
+    max-attempts: 3            # Максимум попыток ввода
+    lockout-minutes: 5         # Блокировка при превышении попыток
+    require-every-login: true  # Требовать 2FA при каждом входе
+
+  link:
+    code-length: 6             # Длина кода привязки ВК
+    code-expiry-minutes: 10    # Время действия кода привязки
+    require-membership: true   # Требовать вступление в группу ВК
+    anti-twink: true           # Один ВК = один аккаунт
+    max-accounts-per-vk: 1     # Максимум аккаунтов на ВК
+
+  session:
+    timeout-minutes: 30        # Таймаут неактивной сессии
+
+# ==========================================
+#  УВЕДОМЛЕНИЯ
+# ==========================================
+notifications:
+  join:
+    enabled: true
+    show-vk-status: true       # Показывать статус ВК (привязан/проходка/нет)
+  leave:
+    enabled: true
+    show-vk-status: true
+  auth:
+    enabled: true
+  pass-warning:
+    enabled: true
+    days-before: 3             # За сколько дней предупреждать
