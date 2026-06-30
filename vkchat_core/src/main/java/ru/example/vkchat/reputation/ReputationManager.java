@@ -13,10 +13,12 @@ import java.util.List;
 
 public class ReputationManager {
     private final VKChatPlugin plugin;
+    private final ru.example.vkchat.database.SQLCompat sqlCompat;
     private boolean enabled;
 
     public ReputationManager(VKChatPlugin plugin) {
         this.plugin = plugin;
+        this.sqlCompat = new ru.example.vkchat.database.SQLCompat(plugin);
         this.enabled = plugin.getConfig().getBoolean("reputation.enabled", true);
     }
 
@@ -43,16 +45,23 @@ public class ReputationManager {
                 if (now - lastTime > cooldown) {
                     int add = plugin.getConfig().getInt("reputation.message-reward", 1);
 
-                    // [FIX] Атомарная операция — один запрос вместо SELECT + UPDATE
-                    try (PreparedStatement upsert = conn.prepareStatement(
-                            "INSERT INTO vkchat_reputation (vk_id, points, last_message) VALUES (?, ?, ?) " +
-                            "ON DUPLICATE KEY UPDATE points = points + ?, last_message = ?")) {
-                        upsert.setInt(1, vkId);
-                        upsert.setInt(2, add);
-                        upsert.setLong(3, now);
-                        upsert.setInt(4, add);
-                        upsert.setLong(5, now);
-                        upsert.executeUpdate();
+                    // [FIX] Работает и для SQLite и для MySQL
+                    if (exists) {
+                        try (PreparedStatement update = conn.prepareStatement(
+                                "UPDATE vkchat_reputation SET points = points + ?, last_message = ? WHERE vk_id = ?")) {
+                            update.setInt(1, add);
+                            update.setLong(2, now);
+                            update.setInt(3, vkId);
+                            update.executeUpdate();
+                        }
+                    } else {
+                        try (PreparedStatement insert = conn.prepareStatement(
+                                "INSERT INTO vkchat_reputation (vk_id, points, last_message) VALUES (?, ?, ?)")) {
+                            insert.setInt(1, vkId);
+                            insert.setInt(2, add);
+                            insert.setLong(3, now);
+                            insert.executeUpdate();
+                        }
                     }
                 }
             } catch (SQLException e) {
