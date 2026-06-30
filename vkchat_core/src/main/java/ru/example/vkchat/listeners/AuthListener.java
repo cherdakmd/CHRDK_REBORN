@@ -91,18 +91,24 @@ public class AuthListener implements Listener {
                     p.sendMessage("§e⚠️ Проходка скоро истекает! Привяжи ВК или продли.");
                 }
             } else {
-                // НЕТ ВК, НЕТ ПРОХОДКИ — КИК
-                String kickMsg = "§c❌ Для игры необходимо привязать ВКонтакте!\n\n" +
-                               "§eПривязка ВК:\n" +
-                               "§71. Вступи в группу: " + plugin.getConfig().getString("vk.group-link", "https://vk.com/chrdk_reborn") + "\n" +
-                               "§72. Зайди на сервер и введи /vklink\n" +
-                               "§73. Отправь код в беседу ВК\n\n" +
-                               "§eПокупка проходки:\n" +
-                               "§7Донат 500р на DonatePay с указанием никнейма\n" +
-                               "§7Ссылка: https://donatepay.ru/don/dedworkshop\n\n" +
-                               "§7После покупки перезайди на сервер.";
-                p.kickPlayer(kickMsg);
-                return;
+                // НЕТ ВК, НЕТ ПРОХОДКИ — разрешаем вход, показываем инструкции
+                session.state = SessionManager.SessionState.UNLINKED;
+                p.sendMessage("");
+                p.sendMessage("§e§l═══════════════════════════════════");
+                p.sendMessage("§fДобро пожаловать на §6§lCHRDK REBORN§f!");
+                p.sendMessage("§e§l═══════════════════════════════════");
+                p.sendMessage("");
+                p.sendMessage("§fДля полного доступа привяжи §bВКонтакте§f:");
+                p.sendMessage("§71. Вступи в группу: §b" + plugin.getConfig().getString("vk.group-link", "https://vk.com/chrdk_reborn"));
+                p.sendMessage("§72. Введи команду: §a/vklink");
+                p.sendMessage("§73. Отправь код в беседу ВК");
+                p.sendMessage("");
+                p.sendMessage("§fНет ВК? Купи §eпроходку§f:");
+                p.sendMessage("§7Донат §e500р§7 на DonatePay с никнеймом");
+                p.sendMessage("§7Ссылка: §bhttps://donatepay.ru/don/dedworkshop");
+                p.sendMessage("");
+                p.sendMessage("§e§l═══════════════════════════════════");
+                p.sendMessage("");
             }
         }
 
@@ -179,12 +185,14 @@ public class AuthListener implements Listener {
 
     @EventHandler(priority = EventPriority.LOWEST)
     public void onMove(PlayerMoveEvent e) {
-        if (!plugin.getAuthManager().isFullyAuthorized(e.getPlayer())) {
+        // Разрешаем движение всем (для доступа к /vklink)
+        // Блокируем только если ожидает 2FA
+        if (plugin.getTwoFactorManager() != null && plugin.getTwoFactorManager().isWaiting2fa(e.getPlayer().getUniqueId())) {
             if (e.getTo() == null) return;
             if (e.getFrom().getX() != e.getTo().getX() || e.getFrom().getY() != e.getTo().getY() || e.getFrom().getZ() != e.getTo().getZ()) {
                 e.getPlayer().teleport(e.getFrom());
             }
-        } else {
+        } else if (plugin.getAuthManager().isFullyAuthorized(e.getPlayer())) {
             plugin.getAuthManager().updateLastActivity(e.getPlayer().getUniqueId());
         }
     }
@@ -244,8 +252,9 @@ public class AuthListener implements Listener {
     @EventHandler(priority = EventPriority.LOWEST)
     public void onCommand(PlayerCommandPreprocessEvent e) {
         String cmd = e.getMessage().split(" ")[0].toLowerCase();
-        // Разрешаем команды авторизации
-        if (cmd.equals("/vklink") || cmd.equals("/register") || cmd.equals("/login") || cmd.equals("/2fa")) return;
+        // Разрешаем команды авторизации и навигации
+        if (cmd.equals("/vklink") || cmd.equals("/register") || cmd.equals("/login") || cmd.equals("/2fa") ||
+            cmd.equals("/pass") || cmd.equals("/menu") || cmd.equals("/help") || cmd.equals("/vk")) return;
 
         if (!plugin.getAuthManager().isFullyAuthorized(e.getPlayer())) {
             e.setCancelled(true);
