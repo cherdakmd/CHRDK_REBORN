@@ -10,13 +10,13 @@ header-footer:
       header:
         - "&6&m                                                    "
         - "&6&lЧРДК REBORN &7— &eMinecraft RPG Hardcore"
-        - "&7%animation:Welcome% &b&l%player%&7!"
+        - "&b&l%player%&7, добро пожаловать!"
         - "&7Онлайн: &f%online% &7| Ping: &f%ping%&7ms | Мир: &f%world%"
         - ""
       footer:
         - ""
-        - "&7Репутация: &e%vkrep_points% &7| Ранг: &f%luckperms-prefix%"
-        - "&7Время: &f%time% &7| TPS: &f%server_tps_1_colored% &7| RAM: &f%memory-used%&7/&f%memory-max% MB"
+        - "&7Ранг: &f%vault_prefix%"
+        - "&7Время: &f%time% &7| RAM: &f%memory-used%&7/&f%memory-max% MB"
         - "&eВК: &bhttps://vk.com/chrdk_reborn"
         - "&eДонат: &chttps://donatepay.ru/don/dedworkshop"
         - "&6&m                                                    "
@@ -117,7 +117,6 @@ placeholder-refresh-intervals:
   "%player_health%": 200
   "%player_ping%": 1000
   "%vault_prefix%": 1000
-  "%vkrep_points%": 2000
 
 # ─── GROUPS ───
 assign-groups-by-permissions: false
