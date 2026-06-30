@@ -376,12 +376,191 @@ public class GearManager {
         return list;
     }
 
+    // ═══ 35 УНИКАЛЬНЫХ ИМЕНОВАННЫХ ПРЕДМЕТОВ ═══
+    // Формат: {имя, материал, редкость, энчант, уровень}
+    private static final String[][] NAMED_GEAR = {
+        // Мечи
+        {"🔥 Клинок Пламени", "DIAMOND_SWORD", "legendary", "fire_aspect", "3"},
+        {"❄️ Ледяная Скорбь", "DIAMOND_SWORD", "legendary", "frost", "3"},
+        {"⚡ Громовержец", "NETHERITE_SWORD", "ancient", "lightning", "4"},
+        {"💀 Жнец Душ", "DIAMOND_SWORD", "epic", "soul_reaper", "3"},
+        {"🌀 Клинок Бездны", "NETHERITE_SWORD", "ancient", "void_strike", "4"},
+        {"🩸 Кровавый Клинок", "DIAMOND_SWORD", "legendary", "vampirism", "3"},
+        {"☠️ Ядовитый Клинок", "IRON_SWORD", "rare", "venom", "2"},
+        {"🗡️ Теневой Клинок", "DIAMOND_SWORD", "epic", "disintegration", "2"},
+
+        // Луки
+        {"🏹 Лук Ветров", "BOW", "legendary", "wind_walker", "3"},
+        {"🎯 Снайперская Винтовка", "BOW", "epic", "critical_strike", "3"},
+        {"🔥 Огненный Лук", "BOW", "rare", "flame_tongue", "2"},
+
+        // Броня - Шлем
+        {"👑 Корона Владыки", "NETHERITE_HELMET", "ancient", "mana_shield", "4"},
+        {"🎭 Маска Убийцы", "DIAMOND_HELMET", "legendary", "shadow_step", "3"},
+        {"🪖 Шлем Богатыря", "IRON_HELMET", "epic", "iron_will", "2"},
+
+        // Броня - Нагрудник
+        {"🛡️ Доспех Дракона", "NETHERITE_CHESTPLATE", "ancient", "berserker", "4"},
+        {"💫 Звёздная Броня", "DIAMOND_CHESTPLATE", "legendary", "arcane_burst", "3"},
+        {"🪖 Кираса Героя", "IRON_CHESTPLATE", "epic", "steel_skin", "2"},
+
+        // Броня - Поножи
+        {"🦵 Поножи Тени", "NETHERITE_LEGGINGS", "ancient", "ghost_walk", "4"},
+        {"⚡ Молниеносные Поножи", "DIAMOND_LEGGINGS", "legendary", "echo_strike", "3"},
+        {"🩹 Поножи Целителя", "IRON_LEGGINGS", "epic", "lifesteal_aura", "2"},
+
+        // Броня - Ботинки
+        {"👢 Сапоги Ветра", "NETHERITE_BOOTS", "ancient", "double_jump", "4"},
+        {"🏃 Ботинки Скорохода", "DIAMOND_BOOTS", "legendary", "aqua_affinity", "3"},
+        {"🥾 Ботинки Странника", "IRON_BOOTS", "epic", "feather_falling", "2"},
+
+        // Инструменты
+        {"⛏️ Кирка Титана", "NETHERITE_PICKAXE", "ancient", "efficiency", "5"},
+        {"⛏️ Алмазная Кирка", "DIAMOND_PICKAXE", "legendary", "fortune", "3"},
+        {"🪓 Топор Дровосека", "DIAMOND_AXE", "epic", "efficiency", "3"},
+        {"🎣 Удочка Рыболова", "FISHING_ROD", "rare", "luck_of_the_sea", "2"},
+
+        // Щиты
+        {"🛡️ Щит Предков", "SHIELD", "legendary", "thorns", "3"},
+        {"🛡️ Железный Щит", "SHIELD", "epic", "unbreaking", "2"},
+
+        // Трезубцы
+        {"🔱 Трезубец Посейдона", "TRIDENT", "ancient", "loyalty", "4"},
+        {"🔱 Грозовой Трезубец", "TRIDENT", "legendary", "channeling", "3"},
+
+        // Арбалеты
+        {"🏹 Арбалет Охотника", "CROSSBOW", "epic", "quick_charge", "3"},
+        {"🏹 Арбалет Снайпера", "CROSSBOW", "legendary", "piercing", "3"},
+
+        // Ножницы
+        {"✂️ Ножницы Мастера", "SHEARS", "rare", "efficiency", "2"},
+
+        // Удочки
+        {"🎣 Золотая Удочка", "FISHING_ROD", "legendary", "luck_of_the_sea", "3"},
+        {"🎣 Легкая Удочка", "FISHING_ROD", "common", "lure", "1"},
+
+        // Инструменты для строительства
+        {"🔨 Молот Кузнеца", "STONE_SHOVEL", "epic", "efficiency", "3"},
+        {"🪓 Секач", "STONE_AXE", "rare", "efficiency", "2"},
+    };
+
+    /**
+     * Проверить, является ли предмет именованным
+     */
+    public static boolean isNamedGear(ItemStack item) {
+        if (item == null || !item.hasItemMeta()) return false;
+        ItemMeta meta = item.getItemMeta();
+        return meta.getPersistentDataContainer().has(
+                new org.bukkit.NamespacedKey(Bukkit.getPluginManager().getPlugin("VKChatGear"), "is_named_gear"),
+                org.bukkit.persistence.PersistentDataType.INTEGER);
+    }
+
+    /**
+     * Получить имя именованного предмета
+     */
+    public static String getNamedGearName(ItemStack item) {
+        if (!isNamedGear(item)) return null;
+        ItemMeta meta = item.getItemMeta();
+        return meta.getPersistentDataContainer().get(
+                new org.bukkit.NamespacedKey(Bukkit.getPluginManager().getPlugin("VKChatGear"), "named_gear_name"),
+                org.bukkit.persistence.PersistentDataType.STRING);
+    }
+
+    /**
+     * Сгенерировать именованный предмет (5% шанс при крафте)
+     */
+    public ItemStack generateNamedGear(Player crafter) {
+        String[] gearDef = NAMED_GEAR[ThreadLocalRandom.current().nextInt(NAMED_GEAR.length)];
+        String name = gearDef[0];
+        Material mat = Material.valueOf(gearDef[1]);
+        String rarity = gearDef[2];
+        String enchant = gearDef[3];
+        int level = Integer.parseInt(gearDef[4]);
+
+        ItemStack item = new ItemStack(mat);
+        ItemMeta meta = item.getItemMeta();
+
+        ChatColor color;
+        switch (rarity) {
+            case "ancient": color = ChatColor.GOLD; break;
+            case "legendary": color = ChatColor.DARK_PURPLE; break;
+            case "epic": color = ChatColor.BLUE; break;
+            case "rare": color = ChatColor.AQUA; break;
+            default: color = ChatColor.GREEN; break;
+        }
+
+        meta.setDisplayName(color + "" + ChatColor.BOLD + name);
+
+        List<String> lore = new ArrayList<>();
+        lore.add(ChatColor.GRAY + "Редкость: " + color + rarity.toUpperCase());
+        lore.add(ChatColor.GRAY + "Создано кузнецом: " + crafter.getName());
+        lore.add("");
+        lore.add(ChatColor.GREEN + "➕ " + getEnchantDescription(enchant, level));
+        lore.add("");
+        lore.add(ChatColor.DARK_GRAY + "Работает в инвентаре.");
+        if (rarity.equals("ancient") || rarity.equals("legendary")) {
+            lore.add(ChatColor.AQUA + "✨ Привязан к душе.");
+        }
+
+        meta.setLore(lore);
+        meta.getPersistentDataContainer().set(new org.bukkit.NamespacedKey(plugin, "is_named_gear"), org.bukkit.persistence.PersistentDataType.INTEGER, 1);
+        meta.getPersistentDataContainer().set(new org.bukkit.NamespacedKey(plugin, "named_gear_name"), org.bukkit.persistence.PersistentDataType.STRING, name);
+        meta.getPersistentDataContainer().set(new org.bukkit.NamespacedKey(plugin, "gear_rarity"), org.bukkit.persistence.PersistentDataType.STRING, rarity);
+
+        item.setItemMeta(meta);
+        return item;
+    }
+
+    private String getEnchantDescription(String enchant, int level) {
+        switch (enchant) {
+            case "fire_aspect": return "Огненный аспект " + level;
+            case "frost": return "Морозный удар " + level;
+            case "lightning": return "Удар молнии " + level;
+            case "soul_reaper": return "Жнец душ " + level;
+            case "void_strike": return "Удар бездны " + level;
+            case "vampirism": return "Вампиризм " + (level * 10) + "%";
+            case "venom": return "Отравление " + level;
+            case "disintegration": return "Распад " + level;
+            case "wind_walker": return "Шагающий по ветру " + level;
+            case "critical_strike": return "Критический удар " + level;
+            case "flame_tongue": return "Пылающий язык " + level;
+            case "mana_shield": return "Мана-щит";
+            case "shadow_step": return "Теневой шаг";
+            case "iron_will": return "Железная воля " + level;
+            case "berserker": return "Берсерк " + level;
+            case "arcane_burst": return "Магический взрыв " + level;
+            case "steel_skin": return "Стальная кожа +" + level;
+            case "ghost_walk": return "Призрачный шаг";
+            case "echo_strike": return "Удар-эхо " + level;
+            case "lifesteal_aura": return "Аура вампиризма " + level;
+            case "double_jump": return "Двойной прыжок";
+            case "aqua_affinity": return "Подводная скорость";
+            case "feather_falling": return "Плавное падение";
+            case "efficiency": return "Эффективность " + level;
+            case "fortune": return "Удача " + level;
+            case "luck_of_the_sea": return "Морская удача " + level;
+            case "thorns": return "Шипы " + level;
+            case "unbreaking": return "Прочность " + level;
+            case "loyalty": return "Верность " + level;
+            case "channeling": return "Канал " + level;
+            case "quick_charge": return "Быстрая зарядка " + level;
+            case "piercing": return "Пробивание " + level;
+            case "lure": return "Приманка " + level;
+            default: return enchant + " " + level;
+        }
+    }
+
     public ItemStack generateGear(ItemStack item, Player crafter, boolean force) {
         if (item == null || item.getType() == Material.AIR) return item;
         
         ItemMeta meta = item.getItemMeta();
         if (!force && meta != null && meta.hasLore() && meta.getLore().toString().contains("Редкость")) {
             return item; 
+        }
+
+        // 5% шанс на именованный предмет
+        if (!force && ThreadLocalRandom.current().nextDouble() < 0.05) {
+            return generateNamedGear(crafter);
         }
 
         if (force) {
