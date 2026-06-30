@@ -370,6 +370,20 @@ public class AuthManager {
                 // Начисляем 1000 стартовой репутации ВК при первой связке!
                 plugin.getReputationManager().addPoints(vkId, 1000);
                 p.sendMessage(org.bukkit.ChatColor.GOLD + "✨ Вам начислена стартовая репутация в размере 1000 очков ВК!");
+
+                // Автоматически добавляем в вайтлист
+                if (plugin.getConfig().getBoolean("auth.auto-whitelist", true)) {
+                    plugin.getServer().getScheduler().runTask(plugin, () -> {
+                        try {
+                            org.bukkit.OfflinePlayer offlinePlayer = plugin.getServer().getOfflinePlayer(uuid);
+                            offlinePlayer.setWhitelisted(true);
+                            p.sendMessage(org.bukkit.ChatColor.GREEN + "✅ Вы добавлены в белый список сервера!");
+                            plugin.getLogger().info("[Whitelist] " + p.getName() + " автоматически добавлен в вайтлист после привязки ВК.");
+                        } catch (Exception e) {
+                            plugin.getLogger().warning("[Whitelist] Не удалось добавить " + p.getName() + " в вайтлист: " + e.getMessage());
+                        }
+                    });
+                }
                 
                 if (plugin.getConfig().getBoolean("bonus.first-link-enabled", true)) {
                     p.sendMessage(plugin.getConfigManager().formatColor(plugin.getConfigManager().getMessage("bonus_received")));
