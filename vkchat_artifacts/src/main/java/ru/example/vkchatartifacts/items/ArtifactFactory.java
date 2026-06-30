@@ -15,6 +15,7 @@ import java.util.concurrent.ThreadLocalRandom;
 public class ArtifactFactory {
     
     public static final String[] BUFFS = {
+        // Оригинальные баффы (53)
         "HEALTH", "DAMAGE", "SPEED", "REGENERATION", "VAMPIRISM", "THORNS", "FIRE_RESISTANCE", "LEVITATION", 
         "CRITICAL", "ABSORPTION", "NIGHT_VISION", "HASTE", "WATER_BREATHING", "JUMP_BOOST", "LUCK", "WITHER_TOUCH", 
         "POISON_STRIKE", "FREEZE_AURA", "LIGHTNING_STRIKE", "GHOST_WALK", "TRUE_STRIKE", "STEEL_SKIN", "AQUATIC_SPEED", 
@@ -23,7 +24,17 @@ public class ArtifactFactory {
         "SOUL_DRAIN", "FROST_BITE", "MANA_SHIELD", "TELEKINESIS", "ENDER_SHIFT",
         "BERSERKER", "ARCANE_BURST", "SHADOW_STEP", "LIFESTEAL_AURA", "IRON_WILL",
         "TRAP_SENSE", "TREASURE_HUNTER", "FLAME_TONGUE", "WIND_WALKER", "ECHO_STRIKE",
-        "SOUL_SHIELD", "FIRE_RESISTANCE_AURA", "XP_MAGNET", "LOOT_FIND"
+        "SOUL_SHIELD", "FIRE_RESISTANCE_AURA", "XP_MAGNET", "LOOT_FIND",
+        // Новые баффы (37)
+        "DARK_PACT", "BLOOD_OATH", "VOID_TOUCH", "STARFALL", "ICE_SHIELD",
+        "STONE_SKIN", "PHANTOM_STRIKE", "MAGIC_AMPLIFY", "ARROW_DEFLECT", "FIRE_ENCHANT",
+        "ICE_ENCHANT", "POISON_ENCHANT", "WITHER_ENCHANT", "SMITE_ENCHANT", "BANE_ENCHANT",
+        "SHARPNESS_ENCHANT", "PROTECTION_ENCHANT", "FIRE_PROTECTION", "BLAST_PROTECTION",
+        "PROJECTILE_PROTECTION", "FEATHER_FALLING", "AQUA_AFFINITY", "RESPIRATION",
+        "DEPTH_STRIDER", "FROST_WALKER", "SOUL_SPEED", "SWIFT_SNEAK", "LOOTING_ENCHANT",
+        "FORTUNE_ENCHANT", "SILK_TOUCH", "INFINITY_ENCHANT", "MENDING_ENCHANT",
+        "UNBREAKING_ENCHANT", "SWEEPING_EDGE", "CHANNELING", "RIPTIDE", "LOYALTY",
+        "MULTISHOT", "PIERCING", "QUICK_CHARGE"
     };
 
     // ═══ 35 УНИКАЛЬНЫХ АРТЕФАКТОВ ═══
@@ -65,7 +76,15 @@ public class ArtifactFactory {
         {"🧲 Малый Магнит", "IRON_INGOT", "TREASURE_HUNTER", "1", "common"},
         {"🌙 Ночной Камень", "INK_SAC", "NIGHT_VISION", "1", "common"},
     };
-    public static final String[] CURSES = {"SLOWNESS", "WEAKNESS", "HUNGER", "FRAGILE", "BLINDNESS", "VULNERABILITY", "DECAY", "SILENCE", "BLOODLETTING", "ANCHOR", "NIGHTMARE", "GREED", "CHAOS"};
+    public static final String[] CURSES = {
+        // Оригинальные проклятия (13)
+        "SLOWNESS", "WEAKNESS", "HUNGER", "FRAGILE", "BLINDNESS", "VULNERABILITY", 
+        "DECAY", "SILENCE", "BLOODLETTING", "ANCHOR", "NIGHTMARE", "GREED", "CHAOS",
+        // Новые проклятия (12)
+        "CURSED_LUCK", "CURSED_XP", "CURSED_SPEED", "CURSED_DAMAGE", "CURSED_DEFENSE",
+        "CURSED_VISION", "CURSED_HUNGER", "CURSED_WEIGHT", "CURSED_FIRE", "CURSED_DROWNING",
+        "CURSED_FALL", "CURSED_DARKNESS"
+    };
 
     public static ItemStack generateArtifact(VKChatArtifactsPlugin plugin, boolean isMythic) {
         // Шанс на именованный артефакт (20%)
@@ -202,6 +221,48 @@ public class ArtifactFactory {
             case "REVIVAL": lore.add(ChatColor.GOLD + "➕ Возрождение (50% HP при смерти, КД 10 мин)"); break;
             case "ABYSSAL_POWER": lore.add(ChatColor.DARK_PURPLE + "➕ Сила Бездны (+10 урон, невидимость при HP < 30%)"); break;
             case "DRAGON_BLOOD": lore.add(ChatColor.RED + "➕ Кровь Дракона (+10 HP, Регенерация II, +50% огненный урон)"); break;
+
+            // Новые баффы (37)
+            case "DARK_PACT": lore.add(ChatColor.DARK_RED + "➕ Тёмный пакт (+30% урон, -15% HP)"); break;
+            case "BLOOD_OATH": lore.add(ChatColor.RED + "➕ Кровавая клятва (+20% вампиризм, -10% защиты)"); break;
+            case "VOID_TOUCH": lore.add(ChatColor.DARK_PURPLE + "➕ Прикосновение пустоты (шанс телепорта врага)"); break;
+            case "STARFALL": lore.add(ChatColor.GOLD + "➕ Падение звезды (шанс метеорита при ударе)"); break;
+            case "ICE_SHIELD": lore.add(ChatColor.AQUA + "➕ Ледяной щит (замедляет атакующих)"); break;
+            case "STONE_SKIN": lore.add(ChatColor.GRAY + "➕ Каменная кожа (+50% защиты, -20% скорости)"); break;
+            case "PHANTOM_STRIKE": lore.add(ChatColor.LIGHT_PURPLE + "➕ Призрачный удар (шанс игнорировать броню)"); break;
+            case "MAGIC_AMPLIFY": lore.add(ChatColor.BLUE + "➕ Усиление магии (+40% к зельям)"); break;
+            case "ARROW_DEFLECT": lore.add(ChatColor.YELLOW + "➕ Отражение стрел (30% шанс)"); break;
+            case "FIRE_ENCHANT": lore.add(ChatColor.RED + "➕ Огненное зачарование (поджигает)"); break;
+            case "ICE_ENCHANT": lore.add(ChatColor.AQUA + "➕ Ледяное зачарование (замораживает)"); break;
+            case "POISON_ENCHANT": lore.add(ChatColor.GREEN + "➕ Ядовитое зачарование (отравляет)"); break;
+            case "WITHER_ENCHANT": lore.add(ChatColor.DARK_GRAY + "➕ Иссушающее зачарование (иссушает)"); break;
+            case "SMITE_ENCHANT": lore.add(ChatColor.GOLD + "➕ Кара (+100% урона по нежити)"); break;
+            case "BANE_ENCHANT": lore.add(ChatColor.DARK_GREEN + "➕ Гибель членистоногих (+100% урона по паукам)"); break;
+            case "SHARPNESS_ENCHANT": lore.add(ChatColor.WHITE + "➕ Острота (+20% урона)"); break;
+            case "PROTECTION_ENCHANT": lore.add(ChatColor.BLUE + "➕ Защита (-20% получаемого урона)"); break;
+            case "FIRE_PROTECTION": lore.add(ChatColor.RED + "➕ Огненная защита (-50% урона от огня)"); break;
+            case "BLAST_PROTECTION": lore.add(ChatColor.YELLOW + "➕ Взрывозащита (-50% урона от взрывов)"); break;
+            case "PROJECTILE_PROTECTION": lore.add(ChatColor.GREEN + "➕ Защита от снарядов (-50%)"); break;
+            case "FEATHER_FALLING": lore.add(ChatColor.WHITE + "➕ Плавное падение (-50% урона от падения)"); break;
+            case "AQUA_AFFINITY": lore.add(ChatColor.AQUA + "➕ Подводная скорость (+50%)"); break;
+            case "RESPIRATION": lore.add(ChatColor.BLUE + "➕ Подводное дыхание"); break;
+            case "DEPTH_STRIDER": lore.add(ChatColor.AQUA + "➕ Ходьба по воде"); break;
+            case "FROST_WALKER": lore.add(ChatColor.WHITE + "➕ Хождение по воде"); break;
+            case "SOUL_SPEED": lore.add(ChatColor.GOLD + "➕ Скорость по песку душ"); break;
+            case "SWIFT_SNEAK": lore.add(ChatColor.GREEN + "➕ Скрытность (+30% скорости при приседании)"); break;
+            case "LOOTING_ENCHANT": lore.add(ChatColor.GOLD + "➕ Грабеж (+30% дропа)"); break;
+            case "FORTUNE_ENCHANT": lore.add(ChatColor.YELLOW + "➕ Удача (+30% ресурсов)"); break;
+            case "SILK_TOUCH": lore.add(ChatColor.WHITE + "➕ Шёлковое касание"); break;
+            case "INFINITY_ENCHANT": lore.add(ChatColor.AQUA + "➕ Бесконечность (не расходует стрелы)"); break;
+            case "MENDING_ENCHANT": lore.add(ChatColor.GREEN + "➕ Починка (восстанавливает прочность)"); break;
+            case "UNBREAKING_ENCHANT": lore.add(ChatColor.BLUE + "➕ Прочность (+100% к прочности)"); break;
+            case "SWEEPING_EDGE": lore.add(ChatColor.RED + "➕ Разящий клинок (+50% к AoE урону)"); break;
+            case "CHANNELING": lore.add(ChatColor.YELLOW + "➕ Канал (молния при ударе трезубцем)"); break;
+            case "RIPTIDE": lore.add(ChatColor.AQUA + "➕ Буря (ускорение в воде/дожде)"); break;
+            case "LOYALTY": lore.add(ChatColor.BLUE + "➕ Верность (трезубец возвращается)"); break;
+            case "MULTISHOT": lore.add(ChatColor.GREEN + "➕ Тройной выстрел"); break;
+            case "PIERCING": lore.add(ChatColor.YELLOW + "➕ Пробивание (стрела проходит через цели)"); break;
+            case "QUICK_CHARGE": lore.add(ChatColor.WHITE + "➕ Быстрая зарядка"); break;
         }
         
         if (!isMythic) {
@@ -219,6 +280,20 @@ public class ArtifactFactory {
                 case "NIGHTMARE": lore.add(ChatColor.RED + "☠ Проклятие: Кошмар (случайная тошнота)"); break;
                 case "GREED": lore.add(ChatColor.RED + "☠ Проклятие: Жадность (+50% золото/реп, -30% HP)"); break;
                 case "CHAOS": lore.add(ChatColor.RED + "☠ Проклятие: Хаос (случайные зелья каждые 10 сек)"); break;
+
+                // Новые проклятия (12)
+                case "CURSED_LUCK": lore.add(ChatColor.RED + "☠ Проклятие: Проклятая удача (-50% к дропу)"); break;
+                case "CURSED_XP": lore.add(ChatColor.RED + "☠ Проклятие: Проклятый опыт (-50% к опыту)"); break;
+                case "CURSED_SPEED": lore.add(ChatColor.RED + "☠ Проклятие: Проклятая скорость (-20% скорости)"); break;
+                case "CURSED_DAMAGE": lore.add(ChatColor.RED + "☠ Проклятие: Проклятый урон (-20% к урону)"); break;
+                case "CURSED_DEFENSE": lore.add(ChatColor.RED + "☠ Проклятие: Проклятая защита (-20% к защите)"); break;
+                case "CURSED_VISION": lore.add(ChatColor.RED + "☠ Проклятие: Проклятое зрение (периодическая слепота)"); break;
+                case "CURSED_HUNGER": lore.add(ChatColor.RED + "☠ Проклятие: Проклятый голод (быстрый голод)"); break;
+                case "CURSED_WEIGHT": lore.add(ChatColor.RED + "☠ Проклятие: Проклятый вес (замедление при полном инвентаре)"); break;
+                case "CURSED_FIRE": lore.add(ChatColor.RED + "☠ Проклятие: Проклятый огонь (периодическое горение)"); break;
+                case "CURSED_DROWNING": lore.add(ChatColor.RED + "☠ Проклятие: Проклятое утопление (урон в воде)"); break;
+                case "CURSED_FALL": lore.add(ChatColor.RED + "☠ Проклятие: Проклятое падение (+50% урона от падения)"); break;
+                case "CURSED_DARKNESS": lore.add(ChatColor.RED + "☠ Проклятие: Проклятая тьма (слепота в темноте)"); break;
             }
         } else {
             lore.add(ChatColor.AQUA + "✨ Эта реликвия не имеет проклятий.");
