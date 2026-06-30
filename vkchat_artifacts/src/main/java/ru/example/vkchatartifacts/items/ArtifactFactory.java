@@ -25,9 +25,54 @@ public class ArtifactFactory {
         "TRAP_SENSE", "TREASURE_HUNTER", "FLAME_TONGUE", "WIND_WALKER", "ECHO_STRIKE",
         "SOUL_SHIELD", "FIRE_RESISTANCE_AURA", "XP_MAGNET", "LOOT_FIND"
     };
+
+    // ═══ 35 УНИКАЛЬНЫХ АРТЕФАКТОВ ═══
+    public static final String[][] NAMED_ARTIFACTS = {
+        // Название, материал, бафф, уровень, редкость
+        {"✨ Перо Феникса", "TOTEM_OF_UNDYING", "REVIVAL", "5", "mythic"},
+        {"👑 Корона Бездны", "NETHER_STAR", "ABYSSAL_POWER", "5", "mythic"},
+        {"❤️ Сердце Дракона", "DRAGON_BREATH", "DRAGON_BLOOD", "5", "mythic"},
+        {"💎 Осколок Вечности", "DIAMOND", "MAX_HEALTH_BOOST", "4", "legendary"},
+        {"🔥 Пылающий Клинок", "BLAZE_POWDER", "FLAME_TONGUE", "4", "legendary"},
+        {"❄️ Ледяное Сердце", "GHAST_TEAR", "FROST_BITE", "4", "legendary"},
+        {"⚡ Молния в Бутылке", "END_CRYSTAL", "LIGHTNING_STRIKE", "4", "legendary"},
+        {"🌙 Лунный Камень", "CONDUIT", "NIGHT_VISION", "3", "epic"},
+        {"🌊 Приливный Талисман", "HEART_OF_THE_SEA", "WATER_BREATHING", "3", "epic"},
+        {"🍀 Клевер Удачи", "RABBIT_FOOT", "LUCK", "3", "epic"},
+        {"🛡️ Щит Предков", "SCUTE", "STEEL_SKIN", "3", "epic"},
+        {"👁️ Глаз Провидца", "ENDER_ROD", "TRAP_SENSE", "3", "epic"},
+        {"🌿 Травяной Эликсир", "CHORUS_FRUIT", "REGENERATION", "3", "epic"},
+        {"💀 Череп Силы", "WITHER_SKELETON_SKULL", "WITHER_TOUCH", "2", "rare"},
+        {"🕸️ Нить Паутины", "COBWEB", "SHADOW_STEP", "2", "rare"},
+        {"🧲 Магнит Опыта", "MAGMA_CREAM", "XP_MAGNET", "2", "rare"},
+        {"🔮 Хрустальный Шар", "GLASS", "ARCANE_BURST", "2", "rare"},
+        {"🧤 Рукавицы Гиганта", "IRON_INGOT", "KNOCKBACK_RESIST", "2", "rare"},
+        {"🥾 Сапоги Скорохода", "LEATHER", "SPEED", "2", "rare"},
+        {"📿 Ожерелье Вампира", "AMETHYST_SHARD", "VAMPIRISM", "2", "rare"},
+        {"🎯 Прицел Снайпера", "ARROW", "CRITICAL", "2", "rare"},
+        {"🪶 Перо Птицы", "FEATHER", "DOUBLE_JUMP", "2", "rare"},
+        {"🧪 Зелье Силы", "POTION", "STRENGTH_BOOST", "1", "common"},
+        {"🛡️ Малый Щит", "SHIELD", "RESISTANCE", "1", "common"},
+        {"🥾 Ботинки Бегуна", "CHAINMAIL_BOOTS", "SPEED", "1", "common"},
+        {"🧤 Перчатки Кузнеца", "IRON_NUGGET", "DAMAGE", "1", "common"},
+        {"📿 Амулет Здоровья", "GOLDEN_APPLE", "HEALTH", "1", "common"},
+        {"🔮 Малый Кристалл", "AMETHYST_SHARD", "ABSORPTION", "1", "common"},
+        {"🎯 Меткая Рука", "BOW", "CRITICAL", "1", "common"},
+        {"🍀 Крошечный Клевер", "SEEDS", "LUCK", "1", "common"},
+        {"🔥 Огненный Камень", "FLINT_AND_STEEL", "FIRE_RESISTANCE", "1", "common"},
+        {"💧 Капля Жизни", "POTION", "REGENERATION", "1", "common"},
+        {"🌿 Травяной Мешочек", "WHEAT", "SATURATION", "1", "common"},
+        {"🧲 Малый Магнит", "IRON_INGOT", "TREASURE_HUNTER", "1", "common"},
+        {"🌙 Ночной Камень", "INK_SAC", "NIGHT_VISION", "1", "common"},
+    };
     public static final String[] CURSES = {"SLOWNESS", "WEAKNESS", "HUNGER", "FRAGILE", "BLINDNESS", "VULNERABILITY", "DECAY", "SILENCE", "BLOODLETTING", "ANCHOR", "NIGHTMARE", "GREED", "CHAOS"};
 
     public static ItemStack generateArtifact(VKChatArtifactsPlugin plugin, boolean isMythic) {
+        // Шанс на именованный артефакт (20%)
+        if (ThreadLocalRandom.current().nextDouble() < 0.2) {
+            return generateNamedArtifact(plugin);
+        }
+
         Material[] possibleMats = {Material.NETHER_STAR, Material.TOTEM_OF_UNDYING, Material.HEART_OF_THE_SEA, Material.DRAGON_BREATH, Material.GHAST_TEAR, Material.BLAZE_POWDER, Material.RABBIT_FOOT, Material.MAGMA_CREAM, Material.END_CRYSTAL, Material.CONDUIT, Material.SCUTE, Material.END_ROD, Material.CHORUS_FRUIT};
         Material mat = possibleMats[ThreadLocalRandom.current().nextInt(possibleMats.length)];
         
@@ -198,5 +243,112 @@ public class ArtifactFactory {
         
         item.setItemMeta(meta);
         return item;
+    }
+
+    /**
+     * Генерация именованного артефакта из списка 35 штук
+     */
+    public static ItemStack generateNamedArtifact(VKChatArtifactsPlugin plugin) {
+        String[] artDef = NAMED_ARTIFACTS[ThreadLocalRandom.current().nextInt(NAMED_ARTIFACTS.length)];
+        String name = artDef[0];
+        Material mat = Material.valueOf(artDef[1]);
+        String buff = artDef[2];
+        int level = Integer.parseInt(artDef[3]);
+        String rarity = artDef[4];
+
+        ItemStack item = new ItemStack(mat);
+        ItemMeta meta = item.getItemMeta();
+
+        ChatColor color;
+        String prefix;
+        switch (rarity) {
+            case "mythic":
+                color = ChatColor.GOLD;
+                prefix = "✨ ";
+                break;
+            case "legendary":
+                color = ChatColor.DARK_PURPLE;
+                prefix = "✦ ";
+                break;
+            case "epic":
+                color = ChatColor.BLUE;
+                prefix = "◆ ";
+                break;
+            case "rare":
+                color = ChatColor.AQUA;
+                prefix = "● ";
+                break;
+            default:
+                color = ChatColor.GREEN;
+                prefix = "• ";
+                break;
+        }
+
+        meta.setDisplayName(color + "" + ChatColor.BOLD + prefix + name + " " + prefix);
+
+        List<String> lore = new ArrayList<>();
+        lore.add(ChatColor.GRAY + "Древний артефакт с уникальной силой.");
+        lore.add("");
+        lore.add(ChatColor.GREEN + "➕ " + getBuffDescription(buff, level));
+        lore.add("");
+        lore.add(ChatColor.DARK_GRAY + "Работает в инвентаре.");
+        if (rarity.equals("mythic") || rarity.equals("legendary")) {
+            lore.add(ChatColor.AQUA + "✨ Привязан к душе (не выпадает при смерти).");
+        }
+
+        meta.setLore(lore);
+        meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "is_artifact"), PersistentDataType.INTEGER, 1);
+        meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "buff_type"), PersistentDataType.STRING, buff);
+        meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "buff_level"), PersistentDataType.INTEGER, level);
+        meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "curse_type"), PersistentDataType.STRING, "NONE");
+        meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "artifact_name"), PersistentDataType.STRING, name);
+
+        if (rarity.equals("mythic")) {
+            meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "is_mythic"), PersistentDataType.INTEGER, 1);
+        }
+
+        item.setItemMeta(meta);
+        return item;
+    }
+
+    /**
+     * Получить описание баффа
+     */
+    public static String getBuffDescription(String buff, int level) {
+        switch (buff) {
+            case "HEALTH": return "Максимальное Здоровье +" + (level * 2);
+            case "DAMAGE": return "Урон в ближнем бою +" + level;
+            case "SPEED": return "Скорость +" + (level * 10) + "%";
+            case "REGENERATION": return "Регенерация " + level + " ур.";
+            case "VAMPIRISM": return "Вампиризм " + (level * 10) + "%";
+            case "THORNS": return "Отражение урона " + level + " ур.";
+            case "FIRE_RESISTANCE": return "Иммунитет к огню";
+            case "LEVITATION": return "Иммунитет к падению";
+            case "CRITICAL": return "Шанс крита " + (level * 5) + "%";
+            case "ABSORPTION": return "Абсорбция " + level + " ур.";
+            case "NIGHT_VISION": return "Ночное зрение";
+            case "HASTE": return "Спешка " + level + " ур.";
+            case "WATER_BREATHING": return "Дыхание под водой";
+            case "JUMP_BOOST": return "Прыжок " + level + " ур.";
+            case "LUCK": return "Удача " + level + " ур.";
+            case "WITHER_TOUCH": return "Касание Иссушителя " + level + " ур.";
+            case "POISON_STRIKE": return "Ядовитый Удар " + level + " ур.";
+            case "FREEZE_AURA": return "Ледяная Аура " + level + " ур.";
+            case "LIGHTNING_STRIKE": return "Удар Молнии " + level + " ур.";
+            case "GHOST_WALK": return "Призрачный Шаг";
+            case "TRUE_STRIKE": return "Истинный Удар";
+            case "STEEL_SKIN": return "Стальная Кожа +" + level;
+            case "AQUATIC_SPEED": return "Скорость в воде " + level;
+            case "FIRE_WALKER": return "Хождение по лаве";
+            case "XP_BOOST": return "Бонус опыта +" + (level * 15) + "%";
+            case "DOUBLE_JUMP": return "Двойной прыжок";
+            case "DODGE_CHANCE": return "Уклонение " + (level * 5) + "%";
+            case "KNOCKBACK_RESIST": return "Сопротивление отбрасыванию " + (level * 30) + "%";
+            case "MAX_HEALTH_BOOST": return "Здоровье +" + (level * 10);
+            case "REVIVAL": return "Возрождение при смерти (50% HP)";
+            case "ABYSSAL_POWER": return "Сила Бездны (+10 урон)";
+            case "DRAGON_BLOOD": return "Кровь Дракона (+10 HP, Регенерация II)";
+            default: return buff;
+        }
     }
 }
