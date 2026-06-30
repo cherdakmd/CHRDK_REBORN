@@ -15,7 +15,7 @@ import java.util.concurrent.ThreadLocalRandom;
 public class ArtifactFactory {
     
     public static final String[] BUFFS = {
-        // Оригинальные баффы (53)
+        // Только реально работающие баффы (53)
         "HEALTH", "DAMAGE", "SPEED", "REGENERATION", "VAMPIRISM", "THORNS", "FIRE_RESISTANCE", "LEVITATION", 
         "CRITICAL", "ABSORPTION", "NIGHT_VISION", "HASTE", "WATER_BREATHING", "JUMP_BOOST", "LUCK", "WITHER_TOUCH", 
         "POISON_STRIKE", "FREEZE_AURA", "LIGHTNING_STRIKE", "GHOST_WALK", "TRUE_STRIKE", "STEEL_SKIN", "AQUATIC_SPEED", 
@@ -24,48 +24,7 @@ public class ArtifactFactory {
         "SOUL_DRAIN", "FROST_BITE", "MANA_SHIELD", "TELEKINESIS", "ENDER_SHIFT",
         "BERSERKER", "ARCANE_BURST", "SHADOW_STEP", "LIFESTEAL_AURA", "IRON_WILL",
         "TRAP_SENSE", "TREASURE_HUNTER", "FLAME_TONGUE", "WIND_WALKER", "ECHO_STRIKE",
-        "SOUL_SHIELD", "FIRE_RESISTANCE_AURA", "XP_MAGNET", "LOOT_FIND",
-        // Новые баффы (37)
-        "DARK_PACT", "BLOOD_OATH", "VOID_TOUCH", "STARFALL", "ICE_SHIELD",
-        "STONE_SKIN", "PHANTOM_STRIKE", "MAGIC_AMPLIFY", "ARROW_DEFLECT", "FIRE_ENCHANT",
-        "ICE_ENCHANT", "POISON_ENCHANT", "WITHER_ENCHANT", "SMITE_ENCHANT", "BANE_ENCHANT",
-        "SHARPNESS_ENCHANT", "PROTECTION_ENCHANT", "FIRE_PROTECTION", "BLAST_PROTECTION",
-        "PROJECTILE_PROTECTION", "FEATHER_FALLING", "AQUA_AFFINITY", "RESPIRATION",
-        "DEPTH_STRIDER", "FROST_WALKER", "SOUL_SPEED", "SWIFT_SNEAK", "LOOTING_ENCHANT",
-        "FORTUNE_ENCHANT", "SILK_TOUCH", "INFINITY_ENCHANT", "MENDING_ENCHANT",
-        "UNBREAKING_ENCHANT", "SWEEPING_EDGE", "CHANNELING", "RIPTIDE", "LOYALTY",
-        "MULTISHOT", "PIERCING", "QUICK_CHARGE",
-        // Эксклюзивные баффы (30) — только из именованных/мифических
-        "ELEMENTAL_MASTERY",  // Мастерство стихий: +25% к урону стихиями
-        "VOID_WALKER",        // Хождение по пустоте: невидимость в Энде
-        "DRAGON_SLAYER",      // Драконоборец: +200% к урону по драконам
-        "WITHER_HUNTER",      // Охотник на иссушителей: +200% к урону по иссушителям
-        "ZOMBIE_APOCALYPSE",  // Зомби-апокалипсис: +100% к урону по зомби
-        "SKELETON_ARMY",      // Армия скелетов: спавн скелетов-союзников
-        "SPIDER_QUEEN",       // Паучья королева: пауки-союзники
-        "CREEPER_ARMOR",      // Броня крипера: взрыв не уроняет
-        "PHANTOM_CLOAK",      // Плащ фантома: невидимость в воздухе
-        "GUARDIAN_BEAM",      // Луч стража: лазерная атака
-        "ELDER_POWER",        // Сила старейшин: +50% к урону под водой
-        "RAVAGER_CHARGE",     // Натиск разрушителя: отбрасывание врагов
-        "PILLAGER_CROSSBOW",  // Арбалет мародёра: тройной выстрел
-        "VINDICATOR_AXE",     // Топор vindicator: +100% к урону по игрокам
-        "EVOKER_FANGS",       // Клыки evoker: AoE атака
-        "VEX_FLIGHT",         // Полёт vex: полёт при прыжке
-        "HUSK_STRENGTH",      // Сила хаска: +30% к урону в пустыне
-        "DROWNED_TRIDENT",    // Трезубец утопленника: молнии в воде
-        "STRAY_ARROW",        // Стрела скелета-лучника: замораживающие стрелы
-        "ZOGLIN_RAM",         // Таран зоглина: отбрасывание при ударе
-        "PIGLIN_GREED",       // Жадность пиглина: +50% золота
-        "HOGLIN_TUSKS",       // Клыки хоглина: пробивание брони
-        "BRUTE_STRENGTH",     // Сила брута: +40% к урону ближнего боя
-        "WOLF_PACK",          // Волчья стая: волки-союзники
-        "FOX_AGILITY",        // Ловкость лисы: +20% уклонение
-        "BEE_STING",          // Пчелиное жало: отравление при ударе
-        "GOAT_RAM",           // Таран козы: отбрасывание
-        "FROG_TONGUE",        // Лягушачий язык: притягивание врагов
-        "TADPOLE_GROWTH",     // Рост головастика: регенерация
-        "ALLAY_HELP",         // Помощь аллея: подбор предметов
+        "SOUL_SHIELD", "FIRE_RESISTANCE_AURA", "XP_MAGNET", "LOOT_FIND"
     };
 
     // ═══ 35 УНИКАЛЬНЫХ АРТЕФАКТОВ ═══
@@ -108,13 +67,9 @@ public class ArtifactFactory {
         {"🌙 Ночной Камень", "INK_SAC", "NIGHT_VISION", "1", "common"},
     };
     public static final String[] CURSES = {
-        // Оригинальные проклятия (13)
+        // Только реально работающие проклятия (13)
         "SLOWNESS", "WEAKNESS", "HUNGER", "FRAGILE", "BLINDNESS", "VULNERABILITY", 
-        "DECAY", "SILENCE", "BLOODLETTING", "ANCHOR", "NIGHTMARE", "GREED", "CHAOS",
-        // Новые проклятия (12)
-        "CURSED_LUCK", "CURSED_XP", "CURSED_SPEED", "CURSED_DAMAGE", "CURSED_DEFENSE",
-        "CURSED_VISION", "CURSED_HUNGER", "CURSED_WEIGHT", "CURSED_FIRE", "CURSED_DROWNING",
-        "CURSED_FALL", "CURSED_DARKNESS"
+        "DECAY", "SILENCE", "BLOODLETTING", "ANCHOR", "NIGHTMARE", "GREED", "CHAOS"
     };
 
     public static ItemStack generateArtifact(VKChatArtifactsPlugin plugin, boolean isMythic) {
