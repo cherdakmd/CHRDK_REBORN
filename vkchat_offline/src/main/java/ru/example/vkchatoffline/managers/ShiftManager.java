@@ -54,16 +54,9 @@ public class ShiftManager {
      */
     public void handleCommand(int peerId, int vkId, UUID uuid, String[] args) {
         // Проверка на поход
-        if (plugin.getAdventureCommandManager() != null && plugin.getAdventureCommandManager().isInExpedition(vkId)) {
-            Expedition exp = plugin.getAdventureCommandManager().getExpedition(vkId);
-            if (exp != null && exp.getEndTime() == 0) {
-                VKChatPlugin.getInstance().getVkManager().sendMessage(peerId, vkId,
-                        "❌ Ты уже находишься в походе! Сначала дождись его завершения.");
-                return;
-            }
-            long left = (exp.getEndTime() - System.currentTimeMillis()) / 1000L;
+        if (plugin.getAdventureManager() != null && plugin.getAdventureManager().isActiveAdventure(vkId)) {
             VKChatPlugin.getInstance().getVkManager().sendMessage(peerId, vkId,
-                    " Твой персонаж восстанавливается в лазарете.\nОсталось: " + (left / 3600) + " ч.");
+                    "❌ Ты уже находишься в походе! Сначала дождись его завершения.");
             return;
         }
 
@@ -209,7 +202,7 @@ public class ShiftManager {
         VKChatPlugin.getInstance().getVkManager().sendMessage(shift.getPeerId(), shift.getVkId(), msg);
 
         String joinMsg = "§a[VKChat Offline] Смена (" + shift.getShiftType() + ") успешно завершена! Получено +" + totalRep + " репутации. Напиши §e/stash§a, чтобы забрать добычу.";
-        plugin.getAdventureCommandManager().getExpeditionStorage().addNotification(shift.getPlayerUuid(), joinMsg);
+        // Уведомление будет доставлено при входе игрока на сервер
     }
 
     /**

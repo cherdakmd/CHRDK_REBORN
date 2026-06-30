@@ -1372,7 +1372,7 @@ public class AdventureCommandManager {
 
         VKChatPlugin.getInstance().getApi().addReputation(exp.getSenderId(), baseRep);
 
-        plugin.getOfflineListener().generateLoot(exp, exp.isInCombat());
+        // Лут генерируется через новую систему LootManager
 
         StringBuilder msg = new StringBuilder();
         msg.append("✅ Поход успешно завершен!\n");

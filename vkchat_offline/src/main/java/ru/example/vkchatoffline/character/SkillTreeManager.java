@@ -7,12 +7,12 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Менеджер древа навыков
+ * 3 ветки, 5 навыков на ветку
  */
 public class SkillTreeManager {
     private final VKChatOfflinePlugin plugin;
     private final Map<Integer, Set<String>> learnedSkills = new ConcurrentHashMap<>();
 
-    // Ветки навыков
     public enum SkillBranch {
         COMBAT("Боевая"),
         SURVIVAL("Выживание"),
@@ -22,7 +22,6 @@ public class SkillTreeManager {
         SkillBranch(String displayName) { this.displayName = displayName; }
     }
 
-    // Навыки
     public static class Skill {
         public final String id;
         public final String name;
@@ -51,7 +50,6 @@ public class SkillTreeManager {
         }
     }
 
-    // Все навыки
     private static final Skill[] ALL_SKILLS = {
         // Боевая ветка
         new Skill("combat_strike", "Удар", "Базовая атака", SkillBranch.COMBAT, 1, 1, null, true, 1.0, 0),
@@ -79,16 +77,8 @@ public class SkillTreeManager {
         this.plugin = plugin;
     }
 
-    /**
-     * Получить все навыки
-     */
-    public Skill[] getAllSkills() {
-        return ALL_SKILLS;
-    }
+    public Skill[] getAllSkills() { return ALL_SKILLS; }
 
-    /**
-     * Получить навыки ветки
-     */
     public List<Skill> getSkillsByBranch(SkillBranch branch) {
         List<Skill> skills = new ArrayList<>();
         for (Skill skill : ALL_SKILLS) {
@@ -97,9 +87,6 @@ public class SkillTreeManager {
         return skills;
     }
 
-    /**
-     * Получить навык по ID
-     */
     public Skill getSkillById(String id) {
         for (Skill skill : ALL_SKILLS) {
             if (skill.id.equals(id)) return skill;
@@ -107,60 +94,37 @@ public class SkillTreeManager {
         return null;
     }
 
-    /**
-     * Проверить, изучен ли навык
-     */
     public boolean hasSkill(int vkId, String skillId) {
         return learnedSkills.getOrDefault(vkId, Collections.emptySet()).contains(skillId);
     }
 
-    /**
-     * Получить изученные навыки
-     */
     public Set<String> getLearnedSkills(int vkId) {
         return learnedSkills.getOrDefault(vkId, Collections.emptySet());
     }
 
-    /**
-     * Изучить навык
-     */
     public boolean learnSkill(int vkId, String skillId, CharacterManager.CharacterData character) {
         Skill skill = getSkillById(skillId);
         if (skill == null) return false;
-
-        // Проверить уровень
         if (character.level < skill.requiredLevel) return false;
-
-        // Проверить prerequisite
         if (skill.prerequisite != null && !hasSkill(vkId, skill.prerequisite)) return false;
-
-        // Проверить очки навыков
         if (character.statPoints <= 0) return false;
 
-        // Изучить
         learnedSkills.computeIfAbsent(vkId, k -> ConcurrentHashMap.newKeySet()).add(skillId);
         character.statPoints--;
-
         return true;
     }
 
-    /**
-     * Получить активные способности
-     */
     public List<Skill> getActiveSkills(int vkId) {
         List<Skill> active = new ArrayList<>();
         for (String skillId : getLearnedSkills(vkId)) {
             Skill skill = getSkillById(skillId);
-            if (skill != null && skill.isActive) {
-                active.add(skill);
-            }
+            if (skill != null && skill.isActive) active.add(skill);
         }
         return active;
     }
 
-    /**
-     * Получить информацию о навыке
-     */
+    public int getSkillCount() { return ALL_SKILLS.length; }
+
     public String getSkillInfo(Skill skill, boolean learned) {
         StringBuilder sb = new StringBuilder();
         sb.append(learned ? "✅ " : "❌ ");
@@ -170,9 +134,7 @@ public class SkillTreeManager {
         sb.append("   Требуется: Ур. ").append(skill.requiredLevel);
         if (skill.prerequisite != null) {
             Skill prereq = getSkillById(skill.prerequisite);
-            if (prereq != null) {
-                sb.append(", ").append(prereq.name);
-            }
+            if (prereq != null) sb.append(", ").append(prereq.name);
         }
         if (skill.isActive) {
             sb.append("\n   Урон: x").append(skill.damageMultiplier);
@@ -181,9 +143,6 @@ public class SkillTreeManager {
         return sb.toString();
     }
 
-    /**
-     * Получить информацию о дереве навыков
-     */
     public String getSkillTreeInfo(int vkId) {
         StringBuilder sb = new StringBuilder();
         sb.append("═══════════════════════════════════════\n");
@@ -200,12 +159,5 @@ public class SkillTreeManager {
         }
 
         return sb.toString();
-    }
-
-    /**
-     * Получить количество навыков
-     */
-    public int getSkillCount() {
-        return ALL_SKILLS.length;
     }
 }

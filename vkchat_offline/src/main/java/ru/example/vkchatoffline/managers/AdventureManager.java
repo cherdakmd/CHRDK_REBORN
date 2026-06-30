@@ -455,6 +455,13 @@ public class AdventureManager implements Listener {
         api().sendKeyboard(vkId, "👤 Меню героя\n\nВыбери раздел: персонаж, класс, спутник, навыки, расходники, кампания или дневник.", keyboardHero());
     }
 
+    /**
+     * Проверить, есть ли активный поход у игрока
+     */
+    public boolean isActiveAdventure(int vkId) {
+        return active.containsKey(vkId);
+    }
+
     private void showMenuOrStatus(int vkId) {
         showMenuOrStatusPage(vkId, 0);
     }

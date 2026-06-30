@@ -7,6 +7,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Менеджер характеристик персонажа
+ * 6 базовых характеристик, уровни 1-88
  */
 public class CharacterManager {
     private final VKChatOfflinePlugin plugin;
@@ -45,6 +46,9 @@ public class CharacterManager {
         public int maxHp;
         public int gold;
         public int reputation;
+        public int sanity;
+        public int morale;
+        public int supplies;
 
         public CharacterData() {
             this.level = 1;
@@ -53,67 +57,53 @@ public class CharacterManager {
             this.statPoints = 3;
             this.stats = new HashMap<>();
             for (Stat stat : Stat.values()) {
-                stats.put(stat, 10); // Базовое значение
+                stats.put(stat, 10);
             }
             this.className = "";
             this.companionId = "";
-            this.hp = 100;
             this.maxHp = 100;
+            this.hp = maxHp;
             this.gold = 0;
             this.reputation = 0;
+            this.sanity = 100;
+            this.morale = 100;
+            this.supplies = 5;
         }
 
-        /**
-         * Получить значение характеристики
-         */
         public int getStat(Stat stat) {
             return stats.getOrDefault(stat, 10);
         }
 
-        /**
-         * Получить максимальное HP
-         */
         public int getMaxHp() {
             return 100 + (getStat(Stat.CON) * 5);
         }
 
-        /**
-         * Получить физический урон
-         */
         public int getPhysicalDamage() {
             int base = 10 + (level * 2);
             double bonus = getStat(Stat.STR) * 0.02;
-            return (int) (base * (1 + bonus));
+            return (int)(base * (1 + bonus));
         }
 
-        /**
-         * Получить магический урон
-         */
         public int getMagicDamage() {
             int base = 10 + (level * 2);
             double bonus = getStat(Stat.INT) * 0.02;
-            return (int) (base * (1 + bonus));
+            return (int)(base * (1 + bonus));
         }
 
-        /**
-         * Получить шанс уклонения
-         */
         public double getDodgeChance() {
-            return getStat(Stat.DEX) * 0.01;
+            return Math.min(0.5, getStat(Stat.DEX) * 0.01);
         }
 
-        /**
-         * Получить множитель лечения
-         */
         public double getHealMultiplier() {
             return 1.0 + (getStat(Stat.WIS) * 0.01);
         }
 
-        /**
-         * Получить скидку на покупки
-         */
         public double getDiscount() {
-            return getStat(Stat.CHA) * 0.02;
+            return Math.min(0.5, getStat(Stat.CHA) * 0.02);
+        }
+
+        public int getArmor() {
+            return level + (getStat(Stat.CON) / 2);
         }
     }
 
@@ -121,16 +111,10 @@ public class CharacterManager {
         this.plugin = plugin;
     }
 
-    /**
-     * Получить данные персонажа
-     */
     public CharacterData getCharacter(int vkId) {
         return characters.computeIfAbsent(vkId, k -> new CharacterData());
     }
 
-    /**
-     * Добавить опыт
-     */
     public boolean addXp(int vkId, int amount) {
         CharacterData data = getCharacter(vkId);
         data.xp += amount;
@@ -143,25 +127,23 @@ public class CharacterManager {
             data.xpToNext = calculateXpToNext(data.level);
             leveledUp = true;
 
-            // Бонусные очки на определённых уровнях
             if (data.level % 10 == 0) {
                 data.statPoints += 5;
             }
         }
 
+        if (leveledUp) {
+            data.maxHp = data.getMaxHp();
+            data.hp = data.maxHp;
+        }
+
         return leveledUp;
     }
 
-    /**
-     * Рассчитать опыт для следующего уровня
-     */
     private int calculateXpToNext(int level) {
         return 100 + (level * 50);
     }
 
-    /**
-     * Распределить очко характеристики
-     */
     public boolean allocateStat(int vkId, Stat stat) {
         CharacterData data = getCharacter(vkId);
         if (data.statPoints <= 0) return false;
@@ -169,16 +151,16 @@ public class CharacterManager {
         data.stats.merge(stat, 1, Integer::sum);
         data.statPoints--;
 
-        // Обновить HP
         data.maxHp = data.getMaxHp();
         data.hp = Math.min(data.hp, data.maxHp);
 
         return true;
     }
 
-    /**
-     * Получить информацию о персонаже
-     */
+    public int getCharacterCount() {
+        return characters.size();
+    }
+
     public String getCharacterInfo(int vkId) {
         CharacterData data = getCharacter(vkId);
 
@@ -192,8 +174,12 @@ public class CharacterManager {
         sb.append("   Очки навыков: ").append(data.statPoints).append("\n\n");
 
         sb.append("❤️ HP: ").append(data.hp).append("/").append(data.maxHp).append("\n");
+        sb.append("🛡️ Броня: ").append(data.getArmor()).append("\n");
         sb.append("💰 Золото: ").append(data.gold).append("\n");
-        sb.append("⭐ Репутация: ").append(data.reputation).append("\n\n");
+        sb.append("⭐ Репутация: ").append(data.reputation).append("\n");
+        sb.append("🧠 Рассудок: ").append(data.sanity).append("%\n");
+        sb.append("😊 Мораль: ").append(data.morale).append("%\n");
+        sb.append("📦 Припасы: ").append(data.supplies).append("\n\n");
 
         sb.append("📜 Класс: ").append(data.className.isEmpty() ? "Не выбран" : data.className).append("\n");
         sb.append("🐾 Спутник: ").append(data.companionId.isEmpty() ? "Нет" : data.companionId).append("\n\n");
@@ -219,19 +205,5 @@ public class CharacterManager {
         sb.append("Скидка: ").append(String.format("%.1f", data.getDiscount() * 100)).append("%\n");
 
         return sb.toString();
-    }
-
-    /**
-     * Получить максимальный уровень
-     */
-    public int getMaxLevel() {
-        return 88;
-    }
-
-    /**
-     * Получить количество персонажей
-     */
-    public int getCharacterCount() {
-        return characters.size();
     }
 }

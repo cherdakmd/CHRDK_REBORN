@@ -151,4 +151,22 @@ public class StashManager {
             return null;
         }
     }
+
+    /**
+     * Показать меню тайника через ВК
+     */
+    public void showStashMenu(int vkId) {
+        try {
+            UUID uuid = ru.example.vkchat.VKChatPlugin.getInstance().getApi().getUuidByVkId(vkId);
+            if (uuid == null) {
+                ru.example.vkchat.VKChatPlugin.getInstance().getApi().sendMessage(vkId, "❌ Твой ВК не привязан к аккаунту!");
+                return;
+            }
+
+            String content = renderPage(uuid, 0, 10);
+            ru.example.vkchat.VKChatPlugin.getInstance().getApi().sendMessage(vkId, content);
+        } catch (Exception e) {
+            ru.example.vkchat.VKChatPlugin.getInstance().getApi().sendMessage(vkId, "❌ Ошибка при открытии тайника.");
+        }
+    }
 }

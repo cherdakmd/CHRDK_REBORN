@@ -12,7 +12,6 @@ public class CampaignManager {
     private final VKChatOfflinePlugin plugin;
     private final Map<Integer, CampaignProgress> progress = new ConcurrentHashMap<>();
 
-    // Главы кампании
     public static final CampaignChapter[] CHAPTERS = {
         new CampaignChapter(1, "Зов леса", "Лес", "Волчий Вожак", 1, 5,
                 "Вы отправляетесь в лес, чтобы найти пропавшую экспедицию...",
@@ -48,27 +47,23 @@ public class CampaignManager {
                 "На вершине мира находится небесный храм...",
                 "Мифические крылья", 4000),
         new CampaignChapter(12, "Хаос", "Смешение", "Демон Хаоса", 61, 75,
-                "Хаос threatens to consume everything...",
+                "Хаос угрожает поглотить всё...",
                 "Легендарный набор", 5000),
         new CampaignChapter(13, "Пробуждение", "Финал", "Древний Бог", 76, 88,
                 "Древний бог пробуждается, и только вы можете его остановить...",
                 "Мифический набор", 10000),
     };
 
-    // Прогресс кампании
     public static class CampaignProgress {
         public int currentChapter;
         public Map<Integer, Boolean> completedChapters;
-        public Map<Integer, Long> completionTimes;
 
         public CampaignProgress() {
             this.currentChapter = 1;
             this.completedChapters = new ConcurrentHashMap<>();
-            this.completionTimes = new ConcurrentHashMap<>();
         }
     }
 
-    // Глава кампании
     public static class CampaignChapter {
         public final int id;
         public final String name;
@@ -99,48 +94,30 @@ public class CampaignManager {
         this.plugin = plugin;
     }
 
-    /**
-     * Получить прогресс кампании
-     */
     public CampaignProgress getProgress(int vkId) {
         return progress.computeIfAbsent(vkId, k -> new CampaignProgress());
     }
 
-    /**
-     * Получить текущую главу
-     */
     public CampaignChapter getCurrentChapter(int vkId) {
         CampaignProgress prog = getProgress(vkId);
         if (prog.currentChapter > CHAPTERS.length) return null;
         return CHAPTERS[prog.currentChapter - 1];
     }
 
-    /**
-     * Проверить, доступна ли глава
-     */
     public boolean isChapterAvailable(int vkId, int chapterId) {
         CampaignProgress prog = getProgress(vkId);
         if (chapterId == 1) return true;
         return prog.completedChapters.getOrDefault(chapterId - 1, false);
     }
 
-    /**
-     * Завершить главу
-     */
     public boolean completeChapter(int vkId, int chapterId) {
         CampaignProgress prog = getProgress(vkId);
         if (chapterId != prog.currentChapter) return false;
-
         prog.completedChapters.put(chapterId, true);
-        prog.completionTimes.put(chapterId, System.currentTimeMillis());
         prog.currentChapter = chapterId + 1;
-
         return true;
     }
 
-    /**
-     * Получить информацию о кампании
-     */
     public String getCampaignInfo(int vkId) {
         CampaignProgress prog = getProgress(vkId);
 
@@ -148,24 +125,13 @@ public class CampaignManager {
         sb.append("═══════════════════════════════════════\n");
         sb.append("📖 КАМПАНИЯ: ХРОНИКИ ПРОПАВШЕЙ ЭКСПЕДИЦИИ\n");
         sb.append("═══════════════════════════════════════\n\n");
-
         sb.append("Прогресс: ").append(prog.currentChapter - 1).append("/13 глав\n\n");
 
         for (CampaignChapter chapter : CHAPTERS) {
             boolean completed = prog.completedChapters.getOrDefault(chapter.id, false);
-            boolean available = isChapterAvailable(vkId, chapter.id);
             boolean current = chapter.id == prog.currentChapter;
 
-            if (completed) {
-                sb.append("✅ ");
-            } else if (current) {
-                sb.append("▶ ");
-            } else if (available) {
-                sb.append("🔓 ");
-            } else {
-                sb.append("🔒 ");
-            }
-
+            sb.append(completed ? "✅ " : (current ? "▶ " : "🔒 "));
             sb.append("Глава ").append(chapter.id).append(": ").append(chapter.name);
             sb.append(" [Ур. ").append(chapter.minLevel).append("-").append(chapter.maxLevel).append("]");
             sb.append("\n   Босс: ").append(chapter.bossName);
@@ -175,36 +141,9 @@ public class CampaignManager {
         return sb.toString();
     }
 
-    /**
-     * Получить информацию о главе
-     */
-    public String getChapterInfo(CampaignChapter chapter) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("═══════════════════════════════════════\n");
-        sb.append("📖 ГЛАВА ").append(chapter.id).append(": ").append(chapter.name).append("\n");
-        sb.append("═══════════════════════════════════════\n\n");
-
-        sb.append(chapter.description).append("\n\n");
-        sb.append("📍 Маршрут: ").append(chapter.route).append("\n");
-        sb.append("👹 Босс: ").append(chapter.bossName).append("\n");
-        sb.append("📊 Уровень: ").append(chapter.minLevel).append("-").append(chapter.maxLevel).append("\n");
-        sb.append("🎁 Награда: ").append(chapter.reward).append("\n");
-        sb.append("⭐ Репутация: +").append(chapter.rewardRep).append("\n");
-
-        return sb.toString();
-    }
-
-    /**
-     * Получить количество завершённых глав
-     */
     public int getCompletedChapters(int vkId) {
         return getProgress(vkId).completedChapters.size();
     }
 
-    /**
-     * Получить количество глав
-     */
-    public int getChapterCount() {
-        return CHAPTERS.length;
-    }
+    public int getChapterCount() { return CHAPTERS.length; }
 }
