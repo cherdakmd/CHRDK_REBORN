@@ -31,6 +31,11 @@ public class MarketCommand implements CommandExecutor, TabCompleter {
             return true;
         }
 
+        if (args.length > 0 && (args[0].equalsIgnoreCase("sellall") || args[0].equalsIgnoreCase("продатьвсе"))) {
+            MarketGuiListener.sellAllFromCommand(plugin, p);
+            return true;
+        }
+
         if (args.length > 0 && (args[0].equalsIgnoreCase("trends") || args[0].equalsIgnoreCase("тренды"))) {
             MarketGuiListener.openTrendsMenu(plugin, p);
         } else if (args.length > 0 && (args[0].equalsIgnoreCase("history") || args[0].equalsIgnoreCase("история"))) {
@@ -81,7 +86,7 @@ public class MarketCommand implements CommandExecutor, TabCompleter {
         String last = args.length > 0 ? args[args.length - 1].toLowerCase() : "";
 
         if (args.length == 1) {
-            completions.addAll(Arrays.asList("spawnnpc", "trends", "тренды", "history", "история",
+            completions.addAll(Arrays.asList("spawnnpc", "sellall", "продатьвсе", "trends", "тренды", "history", "история",
                 "quest", "квест", "flash", "flashsale"));
         }
 

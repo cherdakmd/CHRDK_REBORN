@@ -544,6 +544,59 @@ public class MarketGuiListener implements Listener {
     // ═══════════════════════════════════════════════════════════════
     // ПРОДАЖА ВСЕГО
     // ═══════════════════════════════════════════════════════════════
+
+    /**
+     * Продать всё из команды (без GUI)
+     */
+    public static void sellAllFromCommand(VKChatMarketPlugin plugin, Player p) {
+        int vkId = VKChatPlugin.getInstance().getApi().getLinkedVkId(p);
+        if (vkId == -1) { p.sendMessage("§cПривяжи ВК (/vklink)!"); return; }
+
+        java.util.Map<String, Integer> toSell = new java.util.HashMap<>();
+        for (String itemId : getConfiguredItems(plugin, "all")) {
+            Material m;
+            try { m = Material.valueOf(itemId); } catch (Exception ignored) { continue; }
+            int count = 0;
+            for (int i = 0; i < p.getInventory().getSize(); i++) {
+                ItemStack item = p.getInventory().getItem(i);
+                if (item != null && item.getType() == m && (!item.hasItemMeta() || !item.getItemMeta().hasLore())) count += item.getAmount();
+            }
+            if (count > 0) toSell.put(itemId, count);
+        }
+
+        if (toSell.isEmpty()) { p.sendMessage("§cНет предметов для продажи."); return; }
+
+        int totalCount = 0;
+        int totalRep = 0;
+        for (java.util.Map.Entry<String, Integer> entry : toSell.entrySet()) {
+            String itemId = entry.getKey();
+            Material m; try { m = Material.valueOf(itemId); } catch (Exception ignored) { continue; }
+            int count = entry.getValue();
+            int toRemove = count;
+            for (int i = 0; i < p.getInventory().getSize(); i++) {
+                ItemStack item = p.getInventory().getItem(i);
+                if (item != null && item.getType() == m && (!item.hasItemMeta() || !item.getItemMeta().hasLore())) {
+                    if (item.getAmount() <= toRemove) { toRemove -= item.getAmount(); p.getInventory().setItem(i, null); }
+                    else { item.setAmount(item.getAmount() - toRemove); toRemove = 0; }
+                    if (toRemove == 0) break;
+                }
+            }
+            double donorMult = 1.0;
+            if (p.hasPermission("vkchat.donate.market.legend") || p.hasPermission("vkchat.donate.status.legend")) donorMult = plugin.getConfig().getDouble("market2.donate.sell-multiplier.legend", 3.00);
+            else if (p.hasPermission("vkchat.donate.market.star") || p.hasPermission("vkchat.donate.status.star")) donorMult = plugin.getConfig().getDouble("market2.donate.sell-multiplier.star", 2.20);
+            else if (p.hasPermission("vkchat.donate.market.flame") || p.hasPermission("vkchat.donate.status.flame")) donorMult = plugin.getConfig().getDouble("market2.donate.sell-multiplier.flame", 1.70);
+            else if (p.hasPermission("vkchat.donate.market.spark") || p.hasPermission("vkchat.donate.status.spark")) donorMult = plugin.getConfig().getDouble("market2.donate.sell-multiplier.spark", 1.30);
+
+            int rep = Math.max(1, (int) Math.round(plugin.getMarketManager().calculateBulkSellPrice(itemId, count) * donorMult));
+            totalRep += rep;
+            totalCount += count;
+            plugin.getMarketManager().sellItems(itemId, count, 1.0);
+        }
+        VKChatPlugin.getInstance().getApi().addReputation(vkId, totalRep);
+        p.sendMessage("§a§l💰 Продано: §f" + totalCount + " шт. §a→ §e" + totalRep + " реп.");
+        p.playSound(p.getLocation(), org.bukkit.Sound.ENTITY_PLAYER_LEVELUP, 1f, 1.2f);
+    }
+
     private void openSellAllConfirm(Player p, String category) {
         java.util.Map<String, Integer> sellable = collectSellable(p);
         int totalItems = 0;
@@ -557,14 +610,21 @@ public class MarketGuiListener implements Listener {
         ItemStack glass = item(Material.BLACK_STAINED_GLASS_PANE, " ");
         for (int i = 0; i < 27; i++) inv.setItem(i, glass);
 
-        inv.setItem(11, item(Material.LIME_CONCRETE,
-                "§a§l✅ Подтвердить продажу",
+        // Кнопка подтверждения с PDC ключом
+        ItemStack confirmItem = new ItemStack(Material.LIME_CONCRETE);
+        ItemMeta confirmMeta = confirmItem.getItemMeta();
+        confirmMeta.setDisplayName("§a§l✅ Подтвердить продажу");
+        confirmMeta.setLore(Arrays.asList(
                 "§7Предметов: §e" + totalItems,
                 "§7Выручка: §a" + totalRep + " реп.",
                 "",
                 "§cДействие необратимо!",
                 "",
-                "§eНажми для подтверждения"));
+                "§eНажми для подтверждения"
+        ));
+        confirmMeta.getPersistentDataContainer().set(new NamespacedKey(plugin, "market_confirm_sell_all"), PersistentDataType.INTEGER, 1);
+        confirmItem.setItemMeta(confirmMeta);
+        inv.setItem(11, confirmItem);
 
         inv.setItem(15, categoryItem(plugin, Material.BARRIER, category, "§c§l✖ Отмена", "§7Вернуться назад"));
 
