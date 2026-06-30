@@ -150,20 +150,17 @@ public class LinkManager {
      * Проверить, привязан ли ВК к другому игроку
      */
     private boolean isVkLinkedToAnother(int vkId, UUID currentUuid) {
-        try {
-            Connection conn = plugin.getDatabaseManager().getConnection();
+        try (Connection conn = plugin.getDatabaseManager().getConnection()) {
             if (conn == null) return false;
 
-            PreparedStatement ps = conn.prepareStatement(
-                "SELECT uuid FROM vkchat_auth WHERE vk_id = ? AND uuid != ?"
-            );
-            ps.setInt(1, vkId);
-            ps.setString(2, currentUuid.toString());
-            ResultSet rs = ps.executeQuery();
-            boolean exists = rs.next();
-            rs.close();
-            ps.close();
-            return exists;
+            try (PreparedStatement ps = conn.prepareStatement(
+                    "SELECT uuid FROM vkchat_auth WHERE vk_id = ? AND uuid != ?")) {
+                ps.setInt(1, vkId);
+                ps.setString(2, currentUuid.toString());
+                try (ResultSet rs = ps.executeQuery()) {
+                    return rs.next();
+                }
+            }
         } catch (SQLException e) {
             return false;
         }
@@ -173,23 +170,24 @@ public class LinkManager {
      * Сохранить привязку в БД
      */
     private void saveLink(UUID uuid, int vkId) throws SQLException {
-        Connection conn = plugin.getDatabaseManager().getConnection();
-        if (conn == null) throw new SQLException("Нет подключения к БД");
+        try (Connection conn = plugin.getDatabaseManager().getConnection()) {
+            if (conn == null) throw new SQLException("Нет подключения к БД");
 
-        // SQLite или MySQL совместимый запрос
-        String sql;
-        if (!plugin.getConfig().getBoolean("database.use-mysql", false)) {
-            sql = "INSERT OR REPLACE INTO vkchat_auth (uuid, vk_id) VALUES (?, ?)";
-        } else {
-            sql = "INSERT INTO vkchat_auth (uuid, vk_id) VALUES (?, ?) " +
-                  "ON DUPLICATE KEY UPDATE vk_id = VALUES(vk_id)";
+            // SQLite или MySQL совместимый запрос
+            String sql;
+            if (!plugin.getConfig().getBoolean("database.use-mysql", false)) {
+                sql = "INSERT OR REPLACE INTO vkchat_auth (uuid, vk_id) VALUES (?, ?)";
+            } else {
+                sql = "INSERT INTO vkchat_auth (uuid, vk_id) VALUES (?, ?) " +
+                      "ON DUPLICATE KEY UPDATE vk_id = VALUES(vk_id)";
+            }
+
+            try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                ps.setString(1, uuid.toString());
+                ps.setInt(2, vkId);
+                ps.executeUpdate();
+            }
         }
-
-        PreparedStatement ps = conn.prepareStatement(sql);
-        ps.setString(1, uuid.toString());
-        ps.setInt(2, vkId);
-        ps.executeUpdate();
-        ps.close();
     }
 
     /**

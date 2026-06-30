@@ -20,8 +20,6 @@ public class SessionManager {
         UNLINKED,        // Не привязан к ВК, нет проходки
         WAITING_2FA,     // Ожидает ввода 2FA кода
         LOGGED_IN,       // Полностью авторизован
-        AFK,             // Неактивен
-        FROZEN,          // Заморожен админом
         PASS_HOLDER      // Имеет проходку (без ВК)
     }
 
@@ -91,9 +89,6 @@ public class SessionManager {
         PlayerSession session = sessions.get(uuid);
         if (session != null) {
             session.lastActivity = System.currentTimeMillis();
-            if (session.state == SessionState.AFK) {
-                session.state = SessionState.LOGGED_IN;
-            }
         }
     }
 

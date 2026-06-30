@@ -163,8 +163,12 @@ public class TwoFactorManager {
         String expectedCode = pendingCodes.get(uuid);
         if (expectedCode == null) return false;
 
-        // Проверяем, что VK ID совпадает
-        // (нужно получить VK ID из БД по UUID)
+        // Проверяем, что VK ID совпадает с привязанным
+        int linkedVkId = plugin.getAuthManager().getLinkedVkId(uuid);
+        if (linkedVkId == -1 || linkedVkId != vkId) {
+            return false; // VK ID не совпадает
+        }
+
         cleanup(uuid);
 
         // Уведомляем игрока

@@ -43,6 +43,9 @@ public class AuthListener implements Listener {
     public void onJoin(PlayerJoinEvent e) {
         Player p = e.getPlayer();
 
+        // ═══ 0. СИНХРОНИЗАЦИЯ СО СТАРЫМ AUTHMANAGER ═══
+        plugin.getAuthManager().onJoin(p);
+
         // ═══ 1. СОЗДАЁМ СЕССИЮ ═══
         SessionManager.PlayerSession session = plugin.getSessionManager().createSession(p);
 
@@ -142,14 +145,26 @@ public class AuthListener implements Listener {
             boolean sent = plugin.getTwoFactorManager().trigger2fa(p, vkId);
             if (sent) {
                 session.state = SessionManager.SessionState.WAITING_2FA;
+                // Синхронизация со старым AuthManager
+                plugin.getAuthManager().setAwait2fa(p.getUniqueId(), String.valueOf(vkId));
             } else {
-                // Не удалось отправить 2FA — пропускаем
-                session.state = SessionManager.SessionState.LOGGED_IN;
+                // Не удалось отправить 2FA — авторизуем напрямую
+                authorizePlayer(p, session);
             }
         } else {
             // 2FA отключен — сразу авторизуем
-            session.state = SessionManager.SessionState.LOGGED_IN;
+            authorizePlayer(p, session);
         }
+    }
+
+    /**
+     * Авторизация игрока (синхронизация обоих систем)
+     */
+    private void authorizePlayer(Player p, SessionManager.PlayerSession session) {
+        session.state = SessionManager.SessionState.LOGGED_IN;
+        // Синхронизация со старым AuthManager
+        plugin.getAuthManager().setLoggedIn(p.getUniqueId(), true);
+        plugin.getAuthManager().updateLastActivity(p.getUniqueId());
     }
 
     @EventHandler

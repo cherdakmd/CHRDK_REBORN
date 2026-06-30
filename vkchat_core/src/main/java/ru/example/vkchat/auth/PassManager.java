@@ -53,27 +53,26 @@ public class PassManager {
      * Загрузить проходки из БД
      */
     private void loadPasses() {
-        try {
-            Connection conn = plugin.getDatabaseManager().getConnection();
+        try (Connection conn = plugin.getDatabaseManager().getConnection()) {
             if (conn == null) return;
 
-            ResultSet rs = conn.createStatement().executeQuery(
-                "SELECT uuid, player_name, start_time, end_time, type FROM vkchat_passes WHERE end_time > " + System.currentTimeMillis()
-            );
+            try (PreparedStatement ps = conn.prepareStatement(
+                    "SELECT uuid, player_name, start_time, end_time, type FROM vkchat_passes WHERE end_time > ?")) {
+                ps.setLong(1, System.currentTimeMillis());
+                try (ResultSet rs = ps.executeQuery()) {
+                    while (rs.next()) {
+                        UUID uuid = UUID.fromString(rs.getString("uuid"));
+                        String playerName = rs.getString("player_name");
+                        long startTime = rs.getLong("start_time");
+                        long endTime = rs.getLong("end_time");
+                        String type = rs.getString("type");
 
-            while (rs.next()) {
-                UUID uuid = UUID.fromString(rs.getString("uuid"));
-                String playerName = rs.getString("player_name");
-                long startTime = rs.getLong("start_time");
-                long endTime = rs.getLong("end_time");
-                String type = rs.getString("type");
-
-                PassData pass = new PassData(uuid, playerName, endTime, type);
-                pass.startTime = startTime;
-                activePasses.put(uuid, pass);
+                        PassData pass = new PassData(uuid, playerName, endTime, type);
+                        pass.startTime = startTime;
+                        activePasses.put(uuid, pass);
+                    }
+                }
             }
-
-            rs.close();
             plugin.getLogger().info("Загружено " + activePasses.size() + " активных проходок");
         } catch (SQLException e) {
             plugin.getLogger().warning("Ошибка загрузки проходок: " + e.getMessage());
@@ -135,14 +134,13 @@ public class PassManager {
         PassData pass = activePasses.remove(uuid);
         if (pass == null) return false;
 
-        try {
-            Connection conn = plugin.getDatabaseManager().getConnection();
+        try (Connection conn = plugin.getDatabaseManager().getConnection()) {
             if (conn == null) return false;
 
-            PreparedStatement ps = conn.prepareStatement("DELETE FROM vkchat_passes WHERE uuid = ?");
-            ps.setString(1, uuid.toString());
-            ps.executeUpdate();
-            ps.close();
+            try (PreparedStatement ps = conn.prepareStatement("DELETE FROM vkchat_passes WHERE uuid = ?")) {
+                ps.setString(1, uuid.toString());
+                ps.executeUpdate();
+            }
         } catch (SQLException e) {
             plugin.getLogger().warning("Ошибка удаления проходки: " + e.getMessage());
         }
@@ -198,8 +196,7 @@ public class PassManager {
      * Сохранить проходку в БД
      */
     private void savePass(UUID uuid, String playerName, long startTime, long endTime, String type) {
-        try {
-            Connection conn = plugin.getDatabaseManager().getConnection();
+        try (Connection conn = plugin.getDatabaseManager().getConnection()) {
             if (conn == null) return;
 
             String sql;
@@ -210,14 +207,14 @@ public class PassManager {
                       "ON DUPLICATE KEY UPDATE end_time = VALUES(end_time), type = VALUES(type)";
             }
 
-            PreparedStatement ps = conn.prepareStatement(sql);
-            ps.setString(1, uuid.toString());
-            ps.setString(2, playerName);
-            ps.setLong(3, startTime);
-            ps.setLong(4, endTime);
-            ps.setString(5, type);
-            ps.executeUpdate();
-            ps.close();
+            try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                ps.setString(1, uuid.toString());
+                ps.setString(2, playerName);
+                ps.setLong(3, startTime);
+                ps.setLong(4, endTime);
+                ps.setString(5, type);
+                ps.executeUpdate();
+            }
         } catch (SQLException e) {
             plugin.getLogger().warning("Ошибка сохранения проходки: " + e.getMessage());
         }
@@ -279,20 +276,18 @@ public class PassManager {
             long now = System.currentTimeMillis();
             int warningDays = plugin.getConfig().getInt("passes.warning-days", 3);
 
-            for (Map.Entry<UUID, PassData> entry : activePasses.entrySet()) {
+            // Безопасное удаление истёкших проходок
+            activePasses.entrySet().removeIf(entry -> {
                 PassData pass = entry.getValue();
                 UUID uuid = entry.getKey();
 
                 if (!pass.isActive()) {
-                    // Проходка истекла
-                    activePasses.remove(uuid);
-
-                    // Кикнуть игрока если онлайн
+                    // Проходка истекла — кикнуть игрока если онлайн
                     Player p = plugin.getServer().getPlayer(uuid);
                     if (p != null) {
                         p.kickPlayer("§c❌ Твоя проходка истекла! Купи новую или привяжи ВК.");
                     }
-                    continue;
+                    return true; // Удалить из карты
                 }
 
                 // Предупреждение
@@ -302,7 +297,9 @@ public class PassManager {
                         p.sendMessage("§e⚠️ Твоя проходка истекает через " + pass.getRemainingDays() + " дней!");
                     }
                 }
-            }
+
+                return false;
+            });
         }, 6000L, 6000L); // Каждые 5 минут
     }
 

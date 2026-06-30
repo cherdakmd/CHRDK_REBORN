@@ -36,11 +36,9 @@ public class AuthManager {
     private final Map<UUID, Long> lastActivity = new ConcurrentHashMap<>();
     private final Map<UUID, Boolean> frozenAccounts = new ConcurrentHashMap<>();    // Замороженные аккаунты
     private final Map<UUID, java.util.List<String>> loginHistory = new ConcurrentHashMap<>(); // История входов
-    private final Map<UUID, Long> trustedDevices = new ConcurrentHashMap<>();       // Доверенные устройства (IP hash -> expiry)
 
     private static final long TWO_FA_EXPIRY_MS = 5 * 60 * 1000L; // 5 минут
     private static final int MAX_2FA_ATTEMPTS = 5;
-    private static final int MAX_FAILED_LOGINS = 3;
     private static final long LOCKOUT_DURATION_MS = 5 * 60 * 1000L; // 5 минут
 
     public AuthManager(VKChatPlugin plugin) {
@@ -56,6 +54,31 @@ public class AuthManager {
     public SessionManager getSessionManager() { return sessionManager; }
     public LinkManager getLinkManager() { return linkManager; }
     public TwoFactorManager getTwoFactorManager() { return twoFactorManager; }
+
+    // ═══ МЕТОДЫ СИНХРОНИЗАЦИИ С SESSIONMANAGER ═══
+
+    /**
+     * Установить состояние loggedIn (для синхронизации с SessionManager)
+     */
+    public void setLoggedIn(UUID uuid, boolean value) {
+        loggedIn.put(uuid, value);
+    }
+
+    /**
+     * Установить 2FA ожидание (для синхронизации с SessionManager)
+     */
+    public void setAwait2fa(UUID uuid, String code) {
+        await2fa.put(uuid, code);
+        await2faExpiry.put(uuid, System.currentTimeMillis() + TWO_FA_EXPIRY_MS);
+        await2faAttempts.put(uuid, 0);
+    }
+
+    /**
+     * Получить PassManager
+     */
+    public PassManager getPassManager() {
+        return plugin.getPassManager();
+    }
 
     /**
      * [FIX] Периодическая очистка неактивных данных для предотвращения утечки памяти

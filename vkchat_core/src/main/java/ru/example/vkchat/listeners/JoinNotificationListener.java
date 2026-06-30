@@ -8,7 +8,6 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import ru.example.vkchat.VKChatPlugin;
-import ru.example.vkchat.auth.SessionManager;
 
 /**
  * Слушатель уведомлений о входе/выходе игроков

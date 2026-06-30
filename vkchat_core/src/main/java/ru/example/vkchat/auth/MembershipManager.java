@@ -51,7 +51,7 @@ public class MembershipManager {
 
             if (json.has("error")) {
                 plugin.getLogger().warning("VK API ошибка проверки группы: " + json.getJSONObject("error").getString("error_msg"));
-                return true; // При ошибке НЕ кикаем
+                return false; // При ошибке НЕ пропускаем (fail-closed)
             }
 
             if (json.has("response")) {
@@ -62,7 +62,7 @@ public class MembershipManager {
             plugin.getLogger().warning("Ошибка проверки членства в группе: " + e.getMessage());
         }
 
-        return true; // При ошибке НЕ кикаем
+        return false; // При ошибке НЕ пропускаем (fail-closed)
     }
 
     /**
