@@ -43,7 +43,8 @@ public class AdventureManager implements Listener {
 
     private static final Set<String> COMMANDS = new HashSet<>(Arrays.asList(
             "!поход", "!походы", "!пойти", "!выбор", "!статуспохода", "!забрать", "!тайник", "!stash",
-            "!adventure", "!adv", "!отменапоход", "!офлайн", "!offline", "!вопрос", "!открыть", "!класс", "!спутник", "!отдых", "!лечиться", "!лечение", "!госпиталь", "!психика", "!кампания", "!глава", "!коллекции", "!коллекция", "!отношения", "!магазин", "!лавка", "!купить", "!экипировка", "!снаряжение", "!использовать", "!юз", "!продатьтайник", "!продатьstash", "!навыки", "!навык", "!инвентарь", "!сумка", "!персонаж", "!профильпохода", "!дневник", "!журнал", "!ачивки", "!достижения", "!ежедневка", "!дейлик", "!офадмин", "!герой"
+            "!adventure", "!adv", "!отменапоход", "!офлайн", "!offline", "!вопрос", "!открыть", "!класс", "!спутник", "!отдых", "!лечиться", "!лечение", "!госпиталь", "!психика", "!кампания", "!глава", "!коллекции", "!коллекция", "!отношения", "!магазин", "!лавка", "!купить", "!экипировка", "!снаряжение", "!использовать", "!юз", "!продатьтайник", "!продатьstash", "!навыки", "!навык", "!инвентарь", "!сумка", "!персонаж", "!профильпохода", "!дневник", "!журнал", "!ачивки", "!достижения", "!ежедневка", "!дейлик", "!офадмин", "!герой",
+            "!характеристики", "!статы", "!бой", "!продолжить"
     ));
 
     public AdventureManager(VKChatOfflinePlugin plugin) {
@@ -286,6 +287,12 @@ public class AdventureManager implements Listener {
         if (plain.startsWith("награды")) { showQuestion(vkId, new String[]{"!вопрос", "4"}); return true; }
         if (plain.startsWith("смерть")) { showQuestion(vkId, new String[]{"!вопрос", "5"}); return true; }
         if (plain.startsWith("отмена похода")) { showQuestion(vkId, new String[]{"!вопрос", "6"}); return true; }
+
+        // Новые команды MMORPG
+        if (plain.equals("характеристики") || plain.equals("статы")) { showCharacterStats(vkId); return true; }
+        if (plain.equals("навыки") || plain.equals("дерево навыков")) { showSkillTree(vkId); return true; }
+        if (plain.startsWith("навык ")) { learnSkill(vkId, plain.replace("навык ", "").trim()); return true; }
+
         return false;
     }
 
@@ -2389,6 +2396,68 @@ public class AdventureManager implements Listener {
         ConfigurationSection act = data.getConfigurationSection("active"); if (act != null) for (String vk : act.getKeys(false)) try { int id = Integer.parseInt(vk); String b = "active." + vk + "."; ActiveAdventure a = new ActiveAdventure(id, UUID.fromString(data.getString(b + "uuid")), data.getString(b + "player"), data.getString(b + "route"), data.getLong(b + "start")); a.stage=data.getInt(b+"stage"); a.maxStages=data.getInt(b+"maxStages"); a.hp=data.getInt(b+"hp"); a.maxHp=data.getInt(b+"maxHp",100); a.nextEventTime=data.getLong(b+"nextEventTime"); a.waitingChoice=data.getBoolean(b+"waiting"); a.choiceDeadline=data.getLong(b+"choiceDeadline"); a.pendingType=data.getString(b+"pendingType"); a.pendingTitle=data.getString(b+"pendingTitle"); a.hardDeadline=data.getLong(b+"hardDeadline"); a.supplies=data.getInt(b+"supplies",3); a.morale=data.getInt(b+"morale",100); a.xpGained=data.getInt(b+"xpGained",0); a.inspiration=data.getInt(b+"inspiration",0); a.condition=data.getString(b+"condition","none"); a.gold=data.getInt(b+"gold",0); a.relics=data.getInt(b+"relics",0); a.blessing=data.getString(b+"blessing","none"); a.sanity=data.getInt(b+"sanity",100); a.campaignChapter=data.getString(b+"campaignChapter",""); a.deathSavesUsed=data.getInt(b+"deathSavesUsed",0); active.put(id,a);} catch(Exception ignored){}
         ConfigurationSection cds = data.getConfigurationSection("cooldowns"); if (cds != null) for (String vk : cds.getKeys(false)) try { cooldowns.put(Integer.parseInt(vk), cds.getLong(vk)); } catch(Exception ignored){}
         ConfigurationSection inj = data.getConfigurationSection("injuries"); if (inj != null) for (String vk : inj.getKeys(false)) try { injuries.put(Integer.parseInt(vk), inj.getLong(vk)); } catch(Exception ignored){}
+    }
+
+    // ═══════════════════════════════════════════════════════════════
+    // НОВЫЕ МЕТОДЫ MMORPG
+    // ═══════════════════════════════════════════════════════════════
+
+    /**
+     * Показать характеристики персонажа
+     */
+    private void showCharacterStats(int vkId) {
+        String info = plugin.getCharacterManager().getCharacterInfo(vkId);
+        api().sendMessage(vkId, info);
+        api().sendKeyboard(vkId, "📊 Характеристики", OfflineKeyboardFactory.hero());
+    }
+
+    /**
+     * Показать дерево навыков
+     */
+    private void showSkillTree(int vkId) {
+        String info = plugin.getSkillTreeManager().getSkillTreeInfo(vkId);
+        api().sendMessage(vkId, info);
+        api().sendKeyboard(vkId, "🌳 Дерево навыков", OfflineKeyboardFactory.skillTree());
+    }
+
+    /**
+     * Изучить навык
+     */
+    private void learnSkill(int vkId, String skillId) {
+        ru.example.vkchatoffline.character.CharacterManager.CharacterData character = plugin.getCharacterManager().getCharacter(vkId);
+        boolean success = plugin.getSkillTreeManager().learnSkill(vkId, skillId, character);
+
+        if (success) {
+            ru.example.vkchatoffline.character.SkillTreeManager.Skill skill = plugin.getSkillTreeManager().getSkillById(skillId);
+            api().sendMessage(vkId, "✅ Навык изучен: " + skill.name + "!");
+        } else {
+            api().sendMessage(vkId, "❌ Не удалось изучить навык. Проверьте уровень и требования.");
+        }
+
+        showSkillTree(vkId);
+    }
+
+    /**
+     * Показать боевое меню
+     */
+    private void showCombatMenu(int vkId) {
+        ru.example.vkchatoffline.combat.CombatEncounter combat = plugin.getCombatManager().getActiveCombat(vkId);
+        if (combat == null) {
+            api().sendMessage(vkId, "❌ Нет активного боя.");
+            return;
+        }
+
+        api().sendMessage(vkId, combat.getCombatDescription());
+        api().sendKeyboard(vkId, "⚔ Бой", OfflineKeyboardFactory.combatActive());
+    }
+
+    /**
+     * Показать кампанию
+     */
+    private void showCampaignInfo(int vkId) {
+        String info = plugin.getCampaignManager().getCampaignInfo(vkId);
+        api().sendMessage(vkId, info);
+        api().sendKeyboard(vkId, "📖 Кампания", OfflineKeyboardFactory.campaignMenu());
     }
 
     public synchronized void saveAll() {

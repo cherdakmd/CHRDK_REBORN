@@ -79,18 +79,19 @@ public final class OfflineKeyboardFactory {
 
     public static String hero() {
         return keyboard(
-                row(btn("👤 Персонаж", "!персонаж", "secondary"), btn("🎲 Сумка", "!сумка", "secondary")),
-                row(btn("🧙 Класс", "!класс", "primary"), btn("🐾 Спутник", "!спутник", "primary")),
-                row(btn("🧠 Навыки", "!навыки", "primary"), btn("🌿 Расходники", "!расходники", "positive")),
-                row(btn("📖 Кампания", "!кампания", "primary"), btn("🧠 Психика", "!психика", "secondary")),
-                row(btn("📜 Дневник", "!дневник", "secondary"), btn("⬅ Назад", "!походы", "primary"))
+                row(btn("📊 Характеристики", "!характеристики", "primary"), btn("🎲 Сумка", "!сумка", "secondary")),
+                row(btn("⚔ Класс", "!класс", "primary"), btn("🐾 Спутник", "!спутник", "primary")),
+                row(btn("🌳 Навыки", "!навыки", "primary"), btn("🌿 Расходники", "!расходники", "positive")),
+                row(btn("📖 Кампания", "!кампания", "primary"), btn("📜 Дневник", "!дневник", "secondary")),
+                row(btn("🏥 Госпиталь", "!госпиталь", "secondary"), btn("⬅ Назад", "!походы", "primary"))
         );
     }
 
     public static String combatChoices() {
         return keyboard(
-                row(btn("⚔ Ударить", "!выбор 1", "negative"), btn("🛡 Защита", "!выбор 2", "positive")),
-                row(btn("✨ Приём", "!выбор 3", "primary"), btn("🏃 Отступить", "!выбор 4", "secondary"))
+                row(btn("⚔ Атака", "!выбор 1", "negative"), btn("🛡 Защита", "!выбор 2", "positive")),
+                row(btn("🔥 Способность", "!выбор 3", "primary"), btn("🧪 Предмет", "!выбор 4", "secondary")),
+                row(btn("🏃 Побег", "!выбор 5", "secondary"))
         );
     }
 
@@ -101,102 +102,177 @@ public final class OfflineKeyboardFactory {
         );
     }
 
-    public static String statusOnly() {
+    public static String afterChoice() {
         return keyboard(
-                row(btn("⏳ Статус", "!статуспохода", "secondary"), btn("🎒 Тайник", "!тайник 1", "positive")),
-                row(btn("💚 Лечиться", "!лечиться", "positive"), btn("🌿 Расходники", "!расходники", "positive")),
-                row(btn("🔥 Отдых", "!отдых", "secondary"), btn("🎲 Сумка", "!сумка", "secondary"))
+                row(btn("▶ Продолжить", "!продолжить", "primary")),
+                row(btn("🎒 Тайник", "!тайник 1", "positive"), btn("👤 Герой", "!герой", "secondary"))
         );
     }
 
-    public static String heal() {
+    public static String combatActive() {
         return keyboard(
-                row(btn("💚 Лечиться", "!лечиться", "positive"), btn("⛺ Походы", "!походы", "primary")),
-                row(btn("👤 Персонаж", "!персонаж", "secondary"), btn("🎒 Тайник", "!тайник 1", "secondary"))
+                row(btn("⚔ Атака", "!выбор 1", "negative"), btn("🛡 Защита", "!выбор 2", "positive")),
+                row(btn("🔥 Способность", "!выбор 3", "primary"), btn("🧪 Предмет", "!выбор 4", "secondary")),
+                row(btn("🏃 Побег", "!выбор 5", "secondary"))
         );
     }
 
-    public static String shopEquipment() {
+    public static String combatVictory() {
         return keyboard(
-                row(btn("🗡 Купить оружие", "!купить equip_weapon_iron", "primary"), btn("🛡 Купить броню", "!купить equip_armor_chain", "primary")),
-                row(btn("🔮 Купить талисман", "!купить equip_talisman_sanity", "secondary"), btn("⛏ Купить инструмент", "!купить equip_tool_lockpick", "secondary")),
-                row(btn("🎒 Купить рюкзак", "!купить equip_backpack_big", "positive"), btn("🌿 Расходники", "!расходники", "positive")),
-                row(btn("⛺ Походы", "!походы", "primary"))
+                row(btn("🎉 Забрать лут", "!забрать", "positive")),
+                row(btn("▶ Продолжить поход", "!продолжить", "primary")),
+                row(btn("🎒 Тайник", "!тайник 1", "secondary"), btn("👤 Герой", "!герой", "secondary"))
         );
     }
 
-    public static String shopConsumables() {
+    public static String combatDefeat() {
         return keyboard(
-                row(btn("❤️ Зелье лечения", "!купить potion_heal", "positive"), btn("🧠 Зелье рассудка", "!купить potion_sanity", "positive")),
-                row(btn("☠ Антидот", "!купить potion_antidote", "secondary"), btn("📜 Свиток побега", "!купить scroll_escape", "secondary")),
-                row(btn("🎲 Свиток переброса", "!купить scroll_reroll", "primary"), btn("🕯 Свиток очищения", "!купить scroll_cleanse", "primary")),
-                row(btn("⛺ Набор лагеря", "!купить camp_kit", "positive"), btn("🛒 Магазин", "!лавка", "primary"))
+                row(btn("🏥 Лечение", "!лечиться", "positive")),
+                row(btn("🎒 Тайник", "!тайник 1", "secondary"), btn("👤 Герой", "!герой", "secondary")),
+                row(btn("🏠 На главную", "!походы", "primary"))
         );
     }
 
-    public static String useConsumables() {
+    public static String classSelection() {
         return keyboard(
-                row(btn("Использовать ❤️", "!юз potion_heal", "positive"), btn("Использовать 🧠", "!юз potion_sanity", "positive")),
-                row(btn("Использовать ☠", "!юз potion_antidote", "secondary"), btn("Использовать 📜", "!юз scroll_escape", "secondary")),
-                row(btn("Использовать 🎲", "!юз scroll_reroll", "primary"), btn("Использовать 🕯", "!юз scroll_cleanse", "primary")),
-                row(btn("Использовать ⛺", "!юз camp_kit", "positive"), btn("⛺ Походы", "!походы", "primary"))
+                row(btn("⚔ Воин", "!класс warrior", "negative"), btn("🏹 Следопыт", "!класс scout", "positive")),
+                row(btn("🔮 Маг", "!класс mage", "primary"), btn("🕯 Жрец", "!класс cleric", "secondary")),
+                row(btn("🗡 Разбойник", "!класс rogue", "negative"), btn("🛡 Паладин", "!класс paladin", "positive")),
+                row(btn("🎯 Рейнджер", "!класс ranger", "primary")),
+                row(btn("⬅ Назад", "!герой", "secondary"))
         );
     }
 
-    public static String offlineSkills() {
+    public static String companionSelection() {
         return keyboard(
-                row(btn("Навык: Живучесть", "!навык tough", "positive"), btn("Навык: Клинок", "!навык sharp", "negative")),
-                row(btn("Навык: Ловушки", "!навык trap_sense", "primary"), btn("Навык: Удача", "!навык lucky", "primary")),
-                row(btn("Навык: Торговец", "!навык trader", "secondary"), btn("Навык: Оккультизм", "!навык occult", "secondary")),
-                row(btn("Навык: Травник", "!навык herbalist", "positive"), btn("Навык: Носильщик", "!навык packer", "positive")),
-                row(btn("⛺ Походы", "!походы", "primary"))
+                row(btn("🐺 Волк", "!спутник wolf", "negative"), btn("🦅 Ворон", "!спутник raven", "positive")),
+                row(btn("🧪 Алхимик", "!спутник alchemist", "primary"), btn("🐴 Мул", "!спутник mule", "secondary")),
+                row(btn("🐻 Медведь", "!спутник bear", "negative"), btn("🦉 Сова", "!спутник owl", "positive")),
+                row(btn("🐍 Змея", "!спутник snake", "primary"), btn("🐲 Дракон", "!спутник dragon_whelp", "secondary")),
+                row(btn("⬅ Назад", "!герой", "secondary"))
         );
     }
 
-    public static String sellStash() {
+    public static String shopMain() {
         return keyboard(
-                row(btn("✅ Продать тайник", "!продатьтайник", "positive"), btn("🎒 Тайник", "!тайник 1", "secondary")),
-                row(btn("⛺ Походы", "!походы", "primary"))
+                row(btn("⚔ Оружие", "!лавка оружие", "negative"), btn("🛡 Броня", "!лавка броня", "positive")),
+                row(btn("🧪 Расходники", "!лавка расходники", "primary"), btn("💍 Аксессуары", "!лавка аксессуары", "secondary")),
+                row(btn("📜 Свитки", "!лавка свитки", "primary"), btn("🔮 Зелья", "!лавка зелья", "positive")),
+                row(btn("⬅ Назад", "!походы", "secondary"))
         );
     }
 
-    public static String campaign() {
+    public static String campaignMenu() {
         return keyboard(
-                row(btn("Глава I", "!глава 1", "primary"), btn("Глава II", "!глава 2", "primary")),
-                row(btn("Глава III", "!глава 3", "primary"), btn("Глава IV", "!глава 4", "primary")),
-                row(btn("Глава V", "!глава 5", "negative"), btn("Глава VI", "!глава 6", "negative")),
-                row(btn("⛺ Походы", "!походы", "primary"))
+                row(btn("📖 Глава 1", "!глава 1", "primary"), btn("📖 Глава 2", "!глава 2", "primary")),
+                row(btn("📖 Глава 3", "!глава 3", "primary"), btn("📖 Глава 4", "!глава 4", "primary")),
+                row(btn("📖 Глава 5", "!глава 5", "primary"), btn("📖 Глава 6", "!глава 6", "primary")),
+                row(btn("📖 Глава 7", "!глава 7", "primary"), btn("📖 Глава 8", "!глава 8", "primary")),
+                row(btn("📖 Глава 9", "!глава 9", "primary"), btn("📖 Глава 10", "!глава 10", "primary")),
+                row(btn("📖 Глава 11", "!глава 11", "primary"), btn("📖 Глава 12", "!глава 12", "primary")),
+                row(btn("📖 Глава 13", "!глава 13", "primary")),
+                row(btn("⬅ Назад", "!герой", "secondary"))
+        );
+    }
+
+    public static String skillTree() {
+        return keyboard(
+                row(btn("⚔ Боевая", "!навыки combat", "negative"), btn("🛡 Выживание", "!навыки survival", "positive")),
+                row(btn("🔮 Магия", "!навыки magic", "primary")),
+                row(btn("⬅ Назад", "!герой", "secondary"))
+        );
+    }
+
+    public static String skillsCombat() {
+        return keyboard(
+                row(btn("⚔ Удар", "!навык combat_strike", "negative"), btn("🔥 Мощный удар", "!навык combat_power", "positive")),
+                row(btn("💥 Рассечение", "!навык combat_cleave", "primary"), btn("😡 Ярость", "!навыk combat_fury", "secondary")),
+                row(btn("💀 Берсерк", "!навыk combat_berserk", "negative")),
+                row(btn("⬅ Назад", "!навыки", "secondary"))
+        );
+    }
+
+    public static String skillsSurvival() {
+        return keyboard(
+                row(btn("🏃 Уклонение", "!навыk survival_dodge", "positive"), btn("💚 Лечение", "!навыk survival_heal", "positive")),
+                row(btn("🪤 Ловушка", "!навыk survival_trap", "primary"), btn("👻 Невидимость", "!навыk survival_stealth", "secondary")),
+                row(btn("🗡 Теневой удар", "!навыk survival_shadow", "negative")),
+                row(btn("⬅ Назад", "!навыки", "secondary"))
+        );
+    }
+
+    public static String skillsMagic() {
+        return keyboard(
+                row(btn("🔥 Огненный шар", "!навыk magic_fire", "negative"), btn("❄️ Ледяная стрела", "!навыk magic_ice", "positive")),
+                row(btn("⚡ Молния", "!навыk magic_lightning", "primary"), btn("☄️ Метеор", "!навыk magic_meteor", "secondary")),
+                row(btn("🌀 Бездна", "!навыk magic_abyss", "negative")),
+                row(btn("⬅ Назад", "!навыки", "secondary"))
         );
     }
 
     public static String hospital() {
         return keyboard(
-                row(btn("🧠 Терапия рассудка", "!госпиталь sanity", "positive"), btn("✅ Лечение травм", "!госпиталь trauma", "primary")),
-                row(btn("🕯 Снять фобию", "!госпиталь fear", "secondary"), btn("🧠 Психика", "!психика", "primary")),
-                row(btn("⛺ Походы", "!походы", "primary"))
+                row(btn("💊 Лечение травм", "!лечение травм", "positive"), btn("🧠 Терапия рассудка", "!лечение рассудок", "primary")),
+                row(btn("😨 Снять фобию", "!лечение фобия", "secondary"), btn("💀 Снять проклятие", "!лечение проклятие", "negative")),
+                row(btn("⬅ Назад", "!герой", "secondary"))
         );
     }
 
-    public static String unlock(String routeLabel, String routeId) {
+    public static String dailyQuest() {
         return keyboard(
-                row(btn("🔓 Открыть " + routeLabel, "!открыть " + routeId, "positive"), btn("🎒 Тайник", "!тайник 1", "secondary"))
+                row(btn("📋 Квест дня", "!квест", "primary")),
+                row(btn("🎁 Награда", "!награда", "positive")),
+                row(btn("⬅ Назад", "!походы", "secondary"))
+        );
+    }
+
+    public static String settings() {
+        return keyboard(
+                row(btn("🔔 Уведомления", "!настройки уведомления", "secondary"), btn("📱 Клавиатура", "!настройки клавиатура", "secondary")),
+                row(btn("🌐 Язык", "!настройки язык", "secondary"), btn("⬅ Назад", "!герой", "secondary"))
+        );
+    }
+
+    // ═══ ДОПОЛНИТЕЛЬНЫЕ КЛАВИАТУРЫ ═══
+
+    public static String heal() {
+        return keyboard(
+                row(btn("💊 Лечение", "!лечиться", "positive")),
+                row(btn("🏥 Госпиталь", "!госпиталь", "primary")),
+                row(btn("⬅ Назад", "!герой", "secondary"))
+        );
+    }
+
+    public static String statusOnly() {
+        return keyboard(
+                row(btn("📊 Статус", "!статуспохода", "primary")),
+                row(btn("⬅ Назад", "!походы", "secondary"))
+        );
+    }
+
+    public static String unlock(String label, String route) {
+        return keyboard(
+                row(btn("🔓 Открыть " + label, "!открыть " + route, "positive")),
+                row(btn("⬅ Назад", "!походы", "secondary"))
         );
     }
 
     public static String stash(int page) {
-        int prev = Math.max(1, page - 1), next = page + 1;
         return keyboard(
-                row(btn("◀ Тайник " + prev, "!тайник " + prev, "secondary"), btn("Тайник " + next + " ▶", "!тайник " + next, "secondary")),
-                row(btn("⛺ Походы", "!походы", "primary"))
+                row(btn("📦 Тайник", "!тайник " + page, "primary")),
+                row(btn("💰 Продать всё", "!продать тайник", "negative")),
+                row(btn("⬅ Назад", "!походы", "secondary"))
         );
     }
 
     public static String faq() {
         return keyboard(
-                row(btn("❓ Как начать", "!вопрос 1", "primary"), btn("🗺 Маршруты", "!вопрос 2", "primary")),
-                row(btn("⏳ Статус похода", "!вопрос 3", "secondary"), btn("🎒 Награды", "!вопрос 4", "positive")),
-                row(btn("☠ Смерть", "!вопрос 5", "negative"), btn("🛑 Отмена похода", "!вопрос 6", "secondary")),
-                row(btn("⛺ Походы", "!походы", "primary"))
+                row(btn("📖 Как начать", "!как начать", "primary")),
+                row(btn("🗺️ Маршруты", "!маршруты", "primary")),
+                row(btn("📊 Статус похода", "!статус похода", "primary")),
+                row(btn("🎁 Награды", "!награды", "positive")),
+                row(btn("💀 Смерть", "!смерть", "negative")),
+                row(btn("⬅ Назад", "!походы", "secondary"))
         );
     }
 
@@ -205,7 +281,8 @@ public final class OfflineKeyboardFactory {
                 row(btn("⚔ Воин", "!класс warrior", "negative"), btn("🏹 Следопыт", "!класс scout", "positive")),
                 row(btn("🔮 Маг", "!класс mage", "primary"), btn("🕯 Жрец", "!класс cleric", "secondary")),
                 row(btn("🗡 Разбойник", "!класс rogue", "negative"), btn("🛡 Паладин", "!класс paladin", "positive")),
-                row(btn("🎯 Рейнджер", "!класс ranger", "primary"), btn("⛺ Походы", "!походы", "secondary"))
+                row(btn("🎯 Рейнджер", "!класс ranger", "primary")),
+                row(btn("⬅ Назад", "!герой", "secondary"))
         );
     }
 
@@ -214,29 +291,63 @@ public final class OfflineKeyboardFactory {
                 row(btn("🐺 Волк", "!спутник wolf", "negative"), btn("🦅 Ворон", "!спутник raven", "positive")),
                 row(btn("🧪 Алхимик", "!спутник alchemist", "primary"), btn("🐴 Мул", "!спутник mule", "secondary")),
                 row(btn("🐻 Медведь", "!спутник bear", "negative"), btn("🦉 Сова", "!спутник owl", "positive")),
-                row(btn("🐍 Змея", "!спутник snake", "primary"), btn("🐲 Детёныш Дракона", "!спутник dragon_whelp", "negative")),
-                row(btn("⛺ Походы", "!походы", "secondary"))
+                row(btn("🐍 Змея", "!спутник snake", "primary"), btn("🐲 Дракон", "!спутник dragon_whelp", "secondary")),
+                row(btn("⬅ Назад", "!герой", "secondary"))
         );
     }
 
-    public static String relationships() {
+    public static String shopEquipment() {
         return keyboard(
-                row(btn("📖 Кампания", "!кампания", "primary")),
-                row(btn("⛺ Походы", "!походы", "primary"))
+                row(btn("⚔ Оружие", "!купить оружие", "negative"), btn("🛡 Броня", "!купить броня", "positive")),
+                row(btn("💍 Талисман", "!купить талисман", "primary"), btn("🔧 Инструмент", "!купить инструмент", "secondary")),
+                row(btn("🎒 Рюкзак", "!купить рюкзак", "primary")),
+                row(btn("⬅ Назад", "!лавка", "secondary"))
         );
     }
 
-    public static String daily() {
+    public static String shopConsumables() {
         return keyboard(
-                row(btn("📅 Дейлик", "!ежедневка", "primary")),
-                row(btn("⛺ Походы", "!походы", "primary"))
+                row(btn("❤️ Зелье лечения", "!купить зелье лечения", "positive"), btn("🧠 Зелье рассудка", "!купить зелье рассудка", "primary")),
+                row(btn("☠️ Антидот", "!купить антидот", "secondary"), btn("📜 Свиток побега", "!купить свиток побега", "negative")),
+                row(btn("🎲 Свиток переброса", "!купить свиток переброса", "primary"), btn("🕯 Свиток очищения", "!купить свиток очищения", "positive")),
+                row(btn("⛺ Набор лагеря", "!купить набор лагеря", "secondary")),
+                row(btn("⬅ Назад", "!лавка", "secondary"))
         );
     }
 
-    public static String mainMenuKeyboard() {
+    public static String useConsumables() {
         return keyboard(
-                row(btn("⛺ Походы", "!походы", "primary"), btn("👤 Герой", "!герой", "secondary")),
-                row(btn("🎒 Тайник", "!тайник 1", "positive"), btn("❔ Помощь", "!вопрос", "primary"))
+                row(btn("❤️ Зелье лечения", "!использовать зелье лечения", "positive"), btn("🧠 Зелье рассудка", "!использовать зелье рассудка", "primary")),
+                row(btn("☠️ Антидот", "!использовать антидот", "secondary"), btn("📜 Свиток побега", "!использовать свиток побега", "negative")),
+                row(btn("🎲 Свиток переброса", "!использовать свиток переброса", "primary"), btn("🕯 Свиток очищения", "!использовать свиток очищения", "positive")),
+                row(btn("⛺ Набор лагеря", "!использовать набор лагеря", "secondary")),
+                row(btn("⬅ Назад", "!герой", "secondary"))
+        );
+    }
+
+    public static String offlineSkills() {
+        return keyboard(
+                row(btn("❤️ Живучесть", "!навык: живучесть", "positive"), btn("🗡 Клинок", "!навык: клинок", "negative")),
+                row(btn("🪤 Ловушки", "!навык: ловушки", "primary"), btn("🍀 Удача", "!навык: удача", "positive")),
+                row(btn("💰 Торговец", "!навык: торговец", "secondary"), btn("🔮 Оккультизм", "!навык: оккультизм", "primary")),
+                row(btn("🌿 Травник", "!навык: травник", "positive"), btn("🎒 Носильщик", "!навык: носильщик", "secondary")),
+                row(btn("⬅ Назад", "!герой", "secondary"))
+        );
+    }
+
+    public static String sellStash() {
+        return keyboard(
+                row(btn("💰 Продать всё", "!продать тайник подтвердить", "negative")),
+                row(btn("❌ Отмена", "!тайник 1", "secondary"))
+        );
+    }
+
+    public static String campaign() {
+        return keyboard(
+                row(btn("📖 Глава I", "!глава i", "primary"), btn("📖 Глава II", "!глава ii", "primary")),
+                row(btn("📖 Глава III", "!глава iii", "primary"), btn("📖 Глава IV", "!глава iv", "primary")),
+                row(btn("📖 Глава V", "!глава v", "primary"), btn("📖 Глава VI", "!глава vi", "primary")),
+                row(btn("⬅ Назад", "!герой", "secondary"))
         );
     }
 }
