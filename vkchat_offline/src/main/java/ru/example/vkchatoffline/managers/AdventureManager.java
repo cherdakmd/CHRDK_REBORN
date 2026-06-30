@@ -201,10 +201,35 @@ public class AdventureManager implements Listener {
         if (plain.equals("жрец")) { chooseClass(vkId, new String[]{"!класс", "cleric"}); return true; }
         String route = routeFromButton(plain);
         if (route != null) { startAdventure(vkId, new String[]{"!пойти", route}); return true; }
-        if (plain.equals("рискнуть") || plain.equals("ударить")) { handleChoice(vkId, new String[]{"!выбор", "1"}); return true; }
-        if (plain.equals("осторожно") || plain.equals("защита")) { handleChoice(vkId, new String[]{"!выбор", "2"}); return true; }
-        if (plain.equals("исследовать") || plain.equals("приём") || plain.equals("прием")) { handleChoice(vkId, new String[]{"!выбор", "3"}); return true; }
-        if (plain.equals("отступить")) { handleChoice(vkId, new String[]{"!выбор", "4"}); return true; }
+        if (plain.equals("рискнуть") || plain.equals("ударить")) {
+            // Если в бою — используем CombatManager
+            if (plugin.getCombatManager().isInCombat(vkId)) {
+                handleCombatAction(vkId, ru.example.vkchatoffline.combat.CombatManager.CombatAction.ATTACK);
+                return true;
+            }
+            handleChoice(vkId, new String[]{"!выбор", "1"}); return true;
+        }
+        if (plain.equals("осторожно") || plain.equals("защита")) {
+            if (plugin.getCombatManager().isInCombat(vkId)) {
+                handleCombatAction(vkId, ru.example.vkchatoffline.combat.CombatManager.CombatAction.DEFEND);
+                return true;
+            }
+            handleChoice(vkId, new String[]{"!выбор", "2"}); return true;
+        }
+        if (plain.equals("исследовать") || plain.equals("приём") || plain.equals("прием")) {
+            if (plugin.getCombatManager().isInCombat(vkId)) {
+                handleCombatAction(vkId, ru.example.vkchatoffline.combat.CombatManager.CombatAction.SKILL);
+                return true;
+            }
+            handleChoice(vkId, new String[]{"!выбор", "3"}); return true;
+        }
+        if (plain.equals("отступить")) {
+            if (plugin.getCombatManager().isInCombat(vkId)) {
+                handleCombatAction(vkId, ru.example.vkchatoffline.combat.CombatManager.CombatAction.FLEE);
+                return true;
+            }
+            handleChoice(vkId, new String[]{"!выбор", "4"}); return true;
+        }
         if (plain.equals("статус")) { showStatus(vkId); return true; }
         if (plain.equals("тайник")) { showStash(vkId, new String[]{"!тайник", "1"}); return true; }
         if (plain.startsWith("тайник ")) {
@@ -266,6 +291,11 @@ public class AdventureManager implements Listener {
             if (id != null) { buyOfflineItem(vkId, id); return true; }
         }
         if (plain.startsWith("использовать ")) {
+            // Если в бою — используем предмет
+            if (plugin.getCombatManager().isInCombat(vkId)) {
+                handleCombatAction(vkId, ru.example.vkchatoffline.combat.CombatManager.CombatAction.ITEM);
+                return true;
+            }
             String id = useIdFromLabel(plain);
             if (id != null) { useConsumable(vkId, id); return true; }
         }
@@ -646,6 +676,25 @@ public class AdventureManager implements Listener {
         int routeDifficulty = plugin.getConfig().getInt("adventures." + adv.route + ".difficulty", 1);
         int deathHistory = data.getInt("stats." + adv.vkId + ".deaths", 0);
         String type = adv.pendingType == null ? "combat" : adv.pendingType;
+
+        // ═══ ПОШАГОВЫЙ БОЙ ЧЕРЕЗ COMBATMANAGER ═══
+        if (isCombatEvent(type) && plugin.getCombatManager() != null) {
+            // Определяем врага по типу события
+            String enemyName = adv.pendingTitle != null ? adv.pendingTitle : "Противник";
+            int enemyLevel = plugin.getConfig().getInt("adventures." + adv.route + ".difficulty", 1) * 5 + adv.stage;
+            boolean isBoss = type.equals("boss") || adv.stage >= adv.maxStages;
+
+            // Запускаем пошаговый бой
+            var encounter = plugin.getCombatManager().startCombat(adv.vkId, enemyName, enemyLevel, isBoss);
+
+            // Показываем интерфейс боя
+            api().sendMessage(adv.vkId, encounter.getCombatDescription());
+            api().sendKeyboard(adv.vkId, "⚔ Бой начался!", OfflineKeyboardFactory.combatActive());
+
+            // Останавливаем стандартную обработку — бой будет через CombatManager
+            adv.waitingChoice = false;
+            return;
+        }
 
         int dc = checkDc(type, routeDifficulty, deathHistory, rep, adv);
         int modifier = checkModifier(getPlayerClass(adv.vkId), type, choice, adv) + companionCheckModifier(getCompanion(adv.vkId), type, choice) + blessingCheckModifier(adv.blessing, type, choice) + integrationCheckModifier(adv.vkId, adv.route, type) + offlineEquipBonus(adv.vkId, "check");
@@ -2456,6 +2505,63 @@ public class AdventureManager implements Listener {
 
         api().sendMessage(vkId, combat.getCombatDescription());
         api().sendKeyboard(vkId, "⚔ Бой", OfflineKeyboardFactory.combatActive());
+    }
+
+    /**
+     * Обработать действие в бою
+     */
+    private void handleCombatAction(int vkId, ru.example.vkchatoffline.combat.CombatManager.CombatAction action) {
+        if (!plugin.getCombatManager().isInCombat(vkId)) {
+            api().sendMessage(vkId, "❌ Нет активного боя.");
+            return;
+        }
+
+        // Обрабатываем действие
+        var result = plugin.getCombatManager().processAction(vkId, action);
+
+        // Показываем результат
+        api().sendMessage(vkId, result.message);
+
+        if (result.success && result.encounter != null) {
+            // Бой продолжается — показываем следующий раунд
+            api().sendMessage(vkId, result.encounter.getCombatDescription());
+            api().sendKeyboard(vkId, "⚔ Раунд " + result.encounter.round, OfflineKeyboardFactory.combatActive());
+        } else if (result.success && result.encounter == null) {
+            // Бой завершён победой
+            api().sendMessage(vkId, result.getResultDescription());
+
+            // Выдаём награды
+            if (result.rewards != null) {
+                int rep = result.rewards.getOrDefault("reputation", 0);
+                int xp = result.rewards.getOrDefault("xp", 0);
+                int gold = result.rewards.getOrDefault("gold", 0);
+
+                plugin.getRewardManager().grantAdventureReward(vkId, result.loot, rep, xp);
+
+                // Обновляем данные похода
+                ActiveAdventure adv = active.get(vkId);
+                if (adv != null) {
+                    adv.xpGained += xp;
+                    adv.gold += gold;
+                    adv.stage++;
+                    adv.waitingChoice = false;
+                    adv.nextEventTime = System.currentTimeMillis() + 5000;
+                }
+            }
+
+            api().sendKeyboard(vkId, "🎉 Победа!", OfflineKeyboardFactory.combatVictory());
+        } else {
+            // Бой завершён поражением
+            api().sendMessage(vkId, result.getResultDescription());
+
+            // Убиваем поход
+            ActiveAdventure adv = active.get(vkId);
+            if (adv != null) {
+                killAdventure(adv, "Поражение в бою");
+            }
+
+            api().sendKeyboard(vkId, "💀 Поражение", OfflineKeyboardFactory.combatDefeat());
+        }
     }
 
     /**
