@@ -34,7 +34,38 @@ public class ArtifactFactory {
         "DEPTH_STRIDER", "FROST_WALKER", "SOUL_SPEED", "SWIFT_SNEAK", "LOOTING_ENCHANT",
         "FORTUNE_ENCHANT", "SILK_TOUCH", "INFINITY_ENCHANT", "MENDING_ENCHANT",
         "UNBREAKING_ENCHANT", "SWEEPING_EDGE", "CHANNELING", "RIPTIDE", "LOYALTY",
-        "MULTISHOT", "PIERCING", "QUICK_CHARGE"
+        "MULTISHOT", "PIERCING", "QUICK_CHARGE",
+        // Эксклюзивные баффы (30) — только из именованных/мифических
+        "ELEMENTAL_MASTERY",  // Мастерство стихий: +25% к урону стихиями
+        "VOID_WALKER",        // Хождение по пустоте: невидимость в Энде
+        "DRAGON_SLAYER",      // Драконоборец: +200% к урону по драконам
+        "WITHER_HUNTER",      // Охотник на иссушителей: +200% к урону по иссушителям
+        "ZOMBIE_APOCALYPSE",  // Зомби-апокалипсис: +100% к урону по зомби
+        "SKELETON_ARMY",      // Армия скелетов: спавн скелетов-союзников
+        "SPIDER_QUEEN",       // Паучья королева: пауки-союзники
+        "CREEPER_ARMOR",      // Броня крипера: взрыв не уроняет
+        "PHANTOM_CLOAK",      // Плащ фантома: невидимость в воздухе
+        "GUARDIAN_BEAM",      // Луч стража: лазерная атака
+        "ELDER_POWER",        // Сила старейшин: +50% к урону под водой
+        "RAVAGER_CHARGE",     // Натиск разрушителя: отбрасывание врагов
+        "PILLAGER_CROSSBOW",  // Арбалет мародёра: тройной выстрел
+        "VINDICATOR_AXE",     // Топор vindicator: +100% к урону по игрокам
+        "EVOKER_FANGS",       // Клыки evoker: AoE атака
+        "VEX_FLIGHT",         // Полёт vex: полёт при прыжке
+        "HUSK_STRENGTH",      // Сила хаска: +30% к урону в пустыне
+        "DROWNED_TRIDENT",    // Трезубец утопленника: молнии в воде
+        "STRAY_ARROW",        // Стрела скелета-лучника: замораживающие стрелы
+        "ZOGLIN_RAM",         // Таран зоглина: отбрасывание при ударе
+        "PIGLIN_GREED",       // Жадность пиглина: +50% золота
+        "HOGLIN_TUSKS",       // Клыки хоглина: пробивание брони
+        "BRUTE_STRENGTH",     // Сила брута: +40% к урону ближнего боя
+        "WOLF_PACK",          // Волчья стая: волки-союзники
+        "FOX_AGILITY",        // Ловкость лисы: +20% уклонение
+        "BEE_STING",          // Пчелиное жало: отравление при ударе
+        "GOAT_RAM",           // Таран козы: отбрасывание
+        "FROG_TONGUE",        // Лягушачий язык: притягивание врагов
+        "TADPOLE_GROWTH",     // Рост головастика: регенерация
+        "ALLAY_HELP",         // Помощь аллея: подбор предметов
     };
 
     // ═══ 35 УНИКАЛЬНЫХ АРТЕФАКТОВ ═══

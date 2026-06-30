@@ -1,5 +1,6 @@
 package ru.example.vkchatartifacts.listeners;
 
+import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Material;
 import org.bukkit.attribute.Attribute;
@@ -45,6 +46,7 @@ public class ArtifactListener implements Listener {
     private final NamespacedKey expireKey;
     private final NamespacedKey curseGrowthKey;
     private final Set<Integer> boostingIds = Collections.synchronizedSet(new HashSet<>());
+    private final Set<String> absorbedCurses = Collections.synchronizedSet(new HashSet<>());
     private final java.util.Map<java.util.UUID, Long> revivalCooldowns = new java.util.concurrent.ConcurrentHashMap<>();
     private final Set<UUID> processing = new HashSet<>(); // Защита от рекурсии
     private static final java.util.UUID ARTIFACT_HEALTH_UUID = java.util.UUID.fromString("7d4f6b7a-2f5a-4dbd-9c8c-0df91f5c1001");
@@ -246,10 +248,14 @@ public class ArtifactListener implements Listener {
                         p.addPotionEffect(new PotionEffect(chosen, 200, ThreadLocalRandom.current().nextInt(2), false, false));
                     }
                 } else if (curse != null && !curse.equals("NONE") && setAbsorbsCurses) {
-                    // Сет полностью поглотил проклятие!
-                    if (System.currentTimeMillis() % 10000 < 100) {
-                        p.sendMessage(org.bukkit.ChatColor.GOLD + "✨ [СИНЕРГИЯ СЕТА] Ваша броня полностью поглотила и нейтрализовала проклятие артефакта: " + curse + "!");
+                    // Сет полностью поглотил проклятие — показываем один раз
+                    String curseAbsorbKey = "curse_absorb_" + p.getUniqueId();
+                    if (!absorbedCurses.contains(curseAbsorbKey)) {
+                        absorbedCurses.add(curseAbsorbKey);
+                        p.sendMessage(org.bukkit.ChatColor.GOLD + "✨ Сет поглотил проклятие: " + curse + "!");
                         p.getWorld().spawnParticle(org.bukkit.Particle.TOTEM, p.getLocation().add(0, 1.0, 0), 10, 0.3, 0.3, 0.3, 0.1);
+                        // Очищаем через 60 секунд
+                        Bukkit.getScheduler().runTaskLater(plugin, () -> absorbedCurses.remove(curseAbsorbKey), 1200L);
                     }
                 }
             }
