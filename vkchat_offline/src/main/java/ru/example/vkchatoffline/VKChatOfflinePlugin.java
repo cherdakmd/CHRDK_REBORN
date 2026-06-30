@@ -8,6 +8,12 @@ import ru.example.vkchatoffline.managers.AdventureManager;
 import ru.example.vkchatoffline.managers.AdventureCommandManager;
 import ru.example.vkchatoffline.managers.ShiftManager;
 import ru.example.vkchatoffline.listeners.OfflineListener;
+import ru.example.vkchatoffline.combat.CombatManager;
+import ru.example.vkchatoffline.character.CharacterManager;
+import ru.example.vkchatoffline.character.SkillTreeManager;
+import ru.example.vkchatoffline.loot.LootManager;
+import ru.example.vkchatoffline.campaign.CampaignManager;
+import ru.example.vkchatoffline.rewards.RewardManager;
 
 public class VKChatOfflinePlugin extends JavaPlugin {
     private static VKChatOfflinePlugin instance;
@@ -16,7 +22,12 @@ public class VKChatOfflinePlugin extends JavaPlugin {
     private AdventureCommandManager adventureCommandManager;
     private ShiftManager shiftManager;
     private OfflineListener offlineListener;
-
+    private CombatManager combatManager;
+    private CharacterManager characterManager;
+    private SkillTreeManager skillTreeManager;
+    private LootManager lootManager;
+    private CampaignManager campaignManager;
+    private RewardManager rewardManager;
 
     private void migrateConfigDefaults() {
         try {
@@ -59,17 +70,36 @@ public class VKChatOfflinePlugin extends JavaPlugin {
             return;
         }
 
+        // Инициализация менеджеров
         stashManager = new StashManager(this);
         adventureManager = new AdventureManager(this);
         adventureCommandManager = new AdventureCommandManager(this);
         shiftManager = new ShiftManager(this);
         offlineListener = new OfflineListener(this);
 
+        // Новые менеджеры MMORPG
+        combatManager = new CombatManager(this);
+        characterManager = new CharacterManager(this);
+        skillTreeManager = new SkillTreeManager(this);
+        lootManager = new LootManager(this);
+        campaignManager = new CampaignManager(this);
+        rewardManager = new RewardManager(this);
+
+        // Регистрация событий
         getServer().getPluginManager().registerEvents(adventureManager, this);
         getServer().getPluginManager().registerEvents(offlineListener, this);
+
+        // Регистрация команд
         getCommand("stash").setExecutor(new StashCommand(this));
 
-        getLogger().info("VKChatOffline перезаписан с нуля: VK-only DM походы + stash наград.");
+        getLogger().info("═══════════════════════════════════════");
+        getLogger().info("VKChatOffline v2.0 — Текстовая MMORPG!");
+        getLogger().info("Бои: " + combatManager.getActiveCombatCount());
+        getLogger().info("Персонажи: " + characterManager.getCharacterCount());
+        getLogger().info("Навыки: " + skillTreeManager.getSkillCount());
+        getLogger().info("Кампания: " + campaignManager.getChapterCount() + " глав");
+        getLogger().info("Лут: " + lootManager.getLootItemCount() + " предметов");
+        getLogger().info("═══════════════════════════════════════");
     }
 
     @Override
@@ -85,4 +115,10 @@ public class VKChatOfflinePlugin extends JavaPlugin {
     public AdventureCommandManager getAdventureCommandManager() { return adventureCommandManager; }
     public ShiftManager getShiftManager() { return shiftManager; }
     public OfflineListener getOfflineListener() { return offlineListener; }
+    public CombatManager getCombatManager() { return combatManager; }
+    public CharacterManager getCharacterManager() { return characterManager; }
+    public SkillTreeManager getSkillTreeManager() { return skillTreeManager; }
+    public LootManager getLootManager() { return lootManager; }
+    public CampaignManager getCampaignManager() { return campaignManager; }
+    public RewardManager getRewardManager() { return rewardManager; }
 }
