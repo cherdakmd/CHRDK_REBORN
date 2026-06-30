@@ -784,12 +784,15 @@ public class AuthManager {
     }
 
     public boolean isFullyAuthorized(Player p) {
-        // Проверяем проходку
+        // Проверяем проходку (полный доступ без ВК)
         if (plugin.getPassManager() != null && plugin.getPassManager().hasPass(p.getUniqueId())) {
             return true;
         }
         // Проверяем ВК-привязку
         if (!isLinked(p)) return false;
+        // Проверяем регистрацию (обязательно!)
+        if (!isRegistered(p)) return false;
+        // Проверяем вход
         if (plugin.getConfig().getBoolean("auth.require-auth", true)) {
             return isLoggedIn(p);
         }

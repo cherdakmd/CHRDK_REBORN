@@ -102,6 +102,8 @@ public class AuthListener implements Listener {
                 p.sendMessage("§71. Вступи в группу: §b" + plugin.getConfig().getString("vk.group-link", "https://vk.com/chrdk_reborn"));
                 p.sendMessage("§72. Введи команду: §a/vklink");
                 p.sendMessage("§73. Отправь код в беседу ВК");
+                p.sendMessage("§74. Введи 2FA код из ЛС ВК");
+                p.sendMessage("§75. Зарегистрируйся: §a/register <пароль>");
                 p.sendMessage("");
                 p.sendMessage("§fНет ВК? Купи §eпроходку§f:");
                 p.sendMessage("§7Донат §e500р§7 на DonatePay с никнеймом");
