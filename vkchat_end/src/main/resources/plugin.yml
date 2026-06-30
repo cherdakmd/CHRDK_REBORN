@@ -1,0 +1,11 @@
+name: VKChatEnd
+version: '1.0.0'
+main: ru.example.vkchatend.VKChatEndPlugin
+api-version: '1.16'
+depend: [VKChat]
+softdepend: [VKChatGear, VKChatArtifacts]
+commands:
+  end:
+    description: Команды Энда
+    usage: /end [tp|info|boss|ores|artifacts|rifts|corruption|cities|help]
+    aliases: [энд]

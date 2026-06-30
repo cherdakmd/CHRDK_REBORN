@@ -1,0 +1,86 @@
+# ═══════════════════════════════════════════════════════════════
+# VKChatEnd — Плагин Энда
+# ═══════════════════════════════════════════════════════════════
+
+end:
+  # Максимальный уровень в Энде
+  max-level: 10
+
+  # Стоимость телепортации в Энд (репутация ВК)
+  teleport-cost: 500
+
+  # Кулдаун телепортации (секунды)
+  teleport-cooldown: 300
+
+  # ═══ РУДЫ ═══
+  ores:
+    ender_crystal_ore:
+      drop-chance: 80
+      min-drop: 1
+      max-drop: 3
+      reputation: 5
+    void_ore:
+      drop-chance: 60
+      min-drop: 1
+      max-drop: 2
+      reputation: 10
+    chorus_ore:
+      drop-chance: 70
+      min-drop: 2
+      max-drop: 4
+      reputation: 7
+    enderite_ore:
+      drop-chance: 40
+      min-drop: 1
+      max-drop: 1
+      reputation: 25
+    shulker_ore:
+      drop-chance: 50
+      min-drop: 1
+      max-drop: 2
+      reputation: 15
+
+  # ═══ БОССЫ ═══
+  bosses:
+    # Шанс спавна босса при убийстве эндермена
+    spawn-chance: 0.01
+    # Максимум активных боссов
+    max-active: 3
+    # Усиление боссов при большем онлайне
+    scaling-per-player: 0.15
+
+  # ═══ РАЗЛОМЫ ═══
+  rifts:
+    # Шанс спавна разлома в обычном мире
+    spawn-chance: 0.05
+    # Максимум активных разломов
+    max-active: 3
+    # Длительность разлома (секунды)
+    duration-seconds: 600
+    # Максимум использований
+    max-uses: 10
+
+  # ═══ КОРРУПЦИЯ ═══
+  corruption:
+    # Стоимость очищения (репутация ВК)
+    cost: 1000
+    # Радиус очищения
+    radius: 5
+    # Скорость распространения (тик = 50 мс)
+    spread-rate: 6000
+
+  # ═══ ГОРОДА ═══
+  cities:
+    # Минимальный уровень для городов
+    min-level: 1
+    # Шанс нахождения города
+    discovery-chance: 0.1
+    # Максимум городов на игрока
+    max-per-player: 5
+
+  # ═══ АРТЕФАКТЫ ═══
+  artifacts:
+    # Шанс дропа с мобов
+    drop-chance: 2
+    # Шанс дропа с боссов
+    boss-drop-chance: 50
