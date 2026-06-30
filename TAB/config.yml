@@ -1,0 +1,160 @@
+# ═══════════════════════════════════════════════════════════════
+# TAB CONFIG — CHRDK REBORN
+# https://github.com/NEZNAMY/TAB/wiki
+# ═══════════════════════════════════════════════════════════════
+
+# ─── HEADER & FOOTER ───
+header-footer:
+  enabled: true
+  designs:
+    default:
+      header:
+        - "<#FF6600>&m                                                    </#FFAA00>"
+        - "<#FF6600>&l⚔ CHRDK REBORN</#FFAA00> <#888888>— <#AAAAAA>Minecraft RPG Hardcore</#888888>"
+        - "<#FFAA00>&l%animation:Welcome%</#FFFFFF> <#00AAAA>&l%player%</#00AAAA><#FFAA00>&l!</#FFAA00>"
+        - "<#888888>Онлайн: <#FFFFFF>%online%</#888888> | <#888888>Ping: <#FFFFFF>%ping%</#888888>ms | <#888888>Мир: <#FFFFFF>%world%</#888888>"
+        - ""
+      footer:
+        - ""
+        - "<#888888>Репутация ВК: <#00AAAA>%vkrep_points%</#888888> | <#888888>Донат: <#FFAA00>%luckperms-group%</#888888>"
+        - "<#888888>Время: <#FFFFFF>%time%</#888888> | <#888888>TPS: <#FFFFFF>%server_tps_1_colored%</#888888> | <#888888>RAM: <#FFFFFF>%memory-used%</#888888>/<#FFFFFF>%memory-max% MB</#888888>"
+        - "<#FF6600>&m                                                    </#FFAA00>"
+
+# ─── TABLIST NAME FORMATTING ───
+tablist-name-formatting:
+  enabled: true
+  disable-condition: '%world%=disabledworld'
+
+# ─── NAMETAGS (SCOREBOARD TEAMS) ───
+scoreboard-teams:
+  enabled: true
+  enable-collision: true
+  invisible-nametags: false
+  sorting-types:
+    - "GROUPS:legend,star,flame,spark,vip,default"
+    - "PLACEHOLDER_A_TO_Z:%player%"
+  case-sensitive-sorting: true
+  can-see-friendly-invisibles: false
+  disable-condition: '%world%=disabledworld'
+
+# ─── PLAYERLIST OBJECTIVE (PING) ───
+playerlist-objective:
+  enabled: true
+  value: "%ping%"
+  fancy-value: "&7Ping: %ping%ms"
+  title: "CHRDK REBORN"
+  render-type: INTEGER
+  disable-condition: '%world%=disabledworld'
+
+# ─── BELOWNAME (HEALTH) ───
+belowname-objective:
+  enabled: true
+  value: "%health%"
+  fancy-value: "&c❤ %health%"
+  fancy-value-default: "NPC"
+  title: "&cЗдоровье"
+  disable-condition: '%world%=disabledworld'
+
+# ─── SPECTATOR FIX ───
+prevent-spectator-effect:
+  enabled: true
+
+# ─── BOSSBAR ───
+bossbar:
+  enabled: false
+
+# ─── SCOREBOARD ───
+scoreboard:
+  enabled: false
+
+# ─── LAYOUT ───
+layout:
+  enabled: false
+
+# ─── PING SPOOF ───
+ping-spoof:
+  enabled: false
+  value: 0
+
+# ─── GLOBAL PLAYERLIST ───
+global-playerlist:
+  enabled: false
+
+# ─── PLACEHOLDERS ───
+placeholders:
+  date-format: "dd.MM.yyyy"
+  time-format: "[HH:mm:ss]"
+  time-offset: 3
+  register-tab-expansion: false
+  locale: ru-RU
+
+# ─── PLACEHOLDER OUTPUT REPLACEMENTS ───
+placeholder-output-replacements:
+  "%essentials_vanished%":
+    "yes": "&7| Скрыт"
+    "no": ""
+  "%luckperms-group%":
+    "legend": "&6&lЛегенда"
+    "star": "&e&lЗвезда"
+    "flame": "&c&lПламя"
+    "spark": "&a&lИскра"
+    "default": "&7Игрок"
+
+# ─── CONDITIONS ───
+conditions:
+  nick:
+    conditions:
+      - "%player%=%essentials_nickname%"
+    true: "%player%"
+    false: "~%essentials_nickname%"
+
+# ─── PLACEHOLDER REFRESH INTERVALS ───
+placeholder-refresh-intervals:
+  default-refresh-interval: 500
+  "%server_uptime%": 1000
+  "%server_tps_1_colored%": 1000
+  "%server_unique_joins%": 5000
+  "%player_health%": 200
+  "%player_ping%": 1000
+  "%vault_prefix%": 1000
+  "%vkrep_points%": 2000
+
+# ─── GROUPS ───
+assign-groups-by-permissions: false
+
+primary-group-finding-list:
+  - legend
+  - star
+  - flame
+  - spark
+  - vip
+  - default
+
+permission-refresh-interval: 1000
+
+debug: false
+
+# ─── MYSQL ───
+mysql:
+  enabled: false
+  host: 127.0.0.1
+  port: 3306
+  database: tab
+  username: user
+  password: password
+  useSSL: true
+
+# ─── PROXY SUPPORT ───
+proxy-support:
+  enabled: false
+
+# ─── COMPONENTS ───
+components:
+  minimessage-support: true
+  disable-shadow-for-heads: true
+
+# ─── PER-WORLD PLAYERLIST ───
+per-world-playerlist:
+  enabled: false
+
+config-version: 6

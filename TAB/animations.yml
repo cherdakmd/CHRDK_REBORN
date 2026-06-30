@@ -1,0 +1,130 @@
+# ═══════════════════════════════════════════════════════════════
+# TAB ANIMATIONS — CHRDK REBORN
+# ═══════════════════════════════════════════════════════════════
+
+# ─── WELCOME TEXT ───
+Welcome:
+  change-interval: 400
+  texts:
+    - '&7&lD_'
+    - '&7&lDo_'
+    - '&7&lDob_'
+    - '&7&lDobr_'
+    - '&7&lDobro_'
+    - '&7&lDobrop_'
+    - '&7&lDobropo_'
+    - '&7&lDobropoz_'
+    - '&7&lDobropozh_'
+    - '&7&lDobropozha_'
+    - '&7&lDobropozhal_'
+    - '&7&lDobropozhalov_'
+    - '&7&lDobropozhalova_'
+    - '&7&lDobropozhalovat_'
+    - '&7&lDobropozhalovat!_'
+    - '&7&lDobropozhalovat!_'
+    - '&7&lDobropozhalovat!_'
+    - '&7&lDobropozhalova_'
+    - '&7&lDobropozhalov_'
+    - '&7&lDobropozhalo_'
+    - '&7&lDobropozhal_'
+    - '&7&lDobropozha_'
+    - '&7&lDobropozh_'
+    - '&7&lDobropoz_'
+    - '&7&lDobropo_'
+    - '&7&lDobrop_'
+    - '&7&lDopro_'
+    - '&7&lDobr_'
+    - '&7&lDob_'
+    - '&7&lDo_'
+    - '&7&lD_'
+
+# ─── SERVER NAME ───
+ServerName:
+  change-interval: 500
+  texts:
+    - '&c&lCHRDK REBORN'
+    - '&6&lCHRDK REBORN'
+    - '&e&lCHRDK REBORN'
+    - '&a&lCHRDK REBORN'
+    - '&b&lCHRDK REBORN'
+    - '&d&lCHRDK REBORN'
+    - '&9&lCHRDK REBORN'
+
+# ─── TIME ───
+time:
+  change-interval: 3000
+  texts:
+    - '&7Время &b%time%'
+    - '&7Дата &b%date%'
+
+# ─── BAR COLORS ───
+barcolors:
+  change-interval: 2000
+  texts:
+    - RED
+    - ORANGE
+    - YELLOW
+    - RED
+
+# ─── SCROLLING TEXT ───
+scroll:
+  change-interval: 150
+  texts:
+    - '&6&lCHRDK REBORN &7— &eRPG Hardcore'
+    - '&6lCHRDK REBORN &7— &eRPG Hardcore &'
+    - '&6CHRDK REBORN &7— &eRPG Hardcore &6'
+    - '&6HRDK REBORN &7— &eRPG Hardcore &6&l'
+    - '&6RDK REBORN &7— &eRPG Hardcore &6&lC'
+    - '&6DK REBORN &7— &eRPG Hardcore &6&lCH'
+    - '&6K REBORN &7— &eRPG Hardcore &6&lCHR'
+    - '&6 REBORN &7— &eRPG Hardcore &6&lCHRD'
+    - '&6REBORN &7— &eRPG Hardcore &6&lCHRDK'
+    - '&6EBORN &7— &eRPG Hardcore &6&lCHRDK '
+    - '&6BORN &7— &eRPG Hardcore &6&lCHRDK R'
+    - '&6ORN &7— &eRPG Hardcore &6&lCHRDK RE'
+    - '&6RN &7— &eRPG Hardcore &6&lCHRDK REB'
+    - '&6N &7— &eRPG Hardcore &6&lCHRDK REBO'
+    - '&6 &7— &eRPG Hardcore &6&lCHRDK REBOR'
+    - '&6&7— &eRPG Hardcore &6&lCHRDK REBORN'
+    - '&7— &eRPG Hardcore &6&lCHRDK REBORN &'
+    - '&7— &eRPG Hardcore &6&lCHRDK REBORN &7'
+    - '&eRPG Hardcore &6&lCHRDK REBORN &7—'
+    - '&ePG Hardcore &6&lCHRDK REBORN &7— &e'
+    - '&eG Hardcore &6&lCHRDK REBORN &7— &eR'
+    - '&e Hardcore &6&lCHRDK REBORN &7— &eRP'
+    - '&eHardcore &6&lCHRDK REBORN &7— &eRPG'
+    - '&eardcore &6&lCHRDK REBORN &7— &eRPG '
+    - '&erdcore &6&lCHRDK REBORN &7— &eRPG H'
+    - '&edcore &6&lCHRDK REBORN &7— &eRPG Ha'
+    - '&ecore &6&lCHRDK REBORN &7— &eRPG Har'
+    - '&eore &6&lCHRDK REBORN &7— &eRPG Hard'
+    - '&ere &6&lCHRDK REBORN &7— &eRPG Hardc'
+    - '&ee &6&lCHRDK REBORN &7— &eRPG Hardco'
+    - '&e &6&lCHRDK REBORN &7— &eRPG Hardcore'
+
+# ─── PULSING DOT ───
+pulse:
+  change-interval: 500
+  texts:
+    - '&a●'
+    - '&2●'
+
+# ─── ROTATING ARROW ───
+arrow:
+  change-interval: 300
+  texts:
+    - '&e▸'
+    - '&6▸'
+    - '&c▸'
+    - '&6▸'
+    - '&e▸'
+
+# ─── WAVE ───
+wave:
+  change-interval: 200
+  texts:
+    - '&6~&7---&6~&7---'
+    - '&7~&6---&7~&6---'
+    - '&7---&6~&7---&6~'
+    - '&7-&6~&7---&6~&7-'
+    - '&6~&7---&6~&7---'
