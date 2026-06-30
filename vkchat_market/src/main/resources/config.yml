@@ -547,6 +547,174 @@ items:
     scarcity-threshold: 300
     max-multiplier: 2.5
 
+  DIRT:
+    name: "&7Земля"
+    category: "Стройматериалы"
+    base-price: 0.5
+    min-price: 0.1
+    elasticity: 350.0
+    recovery-rate: 400
+    max-stock: 8000
+    min-stock: -4000
+    scarcity-threshold: 800
+    max-multiplier: 1.5
+
+  COARSE_DIRT:
+    name: "&7Грубая земля"
+    category: "Стройматериалы"
+    base-price: 1.0
+    min-price: 0.1
+    elasticity: 300.0
+    recovery-rate: 300
+    max-stock: 5000
+    min-stock: -2500
+    scarcity-threshold: 500
+    max-multiplier: 2.0
+
+  GRASS_BLOCK:
+    name: "&aТравяной блок"
+    category: "Стройматериалы"
+    base-price: 2.0
+    min-price: 0.3
+    elasticity: 250.0
+    recovery-rate: 200
+    max-stock: 3000
+    min-stock: -1500
+    scarcity-threshold: 300
+    max-multiplier: 2.5
+
+  GRAVEL:
+    name: "&7Гравий"
+    category: "Стройматериалы"
+    base-price: 1.5
+    min-price: 0.2
+    elasticity: 280.0
+    recovery-rate: 300
+    max-stock: 5000
+    min-stock: -2500
+    scarcity-threshold: 500
+    max-multiplier: 2.0
+
+  SOUL_SAND:
+    name: "&4Песок душ"
+    category: "Стройматериалы"
+    base-price: 8.0
+    min-price: 1.5
+    elasticity: 120.0
+    recovery-rate: 50
+    max-stock: 500
+    min-stock: -250
+    scarcity-threshold: 50
+    max-multiplier: 4.0
+
+  SOUL_SOIL:
+    name: "&4Почва душ"
+    category: "Стройматериалы"
+    base-price: 8.0
+    min-price: 1.5
+    elasticity: 120.0
+    recovery-rate: 50
+    max-stock: 500
+    min-stock: -250
+    scarcity-threshold: 50
+    max-multiplier: 4.0
+
+  MUD:
+    name: "&7Грязь"
+    category: "Стройматериалы"
+    base-price: 2.0
+    min-price: 0.3
+    elasticity: 250.0
+    recovery-rate: 200
+    max-stock: 3000
+    min-stock: -1500
+    scarcity-threshold: 300
+    max-multiplier: 2.5
+
+  SNOW_BLOCK:
+    name: "&fСнежный блок"
+    category: "Стройматериалы"
+    base-price: 1.0
+    min-price: 0.1
+    elasticity: 300.0
+    recovery-rate: 300
+    max-stock: 5000
+    min-stock: -2500
+    scarcity-threshold: 500
+    max-multiplier: 2.0
+
+  ICE:
+    name: "&bЛёд"
+    category: "Стройматериалы"
+    base-price: 5.0
+    min-price: 1.0
+    elasticity: 150.0
+    recovery-rate: 80
+    max-stock: 1000
+    min-stock: -500
+    scarcity-threshold: 100
+    max-multiplier: 3.0
+
+  PACKED_ICE:
+    name: "&bПлотный лёд"
+    category: "Стройматериалы"
+    base-price: 12.0
+    min-price: 2.0
+    elasticity: 100.0
+    recovery-rate: 40
+    max-stock: 500
+    min-stock: -250
+    scarcity-threshold: 50
+    max-multiplier: 4.0
+
+  BLUE_ICE:
+    name: "&9Синий лёд"
+    category: "Стройматериалы"
+    base-price: 30.0
+    min-price: 6.0
+    elasticity: 60.0
+    recovery-rate: 15
+    max-stock: 200
+    min-stock: -100
+    scarcity-threshold: 20
+    max-multiplier: 5.0
+
+  MOSS_BLOCK:
+    name: "&aБлок мха"
+    category: "Стройматериалы"
+    base-price: 3.0
+    min-price: 0.5
+    elasticity: 200.0
+    recovery-rate: 150
+    max-stock: 2000
+    min-stock: -1000
+    scarcity-threshold: 200
+    max-multiplier: 2.5
+
+  MUD_BRICKS:
+    name: "&7Кирпичи из грязи"
+    category: "Стройматериалы"
+    base-price: 4.0
+    min-price: 0.8
+    elasticity: 180.0
+    recovery-rate: 100
+    max-stock: 1500
+    min-stock: -750
+    scarcity-threshold: 150
+    max-multiplier: 3.0
+
+  TERRACOTTA:
+    name: "&cТерракота"
+    category: "Стройматериалы"
+    base-price: 3.0
+    min-price: 0.5
+    elasticity: 200.0
+    recovery-rate: 150
+    max-stock: 2000
+    min-stock: -1000
+    scarcity-threshold: 200
+    max-multiplier: 2.5
+
   # ===== ДЕРЕВО =====
   OAK_LOG:
     name: "&6Дубовое бревно"
