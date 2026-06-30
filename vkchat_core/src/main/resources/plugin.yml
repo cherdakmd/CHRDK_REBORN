@@ -97,6 +97,11 @@ commands:
     usage: /lastseen <игрок>
     aliases: [был, seen]
     permission: vkchat.player
+  pass:
+    description: Управление проходками для игроков без ВК
+    usage: /pass [give|revoke|extend|status|list|stats]
+    aliases: [проходка]
+    permission: vkchat.admin.pass
 permissions:
   vkchat.player:
     description: Доступ к базовым командам игрока
@@ -106,4 +111,10 @@ permissions:
     default: op
   vkchat.moderation.warn:
     description: Доступ к системе предупреждений
+    default: op
+  vkchat.admin.pass:
+    description: Управление проходками
+    default: op
+  vkchat.admin.pass.stats:
+    description: Статистика проходок
     default: op
