@@ -61,7 +61,7 @@ public class AdventureManager {
 
         switch (cmd) {
             case "!adv":
-                if (args.length == 0) { showMenu(vkId); return; }
+                if (args.length == 0 || args[0].startsWith("!")) { showMenu(vkId); return; }
                 handleSub(vkId, args[0], args);
                 break;
             case "!поход": case "!приключение":
