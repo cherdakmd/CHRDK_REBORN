@@ -282,7 +282,7 @@ public class ArtifactListener implements Listener {
 
             // Артефакты работают из инвентаря постоянно, но больше не перезаписывают baseValue атрибутов.
             // Вместо setBaseValue используем собственные AttributeModifier с фиксированными UUID.
-            // Это предотвращает конфликты с Gear, DonatePay, эффектами и другими плагинами.
+            // Это предотвращает конфликты с Gear, эффектами и другими плагинами.
             applyManagedModifier(p.getAttribute(Attribute.GENERIC_MAX_HEALTH), ARTIFACT_HEALTH_UUID, "vkchat_artifact_health", hasHealth ? extraHealth * buffMult : 0.0);
             applyManagedModifier(p.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED), ARTIFACT_SPEED_UUID, "vkchat_artifact_speed", hasSpeed ? speedMult * buffMult : 0.0);
             applyManagedModifier(p.getAttribute(Attribute.GENERIC_ARMOR), ARTIFACT_ARMOR_UUID, "vkchat_artifact_armor", hasArmor ? extraArmor * buffMult : 0.0);

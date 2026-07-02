@@ -29,7 +29,7 @@ import java.util.UUID;
 
 /**
  * Обновлённый слушатель авторизации
- * Интегрирован с новыми менеджерами: SessionManager, PassManager, MembershipManager, TwoFactorManager
+ * Интегрирован с менеджерами: SessionManager, MembershipManager, TwoFactorManager
  */
 public class AuthListener implements Listener {
     private final VKChatPlugin plugin;

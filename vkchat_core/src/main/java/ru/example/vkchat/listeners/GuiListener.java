@@ -140,9 +140,8 @@ public class GuiListener implements Listener {
         inv.setItem(10, item(Material.OAK_SAPLING, ChatColor.GREEN + "Шаг 1: Привязка", ChatColor.GRAY + "Привяжи ВК и получи доступ к экономике.", ChatColor.YELLOW + "/vklink"));
         inv.setItem(12, item(Material.COMPASS, ChatColor.AQUA + "Шаг 2: Безопасный старт", ChatColor.GRAY + "Найди место через RTP и поставь приват.", ChatColor.YELLOW + "/rtp, /nation buyclaim"));
         inv.setItem(14, item(Material.WOODEN_PICKAXE, ChatColor.GOLD + "Шаг 3: Профессии", ChatColor.GRAY + "Возьми работу и копи уровни.", ChatColor.YELLOW + "/jobs"));
-        inv.setItem(16, item(Material.CAMPFIRE, ChatColor.LIGHT_PURPLE + "Шаг 4: Оффлайн-прогресс", ChatColor.GRAY + "Когда вышел с сервера — иди в ВК-поход.", ChatColor.YELLOW + "!поход в ЛС ВК"));
-        inv.setItem(28, item(Material.IRON_CHESTPLATE, ChatColor.RED + "Шаг 5: Gear", ChatColor.GRAY + "Куй осторожно: репутация ценная.", ChatColor.YELLOW + "/forge, /runes"));
-        inv.setItem(30, item(Material.BARREL, ChatColor.YELLOW + "Шаг 6: Забери награды", ChatColor.GRAY + "Лут с походов и наград лежит тут.", ChatColor.YELLOW + "/stash"));
+        inv.setItem(16, item(Material.IRON_CHESTPLATE, ChatColor.RED + "Шаг 4: Gear", ChatColor.GRAY + "Куй осторожно: репутация ценная.", ChatColor.YELLOW + "/forge, /runes"));
+        inv.setItem(28, item(Material.BARREL, ChatColor.YELLOW + "Шаг 5: Награды", ChatColor.GRAY + "Лут со смен и наград лежит тут.", ChatColor.YELLOW + "/stash"));
         inv.setItem(49, backItem());
         p.openInventory(inv);
     }
