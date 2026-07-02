@@ -746,6 +746,10 @@ public class ForgeCommand implements CommandExecutor, Listener, TabCompleter {
         if (!meta.getPersistentDataContainer().has(new NamespacedKey(plugin, "upgrade_level"), PersistentDataType.INTEGER)) {
             meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "upgrade_level"), PersistentDataType.INTEGER, 0);
             meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "gear_legacy_migrated"), PersistentDataType.INTEGER, 1);
+            List<String> lore = meta.hasLore() ? meta.getLore() : new ArrayList<>();
+            lore.add("");
+            lore.add(ChatColor.YELLOW + "Заточка: +0");
+            meta.setLore(lore);
             item.setItemMeta(meta);
         }
     }

@@ -518,6 +518,8 @@ public class GearManager {
         lore.add("");
         lore.add(ChatColor.GREEN + "➕ " + getEnchantDescription(enchant, level));
         lore.add("");
+        lore.add(ChatColor.YELLOW + "Заточка: +0");
+        lore.add("");
         lore.add(ChatColor.DARK_GRAY + "Работает в инвентаре.");
         if (rarity.equals("ancient") || rarity.equals("legendary")) {
             lore.add(ChatColor.AQUA + "✨ Привязан к душе.");
@@ -527,6 +529,7 @@ public class GearManager {
         meta.getPersistentDataContainer().set(new org.bukkit.NamespacedKey(plugin, "is_named_gear"), org.bukkit.persistence.PersistentDataType.INTEGER, 1);
         meta.getPersistentDataContainer().set(new org.bukkit.NamespacedKey(plugin, "named_gear_name"), org.bukkit.persistence.PersistentDataType.STRING, name);
         meta.getPersistentDataContainer().set(new org.bukkit.NamespacedKey(plugin, "gear_rarity"), org.bukkit.persistence.PersistentDataType.STRING, rarity);
+        meta.getPersistentDataContainer().set(new org.bukkit.NamespacedKey(plugin, "upgrade_level"), org.bukkit.persistence.PersistentDataType.INTEGER, 0);
 
         item.setItemMeta(meta);
         return item;
@@ -1178,17 +1181,21 @@ public class GearManager {
         NamespacedKey lvlKey = new NamespacedKey(plugin, "upgrade_level");
         meta.getPersistentDataContainer().set(lvlKey, PersistentDataType.INTEGER, newLvl);
         
-        if (meta.hasLore()) {
-            List<String> lore = meta.getLore();
-            for (int i = 0; i < lore.size(); i++) {
-                String stripped = ChatColor.stripColor(lore.get(i));
-                if (stripped.startsWith("Заточка:")) {
-                    lore.set(i, ChatColor.YELLOW + "Заточка: +" + newLvl);
-                    break;
-                }
+        List<String> lore = meta.hasLore() ? meta.getLore() : new ArrayList<>();
+        boolean found = false;
+        for (int i = 0; i < lore.size(); i++) {
+            String stripped = ChatColor.stripColor(lore.get(i));
+            if (stripped.startsWith("Заточка:")) {
+                lore.set(i, ChatColor.YELLOW + "Заточка: +" + newLvl);
+                found = true;
+                break;
             }
-            meta.setLore(lore);
         }
+        if (!found) {
+            lore.add("");
+            lore.add(ChatColor.YELLOW + "Заточка: +" + newLvl);
+        }
+        meta.setLore(lore);
         
         item.setItemMeta(meta);
     }
