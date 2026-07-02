@@ -78,16 +78,18 @@ public class AuthListener implements Listener {
                 start2faFlow(p, vkId, session);
             }
         } else {
-            // ВК НЕ ПРИВЯЗАН — КИК с инструкцией
-            String kickMsg = "§c❌ Для игры необходимо привязать ВКонтакте!\n\n" +
-                           "§eПривязка ВК:\n" +
-                           "§71. Вступи в группу: §b" + plugin.getConfig().getString("vk.group-link", "https://vk.com/chrdk_reborn") + "\n" +
-                           "§72. Зайди на сервер и введи §a/vklink\n" +
-                           "§73. Отправь код в беседу ВК\n" +
-                           "§74. Введи 2FA код из ЛС ВК\n" +
-                           "§75. Зарегистрируйся: §a/register <пароль>";
-            p.kickPlayer(kickMsg);
-            return;
+            // ВК НЕ ПРИВЯЗАН — пускаем, но показываем инструкцию
+            p.sendMessage("§c❌ Для игры необходимо привязать ВКонтакте!");
+            p.sendMessage("§eПривязка ВК:");
+            p.sendMessage("§71. Вступи в группу: §b" + plugin.getConfig().getString("vk.group-link", "https://vk.com/chrdk_reborn"));
+            p.sendMessage("§72. Введи §a/vklink §7— получишь код");
+            p.sendMessage("§73. Отправь код в беседу ВК боту");
+            p.sendMessage("§74. Введи 2FA код из ЛС ВК");
+            p.sendMessage("§75. Зарегистрируйся: §a/register <пароль>");
+            p.sendTitle("§c⚠ Привяжи ВК!", "§7/vklink для получения кода", 10, 70, 10);
+            // Ставим в безопасное место
+            placeSafetyPlatform(p);
+            p.setVelocity(new Vector(0, 0, 0));
         }
 
         // ═══ 3. БЕЗОПАСНАЯ ПЛАТФОРМА ═══
