@@ -61,8 +61,8 @@ public class AdventureManager {
 
         switch (cmd) {
             case "!adv":
-                if (args.length == 0 || args[0].startsWith("!")) { showMenu(vkId); return; }
-                handleSub(vkId, args[0], args);
+                if (args.length <= 1) { showMenu(vkId); return; }
+                handleSub(vkId, args[1], args);
                 break;
             case "!поход": case "!приключение":
                 showMenu(vkId);
@@ -76,14 +76,14 @@ public class AdventureManager {
 
         switch (sub) {
             case "menu": showMenu(vkId); break;
-            case "start": startAdventure(vkId, args.length > 1 ? args[1] : ""); break;
+            case "start": startAdventure(vkId, args.length > 2 ? args[2] : ""); break;
             case "hero": showHero(vkId); break;
             case "class": showClassSelect(vkId); break;
             case "setclass": setClass(vkId, args); break;
-            case "act": handleEventAction(vkId, args.length > 1 ? args[1] : "risk"); break;
+            case "act": handleEventAction(vkId, args.length > 2 ? args[2] : "risk"); break;
             case "atk": combat.handleAction(this, vkId, 1); break;
             case "def": combat.handleAction(this, vkId, 2); break;
-            case "skill": combat.handleAction(this, vkId, 3, args.length > 1 ? args[1] : "1"); break;
+            case "skill": combat.handleAction(this, vkId, 3, args.length > 2 ? args[2] : "1"); break;
             case "potion": combat.handleAction(this, vkId, 4); break;
             case "flee": combat.handleAction(this, vkId, 5); break;
             case "continue": advanceAdventure(vkId); break;
@@ -208,9 +208,9 @@ public class AdventureManager {
     }
 
     private void setClass(int vkId, String[] args) {
-        if (args.length < 2) return;
+        if (args.length < 3) return;
         try {
-            ClassType ct = ClassType.valueOf(args[1].toUpperCase());
+            ClassType ct = ClassType.valueOf(args[2].toUpperCase());
             playerData.setClass(vkId, ct.name());
             sendMsg(vkId, "✅ Класс выбран: " + ct.icon + " " + ct.name + "!");
             showMenu(vkId);
@@ -617,8 +617,8 @@ public class AdventureManager {
     }
 
     private void handleConfirm(int vkId, String[] args) {
-        if (args.length < 2) return;
-        shop.handleConfirm(vkId, args[1], this);
+        if (args.length < 3) return;
+        shop.handleConfirm(vkId, args[2], this);
     }
 
     // ===== ВСПОМОГАТЕЛЬНЫЕ =====

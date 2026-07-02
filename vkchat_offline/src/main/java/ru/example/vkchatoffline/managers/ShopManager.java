@@ -16,7 +16,7 @@ public class ShopManager {
     }
 
     public void handleShop(int vkId, String[] args, AdventureManager mgr) {
-        if (args.length < 2 || args[1].equals("main")) {
+        if (args.length < 3 || args[2].equals("main")) {
             String msg = "🛒 ЛАВКА ПРИКЛЮЧЕНИЙ\n\n"
                     + "💰 Ваш баланс приключений: " + data.getAdventureRep(vkId) + "\n\n"
                     + "🧪 Зелья — лечилки и баффы\n"
@@ -27,7 +27,7 @@ public class ShopManager {
             return;
         }
 
-        switch (args[1]) {
+        switch (args[2]) {
             case "potions":
                 showPotions(vkId, mgr);
                 break;
@@ -38,7 +38,7 @@ public class ShopManager {
                 showPieces(vkId, mgr);
                 break;
             case "buy":
-                if (args.length >= 3) buyItem(vkId, args[2], mgr, args);
+                if (args.length >= 4) buyItem(vkId, args[3], mgr, args);
                 break;
             default:
                 handleShop(vkId, new String[]{"adv", "shop", "main"}, mgr);
