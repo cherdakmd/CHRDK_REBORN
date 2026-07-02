@@ -44,6 +44,9 @@ public class AdventureManager {
         public String effectType;
         public boolean defending;
         public int skillCooldown;
+        public int defenseBonus;
+        public Map<String, Integer> statusEffects = new LinkedHashMap<>();
+        public List<Long> comboCount = new ArrayList<>();
         public List<String> earnedPieces = new ArrayList<>();
         public Map<String, Integer> earnedResources = new HashMap<>();
     }
@@ -183,6 +186,11 @@ public class AdventureManager {
         s.repEarned = 0;
         s.state = State.ADVENTURING;
         s.waitingInput = false;
+        s.statusEffects = new LinkedHashMap<>();
+        s.comboCount = new ArrayList<>();
+        s.defenseBonus = 0;
+        s.skillCooldown = 0;
+        s.defending = false;
         s.earnedPieces.clear();
         s.earnedResources.clear();
         s.eventTime = System.currentTimeMillis() + 5000;
@@ -289,8 +297,11 @@ public class AdventureManager {
         s.state = State.COMBAT;
         s.waitingInput = false;
         s.defending = false;
+        s.defenseBonus = 0;
         s.combatRound = 0;
         s.skillCooldown = 0;
+        s.statusEffects = new LinkedHashMap<>();
+        s.comboCount = new ArrayList<>();
 
         List<EnemyType> zoneEnemies = getZoneEnemies(s.zone, false);
         s.enemy = zoneEnemies.get(rnd.nextInt(zoneEnemies.size()));
@@ -306,8 +317,11 @@ public class AdventureManager {
         s.state = State.COMBAT;
         s.waitingInput = false;
         s.defending = false;
+        s.defenseBonus = 0;
         s.combatRound = 0;
         s.skillCooldown = 0;
+        s.statusEffects = new LinkedHashMap<>();
+        s.comboCount = new ArrayList<>();
 
         List<EnemyType> bosses = getZoneEnemies(s.zone, true);
         s.enemy = bosses.get(rnd.nextInt(bosses.size()));
