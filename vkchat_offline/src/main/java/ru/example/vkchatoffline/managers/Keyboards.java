@@ -62,21 +62,21 @@ public final class Keyboards {
 
     // ===== БОЕВЫЕ ДЕЙСТВИЯ =====
     public static String combatActions(boolean hasSkills, int skillCount) {
-        StringBuilder sb = new StringBuilder();
-        sb.append(row(btn("⚔ Атака", "!adv atk", "negative"), btn("🛡 Защита", "!adv def", "positive")));
+        String row1 = row(btn("⚔ Атака", "!adv atk", "negative"), btn("🛡 Защита", "!adv def", "positive"));
+        String row3 = row(btn("🧪 Зелье", "!adv potion", "secondary"), btn("🏃 Побег", "!adv flee", "secondary"));
+
         if (hasSkills) {
             String[] skillColors = {"primary", "primary", "primary", "primary"};
             String[] skillIcons = {"💥", "❄", "⚡", "☠"};
-            StringBuilder skillRow = new StringBuilder("[");
+            StringBuilder sb = new StringBuilder("[");
             for (int i = 0; i < skillCount; i++) {
-                if (i > 0) skillRow.append(',');
-                skillRow.append(btn(skillIcons[i] + " Навык " + (i + 1), "!adv skill " + (i + 1), skillColors[i]));
+                if (i > 0) sb.append(',');
+                sb.append(btn(skillIcons[i] + " Навык " + (i + 1), "!adv skill " + (i + 1), skillColors[i]));
             }
-            skillRow.append("]");
-            sb.append(',').append(skillRow);
+            sb.append("]");
+            return keyboard(row1, sb.toString(), row3);
         }
-        sb.append(',').append(row(btn("🧪 Зелье", "!adv potion", "secondary"), btn("🏃 Побег", "!adv flee", "secondary")));
-        return keyboard(sb.toString().replaceFirst("^\\[", "[").replaceAll("\\](?!\\])", "],"));
+        return keyboard(row1, row3);
     }
 
     // ===== ПОСЛЕ БОЯ (ПОБЕДА) =====
