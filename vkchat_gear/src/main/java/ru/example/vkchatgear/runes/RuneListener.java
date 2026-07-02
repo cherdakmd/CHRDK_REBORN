@@ -55,6 +55,13 @@ public class RuneListener implements Listener {
                     ItemMeta rMeta = rune.getItemMeta();
                     rMeta.setDisplayName(ChatColor.LIGHT_PURPLE + "✨ Руна: " + name);
                     List<String> rLore = new ArrayList<>();
+                    if (id != null) {
+                        String desc = plugin.getConfig().getString("custom_enchants." + id + ".name", null);
+                        if (desc != null) {
+                            rLore.add(ChatColor.translateAlternateColorCodes('&', desc));
+                            rLore.add("");
+                        }
+                    }
                     rLore.add(ChatColor.GRAY + "Перетащите эту руну на");
                     rLore.add(ChatColor.GRAY + "ваше снаряжение в инвентаре,");
                     rLore.add(ChatColor.GRAY + "чтобы наложить чары!");

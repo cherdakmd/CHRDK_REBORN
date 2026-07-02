@@ -88,7 +88,7 @@ public class EndEnchantmentManager {
 
         ItemMeta meta = item.getItemMeta();
         List<String> lore = meta.hasLore() ? meta.getLore() : new ArrayList<>();
-        lore.add(ChatColor.LIGHT_PURPLE + "✦ " + enchData[1] + " " + enchData[3]);
+        lore.add(ChatColor.LIGHT_PURPLE + "✦ " + enchData[1] + " " + enchData[3] + " — " + enchData[2]);
         meta.setLore(lore);
         meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "end_enchant_" + enchantId), PersistentDataType.STRING, enchData[3]);
         item.setItemMeta(meta);

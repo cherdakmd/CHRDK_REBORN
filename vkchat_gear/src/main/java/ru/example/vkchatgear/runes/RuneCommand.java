@@ -274,6 +274,11 @@ public class RuneCommand implements CommandExecutor, TabCompleter {
         }
         
         List<String> lore = new ArrayList<>();
+        String desc = plugin.getConfig().getString("custom_enchants." + id + ".name", null);
+        if (desc != null) {
+            lore.add(ChatColor.translateAlternateColorCodes('&', desc));
+            lore.add("");
+        }
         lore.add(ChatColor.GRAY + "Перетащите эту руну на");
         lore.add(ChatColor.GRAY + "ваше снаряжение в инвентаре,");
         lore.add(ChatColor.GRAY + "чтобы наложить чары!");
