@@ -223,6 +223,11 @@ public class VKChatDonatePayPlugin extends JavaPlugin implements CommandExecutor
         recordStats(id, amount, donator, comment, playerName);
         if (playerName != null) grantMonthlyStatusIfQualified(playerName, amount, donator, comment, id);
 
+        // Автоматическая выдача проходки при донате 500р+
+        if (playerName != null && amount >= getConfig().getDouble("passes.min-amount", 500.0)) {
+            grantPass(playerName, amount);
+        }
+
         double statusMultiplier = playerName == null ? 1.0 : getDonorStatusRepMultiplier(playerName);
         int rep = (int) Math.round(amount * getConfig().getDouble("rewards.reputation-per-rub", 10.0) * statusMultiplier);
         if (!getConfig().getBoolean("rewards.round-reputation", true)) rep = (int) (amount * getConfig().getDouble("rewards.reputation-per-rub", 10.0) * statusMultiplier);
@@ -412,6 +417,41 @@ public class VKChatDonatePayPlugin extends JavaPlugin implements CommandExecutor
             queueMessage(playerName, color("&d❤ Ваш DonatePay-статус активирован: " + display + "&d на " + duration + "."));
         }
         log("DONOR_STATUS_MONTH player=" + playerName + " old=" + currentStatus + " new=" + newStatus + " amount=" + amount + " expires=" + expires);
+    }
+
+    /**
+     * Автоматическая выдача проходки при донате
+     */
+    private void grantPass(String playerName, double amount) {
+        try {
+            // Найти игрока
+            OfflinePlayer offline = Bukkit.getOfflinePlayer(playerName);
+            if (offline == null) return;
+
+            UUID uuid = offline.getUniqueId();
+            int days = getConfig().getInt("passes.default-days", 30);
+
+            // Проверить, есть ли уже проходка
+            ru.example.vkchat.auth.PassManager passManager = VKChatPlugin.getInstance().getPassManager();
+            if (passManager == null) return;
+
+            boolean extended = passManager.hasPass(uuid);
+            passManager.grantPass(uuid, playerName, days, "donatepay");
+
+            // Уведомление
+            Player online = Bukkit.getPlayer(uuid);
+            if (online != null) {
+                online.sendMessage("§a§l🎉 Проходка выдана! Срок: " + days + " дней");
+            }
+
+            // Объявление
+            String msg = "§a§l[ПРОХОДКА] §e" + playerName + " §7получил проходку на §a" + days + " §7дней!";
+            Bukkit.broadcastMessage(msg);
+
+            log("PASS_GRANTED player=" + playerName + " days=" + days + " extended=" + extended);
+        } catch (Exception e) {
+            log("PASS_ERROR player=" + playerName + " error=" + e.getMessage());
+        }
     }
 
     private void recordStats(int id, double amount, String donator, String comment, String playerName) {

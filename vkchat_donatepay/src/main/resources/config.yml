@@ -197,6 +197,12 @@ logging:
   file-name: "donatepay.log"
   debug: false
 
+# Система проходок (доступ без ВК)
+passes:
+  enabled: true
+  min-amount: 500           # Минимальная сумма доната для проходки
+  default-days: 30          # Срок действия по умолчанию
+
 # Автосоздание LuckPerms-групп для DonatePay-статусов.
 # Команда: /donatepay lpsetup
 luckperms:

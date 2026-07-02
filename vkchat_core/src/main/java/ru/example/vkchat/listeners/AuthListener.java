@@ -91,26 +91,20 @@ public class AuthListener implements Listener {
                     p.sendMessage("§e⚠️ Проходка скоро истекает! Привяжи ВК или продли.");
                 }
             } else {
-                // НЕТ ВК, НЕТ ПРОХОДКИ — разрешаем вход, показываем инструкции
-                session.state = SessionManager.SessionState.UNLINKED;
-                p.sendMessage("");
-                p.sendMessage("§e§l═══════════════════════════════════");
-                p.sendMessage("§fДобро пожаловать на §6§lCHRDK REBORN§f!");
-                p.sendMessage("§e§l═══════════════════════════════════");
-                p.sendMessage("");
-                p.sendMessage("§fДля полного доступа привяжи §bВКонтакте§f:");
-                p.sendMessage("§71. Вступи в группу: §b" + plugin.getConfig().getString("vk.group-link", "https://vk.com/chrdk_reborn"));
-                p.sendMessage("§72. Введи команду: §a/vklink");
-                p.sendMessage("§73. Отправь код в беседу ВК");
-                p.sendMessage("§74. Введи 2FA код из ЛС ВК");
-                p.sendMessage("§75. Зарегистрируйся: §a/register <пароль>");
-                p.sendMessage("");
-                p.sendMessage("§fНет ВК? Купи §eпроходку§f:");
-                p.sendMessage("§7Донат §e500р§7 на DonatePay с никнеймом");
-                p.sendMessage("§7Ссылка: §bhttps://donatepay.ru/don/dedworkshop");
-                p.sendMessage("");
-                p.sendMessage("§e§l═══════════════════════════════════");
-                p.sendMessage("");
+                // НЕТ ВК, НЕТ ПРОХОДКИ — КИК с инструкцией
+                String kickMsg = "§c❌ Для игры необходимо привязать ВКонтакте!\n\n" +
+                               "§eПривязка ВК:\n" +
+                               "§71. Вступи в группу: §b" + plugin.getConfig().getString("vk.group-link", "https://vk.com/chrdk_reborn") + "\n" +
+                               "§72. Зайди на сервер и введи §a/vklink\n" +
+                               "§73. Отправь код в беседу ВК\n" +
+                               "§74. Введи 2FA код из ЛС ВК\n" +
+                               "§75. Зарегистрируйся: §a/register <пароль>\n\n" +
+                               "§eНет ВК? Купи §eпроходку§e:\n" +
+                               "§7Донат §e500р§7 на DonatePay с никнеймом\n" +
+                               "§7Ссылка: §bhttps://donatepay.ru/don/dedworkshop\n\n" +
+                               "§7После покупки перезайди на сервер.";
+                p.kickPlayer(kickMsg);
+                return;
             }
         }
 
