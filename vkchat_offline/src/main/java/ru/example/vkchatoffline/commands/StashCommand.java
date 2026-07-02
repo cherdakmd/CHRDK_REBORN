@@ -3,6 +3,7 @@ package ru.example.vkchatoffline.commands;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import ru.example.vkchatoffline.VKChatOfflinePlugin;
@@ -10,7 +11,7 @@ import ru.example.vkchatoffline.VKChatOfflinePlugin;
 import java.util.ArrayList;
 import java.util.List;
 
-public class StashCommand implements CommandExecutor {
+public class StashCommand implements CommandExecutor, TabCompleter {
     private final VKChatOfflinePlugin plugin;
 
     public StashCommand(VKChatOfflinePlugin plugin) {
@@ -43,5 +44,10 @@ public class StashCommand implements CommandExecutor {
         plugin.getStashManager().saveItems(p.getUniqueId(), new ArrayList<>());
         p.sendMessage("§a🎁 Тайник разобран! " + items.size() + " предметов получено.");
         return true;
+    }
+
+    @Override
+    public List<String> onTabComplete(CommandSender sender, Command cmd, String label, String[] args) {
+        return new ArrayList<>();
     }
 }

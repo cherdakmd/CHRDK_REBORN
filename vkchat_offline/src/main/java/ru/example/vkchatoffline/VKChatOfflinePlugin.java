@@ -31,6 +31,7 @@ public class VKChatOfflinePlugin extends JavaPlugin {
 
         getServer().getPluginManager().registerEvents(new OfflineListener(this), this);
         getCommand("stash").setExecutor(new StashCommand(this));
+        getCommand("stash").setTabCompleter(new StashCommand(this));
 
         // Тик событий приключений
         getServer().getScheduler().runTaskTimer(this, () -> adventureManager.tickEvents(),
