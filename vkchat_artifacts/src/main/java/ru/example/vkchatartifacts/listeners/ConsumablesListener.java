@@ -455,57 +455,6 @@ public class ConsumablesListener implements Listener {
     }
 
     private String getBuffDescription(String buff, int level) {
-        switch (buff) {
-            case "HEALTH": return "Максимальное Здоровье +" + (level * 2);
-            case "DAMAGE": return "Урон в ближнем бою +" + level;
-            case "SPEED": return "Скорость передвижения +" + (level * 10) + "%";
-            case "REGENERATION": return "Пассивная Регенерация " + level + " ур.";
-            case "VAMPIRISM": return "Вампиризм " + (level * 10) + "%";
-            case "THORNS": return "Отражение урона " + level + " ур.";
-            case "FIRE_RESISTANCE": return "Иммунитет к огню";
-            case "LEVITATION": return "Иммунитет к урону от падения";
-            case "CRITICAL": return "Шанс крита " + (level * 5) + "%";
-            case "ABSORPTION": return "Абсорбция " + level + " ур.";
-            case "NIGHT_VISION": return "Ночное зрение";
-            case "HASTE": return "Спешка " + level + " ур.";
-            case "WATER_BREATHING": return "Дыхание под водой";
-            case "JUMP_BOOST": return "Мощный прыжок " + level + " ур.";
-            case "LUCK": return "Удача " + level + " ур.";
-            case "WITHER_TOUCH": return "Касание Иссушителя " + level + " ур.";
-            case "POISON_STRIKE": return "Ядовитый Удар " + level + " ур.";
-            case "FREEZE_AURA": return "Ледяная Аура " + level + " ур.";
-            case "LIGHTNING_STRIKE": return "Удар Молнии " + level + " ур.";
-            case "GHOST_WALK": return "Призрачный Шаг (Невидимость)";
-            case "TRUE_STRIKE": return "Истинный Удар (Пробивание брони)";
-            case "STEEL_SKIN": return "Стальная Кожа (Броня +" + level + ")";
-            case "AQUATIC_SPEED": return "Скорость под водой " + level + " ур.";
-            case "FIRE_WALKER": return "Огненный Шаг (Хождение по лаве)";
-            case "XP_BOOST": return "Бонус к опыту +" + (level * 15) + "%";
-            case "DOUBLE_JUMP": return "Двойной прыжок";
-            case "DODGE_CHANCE": return "Шанс уклонения " + (level * 5) + "%";
-            case "KNOCKBACK_RESIST": return "Сопротивление отбрасыванию " + (level * 30) + "%";
-            case "MAX_HEALTH_BOOST": return "Колоссальное здоровье +" + (level * 10);
-            case "HERO_OF_VILLAGE": return "Герой Деревни " + level + " ур.";
-            case "STRENGTH_BOOST": return "Сила " + level + " ур.";
-            case "RESISTANCE": return "Сопротивление " + level + " ур.";
-            case "SATURATION": return "Вечная сытость";
-            case "LUCK_OF_THE_SEA": return "Морская удача " + level + " ур.";
-            case "SOUL_DRAIN": return "Вытягивание души (лечит при убийстве) +" + level;
-            case "FROST_BITE": return "Морозный укус " + level + " ур.";
-            case "MANA_SHIELD": return "Мана-щит (поглощает " + (level * 10) + "% урона)";
-            case "TELEKINESIS": return "Телекинез (подбор предметов на расст.)";
-            case "ENDER_SHIFT": return "Эндер-сдвиг (телепорт ПКМ в воздухе)";
-            case "BERSERKER": return "Ярость " + level + " ур. (урон растет с потерей ХП)";
-            case "ARCANE_BURST": return "Магический взрыв " + level + " ур.";
-            case "SHADOW_STEP": return "Теневой шаг (ускорение после уклонения)";
-            case "LIFESTEAL_AURA": return "Аура вампиризма " + level + " ур.";
-            case "IRON_WILL": return "Железная воля " + level + " ур.";
-            case "TRAP_SENSE": return "Чувство ловушки " + level + " ур.";
-            case "TREASURE_HUNTER": return "Охотник за сокровищами +" + (level * 10) + "%";
-            case "FLAME_TONGUE": return "Пылающий язык " + level + " ур.";
-            case "WIND_WALKER": return "Шагающий по ветру " + level + " ур.";
-            case "ECHO_STRIKE": return "Удар-эхо " + level + " ур. (шанс двойного удара)";
-            default: return buff + " " + level + " ур.";
-        }
+        return ru.example.vkchatartifacts.items.ArtifactFactory.getBuffDescription(buff, level);
     }
 }
