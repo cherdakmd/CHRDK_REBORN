@@ -794,21 +794,23 @@ public class AuthManager {
     }
 
     public boolean isFullyAuthorized(Player p) {
-        // Проверяем проходку (полный доступ без ВК)
+        // Проверяем ВК-привязку (не требует пароль)
+        if (isLinked(p)) {
+            // Проверяем, не ожидает ли 2FA
+            if (isWaiting2fa(p)) {
+                return false;
+            }
+            return true; // ВК привязан + 2FA пройден = авторизован
+        }
+        // Проверяем проходку (требует регистрацию и вход)
         if (plugin.getPassManager() != null && plugin.getPassManager().hasPass(p.getUniqueId())) {
+            // Проходка есть, но нужен пароль
+            if (!isRegistered(p)) return false;
+            if (plugin.getConfig().getBoolean("auth.require-auth", true)) {
+                return isLoggedIn(p);
+            }
             return true;
         }
-        // Проверяем ВК-привязку
-        if (!isLinked(p)) return false;
-        // Проверяем, не ожидает ли 2FA
-        if (isWaiting2fa(p)) {
-            return false; // Ожидает 2FA — не авторизован
-        }
-        // Проверяем вход (ВК-игроки не требуют пароль)
-        if (plugin.getConfig().getBoolean("auth.require-auth", true)) {
-            // Если привязан к ВК и прошёл 2FA — авторизован
-            return true;
-        }
-        return true;
+        return false;
     }
 }

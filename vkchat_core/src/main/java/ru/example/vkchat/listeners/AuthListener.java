@@ -80,12 +80,17 @@ public class AuthListener implements Listener {
         } else {
             // ВК НЕ ПРИВЯЗАН — проверяем проходку
             if (plugin.getPassManager().hasPass(p.getUniqueId())) {
-                // ЕСТЬ ПРОХОДКА — разрешаем вход
+                // ЕСТЬ ПРОХОДКА — требуется регистрация
                 session.hasPass = true;
                 session.state = SessionManager.SessionState.PASS_HOLDER;
                 long remaining = plugin.getPassManager().getPassRemainingDays(p.getUniqueId());
-                p.sendMessage("§a✅ Добро пожаловать! У тебя есть проходка.");
-                p.sendMessage("§7Осталось: §e" + remaining + " дней");
+                p.sendMessage("§a✅ У тебя есть проходка! Осталось: §e" + remaining + " §aдней");
+
+                if (!plugin.getAuthManager().isRegistered(p)) {
+                    p.sendMessage("§e⚠️ Тебе нужно зарегистрироваться: §a/register <пароль>");
+                } else if (!plugin.getAuthManager().isLoggedIn(p)) {
+                    p.sendMessage("§e⚠️ Тебе нужно войти: §a/login <пароль>");
+                }
 
                 if (remaining <= 3) {
                     p.sendMessage("§e⚠️ Проходка скоро истекает! Привяжи ВК или продли.");
