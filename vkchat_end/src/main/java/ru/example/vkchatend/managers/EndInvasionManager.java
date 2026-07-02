@@ -19,36 +19,45 @@ import ru.example.vkchatend.VKChatEndPlugin;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
- * Система вторжений Энда в обычный мир
+ * Система вторжений Энда в обычный мир — переработанная версия
+ * без шалкеров, с новыми типами вторжений и улучшенной механикой волн
  */
 public class EndInvasionManager implements Listener {
     private final VKChatEndPlugin plugin;
     private final NamespacedKey invasionMobKey;
 
-    // Активные вторжения
     private final Map<String, InvasionData> activeInvasions = new ConcurrentHashMap<>();
     private final Map<UUID, Map<UUID, Double>> damageTracker = new ConcurrentHashMap<>();
+    private final Map<UUID, UUID> mobToInvasion = new ConcurrentHashMap<>();
 
-    // Типы вторжений
     public enum InvasionType {
-        ENDER_RAIDS("Эндер-рейды", "Группы эндерменов атакуют деревни", 30, ChatColor.DARK_PURPLE),
-        VOID_PORTAL("Портал Бездны", "Портал спавнит мобов Энда", 60, ChatColor.DARK_GRAY),
-        SHULKER_DROP("Десант шалкеров", "Шалкеры падают с неба", 45, ChatColor.GOLD),
-        DRAGON_ATTACK("Атака Дракона", "Дракон атакует мир", 90, ChatColor.RED),
-        CORRUPTION_SPREAD("Распространение коррупции", "Коррупция заражает обычный мир", 120, ChatColor.DARK_RED);
+        ENDER_RAIDS("Эндер-рейды", "Группы эндерменов атакуют поселения", 30,
+                ChatColor.DARK_PURPLE, BarColor.PURPLE),
+        VOID_PORTAL("Портал Бездны", "Разлом реальности извергает эндермитов и фантомов", 60,
+                ChatColor.DARK_GRAY, BarColor.BLUE),
+        ENDER_STORM("Эндер-шторм", "Грозовой фронт с эндер-молниями и фантомами", 45,
+                ChatColor.DARK_AQUA, BarColor.BLUE),
+        DRAGON_ATTACK("Атака Дракона", "Дракон Энда обрушивается на мир", 90,
+                ChatColor.RED, BarColor.RED),
+        CORRUPTION_SPREAD("Эндер-скверна", "Скверна Энда заражает ландшафт и существ", 120,
+                ChatColor.DARK_RED, BarColor.RED);
 
         public final String displayName;
         public final String description;
         public final int durationMinutes;
         public final ChatColor color;
+        public final BarColor barColor;
 
-        InvasionType(String displayName, String description, int durationMinutes, ChatColor color) {
+        InvasionType(String displayName, String description, int durationMinutes,
+                     ChatColor color, BarColor barColor) {
             this.displayName = displayName;
             this.description = description;
             this.durationMinutes = durationMinutes;
             this.color = color;
+            this.barColor = barColor;
         }
     }
 
@@ -59,7 +68,9 @@ public class EndInvasionManager implements Listener {
         long startTime;
         long endTime;
         int wave;
+        int totalMobsSpawned;
         BossBar bossBar;
+        UUID invasionId;
 
         InvasionData(InvasionType type, Location center, int radius) {
             this.type = type;
@@ -68,10 +79,16 @@ public class EndInvasionManager implements Listener {
             this.startTime = System.currentTimeMillis();
             this.endTime = startTime + (type.durationMinutes * 60000L);
             this.wave = 0;
+            this.totalMobsSpawned = 0;
+            this.invasionId = UUID.randomUUID();
         }
 
         boolean isActive() {
             return System.currentTimeMillis() < endTime;
+        }
+
+        long remainingMs() {
+            return Math.max(0, endTime - System.currentTimeMillis());
         }
     }
 
@@ -79,11 +96,9 @@ public class EndInvasionManager implements Listener {
         this.plugin = plugin;
         this.invasionMobKey = new NamespacedKey(plugin, "invasion_mob");
         startInvasionTask();
+        startParticleTask();
     }
 
-    /**
-     * Задача проверки вторжений
-     */
     private void startInvasionTask() {
         new BukkitRunnable() {
             @Override
@@ -91,12 +106,47 @@ public class EndInvasionManager implements Listener {
                 checkInvasions();
                 maybeStartInvasion();
             }
-        }.runTaskTimer(plugin, 1200L, 1200L); // Каждую минуту
+        }.runTaskTimer(plugin, 1200L, 1200L);
     }
 
     /**
-     * Проверка активных вторжений
+     * Задача частиц — визуальные эффекты над зоной вторжения
      */
+    private void startParticleTask() {
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                for (InvasionData invasion : activeInvasions.values()) {
+                    if (!invasion.isActive()) continue;
+                    spawnInvasionParticles(invasion);
+                }
+            }
+        }.runTaskTimer(plugin, 100L, 100L); // Каждые 5 секунд
+    }
+
+    private void spawnInvasionParticles(InvasionData invasion) {
+        World world = invasion.center.getWorld();
+        if (world == null) return;
+        Random rand = ThreadLocalRandom.current();
+        for (int i = 0; i < 5; i++) {
+            int dx = rand.nextInt(invasion.radius * 2) - invasion.radius;
+            int dz = rand.nextInt(invasion.radius * 2) - invasion.radius;
+            int y = 16 + rand.nextInt(32);
+            Location loc = invasion.center.clone().add(dx, y - invasion.center.getY(), dz);
+            world.spawnParticle(Particle.PORTAL, loc, 3, 1, 1, 1, 0.05);
+        }
+        if (invasion.type == InvasionType.ENDER_STORM) {
+            for (int i = 0; i < 3; i++) {
+                int dx = rand.nextInt(invasion.radius * 2) - invasion.radius;
+                int dz = rand.nextInt(invasion.radius * 2) - invasion.radius;
+                int y = world.getHighestBlockYAt(invasion.center.getBlockX() + dx, invasion.center.getBlockZ() + dz);
+                world.spawnParticle(Particle.ENCHANTMENT_TABLE,
+                        new Location(world, invasion.center.getX() + dx, y + 3, invasion.center.getZ() + dz),
+                        5, 0.5, 0.5, 0.5, 0.1);
+            }
+        }
+    }
+
     private void checkInvasions() {
         Iterator<Map.Entry<String, InvasionData>> it = activeInvasions.entrySet().iterator();
         while (it.hasNext()) {
@@ -109,64 +159,61 @@ public class EndInvasionManager implements Listener {
                 continue;
             }
 
-            // Спавн волн
             long elapsed = System.currentTimeMillis() - invasion.startTime;
-            int newWave = (int) (elapsed / 120000); // Каждые 2 минуты — новая волна
+            int newWave = (int) (elapsed / 120000);
             if (newWave > invasion.wave) {
                 invasion.wave = newWave;
                 spawnInvasionWave(invasion);
             }
 
-            // Обновление BossBar
             if (invasion.bossBar != null) {
-                long remaining = invasion.endTime - System.currentTimeMillis();
+                long remaining = invasion.remainingMs();
                 long total = invasion.endTime - invasion.startTime;
-                double progress = (double) remaining / total;
-                invasion.bossBar.setProgress(Math.max(0, Math.min(1, progress)));
-                invasion.bossBar.setTitle(invasion.type.color + "⚔ " + invasion.type.displayName + " — Волна " + invasion.wave);
+                double progress = Math.max(0, Math.min(1, (double) remaining / total));
+                invasion.bossBar.setProgress(progress);
+                invasion.bossBar.setTitle(invasion.type.color + "⚔ " + invasion.type.displayName
+                        + " — Волна " + invasion.wave
+                        + " | " + formatTime(remaining));
             }
         }
     }
 
-    /**
-     * Попытаться начать вторжение
-     */
+    private String formatTime(long millis) {
+        long mins = millis / 60000;
+        long secs = (millis % 60000) / 1000;
+        return mins + ":" + (secs < 10 ? "0" : "") + secs;
+    }
+
     private void maybeStartInvasion() {
-        if (activeInvasions.size() >= plugin.getConfig().getInt("end.invasions.max-active", 2)) return;
+        int maxActive = plugin.getConfig().getInt("end.invasions.max-active", 2);
+        if (activeInvasions.size() >= maxActive) return;
 
         double chance = plugin.getConfig().getDouble("end.invasions.spawn-chance", 0.01);
-        if (new Random().nextDouble() >= chance) return;
+        if (ThreadLocalRandom.current().nextDouble() >= chance) return;
 
         World normalWorld = Bukkit.getWorlds().get(0);
         if (normalWorld == null) return;
 
-        // Найти игрока
         List<Player> players = new ArrayList<>();
         for (Player p : normalWorld.getPlayers()) {
-            if (p.getLocation().getY() > 60) { // Над землей
-                players.add(p);
-            }
+            if (p.getLocation().getY() > 60) players.add(p);
         }
         if (players.isEmpty()) return;
 
-        Player target = players.get(new Random().nextInt(players.size()));
+        Player target = players.get(ThreadLocalRandom.current().nextInt(players.size()));
         Location center = target.getLocation().add(
-                new Random().nextInt(200) - 100,
+                ThreadLocalRandom.current().nextInt(200) - 100,
                 0,
-                new Random().nextInt(200) - 100
+                ThreadLocalRandom.current().nextInt(200) - 100
         );
         center.setY(normalWorld.getHighestBlockYAt(center) + 1);
 
-        // Выбрать тип вторжения
         InvasionType[] types = InvasionType.values();
-        InvasionType type = types[new Random().nextInt(types.length)];
+        InvasionType type = types[ThreadLocalRandom.current().nextInt(types.length)];
 
         startInvasion(center, type);
     }
 
-    /**
-     * Начать вторжение
-     */
     public void startInvasion(Location center, InvasionType type) {
         String key = center.getWorld().getName() + ":" + center.getBlockX() + ":" + center.getBlockZ();
         int radius = plugin.getConfig().getInt("end.invasions.radius", 50);
@@ -174,173 +221,231 @@ public class EndInvasionManager implements Listener {
         InvasionData invasion = new InvasionData(type, center, radius);
         activeInvasions.put(key, invasion);
 
-        // Создать BossBar
         invasion.bossBar = Bukkit.createBossBar(
                 type.color + "⚔ " + type.displayName,
-                BarColor.PURPLE,
+                type.barColor,
                 BarStyle.SEGMENTED_10
         );
         invasion.bossBar.setVisible(true);
 
-        // Уведомление
         Bukkit.broadcastMessage(ChatColor.DARK_PURPLE + "═══════════════════════════════════");
-        Bukkit.broadcastMessage(type.color + "⚔ ВТОРЖЕНИЕ ЭНДА: " + type.displayName);
+        Bukkit.broadcastMessage(type.color + "⚔ ВТОРЖЕНИЕ: " + type.displayName);
         Bukkit.broadcastMessage(ChatColor.GRAY + type.description);
-        Bukkit.broadcastMessage(ChatColor.GRAY + "Координаты: " + center.getBlockX() + ", " + center.getBlockZ());
-        Bukkit.broadcastMessage(ChatColor.GRAY + "Радиус: " + radius + " блоков");
-        Bukkit.broadcastMessage(ChatColor.GRAY + "Длительность: " + type.durationMinutes + " минут");
+        Bukkit.broadcastMessage(ChatColor.GRAY + "📍 " + center.getBlockX() + " "
+                + center.getBlockZ() + " | Зона: " + radius + " блоков");
+        Bukkit.broadcastMessage(ChatColor.GRAY + "⏳ " + type.durationMinutes + " мин | Волны каждые 2 мин");
         Bukkit.broadcastMessage(ChatColor.DARK_PURPLE + "═══════════════════════════════════");
 
-        // Первая волна
         spawnInvasionWave(invasion);
     }
 
-    /**
-     * Спавн волны вторжения
-     */
     private void spawnInvasionWave(InvasionData invasion) {
         World world = invasion.center.getWorld();
         if (world == null) return;
 
-        int mobsPerWave = 5 + (invasion.wave * 3);
-        String waveMsg;
+        int baseCount = 4 + invasion.wave;
+        int radius = invasion.radius;
+        Random rand = ThreadLocalRandom.current();
 
         switch (invasion.type) {
-            case ENDER_RAIDS:
-                waveMsg = "Эндермены";
-                for (int i = 0; i < mobsPerWave; i++) {
-                    spawnInvasionMob(world, invasion.center, invasion.radius, EntityType.ENDERMAN, invasion.wave);
-                }
-                break;
-
-            case VOID_PORTAL:
-                waveMsg = "Мобы Бездны";
-                for (int i = 0; i < mobsPerWave; i++) {
-                    EntityType type = new Random().nextBoolean() ? EntityType.ENDERMITE : EntityType.SHULKER;
-                    spawnInvasionMob(world, invasion.center, invasion.radius, type, invasion.wave);
-                }
-                break;
-
-            case SHULKER_DROP:
-                waveMsg = "Шалкеры";
-                for (int i = 0; i < mobsPerWave; i++) {
-                    Location spawnLoc = invasion.center.clone().add(
-                            new Random().nextInt(invasion.radius * 2) - invasion.radius,
-                            20 + new Random().nextInt(10),
-                            new Random().nextInt(invasion.radius * 2) - invasion.radius
-                    );
-                    Shulker shulker = (Shulker) world.spawnEntity(spawnLoc, EntityType.SHULKER);
-                    shulker.getPersistentDataContainer().set(invasionMobKey, PersistentDataType.INTEGER, invasion.wave);
-                    applyInvasionEffects(shulker, invasion.wave);
-                }
-                break;
-
-            case DRAGON_ATTACK:
-                waveMsg = "Драконы";
-                for (int i = 0; i < Math.min(3, invasion.wave); i++) {
-                    Location spawnLoc = invasion.center.clone().add(
-                            new Random().nextInt(30) - 15,
-                            20,
-                            new Random().nextInt(30) - 15
-                    );
-                    EnderDragon dragon = (EnderDragon) world.spawnEntity(spawnLoc, EntityType.ENDER_DRAGON);
-                    dragon.getPersistentDataContainer().set(invasionMobKey, PersistentDataType.INTEGER, invasion.wave);
-                    applyInvasionEffects(dragon, invasion.wave);
-                }
-                break;
-
-            case CORRUPTION_SPREAD:
-                waveMsg = "Коррупция";
-                // Распространение блоков коррупции
-                for (int i = 0; i < mobsPerWave * 2; i++) {
-                    int x = invasion.center.getBlockX() + new Random().nextInt(invasion.radius * 2) - invasion.radius;
-                    int z = invasion.center.getBlockZ() + new Random().nextInt(invasion.radius * 2) - invasion.radius;
-                    int y = world.getHighestBlockYAt(x, z);
-                    org.bukkit.block.Block block = world.getBlockAt(x, y, z);
-                    if (block.getType() == Material.GRASS_BLOCK || block.getType() == Material.DIRT) {
-                        block.setType(Material.END_STONE);
+            case ENDER_RAIDS: {
+                int endermanCount = baseCount + rand.nextInt(3);
+                for (int i = 0; i < endermanCount; i++) {
+                    LivingEntity mob = spawnInvasionMob(world, invasion.center, radius,
+                            EntityType.ENDERMAN, invasion);
+                    if (mob != null) {
+                        mob.addPotionEffect(new PotionEffect(PotionEffectType.SPEED,
+                                Integer.MAX_VALUE, 1));
                     }
                 }
-                // Спавн мобов
-                for (int i = 0; i < mobsPerWave; i++) {
-                    spawnInvasionMob(world, invasion.center, invasion.radius, EntityType.ENDERMITE, invasion.wave);
-                }
+                Bukkit.broadcastMessage(invasion.type.color + "⚔ Волна " + invasion.wave
+                        + ": " + endermanCount + " эндерменов!");
                 break;
+            }
 
-            default:
-                waveMsg = "Мобы";
+            case VOID_PORTAL: {
+                int endermiteCount = baseCount + rand.nextInt(2);
+                int phantomCount = Math.min(invasion.wave, baseCount / 2 + 1);
+                for (int i = 0; i < endermiteCount; i++) {
+                    spawnInvasionMob(world, invasion.center, radius,
+                            EntityType.ENDERMITE, invasion);
+                }
+                for (int i = 0; i < phantomCount; i++) {
+                    LivingEntity phantom = spawnInvasionMobAir(world, invasion.center, radius,
+                            EntityType.PHANTOM, invasion);
+                    if (phantom != null) {
+                        phantom.addPotionEffect(new PotionEffect(PotionEffectType.SPEED,
+                                Integer.MAX_VALUE, 2));
+                    }
+                }
+                int total = endermiteCount + phantomCount;
+                Bukkit.broadcastMessage(invasion.type.color + "⚔ Волна " + invasion.wave
+                        + ": " + endermiteCount + " эндермитов + " + phantomCount + " фантомов!");
+                break;
+            }
+
+            case ENDER_STORM: {
+                int phantomCount = baseCount + rand.nextInt(3);
+                int endermanCount = baseCount / 2;
+                for (int i = 0; i < phantomCount; i++) {
+                    LivingEntity phantom = spawnInvasionMobAir(world, invasion.center, radius,
+                            EntityType.PHANTOM, invasion);
+                    if (phantom != null) {
+                        phantom.addPotionEffect(new PotionEffect(PotionEffectType.SPEED,
+                                Integer.MAX_VALUE, 2));
+                    }
+                }
+                for (int i = 0; i < endermanCount; i++) {
+                    spawnInvasionMob(world, invasion.center, radius,
+                            EntityType.ENDERMAN, invasion);
+                }
+                // Молнии
+                int lightningCount = 2 + rand.nextInt(3);
+                for (int i = 0; i < lightningCount; i++) {
+                    int dx = rand.nextInt(radius * 2) - radius;
+                    int dz = rand.nextInt(radius * 2) - radius;
+                    Location strike = invasion.center.clone().add(dx, 0, dz);
+                    strike.setY(world.getHighestBlockYAt(strike) + 1);
+                    world.strikeLightningEffect(strike);
+                }
+                Bukkit.broadcastMessage(invasion.type.color + "⚔ Волна " + invasion.wave
+                        + ": " + phantomCount + " фантомов + " + endermanCount + " эндерменов! ⚡");
+                break;
+            }
+
+            case DRAGON_ATTACK: {
+                int dragonCount = Math.min(3, 1 + invasion.wave / 3);
+                int endermanCount = baseCount;
+                for (int i = 0; i < dragonCount; i++) {
+                    Location airLoc = invasion.center.clone().add(
+                            rand.nextInt(30) - 15,
+                            20 + rand.nextInt(15),
+                            rand.nextInt(30) - 15
+                    );
+                    EnderDragon dragon = (EnderDragon) world.spawnEntity(airLoc, EntityType.ENDER_DRAGON);
+                    dragon.getPersistentDataContainer().set(invasionMobKey, PersistentDataType.INTEGER, invasion.wave);
+                    dragon.setCustomName(ChatColor.RED + "☠ Дракон вторжения [" + invasion.wave + "]");
+                    dragon.setCustomNameVisible(true);
+                    dragon.setGlowing(true);
+                    dragon.setPhase(EnderDragon.Phase.CIRCLING);
+                    applyInvasionEffects(dragon, invasion.wave);
+                    invasion.totalMobsSpawned++;
+                    mobToInvasion.put(dragon.getUniqueId(), invasion.invasionId);
+                }
+                for (int i = 0; i < endermanCount; i++) {
+                    spawnInvasionMob(world, invasion.center, radius,
+                            EntityType.ENDERMAN, invasion);
+                }
+                Bukkit.broadcastMessage(invasion.type.color + "⚔ Волна " + invasion.wave
+                        + ": " + dragonCount + " дракон(ов) + " + endermanCount + " эндерменов!");
+                break;
+            }
+
+            case CORRUPTION_SPREAD: {
+                int blockCount = baseCount * 3;
+                int endermiteCount = baseCount + 2;
+                for (int k = 0; k < blockCount; k++) {
+                    int bx = invasion.center.getBlockX() + rand.nextInt(radius * 2) - radius;
+                    int bz = invasion.center.getBlockZ() + rand.nextInt(radius * 2) - radius;
+                    int by = world.getHighestBlockYAt(bx, bz);
+                    org.bukkit.block.Block block = world.getBlockAt(bx, by, bz);
+                    Material mat = block.getType();
+                    if (mat == Material.GRASS_BLOCK || mat == Material.DIRT
+                            || mat == Material.STONE || mat == Material.SAND) {
+                        block.setType(rand.nextBoolean() ? Material.END_STONE : Material.OBSIDIAN);
+                    }
+                }
+                for (int i = 0; i < endermiteCount; i++) {
+                    spawnInvasionMob(world, invasion.center, radius,
+                            EntityType.ENDERMITE, invasion);
+                }
+                Bukkit.broadcastMessage(invasion.type.color + "⚔ Волна " + invasion.wave
+                        + ": " + blockCount + " блоков скверны + " + endermiteCount + " эндермитов!");
+                break;
+            }
         }
-
-        Bukkit.broadcastMessage(invasion.type.color + "⚔ Волна " + invasion.wave + ": " + waveMsg + "!");
     }
 
-    /**
-     * Спавн моба вторжения
-     */
-    private void spawnInvasionMob(World world, Location center, int radius, EntityType type, int wave) {
+    private LivingEntity spawnInvasionMob(World world, Location center, int radius,
+                                          EntityType type, InvasionData invasion) {
         Location spawnLoc = center.clone().add(
-                new Random().nextInt(radius * 2) - radius,
+                ThreadLocalRandom.current().nextInt(radius * 2) - radius,
                 0,
-                new Random().nextInt(radius * 2) - radius
+                ThreadLocalRandom.current().nextInt(radius * 2) - radius
         );
         spawnLoc.setY(world.getHighestBlockYAt(spawnLoc) + 1);
 
-        Entity entity = world.spawnEntity(spawnLoc, type);
-        if (entity instanceof LivingEntity) {
-            LivingEntity mob = (LivingEntity) entity;
-            mob.getPersistentDataContainer().set(invasionMobKey, PersistentDataType.INTEGER, wave);
-            applyInvasionEffects(mob, wave);
-        }
+        return tagAndBuff(world.spawnEntity(spawnLoc, type), invasion);
     }
 
-    /**
-     * Применить эффекты вторжения
-     */
+    private LivingEntity spawnInvasionMobAir(World world, Location center, int radius,
+                                             EntityType type, InvasionData invasion) {
+        Location airLoc = center.clone().add(
+                ThreadLocalRandom.current().nextInt(radius * 2) - radius,
+                15 + ThreadLocalRandom.current().nextInt(20),
+                ThreadLocalRandom.current().nextInt(radius * 2) - radius
+        );
+        return tagAndBuff(world.spawnEntity(airLoc, type), invasion);
+    }
+
+    private LivingEntity tagAndBuff(Entity entity, InvasionData invasion) {
+        if (!(entity instanceof LivingEntity)) return null;
+        LivingEntity mob = (LivingEntity) entity;
+        mob.getPersistentDataContainer().set(invasionMobKey, PersistentDataType.INTEGER, invasion.wave);
+        applyInvasionEffects(mob, invasion.wave);
+        invasion.totalMobsSpawned++;
+        mobToInvasion.put(mob.getUniqueId(), invasion.invasionId);
+        return mob;
+    }
+
     private void applyInvasionEffects(LivingEntity mob, int wave) {
         double multiplier = 1.0 + (wave * 0.25);
 
-        // Усиление здоровья
         if (mob.getAttribute(Attribute.GENERIC_MAX_HEALTH) != null) {
             double baseHealth = mob.getAttribute(Attribute.GENERIC_MAX_HEALTH).getBaseValue();
             mob.getAttribute(Attribute.GENERIC_MAX_HEALTH).setBaseValue(baseHealth * multiplier);
             mob.setHealth(mob.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue());
         }
 
-        // Усиление урона
         if (mob.getAttribute(Attribute.GENERIC_ATTACK_DAMAGE) != null) {
             double baseDamage = mob.getAttribute(Attribute.GENERIC_ATTACK_DAMAGE).getBaseValue();
             mob.getAttribute(Attribute.GENERIC_ATTACK_DAMAGE).setBaseValue(baseDamage * multiplier);
         }
 
-        // Эффекты
-        mob.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, Integer.MAX_VALUE, Math.min(2, wave / 3)));
-        mob.addPotionEffect(new PotionEffect(PotionEffectType.INCREASE_DAMAGE, Integer.MAX_VALUE, Math.min(2, wave / 4)));
+        mob.addPotionEffect(new PotionEffect(PotionEffectType.SPEED,
+                Integer.MAX_VALUE, Math.min(3, wave / 3)));
+        mob.addPotionEffect(new PotionEffect(PotionEffectType.INCREASE_DAMAGE,
+                Integer.MAX_VALUE, Math.min(2, wave / 4)));
 
-        // Имя
         mob.setCustomName(ChatColor.DARK_PURPLE + "☠ Эндер-захватчик [" + wave + "]");
         mob.setCustomNameVisible(true);
         mob.setGlowing(true);
     }
 
-    /**
-     * Завершение вторжения
-     */
     private void endInvasion(InvasionData invasion) {
         if (invasion.bossBar != null) {
             invasion.bossBar.removeAll();
         }
 
         Bukkit.broadcastMessage(ChatColor.GREEN + "═══════════════════════════════════");
-        Bukkit.broadcastMessage(ChatColor.GREEN + "⚔ ВТОРЖЕНИЕ ОКОНЧЕНО: " + invasion.type.displayName);
-        Bukkit.broadcastMessage(ChatColor.GRAY + "Волн пережито: " + invasion.wave);
+        Bukkit.broadcastMessage(ChatColor.GREEN + "⚔ ОТРАЖЕНО: " + invasion.type.displayName);
+        Bukkit.broadcastMessage(ChatColor.GRAY + "Волн: " + invasion.wave
+                + " | Мобов: " + invasion.totalMobsSpawned);
         Bukkit.broadcastMessage(ChatColor.GREEN + "═══════════════════════════════════");
 
-        // Награды всем игрокам в зоне
         World world = invasion.center.getWorld();
         if (world != null) {
             for (Player p : world.getPlayers()) {
-                if (p.getLocation().distance(invasion.center) <= invasion.radius) {
+                if (p.getLocation().distance(invasion.center) <= invasion.radius * 1.5) {
                     int reward = 100 + (invasion.wave * 50);
+                    // Бонус за урон
+                    Map<UUID, Double> invasionDamage = damageTracker.get(invasion.invasionId);
+                    if (invasionDamage != null) {
+                        Double dmg = invasionDamage.get(p.getUniqueId());
+                        if (dmg != null && dmg > 0) {
+                            reward += (int)(dmg / 2);
+                        }
+                    }
                     try {
                         int vkId = VKChatPlugin.getInstance().getApi().getLinkedVkId(p);
                         if (vkId != -1) {
@@ -348,21 +453,38 @@ public class EndInvasionManager implements Listener {
                         }
                     } catch (Exception ignored) {}
                     plugin.getEndManager().addEndReputation(p, reward / 2);
-                    p.sendMessage(ChatColor.GOLD + "⚔ Вторжение отражено! +" + reward + " реп.");
+                    p.sendMessage(invasion.type.color + "⚔ Вторжение отражено! +" + reward + " реп.");
                 }
             }
         }
+        damageTracker.remove(invasion.invasionId);
+    }
+
+    @EventHandler
+    public void onMobDamage(EntityDamageByEntityEvent e) {
+        if (!(e.getEntity() instanceof LivingEntity)) return;
+        UUID mobId = e.getEntity().getUniqueId();
+        UUID invasionId = mobToInvasion.get(mobId);
+        if (invasionId == null) return;
+        if (!(e.getDamager() instanceof Player)) return;
+        Player p = (Player) e.getDamager();
+
+        damageTracker.computeIfAbsent(invasionId, k -> new ConcurrentHashMap<>())
+                .merge(p.getUniqueId(), e.getFinalDamage(), Double::sum);
     }
 
     @EventHandler
     public void onMobDeath(EntityDeathEvent e) {
         LivingEntity mob = e.getEntity();
-        if (!mob.getPersistentDataContainer().has(invasionMobKey, PersistentDataType.INTEGER)) return;
+        UUID mobId = mob.getUniqueId();
+        UUID invasionId = mobToInvasion.remove(mobId);
+        if (invasionId == null) return;
 
         Player killer = mob.getKiller();
         if (killer == null) return;
 
-        int wave = mob.getPersistentDataContainer().getOrDefault(invasionMobKey, PersistentDataType.INTEGER, 1);
+        int wave = mob.getPersistentDataContainer().getOrDefault(invasionMobKey,
+                PersistentDataType.INTEGER, 1);
         int rep = 10 + (wave * 5);
 
         try {
@@ -376,27 +498,32 @@ public class EndInvasionManager implements Listener {
         killer.sendMessage(ChatColor.DARK_PURPLE + "☠ Эндер-захватчик повержен! +" + rep + " реп.");
     }
 
-    /**
-     * Получить количество активных вторжений
-     */
     public int getActiveInvasionCount() {
         return activeInvasions.size();
     }
 
-    /**
-     * Получить информацию о вторжениях
-     */
     public String getInvasionsInfo() {
         StringBuilder sb = new StringBuilder();
         sb.append(ChatColor.DARK_PURPLE).append("═══ ⚔ Вторжения Энда ═══\n\n");
 
         for (InvasionType type : InvasionType.values()) {
-            sb.append(type.color).append("• ").append(type.displayName);
-            sb.append(ChatColor.GRAY).append(" — ").append(type.description);
-            sb.append(ChatColor.DARK_GRAY).append(" (").append(type.durationMinutes).append(" мин)\n");
+            sb.append(type.color).append("• ").append(type.displayName).append("\n");
+            sb.append(ChatColor.GRAY).append("  ").append(type.description).append("\n");
+            sb.append(ChatColor.DARK_GRAY).append("  Длительность: ").append(type.durationMinutes).append(" мин\n\n");
         }
 
-        sb.append("\n").append(ChatColor.GRAY).append("Активных вторжений: ").append(activeInvasions.size());
+        sb.append(ChatColor.GRAY).append("Активных вторжений: ")
+                .append(ChatColor.WHITE).append(activeInvasions.size());
+        if (!activeInvasions.isEmpty()) {
+            sb.append("\n").append(ChatColor.GRAY).append("Активные:\n");
+            for (InvasionData inv : activeInvasions.values()) {
+                sb.append(inv.type.color).append("  • ").append(inv.type.displayName)
+                        .append(" — X:").append(inv.center.getBlockX())
+                        .append(" Z:").append(inv.center.getBlockZ())
+                        .append(" | Волна ").append(inv.wave)
+                        .append(" | ").append(formatTime(inv.remainingMs())).append("\n");
+            }
+        }
 
         return sb.toString();
     }

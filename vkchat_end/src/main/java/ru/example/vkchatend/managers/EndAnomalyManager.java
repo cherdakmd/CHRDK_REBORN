@@ -33,7 +33,7 @@ public class EndAnomalyManager implements Listener {
         GRAVITY_WELL("Гравитационный колодец", "Притягивает существ к центру", ChatColor.DARK_GRAY, 25),
         TEMPORAL_BUBBLE("Временна́й пузырь", "Замедляет/ускоряет время", ChatColor.LIGHT_PURPLE, 20),
         ENERGY_STORM("Энергетический шторм", "Наносит урон всем в зоне", ChatColor.RED, 35),
-        SHULKER_SWARM("Рой шалкеров", "Спавнит шалкеров", ChatColor.GOLD, 40),
+        ENDER_MIASMA("Эндер-миазмы", "Токсичное облако спавнит эндермитов", ChatColor.DARK_PURPLE, 40),
         ENDER_VORTEX("Эндер-вортекс", "Телепортирует в случайное место", ChatColor.DARK_PURPLE, 25),
         CORRUPTION_ZONE("Зона коррупции", "Заражает область", ChatColor.DARK_RED, 50),
         CRYSTAL_SURGE("Кристальный всплеск", "Усиливает кристаллы рядом", ChatColor.LIGHT_PURPLE, 15),
@@ -179,8 +179,9 @@ public class EndAnomalyManager implements Listener {
             case ENERGY_STORM:
                 loc.getWorld().spawnParticle(Particle.REDSTONE, loc, 5, 0.5, 0.5, 0.5, 0.02, new Particle.DustOptions(Color.RED, 1));
                 break;
-            case SHULKER_SWARM:
-                loc.getWorld().spawnParticle(Particle.CRIT_MAGIC, loc, 3, 0.3, 0.3, 0.3, 0.02);
+            case ENDER_MIASMA:
+                loc.getWorld().spawnParticle(Particle.SPELL_MOB, loc, 3, 0.3, 0.3, 0.3, 0.02,
+                        new Particle.DustOptions(Color.PURPLE, 1));
                 break;
             case ENDER_VORTEX:
                 loc.getWorld().spawnParticle(Particle.PORTAL, loc, 10, 0.5, 0.5, 0.5, 0.1);
@@ -253,7 +254,7 @@ public class EndAnomalyManager implements Listener {
         }
 
         // Спавн мобов в зависимости от типа
-        if (type == AnomalyType.SHULKER_SWARM) {
+        if (type == AnomalyType.ENDER_MIASMA) {
             for (int i = 0; i < intensity * 2; i++) {
                 Location spawnLoc = center.clone().add(
                         new Random().nextInt(10) - 5,
@@ -261,7 +262,7 @@ public class EndAnomalyManager implements Listener {
                         new Random().nextInt(10) - 5
                 );
                 spawnLoc.setY(center.getWorld().getHighestBlockYAt(spawnLoc) + 1);
-                center.getWorld().spawnEntity(spawnLoc, EntityType.SHULKER);
+                center.getWorld().spawnEntity(spawnLoc, EntityType.ENDERMITE);
             }
         } else if (type == AnomalyType.VOID_TEAR) {
             for (int i = 0; i < intensity * 3; i++) {
