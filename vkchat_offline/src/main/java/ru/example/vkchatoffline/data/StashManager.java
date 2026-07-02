@@ -51,12 +51,6 @@ public class StashManager {
         save();
     }
 
-    public void addItem(UUID uuid, ItemStack item) {
-        List<ItemStack> items = getItems(uuid);
-        items.add(item);
-        saveItems(uuid, items);
-    }
-
     public void addItems(UUID uuid, List<ItemStack> newItems) {
         List<ItemStack> items = getItems(uuid);
         items.addAll(newItems);
@@ -64,22 +58,4 @@ public class StashManager {
     }
 
     public boolean isEmpty(UUID uuid) { return getItems(uuid).isEmpty(); }
-
-    public void showStashMenu(int vkId) {
-        try {
-            UUID uuid = ru.example.vkchat.VKChatPlugin.getInstance().getApi().getUuidByVkId(vkId);
-            if (uuid == null) { ru.example.vkchat.VKChatPlugin.getInstance().getApi().sendMessage(vkId, "❌ ВК не привязан!"); return; }
-            List<ItemStack> items = getItems(uuid);
-            if (items.isEmpty()) { ru.example.vkchat.VKChatPlugin.getInstance().getApi().sendMessage(vkId, "🎒 Тайник пуст."); return; }
-            StringBuilder sb = new StringBuilder("🎒 ТАЙНИК:\n");
-            for (int i = 0; i < items.size(); i++) {
-                ItemStack item = items.get(i);
-                sb.append(i + 1).append(". ").append(item.getType().name()).append(" x").append(item.getAmount()).append("\n");
-            }
-            sb.append("\nВведи /stash в игре чтобы забрать!");
-            ru.example.vkchat.VKChatPlugin.getInstance().getApi().sendMessage(vkId, sb.toString());
-        } catch (Exception e) {
-            ru.example.vkchat.VKChatPlugin.getInstance().getApi().sendMessage(vkId, "❌ Ошибка.");
-        }
-    }
 }

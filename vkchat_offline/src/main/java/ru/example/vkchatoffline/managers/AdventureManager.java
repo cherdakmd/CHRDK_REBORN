@@ -1,322 +1,466 @@
 package ru.example.vkchatoffline.managers;
 
-import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.Bukkit;
 import org.bukkit.event.Listener;
 import ru.example.vkchat.VKChatPlugin;
 import ru.example.vkchatoffline.VKChatOfflinePlugin;
-import ru.example.vkchatoffline.combat.CombatManager;
-import java.io.File;
+import ru.example.vkchatoffline.data.StashManager;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Главный менеджер офлайн-походов
+ * Главный менеджер офлайн-походов v4.0
+ * Конечный автомат состояний
  */
 public class AdventureManager implements Listener {
     private final VKChatOfflinePlugin plugin;
-    private final File file;
-    private FileConfiguration data;
-    private final Map<Integer, ActiveAdventure> active = new ConcurrentHashMap<>();
+    private final Map<Integer, PlayerState> states = new ConcurrentHashMap<>();
     private final Map<Integer, Long> cooldowns = new ConcurrentHashMap<>();
     private final Map<Integer, Long> injuries = new ConcurrentHashMap<>();
+    private final Random rand = new Random();
 
-    public static class ActiveAdventure {
-        public int vkId;
-        public String playerName, route;
-        public long startTime, nextEventTime, choiceDeadline;
-        public int stage, maxStages, hp, maxHp, supplies, morale, xpGained, gold;
-        public boolean waitingChoice;
-        public String pendingType, pendingTitle;
-        public ActiveAdventure(int vkId, String playerName, String route) {
-            this.vkId = vkId; this.playerName = playerName; this.route = route;
-            this.startTime = System.currentTimeMillis();
-            this.hp = 100; this.maxHp = 100; this.supplies = 5; this.morale = 100;
-            this.stage = 0; this.maxStages = 3; this.waitingChoice = false;
-        }
+    // Состояния игрока
+    public enum State {
+        MENU,           // Главное меню
+        ROUTE_SELECT,   // Выбор маршрута
+        IN_ADVENTURE,   // В походе (ожидание события)
+        CHOICE,         // Выбор действия
+        COMBAT,         // Бой
+        RESULT,         // Результат
+        DEAD,           // Мёртв
+        VICTORY         // Победа
+    }
+
+    // Данные игрока
+    public static class PlayerState {
+        public State state = State.MENU;
+        public String route = "";
+        public int stage = 0;
+        public int maxStages = 3;
+        public int hp = 100;
+        public int maxHp = 100;
+        public int supplies = 5;
+        public int morale = 100;
+        public int gold = 0;
+        public int xp = 0;
+        public boolean waitingChoice = false;
+        public String eventType = "";
+        public String eventTitle = "";
+        public long choiceDeadline = 0;
+        public long nextEventTime = 0;
+
+        // Бой
+        public String enemyName = "";
+        public int enemyHp = 0;
+        public int enemyMaxHp = 0;
+        public int enemyAtk = 0;
+        public int enemyDef = 0;
+        public int round = 0;
+        public int maxRounds = 5;
+        public boolean isBoss = false;
     }
 
     public AdventureManager(VKChatOfflinePlugin plugin) {
         this.plugin = plugin;
-        this.file = new File(plugin.getDataFolder(), "adventures.yml");
-        loadAll();
         startTickTask();
     }
 
-    public boolean isActiveAdventure(int vkId) { return active.containsKey(vkId); }
+    // ═══ ОБРАБОТКА КОМАНД ═══
+    public void handleCommand(int vkId, String cmd, String[] args) {
+        PlayerState state = states.computeIfAbsent(vkId, k -> new PlayerState());
 
-    // ═══ ПОКАЗ МЕНЮ ВЫБОРА МАРШРУТА ═══
-    public void showMenu(int vkId) {
-        String msg = "⛺ CHRDK ADVENTURES\n\n" +
-                "Выбери маршрут для похода:\n\n" +
-                "🌲 Лес — легкий, для новичков\n" +
-                "⛏ Шахты — средний, много ресурсов\n" +
-                "🏛 Руины — сложный, ценный лут\n" +
-                "🌿 Болота — опасный, яд\n" +
-                "🏰 Замок — очень сложный\n" +
-                "🔥 Незер — экстрим\n\n" +
-                "Нажми кнопку для выбора!";
-
-        sendMessage(vkId, msg);
-        sendKeyboard(vkId, "Выбери маршрут", OfflineKeyboardFactory.routeSelection());
+        switch (cmd) {
+            case "!поход": case "!походы":
+                showMenu(vkId);
+                break;
+            case "!пойти":
+                if (args.length > 0) startAdventure(vkId, args[0]);
+                break;
+            case "!выбор":
+                if (args.length > 0) handleChoice(vkId, args[0]);
+                break;
+            case "!статус":
+                showStatus(vkId);
+                break;
+            case "!герой":
+                showHeroMenu(vkId);
+                break;
+            case "!характеристики": case "!статы":
+                sendMessage(vkId, "📊 Характеристики пока в разработке!");
+                break;
+            case "!бой":
+                if (state.state == State.COMBAT) {
+                    showCombatUI(vkId);
+                } else {
+                    sendMessage(vkId, "❌ Нет активного боя.");
+                }
+                break;
+            case "!продолжить":
+                if (state.state == State.RESULT) {
+                    advanceStage(vkId);
+                }
+                break;
+            case "!забрать":
+                if (state.state == State.VICTORY) {
+                    claimRewards(vkId);
+                }
+                break;
+            case "!лечиться":
+                healPlayer(vkId);
+                break;
+        }
     }
 
-    // ═══ НАЧАЛО ПОХОДА ═══
-    public void startAdventure(int vkId, String route) {
-        if (active.containsKey(vkId)) {
-            sendMessage(vkId, "❌ У тебя уже есть активный поход!");
-            sendKeyboard(vkId, "Поход активен", OfflineKeyboardFactory.adventureChoices());
-            return;
-        }
+    // ═══ ПОКАЗ МЕНЮ ═══
+    private void showMenu(int vkId) {
+        PlayerState state = states.get(vkId);
+        if (state == null) state = new PlayerState();
+
+        // Проверка кулдауна
         if (injuries.containsKey(vkId) && System.currentTimeMillis() < injuries.get(vkId)) {
             long left = (injuries.get(vkId) - System.currentTimeMillis()) / 60000;
             sendMessage(vkId, "❌ Ты ранен! Подожди " + left + " мин.");
-            sendKeyboard(vkId, "Ранен", OfflineKeyboardFactory.afterDefeat());
+            sendKeyboard(vkId, "Ранен", Keyboards.afterDefeat());
             return;
         }
 
-        ActiveAdventure adv = new ActiveAdventure(vkId, "Игрок", route);
-        adv.nextEventTime = System.currentTimeMillis() + 10000;
-        active.put(vkId, adv);
+        state.state = State.MENU;
+        states.put(vkId, state);
+
+        String msg = "⛺ CHRDK ADVENTURES\n\n" +
+                "Выбери маршрут:\n" +
+                "🌲 Лес — легко\n" +
+                "⛏ Шахты — средне\n" +
+                "🏛 Руины — сложно\n" +
+                "🌿 Болота — яд\n" +
+                "🏰 Замок — очень сложно\n" +
+                "🔥 Незер — экстрим\n\n" +
+                "Нажми кнопку!";
+
+        sendMessage(vkId, msg);
+        sendKeyboard(vkId, "Выбери маршрут", Keyboards.routeSelection());
+    }
+
+    // ═══ НАЧАЛО ПОХОДА ═══
+    private void startAdventure(int vkId, String route) {
+        PlayerState state = states.getOrDefault(vkId, new PlayerState());
+
+        state.state = State.IN_ADVENTURE;
+        state.route = route;
+        state.stage = 0;
+        state.maxStages = 3;
+        state.hp = 100;
+        state.maxHp = 100;
+        state.supplies = 5;
+        state.morale = 100;
+        state.gold = 0;
+        state.xp = 0;
+        state.nextEventTime = System.currentTimeMillis() + 10000;
+
+        states.put(vkId, state);
 
         String msg = "🚶 Поход начат!\n\n" +
                 "📍 " + route + "\n" +
-                "👤 " + adv.playerName + "\n" +
-                "❤️ HP: " + adv.hp + "/" + adv.maxHp + "\n" +
-                "🥫 Припасы: " + adv.supplies + "\n" +
-                "📍 Этап: 0/" + adv.maxStages + "\n\n" +
+                "❤️ HP: " + state.hp + "/" + state.maxHp + "\n" +
+                "🥫 Припасы: " + state.supplies + "\n" +
+                "📍 Этап: 0/" + state.maxStages + "\n\n" +
                 "⏳ Первый выбор появится скоро...";
 
         sendMessage(vkId, msg);
-        sendKeyboard(vkId, "Поход начат!", OfflineKeyboardFactory.adventureChoices());
-        saveAll();
+        sendKeyboard(vkId, "Поход начат!", Keyboards.adventureChoices());
     }
 
     // ═══ СОЗДАНИЕ СОБЫТИЯ ═══
-    private void createEvent(ActiveAdventure adv) {
-        String[] types = {"combat", "combat", "trap", "survival", "treasure", "encounter", "combat", "boss"};
-        String type = adv.stage >= adv.maxStages ? "boss" : types[new Random().nextInt(types.length)];
+    private void createEvent(PlayerState state) {
+        String[] types = {"combat", "combat", "trap", "survival", "treasure", "combat"};
+        String type = state.stage >= state.maxStages ? "boss" : types[rand.nextInt(types.length)];
 
         String title = getEventTitle(type);
-        adv.pendingType = type;
-        adv.pendingTitle = title;
-        adv.waitingChoice = true;
-        adv.choiceDeadline = System.currentTimeMillis() + 300000;
-
-        String msg = "⚠ Выбор в походе\n\n" +
-                "📍 " + adv.route + " | Этап: " + (adv.stage + 1) + "/" + adv.maxStages + "\n" +
-                "❤️ HP: " + adv.hp + "/" + adv.maxHp + "\n" +
-                "🥫 " + adv.supplies + "   🧠 " + adv.morale + "%\n\n" +
-                "🎲 " + title + "\n" +
-                "⏳ Ответ: ~300 сек.\n\n" +
-                "Выбери действие кнопкой!";
-
-        sendMessage(adv.vkId, msg);
-
-        // Клавиатура зависит от типа события
-        if (isCombatEvent(type)) {
-            sendKeyboard(adv.vkId, "Бой!", OfflineKeyboardFactory.combatActions());
-        } else {
-            sendKeyboard(adv.vkId, "Выбор", OfflineKeyboardFactory.adventureChoices());
-        }
+        state.eventType = type;
+        state.eventTitle = title;
+        state.waitingChoice = true;
+        state.choiceDeadline = System.currentTimeMillis() + 300000;
+        state.state = State.CHOICE;
     }
 
     // ═══ ОБРАБОТКА ВЫБОРА ═══
-    public void handleChoice(int vkId, String[] args) {
-        ActiveAdventure adv = active.get(vkId);
-        if (adv == null || !adv.waitingChoice) {
+    private void handleChoice(int vkId, String choiceStr) {
+        PlayerState state = states.get(vkId);
+        if (state == null || state.state != State.CHOICE) {
             sendMessage(vkId, "❌ Нет активного выбора.");
             return;
         }
 
         int choice;
-        try { choice = Integer.parseInt(args[1]); } catch (Exception e) { choice = 1; }
+        try { choice = Integer.parseInt(choiceStr); } catch (Exception e) { choice = 1; }
 
-        // Если это бой — запускаем CombatManager
-        if (isCombatEvent(adv.pendingType)) {
-            String enemyName = adv.pendingTitle != null ? adv.pendingTitle : "Противник";
-            int enemyLevel = 5 + adv.stage * 3;
-            boolean isBoss = adv.pendingType.equals("boss") || adv.stage >= adv.maxStages;
-
-            var encounter = plugin.getCombatManager().startCombat(vkId, enemyName, enemyLevel, isBoss);
-            adv.waitingChoice = false;
-
-            sendMessage(vkId, encounter.getCombatDescription());
-            sendKeyboard(vkId, "Бой!", OfflineKeyboardFactory.combatActions());
+        // Если бой — запускаем бой
+        if (state.eventType.equals("combat") || state.eventType.equals("boss")) {
+            startCombat(vkId, choice);
             return;
         }
 
-        // Для не-боевых событий — стандартная обработка
-        resolveChoice(adv, choice, false);
+        // Не-боевое событие
+        resolveNonCombat(vkId, choice);
     }
 
-    // ═══ РЕШЕНИЕ НЕ-БОЕВОГО СОБЫТИЯ ═══
-    private void resolveChoice(ActiveAdventure adv, int choice, boolean timeout) {
-        Random rand = new Random();
+    // ═══ НАЧАЛО БОЯ ═══
+    private void startCombat(int vkId, int choice) {
+        PlayerState state = states.get(vkId);
+        state.state = State.COMBAT;
+        state.waitingChoice = false;
+
+        // Создаём врага
+        state.enemyName = state.eventTitle;
+        state.enemyMaxHp = 50 + (state.stage * 20) + (state.isBoss ? 100 : 0);
+        state.enemyHp = state.enemyMaxHp;
+        state.enemyAtk = 5 + (state.stage * 2);
+        state.enemyDef = 2 + state.stage;
+        state.round = 1;
+        state.maxRounds = state.isBoss ? 10 : 5;
+
+        showCombatUI(vkId);
+    }
+
+    // ═══ ПОКАЗ ИНТЕРФЕЙСЯ БОЯ ═══
+    private void showCombatUI(int vkId) {
+        PlayerState state = states.get(vkId);
+
+        String msg = "═══════════════════════════════════════\n" +
+                "⚔️ БОЙ: " + state.enemyName + "\n" +
+                "═══════════════════════════════════════\n\n" +
+                "❤️ Вы: " + state.hp + "/" + state.maxHp + " HP\n" +
+                "   " + getHpBar(state.hp, state.maxHp, 20) + "\n\n" +
+                "❤️ Враг: " + state.enemyHp + "/" + state.enemyMaxHp + " HP\n" +
+                "   " + getHpBar(state.enemyHp, state.enemyMaxHp, 20) + "\n\n" +
+                "┌─────────────────────────────────────┐\n" +
+                "│ Раунд " + state.round + "/" + state.maxRounds + "                           │\n" +
+                "│ [1] ⚔️ Атака  [2] 🛡️ Защита        │\n" +
+                "│ [3] 🔥 Способность  [4] 🧪 Зелье   │\n" +
+                "│ [5] 🏃 Побег                        │\n" +
+                "└─────────────────────────────────────┘";
+
+        sendMessage(vkId, msg);
+        sendKeyboard(vkId, "Бой!", Keyboards.combatActions());
+    }
+
+    // ═══ ОБРАБОТКА БОЕВОГО ДЕЙСТВИЯ ═══
+    public void handleCombatAction(int vkId, int action) {
+        PlayerState state = states.get(vkId);
+        if (state == null || state.state != State.COMBAT) return;
+
+        String result = "";
+        boolean playerDefending = false;
+
+        // Ход игрока
+        switch (action) {
+            case 1: // Атака
+                int playerDmg = Math.max(1, (10 + rand.nextInt(5)) - state.enemyDef);
+                state.enemyHp -= playerDmg;
+                result += "⚔️ Вы наносите удар! → " + playerDmg + " урона!\n";
+                break;
+            case 2: // Защита
+                playerDefending = true;
+                result += "🛡️ Вы в защитной стойке!\n";
+                break;
+            case 3: // Способность
+                int skillDmg = Math.max(1, (15 + rand.nextInt(8)) - state.enemyDef);
+                state.enemyHp -= skillDmg;
+                result += "🔥 Способность! → " + skillDmg + " урона!\n";
+                break;
+            case 4: // Зелье
+                int heal = 20 + rand.nextInt(10);
+                state.hp = Math.min(state.maxHp, state.hp + heal);
+                result += "🧪 Зелье! → +" + heal + " HP!\n";
+                break;
+            case 5: // Побег
+                if (!state.isBoss && rand.nextInt(100) < 30) {
+                    result += "🏃 Вы сбежали!\n";
+                    state.state = State.RESULT;
+                    sendMessage(vkId, result);
+                    sendKeyboard(vkId, "Побег", Keyboards.afterChoice());
+                    return;
+                }
+                result += "🏃 Побег не удался!\n";
+                break;
+        }
+
+        // Проверка победы
+        if (state.enemyHp <= 0) {
+            state.state = State.VICTORY;
+            result += "\n☠️ Враг повержен!\n";
+            result += "🏆 +" + (10 + state.stage * 5) + " репутации\n";
+            result += "✨ +" + (8 + state.stage * 3) + " XP\n";
+            result += "🪙 +" + (1 + rand.nextInt(3)) + " золота\n";
+
+            sendMessage(vkId, result);
+            sendKeyboard(vkId, "Победа!", Keyboards.afterVictory());
+            return;
+        }
+
+        // Ход врага
+        int enemyDmg = Math.max(1, (state.enemyAtk + rand.nextInt(3)) - (playerDefending ? 5 : 0));
+        if (rand.nextDouble() < 0.1) { // 10% уклонение
+            result += "💨 Вы уклонились!";
+        } else {
+            state.hp -= enemyDmg;
+            result += "💥 Враг атакует! → " + enemyDmg + " урона!";
+        }
+
+        // Проверка смерти
+        if (state.hp <= 0) {
+            state.state = State.DEAD;
+            result += "\n\n💀 Вы погибли!";
+            sendMessage(vkId, result);
+            sendKeyboard(vkId, "Поражение", Keyboards.afterDefeat());
+            injuries.put(vkId, System.currentTimeMillis() + 43200000); // 12 часов
+            return;
+        }
+
+        // Следующий раунд
+        state.round++;
+        if (state.round > state.maxRounds) {
+            state.state = State.DEAD;
+            result += "\n\n⏰ Время боя истекло!";
+            sendMessage(vkId, result);
+            sendKeyboard(vkId, "Время вышло", Keyboards.afterDefeat());
+            return;
+        }
+
+        // Показать результат и следующий раунд
+        result += "\n\nРаунд " + state.round + "/" + state.maxRounds;
+        sendMessage(vkId, result);
+        showCombatUI(vkId);
+    }
+
+    // ═══ НЕ-БОЕВОЕ СОБЫТИЕ ═══
+    private void resolveNonCombat(int vkId, int choice) {
+        PlayerState state = states.get(vkId);
+        state.waitingChoice = false;
+
         int roll = rand.nextInt(20) + 1;
         boolean success = roll >= 10;
 
-        StringBuilder msg = new StringBuilder();
-        if (timeout) msg.append("⏱ Авто-выбор\n\n");
-        else msg.append("✅ Выбор принят\n\n");
-
-        msg.append("🎲 ").append(adv.pendingTitle).append("\n");
-        msg.append("🎲 d20: ").append(roll).append(" vs DC 10\n\n");
+        String msg = "✅ Выбор принят\n\n";
+        msg += "🎲 " + state.eventTitle + "\n";
+        msg += "🎲 d20: " + roll + " vs DC 10\n\n";
 
         if (success) {
-            int repReward = 10 + adv.stage * 5;
-            int xp = 8 + adv.stage * 3;
-            adv.xpGained += xp;
-            adv.gold += rand.nextInt(5) + 1;
-            adv.morale = Math.min(100, adv.morale + 5);
+            int rep = 10 + state.stage * 5;
+            int xp = 8 + state.stage * 3;
+            state.xp += xp;
+            state.gold += rand.nextInt(5) + 1;
+            state.morale = Math.min(100, state.morale + 5);
 
-            try { VKChatPlugin.getInstance().getApi().addReputation(adv.vkId, repReward); } catch (Exception ignored) {}
+            try { VKChatPlugin.getInstance().getApi().addReputation(vkId, rep); } catch (Exception ignored) {}
 
-            msg.append("✨ Исход: успех\n");
-            msg.append("💚 +" + repReward + " репутации | +" + xp + " XP\n");
-            msg.append("🪙 +" + adv.gold + " золота\n");
+            msg += "✨ Успех!\n";
+            msg += "💚 +" + rep + " репутации | +" + xp + " XP\n";
+            msg += "🪙 +" + state.gold + " золота";
         } else {
             int damage = 5 + rand.nextInt(10);
-            adv.hp -= damage;
-            adv.morale = Math.max(0, adv.morale - 10);
+            state.hp -= damage;
+            state.morale = Math.max(0, state.morale - 10);
 
-            msg.append("💥 Исход: неудача\n");
-            msg.append("🩸 Потеряно HP: " + damage + "\n");
-            msg.append("❤️ Осталось: " + adv.hp + "/" + adv.maxHp + "\n");
+            msg += "💥 Неудача!\n";
+            msg += "🩸 -" + damage + " HP\n";
+            msg += "❤️ HP: " + state.hp + "/" + state.maxHp;
 
-            if (adv.hp <= 0) {
-                killAdventure(adv, "Поражение в походе");
-                sendMessage(adv.vkId, msg.toString());
-                sendKeyboard(adv.vkId, "Поражение", OfflineKeyboardFactory.afterDefeat());
+            if (state.hp <= 0) {
+                state.state = State.DEAD;
+                msg += "\n\n💀 Вы погибли!";
+                sendMessage(vkId, msg);
+                sendKeyboard(vkId, "Поражение", Keyboards.afterDefeat());
+                injuries.put(vkId, System.currentTimeMillis() + 43200000);
                 return;
             }
         }
 
-        adv.stage++;
-        adv.waitingChoice = false;
+        state.state = State.RESULT;
+        sendMessage(vkId, msg);
+        sendKeyboard(vkId, "Результат", Keyboards.afterChoice());
+    }
 
-        if (adv.stage >= adv.maxStages) {
-            finishAdventure(adv);
+    // ═══ ПРОДОЛЖЕНИЕ ПОХОДА ═══
+    private void advanceStage(int vkId) {
+        PlayerState state = states.get(vkId);
+        state.stage++;
+
+        if (state.stage >= state.maxStages) {
+            // Поход завершён
+            state.state = State.VICTORY;
+            int totalRep = 50 + state.stage * 20 + state.gold;
+
+            try { VKChatPlugin.getInstance().getApi().addReputation(vkId, totalRep); } catch (Exception ignored) {}
+
+            String msg = "✅ Поход завершён!\n\n" +
+                    "📍 Этапов: " + state.stage + "/" + state.maxStages + "\n" +
+                    "❤️ HP: " + state.hp + "/" + state.maxHp + "\n" +
+                    "💰 Золото: " + state.gold + "\n" +
+                    "✨ XP: " + state.xp + "\n\n" +
+                    "🏆 Награда: +" + totalRep + " репутации";
+
+            sendMessage(vkId, msg);
+            sendKeyboard(vkId, "Успех!", Keyboards.afterAdventure());
         } else {
-            adv.nextEventTime = System.currentTimeMillis() + 30000;
-            msg.append("\n📍 Прогресс: ").append(adv.stage).append("/").append(adv.maxStages);
-            sendMessage(adv.vkId, msg.toString());
-            sendKeyboard(adv.vkId, "Продолжить", OfflineKeyboardFactory.afterChoice());
+            // Следующее событие
+            state.state = State.IN_ADVENTURE;
+            state.nextEventTime = System.currentTimeMillis() + 30000;
+            sendMessage(vkId, "📍 Этап: " + state.stage + "/" + state.maxStages + "\n⏳ Следующее событие через 30 сек...");
+            sendKeyboard(vkId, "Поход", Keyboards.adventureChoices());
         }
     }
 
-    // ═══ ОБРАБОТКА БОЕВЫХ ДЕЙСТВИЙ ═══
-    public void handleCombatAction(int vkId, CombatManager.CombatAction action) {
-        if (!plugin.getCombatManager().isInCombat(vkId)) {
-            sendMessage(vkId, "❌ Нет активного боя.");
+    // ═══ ЗАБОР НАГРАД ═══
+    private void claimRewards(int vkId) {
+        PlayerState state = states.get(vkId);
+        state.state = State.MENU;
+
+        sendMessage(vkId, "🎁 Награды получены! Проверь инвентарь.");
+        sendKeyboard(vkId, "Меню", Keyboards.routeSelection());
+    }
+
+    // ═══ ЛЕЧЕНИЕ ═══
+    private void healPlayer(int vkId) {
+        PlayerState state = states.get(vkId);
+        if (state == null) return;
+
+        if (state.hp >= state.maxHp) {
+            sendMessage(vkId, "✅ Ты полностью здоров!");
+        } else {
+            int heal = state.maxHp - state.hp;
+            state.hp = state.maxHp;
+            sendMessage(vkId, "💚 Вылечен! +" + heal + " HP");
+        }
+        sendKeyboard(vkId, "Герой", Keyboards.heroMenu());
+    }
+
+    // ═══ ПОКАЗ СТАТУСА ═══
+    private void showStatus(int vkId) {
+        PlayerState state = states.get(vkId);
+        if (state == null || state.state == State.MENU) {
+            sendMessage(vkId, "❌ Нет активного похода.");
             return;
         }
 
-        var result = plugin.getCombatManager().processAction(vkId, action);
-        sendMessage(vkId, result.message);
+        String msg = "📊 Статус похода\n\n" +
+                "📍 " + state.route + " | Этап: " + state.stage + "/" + state.maxStages + "\n" +
+                "❤️ HP: " + state.hp + "/" + state.maxHp + "\n" +
+                "🥫 Припасы: " + state.supplies + "\n" +
+                "🧠 Мораль: " + state.morale + "%\n" +
+                "🪙 Золото: " + state.gold + "\n" +
+                "✨ XP: " + state.xp;
 
-        if (result.success && result.encounter != null) {
-            // Бой продолжается
-            sendMessage(vkId, result.encounter.getCombatDescription());
-            sendKeyboard(vkId, "Раунд " + result.encounter.round, OfflineKeyboardFactory.combatActions());
-        } else if (result.success && result.encounter == null) {
-            // Победа
-            sendMessage(vkId, result.getResultDescription());
-
-            if (result.rewards != null) {
-                int rep = result.rewards.getOrDefault("reputation", 0);
-                int xp = result.rewards.getOrDefault("xp", 0);
-                plugin.getRewardManager().grantAdventureReward(vkId, result.loot, rep, xp);
-
-                ActiveAdventure adv = active.get(vkId);
-                if (adv != null) {
-                    adv.xpGained += xp;
-                    adv.gold += result.rewards.getOrDefault("gold", 0);
-                    adv.stage++;
-                    adv.waitingChoice = false;
-
-                    if (adv.stage >= adv.maxStages) {
-                        finishAdventure(adv);
-                    } else {
-                        adv.nextEventTime = System.currentTimeMillis() + 5000;
-                        sendMessage(vkId, "📍 Прогресс: " + adv.stage + "/" + adv.maxStages);
-                        sendKeyboard(vkId, "Победа!", OfflineKeyboardFactory.afterVictory());
-                    }
-                }
-            }
-        } else {
-            // Поражение
-            sendMessage(vkId, result.getResultDescription());
-            ActiveAdventure adv = active.get(vkId);
-            if (adv != null) killAdventure(adv, "Поражение в бою");
-            sendKeyboard(vkId, "Поражение", OfflineKeyboardFactory.afterDefeat());
-        }
+        sendMessage(vkId, msg);
     }
 
-    // ═══ ТИК — проверка событий ═══
-    private void startTickTask() {
-        new org.bukkit.scheduler.BukkitRunnable() {
-            @Override public void run() {
-                long now = System.currentTimeMillis();
-                for (ActiveAdventure adv : active.values()) {
-                    if (adv.waitingChoice) {
-                        if (now >= adv.choiceDeadline) {
-                            resolveChoice(adv, new Random().nextInt(4) + 1, true);
-                        }
-                    } else if (now >= adv.nextEventTime) {
-                        createEvent(adv);
-                    }
-                }
-            }
-        }.runTaskTimer(plugin, 600L, 600L);
-    }
-
-    // ═══ ЗАВЕРШЕНИЕ ПОХОДА ═══
-    private void finishAdventure(ActiveAdventure adv) {
-        int baseRep = 50 + adv.stage * 20;
-        int totalRep = baseRep + adv.gold;
-        int xp = adv.xpGained;
-
-        try { VKChatPlugin.getInstance().getApi().addReputation(adv.vkId, totalRep); } catch (Exception ignored) {}
-        plugin.getCharacterManager().addXp(adv.vkId, xp);
-
-        var loot = plugin.getLootManager().generateLoot(adv.stage * 5, adv.route, false);
-        plugin.getRewardManager().grantAdventureReward(adv.vkId, loot, 0, 0);
-
-        var chapter = plugin.getCampaignManager().getCurrentChapter(adv.vkId);
-        if (chapter != null && adv.route.equalsIgnoreCase(chapter.route)) {
-            plugin.getCampaignManager().completeChapter(adv.vkId, chapter.id);
-            plugin.getRewardManager().grantChapterReward(adv.vkId, chapter.id);
-        }
-
-        String msg = "✅ Поход завершен!\n\n" +
-                "📍 Этапов: " + adv.stage + "/" + adv.maxStages + "\n" +
-                "❤️ HP: " + adv.hp + "/" + adv.maxHp + "\n" +
-                "💰 Золото: " + adv.gold + "\n" +
-                "✨ XP: " + xp + "\n\n" +
-                "🏆 Награда: +" + totalRep + " репутации\n" +
-                "📦 Предметы в тайнике: /stash";
-
-        sendMessage(adv.vkId, msg);
-        sendKeyboard(adv.vkId, "Успех!", OfflineKeyboardFactory.afterAdventure());
-
-        active.remove(adv.vkId);
-        saveAll();
-    }
-
-    // ═══ СМЕРТЬ ═══
-    private void killAdventure(ActiveAdventure adv, String reason) {
-        cooldowns.put(adv.vkId, System.currentTimeMillis() + 14400000);
-        injuries.put(adv.vkId, System.currentTimeMillis() + 43200000);
-        active.remove(adv.vkId);
-        saveAll();
+    // ═══ МЕНЮ ГЕРОЯ ═══
+    private void showHeroMenu(int vkId) {
+        sendMessage(vkId, "👤 Меню героя\n\nВыбери раздел:");
+        sendKeyboard(vkId, "Герой", Keyboards.heroMenu());
     }
 
     // ═══ ВСПОМОГАТЕЛЬНЫЕ МЕТОДЫ ═══
-    private boolean isCombatEvent(String type) {
-        return type.equals("combat") || type.equals("boss") || type.equals("ambush");
-    }
-
     private String getEventTitle(String type) {
         switch (type) {
             case "combat": return "⚔ Бой с противником";
@@ -324,9 +468,15 @@ public class AdventureManager implements Listener {
             case "trap": return "🪤 Ловушка";
             case "survival": return "🌿 Выживание";
             case "treasure": return "💰 Сокровище";
-            case "encounter": return "👤 Встреча";
             default: return "🎲 Событие";
         }
+    }
+
+    private String getHpBar(int current, int max, int length) {
+        int filled = (int)((double) current / max * length);
+        StringBuilder bar = new StringBuilder();
+        for (int i = 0; i < length; i++) bar.append(i < filled ? "█" : "░");
+        return bar.toString();
     }
 
     private void sendMessage(int vkId, String msg) {
@@ -337,188 +487,41 @@ public class AdventureManager implements Listener {
         try { VKChatPlugin.getInstance().getApi().sendKeyboard(vkId, title, keyboard); } catch (Exception ignored) {}
     }
 
-    // ═══ ПОКАЗ СТАТУСА ═══
-    public void showStatus(int vkId) {
-        ActiveAdventure adv = active.get(vkId);
-        if (adv == null) { sendMessage(vkId, "❌ Нет активного похода."); return; }
+    // ═══ ТИК ═══
+    private void startTickTask() {
+        new org.bukkit.scheduler.BukkitRunnable() {
+            @Override public void run() {
+                long now = System.currentTimeMillis();
+                for (Map.Entry<Integer, PlayerState> entry : states.entrySet()) {
+                    PlayerState state = entry.getValue();
+                    if (state.state == State.IN_ADVENTURE && now >= state.nextEventTime) {
+                        createEvent(state);
+                        showChoiceUI(entry.getKey());
+                    } else if (state.state == State.CHOICE && state.waitingChoice && now >= state.choiceDeadline) {
+                        resolveNonCombat(entry.getKey(), rand.nextInt(4) + 1);
+                    }
+                }
+            }
+        }.runTaskTimer(plugin, 600L, 600L);
+    }
 
-        String msg = "📊 Статус похода\n\n" +
-                "📍 " + adv.route + " | Этап: " + adv.stage + "/" + adv.maxStages + "\n" +
-                "❤️ HP: " + adv.hp + "/" + adv.maxHp + "\n" +
-                "🥫 Припасы: " + adv.supplies + "\n" +
-                "🧠 Мораль: " + adv.morale + "%\n" +
-                "🪙 Золото: " + adv.gold + "\n" +
-                "✨ XP: " + adv.xpGained;
+    private void showChoiceUI(int vkId) {
+        PlayerState state = states.get(vkId);
+        String msg = "⚠ Выбор в походе\n\n" +
+                "📍 " + state.route + " | Этап: " + (state.stage + 1) + "/" + state.maxStages + "\n" +
+                "❤️ HP: " + state.hp + "/" + state.maxHp + "\n" +
+                "🥫 " + state.supplies + "   🧠 " + state.morale + "%\n\n" +
+                "🎲 " + state.eventTitle + "\n" +
+                "⏳ Ответ: ~300 сек.";
 
         sendMessage(vkId, msg);
-    }
 
-    // ═══ ПОКАЗ ГЕРОЯ ═══
-    public void showHero(int vkId) {
-        String info = plugin.getCharacterManager().getCharacterInfo(vkId);
-        sendMessage(vkId, info);
-        sendKeyboard(vkId, "Герой", OfflineKeyboardFactory.heroMenu());
-    }
-
-    // ═══ ПОКАЗ НАВЫКОВ ═══
-    public void showSkills(int vkId) {
-        String info = plugin.getSkillTreeManager().getSkillTreeInfo(vkId);
-        sendMessage(vkId, info);
-        sendKeyboard(vkId, "Навыки", OfflineKeyboardFactory.skillTree());
-    }
-
-    // ═══ ПОКАЗ КАМПАНИИ ═══
-    public void showCampaign(int vkId) {
-        String info = plugin.getCampaignManager().getCampaignInfo(vkId);
-        sendMessage(vkId, info);
-        sendKeyboard(vkId, "Кампания", OfflineKeyboardFactory.campaignMenu());
-    }
-
-    // ═══ ОБРАБОТКА КОМАНД ═══
-    public void handleCommand(int vkId, String cmd, String[] args) {
-        switch (cmd) {
-            case "!поход": case "!походы": showMenu(vkId); break;
-            case "!пойти": if (args.length > 0) startAdventure(vkId, args[0]); break;
-            case "!выбор": handleChoice(vkId, args); break;
-            case "!статус": showStatus(vkId); break;
-            case "!герой": showHero(vkId); break;
-            case "!навыки": showSkills(vkId); break;
-            case "!кампания": showCampaign(vkId); break;
-            case "!характеристики": case "!статы":
-                sendMessage(vkId, plugin.getCharacterManager().getCharacterInfo(vkId));
-                sendKeyboard(vkId, "Характеристики", OfflineKeyboardFactory.heroMenu());
-                break;
-            case "!бой":
-                if (plugin.getCombatManager().isInCombat(vkId)) {
-                    var encounter = plugin.getCombatManager().getActiveCombat(vkId);
-                    sendMessage(vkId, encounter.getCombatDescription());
-                    sendKeyboard(vkId, "Бой", OfflineKeyboardFactory.combatActions());
-                } else {
-                    sendMessage(vkId, "❌ Нет активного боя.");
-                    sendKeyboard(vkId, "Меню", OfflineKeyboardFactory.routeSelection());
-                }
-                break;
-            case "!продолжить":
-                handleContinue(vkId);
-                break;
-            case "!забрать":
-                handleClaimLoot(vkId);
-                break;
-            case "!лечиться":
-                handleHeal(vkId);
-                break;
-            case "!глава":
-                if (args.length > 0) {
-                    try {
-                        int chapter = Integer.parseInt(args[0]);
-                        plugin.getCampaignManager().completeChapter(vkId, chapter);
-                        plugin.getRewardManager().grantChapterReward(vkId, chapter);
-                        sendMessage(vkId, "✅ Глава " + chapter + " завершена!");
-                    } catch (Exception e) {
-                        sendMessage(vkId, "❌ Неверный номер главы.");
-                    }
-                }
-                break;
-            case "!класс":
-                if (args.length > 0) {
-                    var character = plugin.getCharacterManager().getCharacter(vkId);
-                    character.className = args[0];
-                    sendMessage(vkId, "✅ Класс выбран: " + args[0]);
-                    sendKeyboard(vkId, "Герой", OfflineKeyboardFactory.heroMenu());
-                } else {
-                    sendKeyboard(vkId, "Выбор класса", OfflineKeyboardFactory.classSelection());
-                }
-                break;
-            case "!спутник":
-                if (args.length > 0) {
-                    var character = plugin.getCharacterManager().getCharacter(vkId);
-                    character.companionId = args[0];
-                    sendMessage(vkId, "✅ Спутник выбран: " + args[0]);
-                    sendKeyboard(vkId, "Герой", OfflineKeyboardFactory.heroMenu());
-                } else {
-                    sendKeyboard(vkId, "Выбор спутника", OfflineKeyboardFactory.companionSelection());
-                }
-                break;
-            case "!лавка": case "!магазин":
-                sendKeyboard(vkId, "Лавка", OfflineKeyboardFactory.shopMenu());
-                break;
-            case "!навык":
-                if (args.length > 0) {
-                    var character = plugin.getCharacterManager().getCharacter(vkId);
-                    boolean success = plugin.getSkillTreeManager().learnSkill(vkId, args[0], character);
-                    if (success) {
-                        sendMessage(vkId, "✅ Навык изучен!");
-                    } else {
-                        sendMessage(vkId, "❌ Не удалось изучить навык.");
-                    }
-                }
-                showSkills(vkId);
-                break;
-            case "!госпиталь":
-                sendKeyboard(vkId, "Госпиталь", OfflineKeyboardFactory.hospital());
-                break;
-            case "!тайник": case "!стеш":
-                sendKeyboard(vkId, "Тайник", OfflineKeyboardFactory.stashMenu());
-                break;
-            default:
-                showMenu(vkId);
-                break;
-        }
-    }
-
-    // ═══ ОБРАБОТКА ПРОДОЛЖЕНИЯ ═══
-    private void handleContinue(int vkId) {
-        ActiveAdventure adv = active.get(vkId);
-        if (adv == null) {
-            sendMessage(vkId, "❌ Нет активного похода.");
-            sendKeyboard(vkId, "Меню", OfflineKeyboardFactory.routeSelection());
-            return;
-        }
-        if (adv.waitingChoice) {
-            sendMessage(vkId, "⏳ Ожидание выбора...");
-            if (isCombatEvent(adv.pendingType)) {
-                sendKeyboard(vkId, "Бой", OfflineKeyboardFactory.combatActions());
-            } else {
-                sendKeyboard(vkId, "Выбор", OfflineKeyboardFactory.adventureChoices());
-            }
+        if (state.eventType.equals("combat") || state.eventType.equals("boss")) {
+            sendKeyboard(vkId, "Бой!", Keyboards.combatActions());
         } else {
-            sendMessage(vkId, "⏳ Следующее событие скоро...");
-            sendKeyboard(vkId, "Поход", OfflineKeyboardFactory.adventureChoices());
+            sendKeyboard(vkId, "Выбор", Keyboards.adventureChoices());
         }
     }
 
-    // ═══ ОБРАБОТКА ЗАБОРА ЛУТА ═══
-    private void handleClaimLoot(int vkId) {
-        var rewards = plugin.getRewardManager().getPendingRewards(vkId);
-        if (rewards != null && !rewards.isEmpty()) {
-            // Предметы уже выдаются при входе на сервер
-            sendMessage(vkId, "✅ Лут забран! Проверь инвентарь на сервере.");
-        } else {
-            sendMessage(vkId, "❌ Нет лута для забора.");
-        }
-        sendKeyboard(vkId, "Меню", OfflineKeyboardFactory.routeSelection());
-    }
-
-    // ═══ ОБРАБОТКА ЛЕЧЕНИЯ ═══
-    private void handleHeal(int vkId) {
-        var character = plugin.getCharacterManager().getCharacter(vkId);
-        if (character.hp >= character.maxHp) {
-            sendMessage(vkId, "✅ Ты полностью здоров!");
-        } else {
-            int healAmount = character.maxHp - character.hp;
-            character.hp = character.maxHp;
-            sendMessage(vkId, "💚 Вылечен! +" + healAmount + " HP");
-        }
-        sendKeyboard(vkId, "Герой", OfflineKeyboardFactory.heroMenu());
-    }
-
-    // ═══ СОХРАНЕНИЕ/ЗАГРУЗКА ═══
-    public void loadAll() {
-        if (!plugin.getDataFolder().exists()) plugin.getDataFolder().mkdirs();
-        data = YamlConfiguration.loadConfiguration(file);
-    }
-
-    public void saveAll() {
-        try { data.save(file); } catch (Exception ignored) {}
-    }
+    public void saveAll() {}
 }

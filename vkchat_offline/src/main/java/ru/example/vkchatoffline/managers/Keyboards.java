@@ -3,13 +3,12 @@ package ru.example.vkchatoffline.managers;
 import java.util.*;
 
 /**
- * VK клавиатуры для офлайн-походов
- * Каждое действие = своя клавиатура
+ * VK клавиатуры — каждое состояние = своя клавиатура
  */
-public final class OfflineKeyboardFactory {
-    private OfflineKeyboardFactory() {}
+public final class Keyboards {
+    private Keyboards() {}
 
-    public static String btn(String label, String command, String color) {
+    private static String btn(String label, String command, String color) {
         String payload = "{\"cmd\":\"" + command.replace("\\", "\\\\").replace("\"", "\\\"") + "\"}";
         return "{\"action\":{\"type\":\"text\",\"label\":\"" + label.replace("\"", "'") + "\",\"payload\":\"" + payload.replace("\"", "\\\"") + "\"},\"color\":\"" + color + "\"}";
     }
@@ -28,17 +27,17 @@ public final class OfflineKeyboardFactory {
         return sb.toString();
     }
 
-    // ═══ ГЛАВНОЕ МЕНЮ (выбор маршрута) ═══
+    // ═══ МЕНЮ ВЫБОРА МАРШРУТА ═══
     public static String routeSelection() {
         return keyboard(
                 row(btn("🌲 Лес", "!пойти лес", "primary"), btn("⛏ Шахты", "!пойти шахты", "primary")),
                 row(btn("🏛 Руины", "!пойти руины", "primary"), btn("🌿 Болота", "!пойти болота", "primary")),
                 row(btn("🏰 Замок", "!пойти замок", "primary"), btn("🔥 Незер", "!пойти незер", "primary")),
-                row(btn("👤 Герой", "!герой", "secondary"), btn("📖 Кампания", "!кампания", "secondary"))
+                row(btn("👤 Герой", "!герой", "secondary"))
         );
     }
 
-    // ═══ КЛАВИАТУРА ВО ВРЕМЯ ПОХОДА (выбор действия) ═══
+    // ═══ ВЫБОР ДЕЙСТВИЯ В ПОХОДЕ ═══
     public static String adventureChoices() {
         return keyboard(
                 row(btn("⚔ Рискнуть", "!выбор 1", "negative"), btn("🛡 Осторожно", "!выбор 2", "positive")),
@@ -47,7 +46,7 @@ public final class OfflineKeyboardFactory {
         );
     }
 
-    // ═══ КЛАВИАТУРА БОЯ (пошаговый бой) ═══
+    // ═══ БОЕВЫЕ ДЕЙСТВИЯ ═══
     public static String combatActions() {
         return keyboard(
                 row(btn("⚔ Атака", "!выбор 1", "negative"), btn("🛡 Защита", "!выбор 2", "positive")),
@@ -56,45 +55,41 @@ public final class OfflineKeyboardFactory {
         );
     }
 
-    // ═══ КЛАВИАТУРА ПОСЛЕ ВЫБОРА (продолжить) ═══
+    // ═══ ПОСЛЕ ВЫБОРА ═══
     public static String afterChoice() {
         return keyboard(
                 row(btn("▶ Продолжить", "!продолжить", "primary")),
-                row(btn("📊 Статус", "!статус", "secondary"), btn("🎒 Тайник", "!тайник", "positive"))
+                row(btn("📊 Статус", "!статус", "secondary"))
         );
     }
 
-    // ═══ КЛАВИАТУРА ПОСЛЕ ПОБЕДЫ В БОЮ ═══
+    // ═══ ПОСЛЕ ПОБЕДЫ ═══
     public static String afterVictory() {
         return keyboard(
-                row(btn("🎉 Забрать лут", "!забрать", "positive")),
-                row(btn("▶ Продолжить поход", "!продолжить", "primary")),
-                row(btn("📊 Статус", "!статус", "secondary"), btn("🎒 Тайник", "!тайник", "positive"))
+                row(btn("▶ Продолжить", "!продолжить", "primary")),
+                row(btn("📊 Статус", "!статус", "secondary"))
         );
     }
 
-    // ═══ КЛАВИАТУРА ПОСЛЕ ПОРАЖЕНИЯ ═══
+    // ═══ ПОСЛЕ ПОРАЖЕНИЯ ═══
     public static String afterDefeat() {
         return keyboard(
-                row(btn("🏥 Лечение", "!лечиться", "positive")),
                 row(btn("🏠 На главную", "!походы", "primary"))
         );
     }
 
-    // ═══ КЛАВИАТУРА ПОСЛЕ ЗАВЕРШЕНИЯ ПОХОДА ═══
+    // ═══ ПОСЛЕ ЗАВЕРШЕНИЯ ПОХОДА ═══
     public static String afterAdventure() {
         return keyboard(
-                row(btn("🎒 Забрать лут", "!забрать", "positive")),
-                row(btn("🏠 На главную", "!походы", "primary")),
-                row(btn("👤 Герой", "!герой", "secondary"), btn("📖 Кампания", "!кампания", "secondary"))
+                row(btn("🏠 На главную", "!походы", "primary"))
         );
     }
 
     // ═══ МЕНЮ ГЕРОЯ ═══
     public static String heroMenu() {
         return keyboard(
-                row(btn("📊 Характеристики", "!характеристики", "primary"), btn("🌳 Навыки", "!навыки", "primary")),
-                row(btn("📖 Кампания", "!кампания", "primary"), btn("🎒 Тайник", "!тайник", "positive")),
+                row(btn("📊 Характеристики", "!характеристики", "primary"), btn("📖 Кампания", "!кампания", "primary")),
+                row(btn("🎒 Тайник", "!тайник", "positive"), btn("💊 Лечение", "!лечиться", "positive")),
                 row(btn("⬅ Назад", "!походы", "secondary"))
         );
     }
@@ -114,10 +109,6 @@ public final class OfflineKeyboardFactory {
                 row(btn("📖 Глава 1", "!глава 1", "primary"), btn("📖 Глава 2", "!глава 2", "primary")),
                 row(btn("📖 Глава 3", "!глава 3", "primary"), btn("📖 Глава 4", "!глава 4", "primary")),
                 row(btn("📖 Глава 5", "!глава 5", "primary"), btn("📖 Глава 6", "!глава 6", "primary")),
-                row(btn("📖 Глава 7", "!глава 7", "primary"), btn("📖 Глава 8", "!глава 8", "primary")),
-                row(btn("📖 Глава 9", "!глава 9", "primary"), btn("📖 Глава 10", "!глава 10", "primary")),
-                row(btn("📖 Глава 11", "!глава 11", "primary"), btn("📖 Глава 12", "!глава 12", "primary")),
-                row(btn("📖 Глава 13", "!глава 13", "primary")),
                 row(btn("⬅ Назад", "!герой", "secondary"))
         );
     }
@@ -128,8 +119,7 @@ public final class OfflineKeyboardFactory {
                 row(btn("⚔ Воин", "!класс warrior", "negative"), btn("🏹 Следопыт", "!класс scout", "positive")),
                 row(btn("🔮 Маг", "!класс mage", "primary"), btn("🕯 Жрец", "!класс cleric", "secondary")),
                 row(btn("🗡 Разбойник", "!класс rogue", "negative"), btn("🛡 Паладин", "!класс paladin", "positive")),
-                row(btn("🎯 Рейнджер", "!класс ranger", "primary")),
-                row(btn("⬅ Назад", "!герой", "secondary"))
+                row(btn("🎯 Рейнджер", "!класс ranger", "primary"))
         );
     }
 
@@ -139,8 +129,7 @@ public final class OfflineKeyboardFactory {
                 row(btn("🐺 Волк", "!спутник wolf", "negative"), btn("🦅 Ворон", "!спутник raven", "positive")),
                 row(btn("🧪 Алхимик", "!спутник alchemist", "primary"), btn("🐴 Мул", "!спутник mule", "secondary")),
                 row(btn("🐻 Медведь", "!спутник bear", "negative"), btn("🦉 Сова", "!спутник owl", "positive")),
-                row(btn("🐍 Змея", "!спутник snake", "primary"), btn("🐲 Дракон", "!спутник dragon_whelp", "secondary")),
-                row(btn("⬅ Назад", "!герой", "secondary"))
+                row(btn("🐍 Змея", "!спутник snake", "primary"), btn("🐲 Дракон", "!спутник dragon_whelp", "secondary"))
         );
     }
 

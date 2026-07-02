@@ -19,16 +19,8 @@ public class OfflineListener implements Listener {
     public void onVKCommand(VKCommandEvent e) {
         if (e.isCancelled()) return;
         String cmd = e.getCommand().toLowerCase();
-        int peer = e.getPeerId();
         int sender = e.getSenderVkId();
         String[] args = e.getArgs();
-
-        // Команда смены
-        if (cmd.equals("!смена")) {
-            plugin.getShiftManager().handleCommand(peer, sender, null, args);
-            e.setCancelled(true);
-            return;
-        }
 
         // Все команды походов
         plugin.getAdventureManager().handleCommand(sender, cmd, args);
@@ -68,19 +60,7 @@ public class OfflineListener implements Listener {
         else if (msg.contains("герой") || msg.contains("👤")) {
             plugin.getAdventureManager().handleCommand(sender, "!герой", new String[]{});
             e.setCancelled(true);
-        } else if (msg.contains("тайник") || msg.contains("🎒")) {
-            plugin.getAdventureManager().handleCommand(sender, "!тайник", new String[]{});
-            e.setCancelled(true);
-        } else if (msg.contains("навыки") || msg.contains("🌳")) {
-            plugin.getAdventureManager().handleCommand(sender, "!навыки", new String[]{});
-            e.setCancelled(true);
-        } else if (msg.contains("кампания") || msg.contains("📖")) {
-            plugin.getAdventureManager().handleCommand(sender, "!кампания", new String[]{});
-            e.setCancelled(true);
-        } else if (msg.contains("характеристики") || msg.contains("статы") || msg.contains("📊")) {
-            plugin.getAdventureManager().handleCommand(sender, "!характеристики", new String[]{});
-            e.setCancelled(true);
-        } else if (msg.contains("статус")) {
+        } else if (msg.contains("статус") || msg.contains("📊")) {
             plugin.getAdventureManager().handleCommand(sender, "!статус", new String[]{});
             e.setCancelled(true);
         }
@@ -102,19 +82,19 @@ public class OfflineListener implements Listener {
 
         // ═══ БОЙ ═══
         else if (msg.contains("атака") || msg.contains("⚔")) {
-            plugin.getAdventureManager().handleCombatAction(sender, ru.example.vkchatoffline.combat.CombatManager.CombatAction.ATTACK);
+            plugin.getAdventureManager().handleCombatAction(sender, 1);
             e.setCancelled(true);
         } else if (msg.contains("защита")) {
-            plugin.getAdventureManager().handleCombatAction(sender, ru.example.vkchatoffline.combat.CombatManager.CombatAction.DEFEND);
+            plugin.getAdventureManager().handleCombatAction(sender, 2);
             e.setCancelled(true);
         } else if (msg.contains("способность") || msg.contains("🔥")) {
-            plugin.getAdventureManager().handleCombatAction(sender, ru.example.vkchatoffline.combat.CombatManager.CombatAction.SKILL);
+            plugin.getAdventureManager().handleCombatAction(sender, 3);
             e.setCancelled(true);
         } else if (msg.contains("зелье") || msg.contains("🧪")) {
-            plugin.getAdventureManager().handleCombatAction(sender, ru.example.vkchatoffline.combat.CombatManager.CombatAction.ITEM);
+            plugin.getAdventureManager().handleCombatAction(sender, 4);
             e.setCancelled(true);
         } else if (msg.contains("побег")) {
-            plugin.getAdventureManager().handleCombatAction(sender, ru.example.vkchatoffline.combat.CombatManager.CombatAction.FLEE);
+            plugin.getAdventureManager().handleCombatAction(sender, 5);
             e.setCancelled(true);
         }
 
@@ -125,20 +105,11 @@ public class OfflineListener implements Listener {
         } else if (msg.contains("забрать") || msg.contains("🎉")) {
             plugin.getAdventureManager().handleCommand(sender, "!забрать", new String[]{});
             e.setCancelled(true);
-        } else if (msg.contains("лечиться") || msg.contains("🏥")) {
+        } else if (msg.contains("лечиться") || msg.contains("💊")) {
             plugin.getAdventureManager().handleCommand(sender, "!лечиться", new String[]{});
             e.setCancelled(true);
-        }
-
-        // ═══ ПОХОДЫ ═══
-        else if (msg.contains("поход") || msg.contains("⛺")) {
+        } else if (msg.contains("поход") || msg.contains("⛺")) {
             plugin.getAdventureManager().handleCommand(sender, "!поход", new String[]{});
-            e.setCancelled(true);
-        }
-
-        // ═══ ДРУГОЕ ═══
-        else if (msg.contains("смена") || msg.contains("⛏")) {
-            plugin.getShiftManager().handleCommand(0, sender, null, new String[]{"!смена"});
             e.setCancelled(true);
         }
     }
@@ -148,10 +119,13 @@ public class OfflineListener implements Listener {
         Player p = e.getPlayer();
         try {
             int vkId = VKChatPlugin.getInstance().getApi().getLinkedVkId(p);
-            if (vkId != -1 && plugin.getRewardManager().hasPendingRewards(vkId)) {
-                List<ItemStack> rewards = plugin.getRewardManager().getPendingRewards(vkId);
-                for (ItemStack item : rewards) p.getInventory().addItem(item);
-                p.sendMessage("§a🎁 Награды из похода получены!");
+            if (vkId != -1) {
+                List<ItemStack> rewards = plugin.getStashManager().getItems(p.getUniqueId());
+                if (!rewards.isEmpty()) {
+                    for (ItemStack item : rewards) p.getInventory().addItem(item);
+                    plugin.getStashManager().saveItems(p.getUniqueId(), new ArrayList<>());
+                    p.sendMessage("§a🎁 Награды из похода получены!");
+                }
             }
         } catch (Exception ignored) {}
     }
