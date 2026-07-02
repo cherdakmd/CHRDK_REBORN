@@ -82,11 +82,6 @@ public class JoinNotificationListener implements Listener {
             return "привязан";
         }
 
-        // Проверяем, есть ли проходка
-        if (plugin.getPassManager() != null && plugin.getPassManager().hasPass(p.getUniqueId())) {
-            return "проходка";
-        }
-
         return "нет ВК";
     }
 }

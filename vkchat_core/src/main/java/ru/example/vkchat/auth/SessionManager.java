@@ -17,10 +17,9 @@ public class SessionManager {
 
     // Состояния сессии
     public enum SessionState {
-        UNLINKED,        // Не привязан к ВК, нет проходки
+        UNLINKED,        // Не привязан к ВК
         WAITING_2FA,     // Ожидает ввода 2FA кода
         LOGGED_IN,       // Полностью авторизован
-        PASS_HOLDER      // Имеет проходку (без ВК)
     }
 
     // Данные сессии игрока
@@ -31,8 +30,6 @@ public class SessionManager {
         public long joinTime;
         public long lastActivity;
         public SessionState state;
-        public boolean hasPass;
-        public long passExpiry;
 
         public PlayerSession(UUID uuid) {
             this.uuid = uuid;
@@ -41,8 +38,6 @@ public class SessionManager {
             this.joinTime = System.currentTimeMillis();
             this.lastActivity = System.currentTimeMillis();
             this.state = SessionState.UNLINKED;
-            this.hasPass = false;
-            this.passExpiry = 0;
         }
     }
 
@@ -98,16 +93,7 @@ public class SessionManager {
     public boolean isFullyAuthorized(UUID uuid) {
         PlayerSession session = sessions.get(uuid);
         if (session == null) return false;
-        return session.state == SessionState.LOGGED_IN || session.state == SessionState.PASS_HOLDER;
-    }
-
-    /**
-     * Проверить, имеет ли проходку
-     */
-    public boolean hasPass(UUID uuid) {
-        PlayerSession session = sessions.get(uuid);
-        if (session == null) return false;
-        return session.hasPass && session.passExpiry > System.currentTimeMillis();
+        return session.state == SessionState.LOGGED_IN;
     }
 
     /**
@@ -131,20 +117,6 @@ public class SessionManager {
     }
 
     /**
-     * Установить проходку
-     */
-    public void setPass(UUID uuid, boolean hasPass, long expiry) {
-        PlayerSession session = sessions.get(uuid);
-        if (session != null) {
-            session.hasPass = hasPass;
-            session.passExpiry = expiry;
-            if (hasPass && expiry > System.currentTimeMillis()) {
-                session.state = SessionState.PASS_HOLDER;
-            }
-        }
-    }
-
-    /**
      * Получить количество активных сессий
      */
     public int getActiveSessionCount() {
@@ -157,7 +129,7 @@ public class SessionManager {
     public int getAuthorizedCount() {
         int count = 0;
         for (PlayerSession session : sessions.values()) {
-            if (session.state == SessionState.LOGGED_IN || session.state == SessionState.PASS_HOLDER) {
+            if (session.state == SessionState.LOGGED_IN) {
                 count++;
             }
         }

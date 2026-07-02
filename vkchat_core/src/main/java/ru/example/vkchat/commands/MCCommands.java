@@ -633,7 +633,7 @@ public class MCCommands implements CommandExecutor, org.bukkit.command.TabComple
                         
                         // Migrating auth
                         if (authConf.getKeys(false) != null) {
-                            try (PreparedStatement ps = conn.prepareStatement("INSERT INTO vkchat_auth (uuid, vk_id, password, last_ip, reg_date, is_donut) VALUES (?, ?, ?, ?, ?, ?)")) {
+                            try (PreparedStatement ps = conn.prepareStatement("INSERT INTO vkchat_auth (uuid, vk_id, password, last_ip, reg_date) VALUES (?, ?, ?, ?, ?)")) {
                                 for (String key : authConf.getKeys(false)) {
                                     if (key.length() < 30) continue;
                                     ps.setString(1, key);
@@ -641,7 +641,6 @@ public class MCCommands implements CommandExecutor, org.bukkit.command.TabComple
                                     ps.setString(3, authConf.getString(key + ".password", null));
                                     ps.setString(4, authConf.getString(key + ".last_ip", "127.0.0.1"));
                                     ps.setLong(5, authConf.getLong(key + ".reg_date", 0));
-                                    ps.setBoolean(6, authConf.getBoolean(key + ".is_donut", false));
                                     ps.addBatch();
                                 }
                                 ps.executeBatch();

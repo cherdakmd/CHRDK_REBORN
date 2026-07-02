@@ -8,7 +8,6 @@ import ru.example.vkchat.config.ConfigManager;
 import ru.example.vkchat.vk.VKLongPollManager;
 import ru.example.vkchat.listeners.*;
 import ru.example.vkchat.commands.MCCommands;
-import ru.example.vkchat.commands.PassCommand;
 import ru.example.vkchat.tasks.*;
 import ru.example.vkchat.vk.VKFeaturesManager;
 import ru.example.vkchat.managers.CoreManagers;
@@ -17,7 +16,6 @@ import ru.example.vkchat.api.VKChatAPI;
 import ru.example.vkchat.moderation.WarnManager;
 import ru.example.vkchat.database.DatabaseManager;
 import ru.example.vkchat.hardcore.BleedingTask;
-import ru.example.vkchat.auth.PassManager;
 import ru.example.vkchat.auth.MembershipManager;
 
 public class VKChatPlugin extends JavaPlugin {
@@ -33,7 +31,6 @@ public class VKChatPlugin extends JavaPlugin {
     private VKChatAPI api;
     private WarnManager warnManager;
     private DatabaseManager databaseManager;
-    private PassManager passManager;
     private MembershipManager membershipManager;
 
     private boolean vaultEnabled = false;
@@ -64,7 +61,6 @@ public class VKChatPlugin extends JavaPlugin {
         bloodMoonManager = new BloodMoonManager(this);
         api = new VKChatAPI(this);
         warnManager = new WarnManager(this);
-        passManager = new PassManager(this);
         membershipManager = new MembershipManager(this);
 
         registerListeners();
@@ -114,11 +110,6 @@ public class VKChatPlugin extends JavaPlugin {
         getCommand("warns").setExecutor(mcCmds);
         getCommand("unwarn").setExecutor(mcCmds);
         getCommand("warn").setExecutor(mcCmds);
-
-        // Команда управления проходками
-        PassCommand passCmd = new PassCommand(this);
-        getCommand("pass").setExecutor(passCmd);
-        getCommand("pass").setTabCompleter(passCmd);
 
         getCommand("bal").setExecutor(mcCmds);
         getCommand("online").setExecutor(mcCmds);
@@ -173,11 +164,6 @@ public class VKChatPlugin extends JavaPlugin {
                     }
                 }
             }, playTimeInterval, playTimeInterval);
-        }
-
-        if (configManager.getDonutConfig().getBoolean("enabled", false)) {
-            long checkInterval = configManager.getDonutConfig().getLong("check-interval", 3600) * 20L;
-            new DonutCheckTask(this).runTaskTimerAsynchronously(this, 100L, checkInterval);
         }
 
         new BleedingTask(this).runTaskTimer(this, 20L, 20L);
@@ -246,10 +232,6 @@ public class VKChatPlugin extends JavaPlugin {
 
     public WarnManager getWarnManager() {
         return warnManager;
-    }
-
-    public PassManager getPassManager() {
-        return passManager;
     }
 
     public MembershipManager getMembershipManager() {

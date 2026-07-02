@@ -26,8 +26,6 @@ public class ConfigManager {
     private File messagesFile;
     private FileConfiguration badwords;
     private File badwordsFile;
-    private FileConfiguration donutConfig;
-    private File donutFile;
     private FileConfiguration eventsConfig;
     private File eventsFile;
     private FileConfiguration hardcoreConfig;
@@ -58,16 +56,6 @@ public class ConfigManager {
         }
         updateYamlWithDefaults(badwordsFile, "badwords.yml");
         badwords = YamlConfiguration.loadConfiguration(badwordsFile);
-
-        donutFile = new File(plugin.getDataFolder(), "vkdonut.yml");
-        if (!donutFile.exists()) {
-            try { plugin.saveResource("vkdonut.yml", false); } catch (Exception ex) {
-                plugin.getLogger().warning("vkdonut.yml не найден в JAR, создаю дефолтный.");
-                try { donutFile.createNewFile(); } catch (Exception ignored) {}
-            }
-        }
-        updateYamlWithDefaults(donutFile, "vkdonut.yml");
-        donutConfig = YamlConfiguration.loadConfiguration(donutFile);
 
         eventsFile = new File(plugin.getDataFolder(), "events.yml");
         if (!eventsFile.exists()) {
@@ -171,9 +159,6 @@ public class ConfigManager {
         }
     }
 
-    public FileConfiguration getDonutConfig() {
-        return donutConfig;
-    }
     
     public FileConfiguration getEventsConfig() {
         return eventsConfig;

@@ -25,41 +25,4 @@ teleportation:
     cancel-on-move: true
     cancel-on-damage: true
 
-  # DonatePay-бонусы: скидка на телепорты
-  donate-discount:
-    spark: 0.10
-    flame: 0.25
-    star: 0.40
-    legend: 0.60
 
-  # Кулдаун для донатеров (секунды)
-  donate-cooldown:
-    rtp:
-      spark: 45
-      flame: 30
-      star: 15
-      legend: 5
-    home:
-      spark: 45
-      flame: 30
-      star: 15
-      legend: 5
-    tpa:
-      spark: 45
-      flame: 30
-      star: 15
-      legend: 5
-
-  # Время каста для донатеров (секунды)
-  donate-warmup:
-    spark: 2
-    flame: 1
-    star: 0
-    legend: 0
-
-  # Максимум домов для донатеров
-  donate-max-homes:
-    spark: 5
-    flame: 8
-    star: 12
-    legend: 15

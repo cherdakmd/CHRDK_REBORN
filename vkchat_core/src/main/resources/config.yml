@@ -198,30 +198,6 @@ moderation:
     default-repeat-ban-days: 30
 
 # ==========================================
-#  СИСТЕМА ПРОХОДОК (для игроков без ВК)
-# ==========================================
-passes:
-  enabled: true
-  default-duration-days: 30    # Срок действия по умолчанию
-  warning-days: 3              # За сколько дней предупреждать об истечении
-
-  # Интеграция с DonatePay
-  donatepay:
-    enabled: true
-    min-amount: 500            # Минимальная сумма доната для проходки
-    auto-grant: true           # Автовыдача при донате
-
-  # Ручная выдача админом
-  admin-commands:
-    enabled: true
-    permission: "vkchat.admin.pass"
-
-  # Статистика
-  stats:
-    enabled: true
-    permission: "vkchat.admin.pass.stats"
-
-# ==========================================
 #  ДВУХФАКТОРНАЯ АУТЕНТИФИКАЦИЯ (2FA)
 # ==========================================
 auth:
@@ -255,6 +231,3 @@ notifications:
     show-vk-status: true
   auth:
     enabled: true
-  pass-warning:
-    enabled: true
-    days-before: 3             # За сколько дней предупреждать

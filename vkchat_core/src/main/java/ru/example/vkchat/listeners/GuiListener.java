@@ -76,7 +76,6 @@ public class GuiListener implements Listener {
         inv.setItem(30, item(Material.CHEST, ChatColor.GREEN + "🗑 Разбор", ChatColor.GRAY + "Утилизация MMO-предметов.", ChatColor.YELLOW + "/salvage"));
         inv.setItem(31, item(Material.EMERALD_BLOCK, ChatColor.GREEN + "📈 Рынок", ChatColor.GRAY + "Покупка и продажа ресурсов.", ChatColor.YELLOW + "/market"));
         inv.setItem(32, item(Material.MAP, ChatColor.WHITE + "📖 Помощь", ChatColor.GRAY + "Wiki, команды, FAQ, подсказки.", ChatColor.YELLOW + "Открыть подраздел"));
-        inv.setItem(40, donateStatusItem());
         p.openInventory(inv);
     }
 
@@ -94,7 +93,6 @@ public class GuiListener implements Listener {
         inv.setItem(15, priceItem(Material.ENDER_PEARL, "⏳ RTP", "VKChatTeleport", "costs.rtp-percent", 1, "Телепорты часто стоят % от баланса"));
         inv.setItem(28, item(Material.HOPPER, ChatColor.YELLOW + "Антиинфляция", ChatColor.GRAY + "• лимиты наград", ChatColor.GRAY + "• антифарм мобов", ChatColor.GRAY + "• редкий лут вместо чистой репы", ChatColor.GRAY + "• риск = награда"));
         inv.setItem(31, item(Material.PAPER, ChatColor.AQUA + "Аудит экономики", ChatColor.GRAY + "Админ-команда:", ChatColor.YELLOW + "/vkchat economy", ChatColor.GRAY + "Создаёт economy-report.md"));
-        inv.setItem(34, donateStatusItem());
         inv.setItem(49, backItem());
         p.openInventory(inv);
     }
@@ -194,7 +192,6 @@ public class GuiListener implements Listener {
             case 32: p.closeInventory(); p.sendMessage(ChatColor.GOLD + "⛺ Оффлайн DnD-походы в ЛС ВК: !поход, !персонаж, !сумка, !дневник, !дейлик"); break;
             case 33: openHelpMenu(p); break;
             case 34: openHelpMenu(p); break;
-            case 40: p.closeInventory(); sendDonateInfo(p); break;
             case 41: p.closeInventory(); p.sendMessage(ChatColor.GOLD + "⛺ Оффлайн DnD-походы работают в ЛС ВК-бота: !поход, !персонаж, !сумка, !дневник, !дейлик"); break;
         }
     }
@@ -203,44 +200,11 @@ public class GuiListener implements Listener {
         if (title.equals(ECONOMY_TITLE)) {
             if (slot == 10 || slot == 11 || slot == 12 || slot == 13 || slot == 14) run(p, "forge");
             else if (slot == 31) p.sendMessage(ChatColor.YELLOW + "Админ-аудит экономики: /vkchat economy");
-            else if (slot == 34) { p.closeInventory(); sendDonateInfo(p); }
         } else if (title.equals(RPG_TITLE)) {
             if (slot == 10) run(p, "forge"); else if (slot == 12) run(p, "runes"); else if (slot == 14) run(p, "artifacts"); else if (slot == 16) run(p, "mobs"); else if (slot == 28) run(p, "jobs"); else if (slot == 32) run(p, "stash");
         } else if (title.equals(VK_TITLE)) {
             if (slot == 10) run(p, "vk");
         }
-    }
-
-    private ItemStack donateStatusItem() {
-        int spark = getPluginInt("VKChatDonatePay", "donor-statuses.levels.spark.price", 100);
-        int flame = getPluginInt("VKChatDonatePay", "donor-statuses.levels.flame.price", 500);
-        int star = getPluginInt("VKChatDonatePay", "donor-statuses.levels.star.price", 1500);
-        int legend = getPluginInt("VKChatDonatePay", "donor-statuses.levels.legend.price", 5000);
-        return item(Material.GOLD_INGOT, ChatColor.LIGHT_PURPLE + "💳 DonatePay-статусы",
-                ChatColor.GRAY + "Статусы выдаются на месяц.",
-                ChatColor.GREEN + "Искра: " + ChatColor.YELLOW + spark + "₽" + ChatColor.GRAY + " — x10 усиленный старт",
-                ChatColor.AQUA + "Пламя: " + ChatColor.YELLOW + flame + "₽" + ChatColor.GRAY + " — x10 добыча и удобства",
-                ChatColor.LIGHT_PURPLE + "Звезда: " + ChatColor.YELLOW + star + "₽" + ChatColor.GRAY + " — x10 лут, опыт, репутация",
-                ChatColor.GOLD + "Легенда: " + ChatColor.YELLOW + legend + "₽" + ChatColor.GRAY + " — максимум x10 бонусов",
-                ChatColor.DARK_GRAY + "Ник нужно указать в имени донатера DonatePay.");
-    }
-
-    private void sendDonateInfo(Player p) {
-        Plugin donate = Bukkit.getPluginManager().getPlugin("VKChatDonatePay");
-        if (donate != null && donate.isEnabled()) {
-            run(p, "donatepay");
-            return;
-        }
-        int spark = getPluginInt("VKChatDonatePay", "donor-statuses.levels.spark.price", 100);
-        int flame = getPluginInt("VKChatDonatePay", "donor-statuses.levels.flame.price", 500);
-        int star = getPluginInt("VKChatDonatePay", "donor-statuses.levels.star.price", 1500);
-        int legend = getPluginInt("VKChatDonatePay", "donor-statuses.levels.legend.price", 5000);
-        p.sendMessage(ChatColor.LIGHT_PURPLE + "💳 DonatePay-статусы на месяц:");
-        p.sendMessage(ChatColor.GREEN + "Искра " + ChatColor.YELLOW + spark + "₽" + ChatColor.GRAY + " — x10 усиленный бонус добычи, опыта и репутации.");
-        p.sendMessage(ChatColor.AQUA + "Пламя " + ChatColor.YELLOW + flame + "₽" + ChatColor.GRAY + " — x10 добыча/лут и удобства.");
-        p.sendMessage(ChatColor.LIGHT_PURPLE + "Звезда " + ChatColor.YELLOW + star + "₽" + ChatColor.GRAY + " — мощный x10 бонус лута, опыта и репутации.");
-        p.sendMessage(ChatColor.GOLD + "Легенда " + ChatColor.YELLOW + legend + "₽" + ChatColor.GRAY + " — максимальный x10 статус и лучшие бонусы.");
-        p.sendMessage(ChatColor.GRAY + "Важно: Minecraft-ник указывай в имени донатера DonatePay.");
     }
 
     private ItemStack priceItem(Material mat, String name, String pluginName, String path, int def, String desc) {

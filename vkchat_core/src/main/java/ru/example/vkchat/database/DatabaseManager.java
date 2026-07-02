@@ -85,8 +85,7 @@ public class DatabaseManager {
                     "vk_id INT DEFAULT -1, " +
                     "password VARCHAR(100), " +
                     "last_ip VARCHAR(50), " +
-                    "reg_date BIGINT, " +
-                    "is_donut BOOLEAN DEFAULT 0)";
+                    "reg_date BIGINT)";
             
             // Таблица репутации
             String repTable = "CREATE TABLE IF NOT EXISTS vkchat_reputation (" +

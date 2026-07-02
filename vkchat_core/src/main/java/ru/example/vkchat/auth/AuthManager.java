@@ -71,13 +71,6 @@ public class AuthManager {
     }
 
     /**
-     * Получить PassManager
-     */
-    public PassManager getPassManager() {
-        return plugin.getPassManager();
-    }
-
-    /**
      * [FIX] Периодическая очистка неактивных данных для предотвращения утечки памяти
      */
     private void startCleanupTask() {
@@ -801,15 +794,6 @@ public class AuthManager {
                 return false;
             }
             return true; // ВК привязан + 2FA пройден = авторизован
-        }
-        // Проверяем проходку (требует регистрацию и вход)
-        if (plugin.getPassManager() != null && plugin.getPassManager().hasPass(p.getUniqueId())) {
-            // Проходка есть, но нужен пароль
-            if (!isRegistered(p)) return false;
-            if (plugin.getConfig().getBoolean("auth.require-auth", true)) {
-                return isLoggedIn(p);
-            }
-            return true;
         }
         return false;
     }

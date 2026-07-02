@@ -541,11 +541,6 @@ forge2:
     reforge-power-rep: 12         # Перековка: доп. репутация за силу предмета
   blacksmith:
     max-chance-bonus: 10          # Максимальный бонус шанса от Jobs-Кузнеца
-  donate-discount:
-    spark: 0.10
-    flame: 0.25
-    star: 0.40
-    legend: 0.50
   resources:
     uncommon:
       material: IRON_INGOT

@@ -78,39 +78,16 @@ public class AuthListener implements Listener {
                 start2faFlow(p, vkId, session);
             }
         } else {
-            // ВК НЕ ПРИВЯЗАН — проверяем проходку
-            if (plugin.getPassManager().hasPass(p.getUniqueId())) {
-                // ЕСТЬ ПРОХОДКА — требуется регистрация
-                session.hasPass = true;
-                session.state = SessionManager.SessionState.PASS_HOLDER;
-                long remaining = plugin.getPassManager().getPassRemainingDays(p.getUniqueId());
-                p.sendMessage("§a✅ У тебя есть проходка! Осталось: §e" + remaining + " §aдней");
-
-                if (!plugin.getAuthManager().isRegistered(p)) {
-                    p.sendMessage("§e⚠️ Тебе нужно зарегистрироваться: §a/register <пароль>");
-                } else if (!plugin.getAuthManager().isLoggedIn(p)) {
-                    p.sendMessage("§e⚠️ Тебе нужно войти: §a/login <пароль>");
-                }
-
-                if (remaining <= 3) {
-                    p.sendMessage("§e⚠️ Проходка скоро истекает! Привяжи ВК или продли.");
-                }
-            } else {
-                // НЕТ ВК, НЕТ ПРОХОДКИ — КИК с инструкцией
-                String kickMsg = "§c❌ Для игры необходимо привязать ВКонтакте!\n\n" +
-                               "§eПривязка ВК:\n" +
-                               "§71. Вступи в группу: §b" + plugin.getConfig().getString("vk.group-link", "https://vk.com/chrdk_reborn") + "\n" +
-                               "§72. Зайди на сервер и введи §a/vklink\n" +
-                               "§73. Отправь код в беседу ВК\n" +
-                               "§74. Введи 2FA код из ЛС ВК\n" +
-                               "§75. Зарегистрируйся: §a/register <пароль>\n\n" +
-                               "§eНет ВК? Купи §eпроходку§e:\n" +
-                               "§7Донат §e500р§7 на DonatePay с никнеймом\n" +
-                               "§7Ссылка: §bhttps://donatepay.ru/don/dedworkshop\n\n" +
-                               "§7После покупки перезайди на сервер.";
-                p.kickPlayer(kickMsg);
-                return;
-            }
+            // ВК НЕ ПРИВЯЗАН — КИК с инструкцией
+            String kickMsg = "§c❌ Для игры необходимо привязать ВКонтакте!\n\n" +
+                           "§eПривязка ВК:\n" +
+                           "§71. Вступи в группу: §b" + plugin.getConfig().getString("vk.group-link", "https://vk.com/chrdk_reborn") + "\n" +
+                           "§72. Зайди на сервер и введи §a/vklink\n" +
+                           "§73. Отправь код в беседу ВК\n" +
+                           "§74. Введи 2FA код из ЛС ВК\n" +
+                           "§75. Зарегистрируйся: §a/register <пароль>";
+            p.kickPlayer(kickMsg);
+            return;
         }
 
         // ═══ 3. БЕЗОПАСНАЯ ПЛАТФОРМА ═══
@@ -256,7 +233,7 @@ public class AuthListener implements Listener {
         String cmd = e.getMessage().split(" ")[0].toLowerCase();
         // Разрешаем команды авторизации и привязки
         if (cmd.equals("/vklink") || cmd.equals("/register") || cmd.equals("/login") || cmd.equals("/2fa") ||
-            cmd.equals("/pass") || cmd.equals("/menu") || cmd.equals("/help") || cmd.equals("/vk")) return;
+            cmd.equals("/menu") || cmd.equals("/help") || cmd.equals("/vk")) return;
 
         if (!plugin.getAuthManager().isFullyAuthorized(e.getPlayer())) {
             e.setCancelled(true);
@@ -289,10 +266,6 @@ public class AuthListener implements Listener {
             msg.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/vklink"));
             p.spigot().sendMessage(msg);
             p.sendMessage("");
-            p.sendMessage(ChatColor.translateAlternateColorCodes('&', " &f&lИли купи проходку:"));
-            p.sendMessage(ChatColor.translateAlternateColorCodes('&', " &7Через ВК: &aбесплатно&7, но нужен аккаунт ВК"));
-            p.sendMessage(ChatColor.translateAlternateColorCodes('&', " &7Через донат: &e500р/мес&7, можно без ВК"));
-            p.sendMessage(ChatColor.translateAlternateColorCodes('&', " &7Ссылка: &bhttps://donatepay.ru/don/dedworkshop"));
         } else {
             // VK привязан — показываем статус 2FA
             p.sendMessage(ChatColor.translateAlternateColorCodes('&', " &f✅ &lВК привязан!"));
