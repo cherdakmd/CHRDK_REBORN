@@ -25,6 +25,8 @@ statuses:
     id: "spark"
     name: "&b⚡ Искра"
     display: "⚡ Искра"
+    prefix: "&b⚡"
+    weight: 1
     price: 250
     description: "Начальный донат-статус"
     # Множители и бонусы
@@ -38,6 +40,8 @@ statuses:
     id: "flame"
     name: "&6🔥 Пламя"
     display: "🔥 Пламя"
+    prefix: "&6🔥"
+    weight: 2
     price: 500
     description: "Средний донат-статус"
     rep-discount: 0.20
@@ -50,6 +54,8 @@ statuses:
     id: "star"
     name: "&e⭐ Звезда"
     display: "⭐ Звезда"
+    prefix: "&e⭐"
+    weight: 3
     price: 1000
     description: "Продвинутый донат-статус"
     rep-discount: 0.35
@@ -62,6 +68,8 @@ statuses:
     id: "legend"
     name: "&5👑 Легенда"
     display: "👑 Легенда"
+    prefix: "&5👑"
+    weight: 4
     price: 2500
     description: "Элитный донат-статус"
     rep-discount: 0.50
@@ -74,6 +82,8 @@ statuses:
     id: "overlord"
     name: "&d💎 Властелин"
     display: "💎 Властелин"
+    prefix: "&d💎"
+    weight: 5
     price: 5000
     description: "Максимальный донат-статус"
     rep-discount: 0.65

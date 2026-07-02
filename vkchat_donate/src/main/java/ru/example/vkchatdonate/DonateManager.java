@@ -32,8 +32,8 @@ public class DonateManager {
     private static final long MONTH_SECONDS = 2592000L; // 30 дней
 
     public static class StatusDef {
-        public final String id, name, display, description;
-        public final int price;
+        public final String id, name, display, description, prefix;
+        public final int price, weight;
         public final double repDiscount, tpCooldownMult, marketMult, jobsXpMult;
         public final int maxHomes;
 
@@ -41,7 +41,9 @@ public class DonateManager {
             this.id = id;
             this.name = ChatColor.translateAlternateColorCodes('&', cfg.getString("name", id));
             this.display = cfg.getString("display", id);
+            this.prefix = ChatColor.translateAlternateColorCodes('&', cfg.getString("prefix", "&7"));
             this.price = cfg.getInt("price", 0);
+            this.weight = cfg.getInt("weight", 0);
             this.description = cfg.getString("description", "");
             this.repDiscount = cfg.getDouble("rep-discount", 0);
             this.tpCooldownMult = cfg.getDouble("tp-cooldown-mult", 1.0);
@@ -284,10 +286,11 @@ public class DonateManager {
     }
 
     public StatusDef getPlayerStatus(Player player) {
-        for (StatusDef s : statuses.values()) {
-            if (player.hasPermission("vkchat.donate." + s.id)) return s;
-        }
-        return null;
+        // Проверяем от высшего к низшему по weight
+        return statuses.values().stream()
+                .filter(s -> player.hasPermission("vkchat.donate." + s.id))
+                .max(Comparator.comparingInt(s -> s.weight))
+                .orElse(null);
     }
 
     public StatusDef getStatusById(String id) {
