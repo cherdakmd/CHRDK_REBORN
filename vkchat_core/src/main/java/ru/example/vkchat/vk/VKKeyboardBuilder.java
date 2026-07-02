@@ -102,13 +102,15 @@ public class VKKeyboardBuilder {
     public static String mainDmMenu() {
         return new VKKeyboardBuilder()
                 .oneTime(false)
-                .positive("👤 Аккаунт", "!аккаунт")
+                .positive("⚔ Приключения", "!adv")
+                .textButton("👤 Аккаунт", "!аккаунт", "primary")
+                .row()
                 .secondary("📊 Профиль", "!профиль")
-                .row()
                 .secondary("⭐ Рейтинг", "!рейтинг")
-                .secondary("🎁 Бонус", "!бонус")
                 .row()
+                .secondary("🎁 Бонус", "!бонус")
                 .secondary("💼 Работы", "!работы")
+                .row()
                 .secondary("🛟 Помощь", "!помощь")
                 .build();
     }
