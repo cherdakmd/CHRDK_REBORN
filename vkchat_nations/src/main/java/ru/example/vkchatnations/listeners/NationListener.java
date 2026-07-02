@@ -984,6 +984,13 @@ public class NationListener implements Listener {
     @EventHandler
     public void onSpawn(org.bukkit.event.entity.CreatureSpawnEvent e) {
         if (e.getEntity() instanceof org.bukkit.entity.Monster) {
+            // Пропускаем мобов обороны приватов (рейды/осады/диверсии) — они не блокируются
+            if (e.getEntity().hasMetadata("defense_raid")
+                    || e.getEntity().hasMetadata("defense_siege_boss")
+                    || e.getEntity().hasMetadata("defense_siege_minion")
+                    || e.getEntity().hasMetadata("defense_saboteur")) {
+                return;
+            }
             ChunkClaim claim = plugin.getNationManager().getClaimAt(e.getLocation());
             // Ур.3 «Покой»: запрет естественного спавна монстров (спавнеры работают).
             int noSpawnLevel = plugin.getConfig().getInt("claim.no-spawn-level", 3);

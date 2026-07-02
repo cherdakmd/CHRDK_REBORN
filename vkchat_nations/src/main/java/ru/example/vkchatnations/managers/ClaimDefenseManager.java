@@ -3,6 +3,7 @@ package ru.example.vkchatnations.managers;
 import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
+import org.bukkit.block.Block;
 import org.bukkit.boss.BarColor;
 import org.bukkit.boss.BarFlag;
 import org.bukkit.boss.BarStyle;
@@ -35,6 +36,7 @@ public class ClaimDefenseManager {
         this.plugin = plugin;
         this.nationManager = plugin.getNationManager();
         startAutoScheduler();
+        startMobAITask();
     }
 
     private boolean isEnabled() {
@@ -58,17 +60,20 @@ public class ClaimDefenseManager {
     private int getRaidWaves() { return plugin.getConfig().getInt("defense-events.raid.waves", 3); }
     private List<String> getRaidMobTypes() { return plugin.getConfig().getStringList("defense-events.raid.mobs"); }
     private int getRaidReward() { return plugin.getConfig().getInt("defense-events.raid.reward-durability", 50); }
+    private int getRaidBlockDamage() { return plugin.getConfig().getInt("defense-events.raid.block-damage-per-tick", 0); }
 
     private int getSiegeDuration() { return plugin.getConfig().getInt("defense-events.siege.duration-seconds", 300); }
-    private int getSiegeMinionCount() { return plugin.getConfig().getInt("defense-events.siege.minion-count", 12); }
+    private int getSiegeMinionCount() { return plugin.getConfig().getInt("defense-events.siege.minion-count", 15); }
     private String getSiegeBossType() { return plugin.getConfig().getString("defense-events.siege.boss-type", "WITHER_SKELETON"); }
     private double getSiegeBossHealth() { return plugin.getConfig().getDouble("defense-events.siege.boss-health", 200.0); }
     private int getSiegeReward() { return plugin.getConfig().getInt("defense-events.siege.reward-durability", 100); }
+    private int getSiegeBlockDamage() { return plugin.getConfig().getInt("defense-events.siege.block-damage-per-tick", 1); }
 
     private int getSabotageDuration() { return plugin.getConfig().getInt("defense-events.sabotage.duration-seconds", 120); }
     private int getSabotageMobCount() { return plugin.getConfig().getInt("defense-events.sabotage.mob-count", 8); }
     private List<String> getSabotageMobTypes() { return plugin.getConfig().getStringList("defense-events.sabotage.mobs"); }
     private int getSabotageReward() { return plugin.getConfig().getInt("defense-events.sabotage.reward-durability", 30); }
+    private int getSabotageBlockDamage() { return plugin.getConfig().getInt("defense-events.sabotage.block-damage-per-tick", 2); }
 
     private int getReward(String type) {
         return switch (type.toUpperCase()) {
@@ -105,6 +110,90 @@ public class ClaimDefenseManager {
                 lastAutoTrigger = now;
             }
         }.runTaskTimer(plugin, 6000L, 600L);
+    }
+
+    // ==========================================================
+    //  AI МОБОВ — ПОСТОЯННОЕ ДВИЖЕНИЕ К БЛОКУ ПРИВАТА
+    // ==========================================================
+
+    private void startMobAITask() {
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                for (ActiveDefense def : activeDefenses.values()) {
+                    if (def == null || def.isExpired()) continue;
+                    ChunkClaim claim = def.getClaim();
+                    if (claim == null) continue;
+                    World world = Bukkit.getWorld(claim.getWorldName());
+                    if (world == null) continue;
+                    Location claimLoc = new Location(world, claim.getX(), claim.getY(), claim.getZ());
+
+                    for (Entity e : world.getNearbyEntities(claimLoc, claim.getRadius() + 10, 30, claim.getRadius() + 10)) {
+                        if (!hasDefenseTag(e)) continue;
+                        if (!(e instanceof LivingEntity)) continue;
+                        LivingEntity mob = (LivingEntity) e;
+                        if (mob.isDead() || !mob.isValid()) continue;
+
+                        double dist = mob.getLocation().distance(claimLoc);
+                        if (dist > claim.getRadius() * 1.5) continue;
+
+                        // Pathfind к блоку привата
+                        if (mob instanceof Mob) {
+                            ((Mob) mob).setTarget(getNearestNationPlayer(mob, claim));
+                        }
+
+                        // Если моб рядом с блоком привата — атакует его
+                        if (dist <= 2.5) {
+                            attackClaimBlock(mob, claim, def);
+                        }
+                    }
+                }
+            }
+        }.runTaskTimer(plugin, 20L, 20L); // Каждую секунду
+    }
+
+    private Player getNearestNationPlayer(LivingEntity mob, ChunkClaim claim) {
+        Player nearest = null;
+        double nearestDist = Double.MAX_VALUE;
+        for (Player p : getOnlineNationPlayers(claim.getNation())) {
+            double d = p.getLocation().distance(mob.getLocation());
+            if (d < 15 && d < nearestDist) {
+                nearest = p;
+                nearestDist = d;
+            }
+        }
+        return nearest;
+    }
+
+    private void attackClaimBlock(LivingEntity mob, ChunkClaim claim, ActiveDefense def) {
+        int damage = switch (def.getType().toUpperCase()) {
+            case "SIEGE" -> getSiegeBlockDamage();
+            case "RAID" -> getRaidBlockDamage();
+            case "SABOTAGE" -> getSabotageBlockDamage();
+            default -> 0;
+        };
+        if (damage <= 0) return;
+
+        World world = Bukkit.getWorld(claim.getWorldName());
+        if (world == null) return;
+        Location claimLoc = new Location(world, claim.getX(), claim.getY(), claim.getZ());
+
+        // Визуал
+        world.spawnParticle(Particle.BLOCK_CRACK, claimLoc.clone().add(0.5, 0.5, 0.5),
+                5, 0.3, 0.3, 0.3, claimLoc.getBlock().getBlockData());
+        world.playSound(claimLoc, Sound.BLOCK_STONE_HIT, 0.5f, 1.0f);
+
+        // Каждые 3 секунды наносим урон прочности
+        if (System.currentTimeMillis() % 3000 < 1000) {
+            claim.setDurability(Math.max(0, claim.getDurability() - damage));
+        }
+    }
+
+    private boolean hasDefenseTag(Entity e) {
+        return e.hasMetadata("defense_raid")
+                || e.hasMetadata("defense_siege_boss")
+                || e.hasMetadata("defense_siege_minion")
+                || e.hasMetadata("defense_saboteur");
     }
 
     // ==========================================================
@@ -159,13 +248,12 @@ public class ClaimDefenseManager {
         nationManager.broadcastToNationWithPrefix(claim.getNation(), warning);
         nationManager.broadcastToNationWithPrefix(claim.getNation(), coordMsg);
         nationManager.broadcastToNationWithPrefix(claim.getNation(),
-                ChatColor.GOLD + "Защитите приват! Награда: +" + getReward(type) + " прочности");
+                ChatColor.GOLD + "Защитите приват! Мобы атакуют блок привата! Награда: +" + getReward(type) + " прочности");
 
-        // VK-уведомление
         try {
             ru.example.vkchat.VKChatPlugin vkPlugin = ru.example.vkchat.VKChatPlugin.getInstance();
             if (vkPlugin != null && vkPlugin.getApi() != null) {
-                String vkMsg = typeRu + " на " + nationName + " приват! Координаты: " + claim.getX() + " " + claim.getZ();
+                String vkMsg = typeRu + " на " + nationName + " приват! " + claim.getX() + " " + claim.getZ();
                 vkPlugin.getApi().sendToMainChat(vkMsg);
             }
         } catch (Exception ignored) {}
@@ -178,7 +266,7 @@ public class ClaimDefenseManager {
     }
 
     // ==========================================================
-    //  1. RAID — ВОЛНА МОБОВ ИДЁТ К БЛОКУ ПРИВАТА
+    //  1. RAID — ВОЛНЫ МОБОВ АТАКУЮТ БЛОК ПРИВАТА
     // ==========================================================
 
     private void startRaid(Player target, ChunkClaim claim) {
@@ -189,7 +277,7 @@ public class ClaimDefenseManager {
         List<String> mobTypes = getRaidMobTypes();
         int totalMobs = getRaidMobCount();
         int waves = getRaidWaves();
-        int mobsPerWave = Math.max(1, totalMobs / waves);
+        int mobsPerWave = Math.max(2, totalMobs / waves);
         int duration = getRaidDuration();
 
         BossBar raidBar = Bukkit.createBossBar(
@@ -205,7 +293,8 @@ public class ClaimDefenseManager {
         for (Player p : nationPlayers) raidBar.addPlayer(p);
 
         for (Player p : nationPlayers) {
-            p.sendTitle(ChatColor.RED + "РЕЙД!", ChatColor.YELLOW + "Волна 1/" + waves, 10, 40, 10);
+            p.sendTitle(ChatColor.RED + "РЕЙД!", ChatColor.YELLOW + "Защитите блок привата!", 10, 40, 10);
+            p.sendMessage(ChatColor.RED + "Мобы атакуют блок привата и ломают прочность!");
         }
 
         new BukkitRunnable() {
@@ -215,7 +304,7 @@ public class ClaimDefenseManager {
             @Override
             public void run() {
                 if (System.currentTimeMillis() > defense.getEndTime() || isClaimDestroyed(claim)) {
-                    finishDefense(target, defense, raidBar, true);
+                    finishDefense(target, defense, raidBar, !isClaimDestroyed(claim));
                     cancel();
                     return;
                 }
@@ -235,10 +324,9 @@ public class ClaimDefenseManager {
                     }
                     wave++;
 
-                    if (wave < waves) {
-                        for (Player p : getOnlineNationPlayers(claim.getNation())) {
-                            p.sendMessage(ChatColor.RED + "Волна " + wave + "/" + waves + " приближается!");
-                        }
+                    for (Player p : getOnlineNationPlayers(claim.getNation())) {
+                        p.sendMessage(ChatColor.RED + "⚔ Волна " + wave + "/" + waves + "! Прочность: "
+                                + claim.getDurability() + "/" + claim.getMaxDurability());
                     }
                 }
             }
@@ -253,24 +341,26 @@ public class ClaimDefenseManager {
         Entity raw = world.spawnEntity(loc, type);
         if (!(raw instanceof LivingEntity)) return;
         LivingEntity mob = (LivingEntity) raw;
-        mob.setCustomName(ChatColor.RED + "Рейдер");
+        mob.setCustomName(ChatColor.RED + "⚔ Рейдер");
         mob.setCustomNameVisible(true);
         mob.setMetadata("defense_raid", new FixedMetadataValue(plugin, true));
 
-        if (mob instanceof Zombie || mob instanceof Skeleton) {
-            mob.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 6000, 1));
-            mob.addPotionEffect(new PotionEffect(PotionEffectType.INCREASE_DAMAGE, 6000, 0));
-        }
+        mob.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 6000, 1));
+        mob.addPotionEffect(new PotionEffect(PotionEffectType.INCREASE_DAMAGE, 6000, 1));
 
         if (mob instanceof Creeper) {
             ((Creeper) mob).setPowered(true);
+        }
+        if (mob instanceof Zombie) {
+            mob.getEquipment().setHelmet(new ItemStack(Material.IRON_HELMET));
+            mob.getEquipment().setChestplate(new ItemStack(Material.IRON_CHESTPLATE));
         }
 
         mob.setRemoveWhenFarAway(false);
     }
 
     // ==========================================================
-    //  2. SIEGE — БОСС + ЭЛИТНЫЕ МИНЬОНЫ
+    //  2. SIEGE — БОСС + МИНЬОНЫ АТАКУЮТ БЛОК ПРИВАТА
     // ==========================================================
 
     private void startSiege(Player target, ChunkClaim claim) {
@@ -279,6 +369,8 @@ public class ClaimDefenseManager {
 
         Location center = new Location(world, claim.getX(), claim.getY(), claim.getZ());
         int duration = getSiegeDuration();
+        int minionCount = getSiegeMinionCount();
+        int waves = 5;
 
         BossBar siegeBar = Bukkit.createBossBar(
                 ChatColor.DARK_PURPLE + "ОСАДА — " + nationManager.getNationNamePublic(claim.getNation()),
@@ -292,6 +384,7 @@ public class ClaimDefenseManager {
         List<Player> nationPlayers = getOnlineNationPlayers(claim.getNation());
         for (Player p : nationPlayers) siegeBar.addPlayer(p);
 
+        // Босс-осадник
         EntityType bossType = parseEntityType(getSiegeBossType());
         Location bossLoc = getSpawnLocation(center, claim.getRadius());
         if (bossLoc == null) bossLoc = center.clone().add(0, 2, 0);
@@ -309,18 +402,17 @@ public class ClaimDefenseManager {
             boss.setHealth(getSiegeBossHealth());
         }
 
-        boss.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 6000, 1));
-        boss.addPotionEffect(new PotionEffect(PotionEffectType.INCREASE_DAMAGE, 6000, 1));
-        boss.addPotionEffect(new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, 6000, 0));
+        boss.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, Integer.MAX_VALUE, 1));
+        boss.addPotionEffect(new PotionEffect(PotionEffectType.INCREASE_DAMAGE, Integer.MAX_VALUE, 2));
+        boss.addPotionEffect(new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, Integer.MAX_VALUE, 0));
         boss.setRemoveWhenFarAway(false);
 
         for (Player p : nationPlayers) {
-            p.sendTitle(ChatColor.DARK_PURPLE + "ОСАДА!", ChatColor.YELLOW + "Убейте босса!", 10, 40, 10);
-            p.sendMessage(ChatColor.DARK_PURPLE + "Босс появился! HP: " + (int) getSiegeBossHealth());
+            p.sendTitle(ChatColor.DARK_PURPLE + "ОСАДА!", ChatColor.YELLOW + "Босс атакует блок привата!", 10, 40, 10);
+            p.sendMessage(ChatColor.DARK_PURPLE + "Босс: " + (int) getSiegeBossHealth() + " HP. Уничтожьте его!");
         }
 
-        int minionCount = getSiegeMinionCount();
-        int minionsPerWave = Math.max(2, minionCount / 3);
+        int mobsPerWave = Math.max(2, minionCount / waves);
 
         new BukkitRunnable() {
             int wave = 0;
@@ -328,20 +420,49 @@ public class ClaimDefenseManager {
 
             @Override
             public void run() {
-                if (System.currentTimeMillis() > defense.getEndTime() || isClaimDestroyed(claim)
-                        || !boss.isValid() || boss.isDead()) {
-                    boolean win = boss.isDead();
-                    finishDefense(target, defense, siegeBar, win);
+                boolean bossDead = !boss.isValid() || boss.isDead();
+
+                if (bossDead && System.currentTimeMillis() > defense.getEndTime()) {
+                    finishDefense(target, defense, siegeBar, true);
                     cancel();
                     return;
                 }
 
-                double elapsed = (System.currentTimeMillis() - (defense.getEndTime() - duration * 1000L));
-                double progress = Math.max(0, 1.0 - elapsed / (duration * 1000L));
-                siegeBar.setProgress(progress);
+                if (!bossDead && System.currentTimeMillis() > defense.getEndTime()) {
+                    finishDefense(target, defense, siegeBar, false);
+                    cancel();
+                    return;
+                }
 
-                if (spawned < minionCount && wave < 3) {
-                    int toSpawn = Math.min(minionsPerWave, minionCount - spawned);
+                if (isClaimDestroyed(claim)) {
+                    finishDefense(target, defense, siegeBar, false);
+                    cancel();
+                    return;
+                }
+
+                if (!bossDead) {
+                    double elapsed = (System.currentTimeMillis() - (defense.getEndTime() - duration * 1000L));
+                    double progress = Math.max(0, 1.0 - elapsed / (duration * 1000L));
+                    siegeBar.setProgress(progress);
+                    siegeBar.setTitle(ChatColor.DARK_PURPLE + "ОСАДА — Босс: "
+                            + (int) boss.getHealth() + "/" + (int) getSiegeBossHealth()
+                            + " | Прочность: " + claim.getDurability());
+
+                    // Босс атакует блок привата если рядом
+                    if (boss.getLocation().distance(center) <= 3.0) {
+                        attackClaimBlock(boss, claim, defense);
+                    }
+                    // Принудительное движение к блоку
+                    if (boss instanceof Mob && boss.getLocation().distance(center) > 2.0) {
+                        ((Mob) boss).setTarget(getNearestNationPlayer(boss, claim));
+                        boss.teleport(boss.getLocation().add(
+                                center.toVector().subtract(boss.getLocation().toVector()).normalize().multiply(0.3)));
+                    }
+                }
+
+                // Спавн миньонов волнами
+                if (spawned < minionCount && wave < waves) {
+                    int toSpawn = Math.min(mobsPerWave, minionCount - spawned);
                     for (int i = 0; i < toSpawn; i++) {
                         Location spawnLoc = getSpawnLocation(center, claim.getRadius());
                         if (spawnLoc != null) {
@@ -352,7 +473,8 @@ public class ClaimDefenseManager {
                     wave++;
 
                     for (Player p : getOnlineNationPlayers(claim.getNation())) {
-                        p.sendMessage(ChatColor.DARK_PURPLE + "Волна миньонов " + wave + "/3!");
+                        p.sendMessage(ChatColor.DARK_PURPLE + "⚔ Миньоны " + wave + "/" + waves
+                                + " | Прочность: " + claim.getDurability());
                     }
                 }
             }
@@ -360,7 +482,7 @@ public class ClaimDefenseManager {
     }
 
     private void spawnSiegeMinion(World world, Location loc, Location target) {
-        EntityType[] types = {EntityType.ZOMBIE, EntityType.SKELETON, EntityType.ZOMBIE_VILLAGER, EntityType.STRAY};
+        EntityType[] types = {EntityType.ZOMBIE, EntityType.SKELETON, EntityType.VINDICATOR, EntityType.PILLAGER, EntityType.STRAY};
         EntityType type = types[ThreadLocalRandom.current().nextInt(types.length)];
 
         Entity raw = world.spawnEntity(loc, type);
@@ -370,8 +492,8 @@ public class ClaimDefenseManager {
         minion.setCustomNameVisible(true);
         minion.setMetadata("defense_siege_minion", new FixedMetadataValue(plugin, true));
 
-        minion.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 6000, 0));
-        minion.addPotionEffect(new PotionEffect(PotionEffectType.INCREASE_DAMAGE, 6000, 0));
+        minion.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 6000, 1));
+        minion.addPotionEffect(new PotionEffect(PotionEffectType.INCREASE_DAMAGE, 6000, 1));
 
         ItemStack helmet = new ItemStack(Material.LEATHER_HELMET);
         ItemStack chestplate = new ItemStack(Material.LEATHER_CHESTPLATE);
@@ -381,9 +503,9 @@ public class ClaimDefenseManager {
         LeatherArmorMeta meta = (LeatherArmorMeta) helmet.getItemMeta();
         meta.setColor(Color.fromRGB(75, 0, 130));
         helmet.setItemMeta(meta);
-        chestplate.setItemMeta(meta);
-        leggings.setItemMeta(meta);
-        boots.setItemMeta(meta);
+        chestplate.setItemMeta(meta.clone());
+        leggings.setItemMeta(meta.clone());
+        boots.setItemMeta(meta.clone());
 
         minion.getEquipment().setHelmet(helmet);
         minion.getEquipment().setChestplate(chestplate);
@@ -394,7 +516,7 @@ public class ClaimDefenseManager {
     }
 
     // ==========================================================
-    //  3. SABOTAGE — СКРЫТЫЕ МОБЫ ЛОМБЛЮТ БЛОКИ
+    //  3. SABOTAGE — СКРЫТЫЕ ДИВЕРСАНТЫ ЛОМАЮТ БЛОК
     // ==========================================================
 
     private void startSabotage(Player target, ChunkClaim claim) {
@@ -419,8 +541,8 @@ public class ClaimDefenseManager {
         for (Player p : nationPlayers) sabBar.addPlayer(p);
 
         for (Player p : nationPlayers) {
-            p.sendTitle(ChatColor.YELLOW + "ДИВЕРСИЯ!", ChatColor.GRAY + "Обыщите территорию!", 10, 40, 10);
-            p.sendMessage(ChatColor.YELLOW + "Диверсанты проникли на территорию! Ищите и уничтожайте!");
+            p.sendTitle(ChatColor.YELLOW + "ДИВЕРСИЯ!", ChatColor.GRAY + "Диверсанты ломают блок привата!", 10, 40, 10);
+            p.sendMessage(ChatColor.YELLOW + "Диверсанты проникли! Найдите их прежде чем они разрушат блок!");
         }
 
         for (int i = 0; i < mobCount; i++) {
@@ -434,14 +556,7 @@ public class ClaimDefenseManager {
             @Override
             public void run() {
                 if (System.currentTimeMillis() > defense.getEndTime() || isClaimDestroyed(claim)) {
-                    boolean allDead = true;
-                    for (Entity e : world.getNearbyEntities(center, claim.getRadius() + 10, 20, claim.getRadius() + 10)) {
-                        if (e.hasMetadata("defense_saboteur")) {
-                            allDead = false;
-                            break;
-                        }
-                    }
-                    finishDefense(target, defense, sabBar, allDead);
+                    finishDefense(target, defense, sabBar, !isClaimDestroyed(claim));
                     cancel();
                     return;
                 }
@@ -449,6 +564,7 @@ public class ClaimDefenseManager {
                 double elapsed = (System.currentTimeMillis() - (defense.getEndTime() - duration * 1000L));
                 double progress = Math.max(0, 1.0 - elapsed / (duration * 1000L));
                 sabBar.setProgress(progress);
+                sabBar.setTitle(ChatColor.YELLOW + "ДИВЕРСИЯ — Прочность: " + claim.getDurability());
             }
         }.runTaskTimer(plugin, 0L, 20L);
     }
@@ -465,14 +581,8 @@ public class ClaimDefenseManager {
         mob.setCustomNameVisible(true);
         mob.setMetadata("defense_saboteur", new FixedMetadataValue(plugin, true));
 
-        mob.addPotionEffect(new PotionEffect(PotionEffectType.INVISIBILITY, 6000, 0));
-        mob.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 6000, 1));
+        mob.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 6000, 2));
         mob.addPotionEffect(new PotionEffect(PotionEffectType.SLOW_FALLING, 6000, 0));
-
-        if (mob instanceof Endermite) {
-            mob.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 6000, 2));
-        }
-
         mob.setRemoveWhenFarAway(false);
     }
 
@@ -547,15 +657,19 @@ public class ClaimDefenseManager {
         for (int attempt = 0; attempt < 20; attempt++) {
             int dx = ThreadLocalRandom.current().nextInt(radius * 2) - radius;
             int dz = ThreadLocalRandom.current().nextInt(radius * 2) - radius;
-            int dy = ThreadLocalRandom.current().nextInt(10) - 3;
+            int dy = ThreadLocalRandom.current().nextInt(5);
 
             Location loc = center.clone().add(dx, dy, dz);
-            if (loc.getBlock().getType() == Material.AIR
-                    && loc.clone().add(0, 1, 0).getBlock().getType() == Material.AIR) {
+            Block block = loc.getBlock();
+            Block above = loc.clone().add(0, 1, 0).getBlock();
+            if (block.getType().isSolid() && above.getType() == Material.AIR) {
+                return loc.clone().add(0, 1, 0);
+            }
+            if (block.getType() == Material.AIR && above.getType() == Material.AIR) {
                 return loc;
             }
         }
-        return center.clone().add(0, 3, 0);
+        return center.clone().add(0, 2, 0);
     }
 
     private EntityType parseEntityType(String name) {
@@ -576,6 +690,13 @@ public class ClaimDefenseManager {
 
     public int getActiveDefenseCount() {
         return activeDefenses.size();
+    }
+
+    public boolean isDefenseActiveOnClaim(ChunkClaim claim) {
+        for (ActiveDefense def : activeDefenses.values()) {
+            if (def.getClaim() == claim && !def.isExpired()) return true;
+        }
+        return false;
     }
 
     public static class ActiveDefense {
