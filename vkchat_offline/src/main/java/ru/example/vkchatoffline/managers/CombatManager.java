@@ -11,13 +11,18 @@ import java.util.*;
 public class CombatManager {
 
     public void showCombatUI(AdventureManager mgr, int vkId) {
+        showCombatUI(mgr, vkId, null);
+    }
+
+    public void showCombatUI(AdventureManager mgr, int vkId, String prefix) {
         AdventureState s = mgr.getState(vkId);
         if (s == null || s.enemy == null) return;
 
         String hpBar = getBar(s.hp, s.maxHp, 10);
         String eHpBar = getBar(s.enemyHp, s.enemyMaxHp, 10);
 
-        String msg = "═══════════════════════════\n"
+        String msg = (prefix != null ? prefix + "\n\n" : "")
+                + "═══════════════════════════\n"
                 + "⚔ " + s.enemy.icon + " " + s.enemy.name + "\n"
                 + "═══════════════════════════\n\n"
                 + "❤ Вы: " + s.hp + "/" + s.maxHp + " " + hpBar + "\n"
@@ -176,8 +181,7 @@ public class CombatManager {
         if (!playerDefending) s.defending = false;
         s.energy = Math.min(s.maxEnergy, s.energy + 5);
 
-        mgr.sendMsg(vkId, result.toString());
-        showCombatUI(mgr, vkId);
+        showCombatUI(mgr, vkId, result.toString());
     }
 
     private String getBar(int cur, int max, int len) {

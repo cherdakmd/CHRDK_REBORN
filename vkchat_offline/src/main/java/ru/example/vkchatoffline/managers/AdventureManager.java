@@ -101,6 +101,10 @@ public class AdventureManager {
 
     // ===== ГЛАВНОЕ МЕНЮ =====
     private void showMenu(int vkId) {
+        showMenu(vkId, null);
+    }
+
+    private void showMenu(int vkId, String prefix) {
         AdventureState s = states.computeIfAbsent(vkId, k -> new AdventureState());
         s.state = State.MENU;
         s.zone = null;
@@ -108,7 +112,8 @@ public class AdventureManager {
         int level = playerData.getLevel(vkId);
         String cls = playerData.hasClass(vkId) ? playerData.getClassName(vkId) : "Нет класса";
 
-        String msg = "⚔ CHRDK ADVENTURES v3.0 ⚔\n\n"
+        String msg = (prefix != null ? prefix + "\n\n" : "")
+                + "⚔ CHRDK ADVENTURES v3.0 ⚔\n\n"
                 + "👤 Уровень: " + level + " | Класс: " + cls + "\n\n"
                 + "🌲 Тёмный лес — ур.1\n"
                 + "⛏ Глубокие шахты — ур.2\n"
@@ -209,7 +214,6 @@ public class AdventureManager {
         try {
             ClassType ct = ClassType.valueOf(args[2].toUpperCase());
             playerData.setClass(vkId, ct.name());
-            sendMsg(vkId, "✅ Класс выбран: " + ct.icon + " " + ct.name + "!");
             showMenu(vkId);
         } catch (Exception e) {
             sendMsg(vkId, "❌ Неверный класс. !adv class чтобы выбрать.");
@@ -311,9 +315,9 @@ public class AdventureManager {
         s.enemyMaxHp = s.enemy.hp + scale * 30;
         s.enemyHp = s.enemyMaxHp;
 
-        sendMsg(vkId, ChatColor.DARK_RED + "☠ БОСС: " + s.enemy.icon + " " + s.enemy.name + "!\n"
+        combat.showCombatUI(this, vkId,
+                ChatColor.DARK_RED + "☠ БОСС: " + s.enemy.icon + " " + s.enemy.name + "! "
                 + ChatColor.YELLOW + "Готовьтесь к тяжёлому бою!");
-        combat.showCombatUI(this, vkId);
     }
 
     private void handleEventAction(int vkId, String action) {
@@ -501,8 +505,7 @@ public class AdventureManager {
         s.earnedPieces.clear();
         s.earnedResources.clear();
 
-        sendMsg(vkId, "🎁 Награды отправлены в тайник! Используй /stash в игре.");
-        showMenu(vkId);
+        showMenu(vkId, "🎁 Награды отправлены в тайник! Используй /stash в игре.");
     }
 
     private void handleDeath(int vkId) {
@@ -523,8 +526,7 @@ public class AdventureManager {
         s.hp = s.maxHp;
         s.energy = s.maxEnergy;
         s.state = State.MENU;
-        sendMsg(vkId, "💚 Полностью исцелены! Возвращайтесь в приключения.");
-        showMenu(vkId);
+        showMenu(vkId, "💚 Полностью исцелены! Возвращайтесь в приключения.");
     }
 
     // ===== СТАТУС И СТАТИСТИКА =====
@@ -684,10 +686,6 @@ public class AdventureManager {
 
     public void sendMsg(int vkId, String msg) {
         try { VKChatPlugin.getInstance().getApi().sendMessage(vkId, msg); } catch (Exception ignored) {}
-    }
-
-    public void sendKb(int vkId, String title, String kb) {
-        try { VKChatPlugin.getInstance().getApi().sendKeyboard(vkId, title, kb); } catch (Exception ignored) {}
     }
 
     /**
