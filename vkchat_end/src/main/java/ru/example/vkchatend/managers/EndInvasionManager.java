@@ -502,6 +502,32 @@ public class EndInvasionManager implements Listener {
         return activeInvasions.size();
     }
 
+    /**
+     * Очистить всех мобов вторжения из обычного мира
+     */
+    public int cleanupInvasionMobs() {
+        World overworld = Bukkit.getWorlds().get(0);
+        if (overworld == null) return 0;
+        int removed = 0;
+        for (Entity entity : overworld.getEntities()) {
+            if (entity instanceof LivingEntity) {
+                LivingEntity mob = (LivingEntity) entity;
+                if (mob.getPersistentDataContainer().has(invasionMobKey, PersistentDataType.INTEGER)) {
+                    if (mob instanceof EnderDragon) {
+                        ((EnderDragon) mob).setHealth(0);
+                    }
+                    mob.remove();
+                    removed++;
+                }
+                if (entity.getType() == EntityType.SHULKER) {
+                    entity.remove();
+                    removed++;
+                }
+            }
+        }
+        return removed;
+    }
+
     public String getInvasionsInfo() {
         StringBuilder sb = new StringBuilder();
         sb.append(ChatColor.DARK_PURPLE).append("═══ ⚔ Вторжения Энда ═══\n\n");

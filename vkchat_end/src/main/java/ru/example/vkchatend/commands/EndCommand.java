@@ -1,5 +1,6 @@
 package ru.example.vkchatend.commands;
 
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -85,6 +86,16 @@ public class EndCommand implements CommandExecutor, TabCompleter {
                 showCityInfo(p);
                 break;
 
+            case "cleanup":
+            case "очистка":
+                if (!p.hasPermission("vkchat.end.admin")) {
+                    p.sendMessage(ChatColor.RED + "Нет прав.");
+                    break;
+                }
+                int removed = plugin.getEndInvasionManager().cleanupInvasionMobs();
+                Bukkit.broadcastMessage(ChatColor.DARK_PURPLE + "⚔ Очистка: удалено " + removed + " мобов вторжения и шалкеров из обычного мира.");
+                break;
+
             case "help":
             case "помощь":
                 showHelp(p);
@@ -108,6 +119,7 @@ public class EndCommand implements CommandExecutor, TabCompleter {
         p.sendMessage(ChatColor.LIGHT_PURPLE + "/end rifts" + ChatColor.GRAY + " — разломы");
         p.sendMessage(ChatColor.LIGHT_PURPLE + "/end corruption" + ChatColor.GRAY + " — коррупция");
         p.sendMessage(ChatColor.LIGHT_PURPLE + "/end cities" + ChatColor.GRAY + " — эндер-города");
+        p.sendMessage(ChatColor.LIGHT_PURPLE + "/end cleanup" + ChatColor.GRAY + " — удалить мобов вторжения (админ)");
     }
 
     private void showBossInfo(Player p) {
@@ -158,7 +170,7 @@ public class EndCommand implements CommandExecutor, TabCompleter {
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String label, String[] args) {
         if (args.length == 1) {
-            return Arrays.asList("tp", "info", "boss", "ores", "artifacts", "rifts", "corruption", "cities", "help")
+            return Arrays.asList("tp", "info", "boss", "ores", "artifacts", "rifts", "corruption", "cities", "cleanup", "help")
                     .stream()
                     .filter(s -> s.startsWith(args[0].toLowerCase()))
                     .collect(Collectors.toList());
