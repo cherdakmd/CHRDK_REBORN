@@ -2,7 +2,9 @@ package ru.example.vkchatoffline;
 
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
+import ru.example.vkchatoffline.commands.StashCommand;
 import ru.example.vkchatoffline.data.StashManager;
+import ru.example.vkchatoffline.listeners.OfflineListener;
 import ru.example.vkchatoffline.managers.AdventureManager;
 
 public class VKChatOfflinePlugin extends JavaPlugin {
@@ -23,8 +25,12 @@ public class VKChatOfflinePlugin extends JavaPlugin {
 
         stashManager = new StashManager(this);
         adventureManager = new AdventureManager(this);
+        adventureManager.loadStates();
 
         getServer().getPluginManager().registerEvents(adventureManager, this);
+        getServer().getPluginManager().registerEvents(new OfflineListener(this), this);
+
+        getCommand("stash").setExecutor(new StashCommand(this));
 
         getLogger().info("VKChatOffline v4.0 запущен!");
     }

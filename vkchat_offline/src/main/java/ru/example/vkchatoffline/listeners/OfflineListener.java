@@ -22,9 +22,24 @@ public class OfflineListener implements Listener {
         int sender = e.getSenderVkId();
         String[] args = e.getArgs();
 
-        // Все команды походов
-        plugin.getAdventureManager().handleCommand(sender, cmd, args);
-        e.setCancelled(true);
+        // Список команд, относящихся к оффлайн-походам
+        if (isAdventureCommand(cmd)) {
+            plugin.getAdventureManager().handleCommand(sender, cmd, args);
+            e.setCancelled(true);
+        }
+    }
+
+    private boolean isAdventureCommand(String cmd) {
+        return cmd.equals("!поход") || cmd.equals("!походы")
+            || cmd.equals("!пойти")
+            || cmd.equals("!выбор")
+            || cmd.equals("!статус")
+            || cmd.equals("!герой")
+            || cmd.equals("!характеристики") || cmd.equals("!статы")
+            || cmd.equals("!бой")
+            || cmd.equals("!продолжить")
+            || cmd.equals("!забрать")
+            || cmd.equals("!лечиться");
     }
 
     @EventHandler

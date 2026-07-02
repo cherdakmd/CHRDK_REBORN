@@ -66,7 +66,7 @@ public final class Keyboards {
     // ═══ ПОСЛЕ ПОБЕДЫ ═══
     public static String afterVictory() {
         return keyboard(
-                row(btn("▶ Продолжить", "!продолжить", "primary")),
+                row(btn("🎉 Забрать", "!забрать", "positive")),
                 row(btn("📊 Статус", "!статус", "secondary"))
         );
     }

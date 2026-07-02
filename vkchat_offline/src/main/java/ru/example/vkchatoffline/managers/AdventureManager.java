@@ -1,10 +1,16 @@
 package ru.example.vkchatoffline.managers;
 
 import org.bukkit.Bukkit;
+import org.bukkit.Material;
+import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.event.Listener;
+import org.bukkit.inventory.ItemStack;
 import ru.example.vkchat.VKChatPlugin;
 import ru.example.vkchatoffline.VKChatOfflinePlugin;
 import ru.example.vkchatoffline.data.StashManager;
+import java.io.File;
+import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -74,10 +80,16 @@ public class AdventureManager implements Listener {
                 showMenu(vkId);
                 break;
             case "!пойти":
-                if (args.length > 0) startAdventure(vkId, args[0]);
+                if (args.length > 1) startAdventure(vkId, args[1]);
                 break;
             case "!выбор":
-                if (args.length > 0) handleChoice(vkId, args[0]);
+                if (args.length > 1) {
+                    if (state.state == State.COMBAT) {
+                        try { handleCombatAction(vkId, Integer.parseInt(args[1])); } catch (Exception ignored) {}
+                    } else {
+                        handleChoice(vkId, args[1]);
+                    }
+                }
                 break;
             case "!статус":
                 showStatus(vkId);
@@ -181,6 +193,7 @@ public class AdventureManager implements Listener {
         state.waitingChoice = true;
         state.choiceDeadline = System.currentTimeMillis() + 300000;
         state.state = State.CHOICE;
+        if (type.equals("boss")) state.isBoss = true;
     }
 
     // ═══ ОБРАБОТКА ВЫБОРА ═══
@@ -348,15 +361,16 @@ public class AdventureManager implements Listener {
         if (success) {
             int rep = 10 + state.stage * 5;
             int xp = 8 + state.stage * 3;
+            int earnedGold = rand.nextInt(5) + 1;
             state.xp += xp;
-            state.gold += rand.nextInt(5) + 1;
+            state.gold += earnedGold;
             state.morale = Math.min(100, state.morale + 5);
 
             try { VKChatPlugin.getInstance().getApi().addReputation(vkId, rep); } catch (Exception ignored) {}
 
             msg += "✨ Успех!\n";
             msg += "💚 +" + rep + " репутации | +" + xp + " XP\n";
-            msg += "🪙 +" + state.gold + " золота";
+            msg += "🪙 +" + earnedGold + " золота";
         } else {
             int damage = 5 + rand.nextInt(10);
             state.hp -= damage;
@@ -393,6 +407,15 @@ public class AdventureManager implements Listener {
 
             try { VKChatPlugin.getInstance().getApi().addReputation(vkId, totalRep); } catch (Exception ignored) {}
 
+            if (state.gold > 0) {
+                java.util.UUID uuid = VKChatPlugin.getInstance().getApi().getUuidByVkId(vkId);
+                if (uuid != null) {
+                    List<ItemStack> rewards = new ArrayList<>();
+                    rewards.add(new ItemStack(Material.GOLD_INGOT, Math.min(state.gold, 64)));
+                    plugin.getStashManager().addItems(uuid, rewards);
+                }
+            }
+
             String msg = "✅ Поход завершён!\n\n" +
                     "📍 Этапов: " + state.stage + "/" + state.maxStages + "\n" +
                     "❤️ HP: " + state.hp + "/" + state.maxHp + "\n" +
@@ -416,7 +439,14 @@ public class AdventureManager implements Listener {
         PlayerState state = states.get(vkId);
         state.state = State.MENU;
 
-        sendMessage(vkId, "🎁 Награды получены! Проверь инвентарь.");
+        java.util.UUID uuid = VKChatPlugin.getInstance().getApi().getUuidByVkId(vkId);
+        if (uuid != null && state.gold > 0) {
+            List<ItemStack> rewards = new ArrayList<>();
+            rewards.add(new ItemStack(Material.GOLD_INGOT, Math.min(state.gold, 64)));
+            plugin.getStashManager().addItems(uuid, rewards);
+        }
+
+        sendMessage(vkId, "🎁 Награды получены! Проверь инвентарь (/stash).");
         sendKeyboard(vkId, "Меню", Keyboards.routeSelection());
     }
 
@@ -523,5 +553,80 @@ public class AdventureManager implements Listener {
         }
     }
 
-    public void saveAll() {}
+    public void saveAll() {
+        File file = new File(plugin.getDataFolder(), "states.yml");
+        FileConfiguration cfg = new YamlConfiguration();
+        for (Map.Entry<Integer, PlayerState> e : states.entrySet()) {
+            PlayerState s = e.getValue();
+            String key = "states." + e.getKey();
+            cfg.set(key + ".state", s.state.name());
+            cfg.set(key + ".route", s.route);
+            cfg.set(key + ".stage", s.stage);
+            cfg.set(key + ".maxStages", s.maxStages);
+            cfg.set(key + ".hp", s.hp);
+            cfg.set(key + ".maxHp", s.maxHp);
+            cfg.set(key + ".supplies", s.supplies);
+            cfg.set(key + ".morale", s.morale);
+            cfg.set(key + ".gold", s.gold);
+            cfg.set(key + ".xp", s.xp);
+            cfg.set(key + ".eventType", s.eventType);
+            cfg.set(key + ".eventTitle", s.eventTitle);
+            cfg.set(key + ".enemyName", s.enemyName);
+            cfg.set(key + ".enemyHp", s.enemyHp);
+            cfg.set(key + ".enemyMaxHp", s.enemyMaxHp);
+            cfg.set(key + ".enemyAtk", s.enemyAtk);
+            cfg.set(key + ".enemyDef", s.enemyDef);
+            cfg.set(key + ".round", s.round);
+            cfg.set(key + ".maxRounds", s.maxRounds);
+            cfg.set(key + ".isBoss", s.isBoss);
+            cfg.set(key + ".waitingChoice", s.waitingChoice);
+            cfg.set(key + ".choiceDeadline", s.choiceDeadline);
+            cfg.set(key + ".nextEventTime", s.nextEventTime);
+        }
+        for (Map.Entry<Integer, Long> e : injuries.entrySet()) {
+            cfg.set("injuries." + e.getKey(), e.getValue());
+        }
+        try { cfg.save(file); } catch (IOException ignored) {}
+    }
+
+    public void loadStates() {
+        File file = new File(plugin.getDataFolder(), "states.yml");
+        if (!file.exists()) return;
+        FileConfiguration cfg = YamlConfiguration.loadConfiguration(file);
+        if (cfg.contains("states")) {
+            for (String key : cfg.getConfigurationSection("states").getKeys(false)) {
+                int vkId = Integer.parseInt(key);
+                PlayerState s = new PlayerState();
+                s.state = State.valueOf(cfg.getString("states." + key + ".state", "MENU"));
+                s.route = cfg.getString("states." + key + ".route", "");
+                s.stage = cfg.getInt("states." + key + ".stage", 0);
+                s.maxStages = cfg.getInt("states." + key + ".maxStages", 3);
+                s.hp = cfg.getInt("states." + key + ".hp", 100);
+                s.maxHp = cfg.getInt("states." + key + ".maxHp", 100);
+                s.supplies = cfg.getInt("states." + key + ".supplies", 5);
+                s.morale = cfg.getInt("states." + key + ".morale", 100);
+                s.gold = cfg.getInt("states." + key + ".gold", 0);
+                s.xp = cfg.getInt("states." + key + ".xp", 0);
+                s.eventType = cfg.getString("states." + key + ".eventType", "");
+                s.eventTitle = cfg.getString("states." + key + ".eventTitle", "");
+                s.enemyName = cfg.getString("states." + key + ".enemyName", "");
+                s.enemyHp = cfg.getInt("states." + key + ".enemyHp", 0);
+                s.enemyMaxHp = cfg.getInt("states." + key + ".enemyMaxHp", 0);
+                s.enemyAtk = cfg.getInt("states." + key + ".enemyAtk", 0);
+                s.enemyDef = cfg.getInt("states." + key + ".enemyDef", 0);
+                s.round = cfg.getInt("states." + key + ".round", 0);
+                s.maxRounds = cfg.getInt("states." + key + ".maxRounds", 5);
+                s.isBoss = cfg.getBoolean("states." + key + ".isBoss", false);
+                s.waitingChoice = cfg.getBoolean("states." + key + ".waitingChoice", false);
+                s.choiceDeadline = cfg.getLong("states." + key + ".choiceDeadline", 0);
+                s.nextEventTime = cfg.getLong("states." + key + ".nextEventTime", 0);
+                states.put(vkId, s);
+            }
+        }
+        if (cfg.contains("injuries")) {
+            for (String key : cfg.getConfigurationSection("injuries").getKeys(false)) {
+                injuries.put(Integer.parseInt(key), cfg.getLong("injuries." + key));
+            }
+        }
+    }
 }
