@@ -173,14 +173,6 @@ public class MCCommands implements CommandExecutor, org.bukkit.command.TabComple
         if (name.equals("2fa")) {
             if (!(sender instanceof Player)) return true;
             Player p = (Player) sender;
-            if (!plugin.getAuthManager().isRegistered(p)) {
-                p.sendMessage(org.bukkit.ChatColor.RED + "❌ Вы не зарегистрированы!");
-                return true;
-            }
-            if (plugin.getAuthManager().isLoggedIn(p)) {
-                p.sendMessage(org.bukkit.ChatColor.YELLOW + "⚠️ Вы уже вошли в аккаунт!");
-                return true;
-            }
             if (!plugin.getAuthManager().isWaiting2fa(p)) {
                 p.sendMessage(org.bukkit.ChatColor.RED + "❌ Для вашего аккаунта сейчас не требуется ввод 2FA.");
                 return true;
@@ -219,21 +211,13 @@ public class MCCommands implements CommandExecutor, org.bukkit.command.TabComple
         if (name.equals("login")) {
             if (!(sender instanceof Player)) return true;
             Player p = (Player) sender;
-            if (!plugin.getAuthManager().isRegistered(p)) {
-                p.sendMessage(plugin.getConfigManager().formatColor(plugin.getConfigManager().getMessage("auth_register_help")));
-                return true;
-            }
-            if (plugin.getAuthManager().isLoggedIn(p)) {
-                p.sendMessage(plugin.getConfigManager().formatColor(plugin.getConfigManager().getMessage("auth_already_logged")));
-                return true;
-            }
-            if (args.length < 1) {
-                p.sendMessage(plugin.getConfigManager().formatColor(plugin.getConfigManager().getMessage("auth_login_help")));
-                return true;
-            }
 
             // Шорткат: если игрок ожидает 2FA, разрешаем подтвердить код и через /login <code>
             if (plugin.getTwoFactorManager().isWaiting2fa(p.getUniqueId())) {
+                if (args.length < 1) {
+                    p.sendMessage(org.bukkit.ChatColor.RED + "❌ Использование: /login <код_из_вк>");
+                    return true;
+                }
                 String code = args[0].trim();
                 TwoFactorManager.TwoFactorResult result = plugin.getTwoFactorManager().confirm2fa(p.getUniqueId(), code);
                 if (result == TwoFactorManager.TwoFactorResult.SUCCESS) {
@@ -245,7 +229,30 @@ public class MCCommands implements CommandExecutor, org.bukkit.command.TabComple
                     p.sendMessage("");
                     p.playSound(p.getLocation(), org.bukkit.Sound.ENTITY_PLAYER_LEVELUP, 1.0f, 1.0f);
                     return true;
+                } else if (result == TwoFactorManager.TwoFactorResult.WRONG_CODE) {
+                    int remaining = plugin.getTwoFactorManager().getRemainingAttempts(p.getUniqueId());
+                    p.sendMessage(org.bukkit.ChatColor.RED + "❌ Неверный код! Осталось попыток: " + remaining);
+                    return true;
+                } else if (result == TwoFactorManager.TwoFactorResult.LOCKED) {
+                    p.sendMessage(org.bukkit.ChatColor.RED + "🔒 Слишком много попыток! Подожди 5 минут.");
+                    return true;
+                } else if (result == TwoFactorManager.TwoFactorResult.EXPIRED) {
+                    p.sendMessage(org.bukkit.ChatColor.RED + "⏰ Код истёк! Перезайди на сервер.");
+                    return true;
                 }
+            }
+
+            if (!plugin.getAuthManager().isRegistered(p)) {
+                p.sendMessage(plugin.getConfigManager().formatColor(plugin.getConfigManager().getMessage("auth_register_help")));
+                return true;
+            }
+            if (plugin.getAuthManager().isLoggedIn(p)) {
+                p.sendMessage(plugin.getConfigManager().formatColor(plugin.getConfigManager().getMessage("auth_already_logged")));
+                return true;
+            }
+            if (args.length < 1) {
+                p.sendMessage(plugin.getConfigManager().formatColor(plugin.getConfigManager().getMessage("auth_login_help")));
+                return true;
             }
 
             if (!plugin.getAuthManager().login(p, args[0])) {
