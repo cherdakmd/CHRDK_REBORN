@@ -1,0 +1,46 @@
+# Шахтёрские смены — конфигурация
+shifts:
+  1h:
+    name: "Короткая смена"
+    icon: "⛏"
+    duration-minutes: 60
+    rep-min: 50
+    rep-max: 100
+    resources:
+      - "STONE:8:16"
+      - "COAL:4:8"
+      - "IRON_INGOT:1:3"
+  3h:
+    name: "Стандартная смена"
+    icon: "⛏⛏"
+    duration-minutes: 180
+    rep-min: 200
+    rep-max: 400
+    resources:
+      - "IRON_INGOT:4:10"
+      - "GOLD_INGOT:1:4"
+      - "REDSTONE:3:8"
+      - "COAL:8:16"
+  8h:
+    name: "Ночная смена"
+    icon: "⛏⛏⛏"
+    duration-minutes: 480
+    rep-min: 600
+    rep-max: 1000
+    resources:
+      - "GOLD_INGOT:3:8"
+      - "DIAMOND:1:3"
+      - "LAPIS_LAZULI:4:10"
+      - "IRON_INGOT:6:15"
+  12h:
+    name: "Полный рабочий день"
+    icon: "⛏⛏⛏⛏"
+    duration-minutes: 720
+    rep-min: 1200
+    rep-max: 2000
+    resources:
+      - "DIAMOND:2:5"
+      - "EMERALD:1:3"
+      - "NETHERITE_SCRAP:1:2"
+      - "GOLD_INGOT:5:12"
+      - "IRON_INGOT:10:20"
