@@ -1,0 +1,87 @@
+# ═══════════════════════════════════════
+# VKChatDonate — система донатов через DonatePay
+# ═══════════════════════════════════════
+
+# Токен API DonatePay (получить: donatepay.ru → Мои кассы → API)
+api-token: "YOUR_DONATEPAY_TOKEN"
+
+# Интервал проверки новых донатов (секунды)
+poll-interval: 30
+
+# ═══════════════════════════════════════
+# ДОНАТ-СТАТУСЫ (5 уровней)
+# ═══════════════════════════════════════
+# Каждый статус выдаёт LuckPerms permission: vkchat.donate.<id>
+# Игрок указывается в КОММЕНТАРИИ доната: "ник player123"
+statuses:
+
+  spark:
+    id: "spark"
+    name: "&b⚡ Искра"
+    display: "⚡ Искра"
+    price: 250
+    description: "Начальный донат-статус"
+    # Множители и бонусы
+    rep-discount: 0.10       # -10% к ценам в репутации
+    tp-cooldown-mult: 0.80   # КД телепортов ×0.8
+    max-homes: 5
+    market-mult: 1.10        # +10% к продаже на рынке
+    jobs-xp-mult: 1.10       # +10% XP профессий
+
+  flame:
+    id: "flame"
+    name: "&6🔥 Пламя"
+    display: "🔥 Пламя"
+    price: 500
+    description: "Средний донат-статус"
+    rep-discount: 0.20
+    tp-cooldown-mult: 0.65
+    max-homes: 8
+    market-mult: 1.20
+    jobs-xp-mult: 1.20
+
+  star:
+    id: "star"
+    name: "&e⭐ Звезда"
+    display: "⭐ Звезда"
+    price: 1000
+    description: "Продвинутый донат-статус"
+    rep-discount: 0.35
+    tp-cooldown-mult: 0.50
+    max-homes: 12
+    market-mult: 1.35
+    jobs-xp-mult: 1.35
+
+  legend:
+    id: "legend"
+    name: "&5👑 Легенда"
+    display: "👑 Легенда"
+    price: 2500
+    description: "Элитный донат-статус"
+    rep-discount: 0.50
+    tp-cooldown-mult: 0.30
+    max-homes: 20
+    market-mult: 1.50
+    jobs-xp-mult: 1.50
+
+  overlord:
+    id: "overlord"
+    name: "&d💎 Властелин"
+    display: "💎 Властелин"
+    price: 5000
+    description: "Максимальный донат-статус"
+    rep-discount: 0.65
+    tp-cooldown-mult: 0.15
+    max-homes: 30
+    market-mult: 1.70
+    jobs-xp-mult: 1.70
+
+# ═══════════════════════════════════════
+# СООБЩЕНИЯ
+# ═══════════════════════════════════════
+messages:
+  donate-thanks: "&a✨ Спасибо за донат, {player}! Статус {status} активирован."
+  donate-broadcast: "&6💰 {player} получил статус {status} &6за донат!"
+  no-player: "&c❌ Укажите ник в комментарии к донату: 'ник Игрок'"
+  no-nickname: "&c❌ Игрок с ником {nick} не найден на сервере"
+  already-higher: "&e⚠ У игрока уже есть более высокий статус"

@@ -3,3 +3,4 @@ include 'vkchat_jobs', 'vkchat_events', 'vkchat_gear', 'vkchat_core', 'vkchat_na
 include 'vkchat_announcer'
 include 'vkchat_starter'
 include 'vkchat_market'
+include 'vkchat_donate'
