@@ -32,8 +32,7 @@ public class CombatManager {
             msg += "\n\n" + s.effectType + " (" + s.effectTurns + " ходов)";
         }
 
-        mgr.sendMsg(vkId, msg);
-        mgr.sendKb(vkId, "Бой!", Keyboards.combatActions(true, 4));
+        mgr.sendWithKb(vkId, msg, Keyboards.combatActions(true, 4));
     }
 
     public void handleAction(AdventureManager mgr, int vkId, int action, String... extra) {
@@ -104,8 +103,7 @@ public class CombatManager {
                 if (rnd.nextInt(100) < 25) {
                     result.append("🏃 Побег удался!\n");
                     s.state = AdventureManager.State.RESULT;
-                    mgr.sendMsg(vkId, result.toString());
-                    mgr.sendKb(vkId, "Побег", Keyboards.afterCombatWin());
+                    mgr.sendWithKb(vkId, result.toString(), Keyboards.afterCombatWin());
                     return;
                 }
                 result.append("🏃 Побег не удался!\n");
@@ -147,8 +145,7 @@ public class CombatManager {
             result.append("⭐ +").append(rep).append(" реп | ✨ +").append(xp).append(" XP\n");
             result.append("💰 +").append(gold).append(" золота");
 
-            mgr.sendMsg(vkId, result.toString());
-            mgr.sendKb(vkId, "Победа!", Keyboards.afterCombatWin());
+            mgr.sendWithKb(vkId, result.toString(), Keyboards.afterCombatWin());
             return;
         }
 
@@ -156,8 +153,7 @@ public class CombatManager {
         if (s.hp <= 0) {
             s.state = AdventureManager.State.DEAD;
             result.append("\n💀 Вы погибли!");
-            mgr.sendMsg(vkId, result.toString());
-            mgr.sendKb(vkId, "Поражение", Keyboards.afterCombatLose());
+            mgr.sendWithKb(vkId, result.toString(), Keyboards.afterCombatLose());
             return;
         }
 
@@ -173,8 +169,7 @@ public class CombatManager {
         if (s.hp <= 0) {
             s.state = AdventureManager.State.DEAD;
             result.append("\n💀 Вы погибли!");
-            mgr.sendMsg(vkId, result.toString());
-            mgr.sendKb(vkId, "Поражение", Keyboards.afterCombatLose());
+            mgr.sendWithKb(vkId, result.toString(), Keyboards.afterCombatLose());
             return;
         }
 

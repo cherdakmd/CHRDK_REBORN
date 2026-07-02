@@ -22,8 +22,7 @@ public class ShopManager {
                     + "🧪 Зелья — лечилки и баффы\n"
                     + "📦 Ресурсы — материалы для крафта\n"
                     + "🛡 Части сетов — экипировка";
-            mgr.sendMsg(vkId, msg);
-            mgr.sendKb(vkId, "Лавка", Keyboards.shopMenu());
+            mgr.sendWithKb(vkId, msg, Keyboards.shopMenu());
             return;
         }
 
@@ -52,8 +51,7 @@ public class ShopManager {
                 + "💜 Эликсир энергии (полная) — 80 реп\n"
                 + "🛡 Зелье защиты (+3 DEF на 3 хода) — 60 реп\n\n"
                 + "Купить: !adv shop buy <название>";
-        mgr.sendMsg(vkId, msg);
-        mgr.sendKb(vkId, "Зелья", Keyboards.shopBack());
+        mgr.sendWithKb(vkId, msg, Keyboards.shopBack());
     }
 
     private void showResources(int vkId, AdventureManager mgr) {
@@ -62,8 +60,7 @@ public class ShopManager {
             msg += rt.icon + " " + rt.name + " — " + rt.repValue * 5 + " реп\n";
         }
         msg += "\nКупить: !adv shop buy <название>";
-        mgr.sendMsg(vkId, msg);
-        mgr.sendKb(vkId, "Ресурсы", Keyboards.shopBack());
+        mgr.sendWithKb(vkId, msg, Keyboards.shopBack());
     }
 
     private void showPieces(int vkId, AdventureManager mgr) {
@@ -80,8 +77,7 @@ public class ShopManager {
             }
         }
         msg += "\nКупить: !adv shop buy <название части>";
-        mgr.sendMsg(vkId, msg);
-        mgr.sendKb(vkId, "Части сетов", Keyboards.shopBack());
+        mgr.sendWithKb(vkId, msg, Keyboards.shopBack());
     }
 
     private void buyItem(int vkId, String item, AdventureManager mgr, String[] args) {
@@ -149,8 +145,7 @@ public class ShopManager {
                     }
                     plugin.getStashManager().addItems(uuid, java.util.Collections.singletonList(itemStack));
                 }
-                mgr.sendMsg(vkId, "✅ Куплено: " + p.name + " за " + cost + " реп. Отправлено в /stash!");
-                mgr.sendKb(vkId, "Лавка", Keyboards.shopBack());
+                mgr.sendWithKb(vkId, "✅ Куплено: " + p.name + " за " + cost + " реп. Отправлено в /stash!", Keyboards.shopBack());
                 return;
             }
         }
@@ -164,18 +159,15 @@ public class ShopManager {
                     plugin.getStashManager().addItems(uuid,
                             java.util.Collections.singletonList(new org.bukkit.inventory.ItemStack(rt.material, 1)));
                 }
-                mgr.sendMsg(vkId, "✅ Куплено: " + rt.icon + " " + rt.name + " за " + cost + " реп. В /stash!");
-                mgr.sendKb(vkId, "Лавка", Keyboards.shopBack());
+                mgr.sendWithKb(vkId, "✅ Куплено: " + rt.icon + " " + rt.name + " за " + cost + " реп. В /stash!", Keyboards.shopBack());
                 return;
             }
         }
 
-        mgr.sendMsg(vkId, "✅ Куплено: " + name + " за " + cost + " реп!");
-        mgr.sendKb(vkId, "Лавка", Keyboards.shopBack());
+        mgr.sendWithKb(vkId, "✅ Куплено: " + name + " за " + cost + " реп!", Keyboards.shopBack());
     }
 
     public void handleConfirm(int vkId, String action, AdventureManager mgr) {
-        mgr.sendMsg(vkId, "✅ Действие подтверждено.");
-        mgr.sendKb(vkId, "OK", Keyboards.shopBack());
+        mgr.sendWithKb(vkId, "✅ Действие подтверждено.", Keyboards.shopBack());
     }
 }

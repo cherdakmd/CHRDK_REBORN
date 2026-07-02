@@ -118,8 +118,7 @@ public class AdventureManager {
                 + "🌑 Грань Бездны — ур.6\n\n"
                 + "Выбери зону кнопкой ниже:";
 
-        sendMsg(vkId, msg);
-        sendKb(vkId, "Меню приключений", Keyboards.mainMenu());
+        sendWithKb(vkId, msg, Keyboards.mainMenu());
     }
 
     // ===== НАЧАЛО ПОХОДА =====
@@ -186,14 +185,13 @@ public class AdventureManager {
         playerData.incrementDaily(vkId);
         playerData.setCooldown(vkId, System.currentTimeMillis());
 
-        sendMsg(vkId, zone.color + "⚔ " + zone.name + " — ПОХОД НАЧАТ!\n\n"
+        sendWithKb(vkId, zone.color + "⚔ " + zone.name + " — ПОХОД НАЧАТ!\n\n"
                 + zone.icon + " Сложность: " + zone.difficulty + "/6\n"
                 + "📍 Этапов: " + zone.stages + "\n"
                 + "❤ HP: " + s.hp + "/" + s.maxHp + "\n"
                 + "⚡ Энергия: " + s.energy + "/" + s.maxEnergy + "\n"
                 + "🥫 Припасы: " + s.supplies + "\n\n"
-                + "⏳ Первое событие через 5 сек...");
-        sendKb(vkId, "Поход начат!", Keyboards.adventureActions());
+                + "⏳ Первое событие через 5 сек...", Keyboards.adventureActions());
     }
 
     // ===== ВЫБОР КЛАССА =====
@@ -203,8 +201,7 @@ public class AdventureManager {
             msg += ct.icon + " " + ct.name + " — " + ct.desc + "\n"
                     + "   ❤" + ct.baseHp + " ⚔" + ct.baseAtk + " 🛡" + ct.baseDef + "\n\n";
         }
-        sendMsg(vkId, msg);
-        sendKb(vkId, "Выбор класса", Keyboards.classSelect());
+        sendWithKb(vkId, msg, Keyboards.classSelect());
     }
 
     private void setClass(int vkId, String[] args) {
@@ -235,8 +232,7 @@ public class AdventureManager {
                 + "💀 Убито: " + kills + " | ☠ Боссов: " + bosses + "\n"
                 + "🗺 Походов: " + adv + "\n\n"
                 + "Выберите раздел:";
-        sendMsg(vkId, msg);
-        sendKb(vkId, "Герой", Keyboards.heroMenu());
+        sendWithKb(vkId, msg, Keyboards.heroMenu());
     }
 
     // ===== СОБЫТИЯ =====
@@ -279,10 +275,9 @@ public class AdventureManager {
         s.eventType = event[0];
         s.eventText = event[1] + "\n" + event[2];
 
-        sendMsg(vkId, s.zone.color + "📌 Этап " + s.stage + "/" + s.maxStages + "\n\n"
+        sendWithKb(vkId, s.zone.color + "📌 Этап " + s.stage + "/" + s.maxStages + "\n\n"
                 + event[1] + "\n" + ChatColor.GRAY + event[2] + "\n\n"
-                + ChatColor.YELLOW + "Ваши действия: " + event[3]);
-        sendKb(vkId, "Событие", Keyboards.adventureActions());
+                + ChatColor.YELLOW + "Ваши действия: " + event[3], Keyboards.adventureActions());
     }
 
     private void startMonsterFight(int vkId) {
@@ -395,8 +390,7 @@ public class AdventureManager {
         }
 
         s.state = State.RESULT;
-        sendMsg(vkId, msg);
-        sendKb(vkId, "Результат", Keyboards.afterEvent());
+        sendWithKb(vkId, msg, Keyboards.afterEvent());
     }
 
     // ===== ПРОДВИЖЕНИЕ И ЗАВЕРШЕНИЕ =====
@@ -409,8 +403,7 @@ public class AdventureManager {
         if (s.stage >= s.maxStages) {
             completeAdventure(vkId);
         } else {
-            sendMsg(vkId, s.zone.color + "📍 Этап " + s.stage + "/" + s.maxStages + " — продолжаем путь...\n⏳ Следующее событие через 3 сек.");
-            sendKb(vkId, "Поход", Keyboards.adventureActions());
+        sendWithKb(vkId, s.zone.color + "📍 Этап " + s.stage + "/" + s.maxStages + " — продолжаем путь...\n⏳ Следующее событие через 3 сек.", Keyboards.adventureActions());
         }
     }
 
@@ -462,8 +455,7 @@ public class AdventureManager {
         }
 
         msg += "\n🎉 Нажми «Забрать награды» чтобы получить!";
-        sendMsg(vkId, msg);
-        sendKb(vkId, "Завершение", Keyboards.adventureComplete());
+        sendWithKb(vkId, msg, Keyboards.adventureComplete());
     }
 
     private void claimRewards(int vkId) {
@@ -521,10 +513,9 @@ public class AdventureManager {
         int repLoss = (int)(s.repEarned * penalty);
         s.repEarned -= repLoss;
 
-        sendMsg(vkId, "💀 ВЫ ПОГИБЛИ!\n\n"
+        sendWithKb(vkId, "💀 ВЫ ПОГИБЛИ!\n\n"
                 + "Потеряно: " + repLoss + " репутации\n"
-                + "Используйте лечение чтобы восстановиться.");
-        sendKb(vkId, "Поражение", Keyboards.afterCombatLose());
+                + "Используйте лечение чтобы восстановиться.", Keyboards.afterCombatLose());
     }
 
     private void healPlayer(int vkId) {
@@ -612,8 +603,7 @@ public class AdventureManager {
             int count = playerData.getResource(vkId, rt.name());
             if (count > 0) msg += "  " + rt.icon + " " + rt.name + " x" + count + "\n";
         }
-        sendMsg(vkId, msg);
-        sendKb(vkId, "Сумка", Keyboards.heroMenu());
+        sendWithKb(vkId, msg, Keyboards.heroMenu());
     }
 
     private void handleConfirm(int vkId, String[] args) {
@@ -698,5 +688,12 @@ public class AdventureManager {
 
     public void sendKb(int vkId, String title, String kb) {
         try { VKChatPlugin.getInstance().getApi().sendKeyboard(vkId, title, kb); } catch (Exception ignored) {}
+    }
+
+    /**
+     * Отправить одно сообщение с текстом И клавиатурой
+     */
+    public void sendWithKb(int vkId, String text, String kb) {
+        try { VKChatPlugin.getInstance().getApi().sendKeyboard(vkId, text, kb); } catch (Exception ignored) {}
     }
 }
