@@ -53,6 +53,11 @@ public class GearManager {
     }
 
     private double getDonateDiscount(Player p) {
+        if (p.hasPermission("vkchat.donate.overlord")) return 0.65;
+        if (p.hasPermission("vkchat.donate.legend")) return 0.50;
+        if (p.hasPermission("vkchat.donate.star")) return 0.35;
+        if (p.hasPermission("vkchat.donate.flame")) return 0.20;
+        if (p.hasPermission("vkchat.donate.spark")) return 0.10;
         return 0.0;
     }
 

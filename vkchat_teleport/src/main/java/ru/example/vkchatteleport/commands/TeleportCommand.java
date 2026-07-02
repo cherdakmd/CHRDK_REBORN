@@ -175,11 +175,23 @@ public class TeleportCommand implements CommandExecutor, TabCompleter {
 
 
     private int applyDonateDiscount(Player p, int cost) {
-        return Math.max(1, cost);
+        if (cost <= 0) return 0;
+        if (p.hasPermission("vkchat.donate.overlord")) return Math.max(1, (int)(cost * 0.35));
+        if (p.hasPermission("vkchat.donate.legend")) return Math.max(1, (int)(cost * 0.50));
+        if (p.hasPermission("vkchat.donate.star")) return Math.max(1, (int)(cost * 0.65));
+        if (p.hasPermission("vkchat.donate.flame")) return Math.max(1, (int)(cost * 0.80));
+        if (p.hasPermission("vkchat.donate.spark")) return Math.max(1, (int)(cost * 0.90));
+        return cost;
     }
 
     private int getDonateCooldown(Player p, String type) {
-        return plugin.getConfig().getInt("teleportation." + type + ".cooldown", 60);
+        int base = plugin.getConfig().getInt("teleportation." + type + ".cooldown", 60);
+        if (p.hasPermission("vkchat.donate.overlord")) return Math.max(1, (int)(base * 0.15));
+        if (p.hasPermission("vkchat.donate.legend")) return Math.max(1, (int)(base * 0.30));
+        if (p.hasPermission("vkchat.donate.star")) return Math.max(1, (int)(base * 0.50));
+        if (p.hasPermission("vkchat.donate.flame")) return Math.max(1, (int)(base * 0.65));
+        if (p.hasPermission("vkchat.donate.spark")) return Math.max(1, (int)(base * 0.80));
+        return base;
     }
 
     private int getDonateWarmup(Player p) {
@@ -187,11 +199,25 @@ public class TeleportCommand implements CommandExecutor, TabCompleter {
     }
 
     private int getDonateMaxHomes(Player p) {
+        if (p.hasPermission("vkchat.donate.overlord")) return 30;
+        if (p.hasPermission("vkchat.donate.legend")) return 20;
+        if (p.hasPermission("vkchat.donate.star")) return 12;
+        if (p.hasPermission("vkchat.donate.flame")) return 8;
+        if (p.hasPermission("vkchat.donate.spark")) return 5;
         return plugin.getConfig().getInt("teleportation.home.max-homes", 3);
     }
 
     private boolean hasDonateStatus(Player p) {
-        return false;
+        return getDonateDiscount(p) > 0;
+    }
+
+    private double getDonateDiscount(Player p) {
+        if (p.hasPermission("vkchat.donate.overlord")) return 0.65;
+        if (p.hasPermission("vkchat.donate.legend")) return 0.50;
+        if (p.hasPermission("vkchat.donate.star")) return 0.35;
+        if (p.hasPermission("vkchat.donate.flame")) return 0.20;
+        if (p.hasPermission("vkchat.donate.spark")) return 0.10;
+        return 0;
     }
 
     private String formatTime(long seconds) {

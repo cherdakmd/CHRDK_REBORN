@@ -581,7 +581,7 @@ public class MarketGuiListener implements Listener {
                     if (toRemove == 0) break;
                 }
             }
-            double donorMult = 1.0;
+            double donorMult = donorSellMultiplierStatic(p);
 
             int rep = Math.max(1, (int) Math.round(plugin.getMarketManager().calculateBulkSellPrice(itemId, count) * donorMult));
             totalRep += rep;
@@ -772,11 +772,30 @@ public class MarketGuiListener implements Listener {
         return "all";
     }
 
+    private static double donorSellMultiplierStatic(Player p) {
+        if (p.hasPermission("vkchat.donate.overlord")) return 1.70;
+        if (p.hasPermission("vkchat.donate.legend")) return 1.50;
+        if (p.hasPermission("vkchat.donate.star")) return 1.35;
+        if (p.hasPermission("vkchat.donate.flame")) return 1.20;
+        if (p.hasPermission("vkchat.donate.spark")) return 1.10;
+        return 1.0;
+    }
+
     private double donorSellMultiplier(Player p) {
+        if (p.hasPermission("vkchat.donate.overlord")) return 1.70;
+        if (p.hasPermission("vkchat.donate.legend")) return 1.50;
+        if (p.hasPermission("vkchat.donate.star")) return 1.35;
+        if (p.hasPermission("vkchat.donate.flame")) return 1.20;
+        if (p.hasPermission("vkchat.donate.spark")) return 1.10;
         return 1.0;
     }
 
     private double donorBuyMultiplier(Player p) {
+        if (p.hasPermission("vkchat.donate.overlord")) return 0.35;
+        if (p.hasPermission("vkchat.donate.legend")) return 0.50;
+        if (p.hasPermission("vkchat.donate.star")) return 0.65;
+        if (p.hasPermission("vkchat.donate.flame")) return 0.80;
+        if (p.hasPermission("vkchat.donate.spark")) return 0.90;
         return 1.0;
     }
 

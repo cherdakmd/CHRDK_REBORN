@@ -376,6 +376,11 @@ public class JobsDataManager {
     }
 
     private double getDonateStatusMultiplier(org.bukkit.entity.Player p) {
+        if (p.hasPermission("vkchat.donate.overlord")) return 1.70;
+        if (p.hasPermission("vkchat.donate.legend")) return 1.50;
+        if (p.hasPermission("vkchat.donate.star")) return 1.35;
+        if (p.hasPermission("vkchat.donate.flame")) return 1.20;
+        if (p.hasPermission("vkchat.donate.spark")) return 1.10;
         return 1.0;
     }
 
