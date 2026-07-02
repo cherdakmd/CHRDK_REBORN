@@ -29,14 +29,19 @@ public class VKChatTeleportPlugin extends JavaPlugin {
 
         TeleportCommand commandExecutor = new TeleportCommand(this);
         getCommand("rtp").setExecutor(commandExecutor);
+        getCommand("rtp").setTabCompleter(commandExecutor);
         getCommand("tpa").setExecutor(commandExecutor);
         getCommand("tpa").setTabCompleter(commandExecutor);
         getCommand("tpaccept").setExecutor(commandExecutor);
+        getCommand("tpaccept").setTabCompleter(commandExecutor);
         getCommand("tpdeny").setExecutor(commandExecutor);
+        getCommand("tpdeny").setTabCompleter(commandExecutor);
         getCommand("sethome").setExecutor(commandExecutor);
+        getCommand("sethome").setTabCompleter(commandExecutor);
         getCommand("home").setExecutor(commandExecutor);
         getCommand("home").setTabCompleter(commandExecutor);
         getCommand("homes").setExecutor(commandExecutor);
+        getCommand("homes").setTabCompleter(commandExecutor);
         getCommand("delhome").setExecutor(commandExecutor);
         getCommand("delhome").setTabCompleter(commandExecutor);
         getCommand("gateway").setExecutor(commandExecutor);

@@ -119,6 +119,7 @@ public class VKChatEventsPlugin extends JavaPlugin {
         // Регистрация команд
         EventsCommand eventsCommand = new EventsCommand(this);
         getCommand("events").setExecutor(eventsCommand);
+        getCommand("events").setTabCompleter(eventsCommand);
 
         // Запуск задач
         int reminderSec = getConfig().getInt("reminders.interval", 600);

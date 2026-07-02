@@ -6,6 +6,7 @@ import org.bukkit.Material;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -16,12 +17,14 @@ import org.bukkit.inventory.meta.ItemMeta;
 import ru.example.vkchatevents.VKChatEventsPlugin;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * GUI дашборд событий v3.0
  */
-public class EventsCommand implements CommandExecutor, Listener {
+public class EventsCommand implements CommandExecutor, TabCompleter, Listener {
     private final VKChatEventsPlugin plugin;
     private final String GUI_TITLE = ChatColor.GOLD + "📅 События и Активности";
 
@@ -178,5 +181,14 @@ public class EventsCommand implements CommandExecutor, Listener {
         meta.setLore(loreList);
         item.setItemMeta(meta);
         return item;
+    }
+
+    @Override
+    public List<String> onTabComplete(CommandSender sender, Command command, String label, String[] args) {
+        if (args.length == 1) {
+            return Arrays.asList("info", "boss", "ores", "artifacts", "shop", "quests", "challenges")
+                .stream().filter(s -> s.startsWith(args[0].toLowerCase())).collect(Collectors.toList());
+        }
+        return new ArrayList<>();
     }
 }
