@@ -40,18 +40,21 @@ public class DonateCommand implements CommandExecutor {
             plugin.saveConfig();
             plugin.reloadConfig();
 
-            // Настройка LuckPerms групп
             sender.sendMessage(ChatColor.GREEN + "✅ Токен сохранён!");
+            sender.sendMessage(ChatColor.YELLOW + "Создаю LuckPerms группы...");
+
+            String[] groups = {"spark", "flame", "star", "legend", "overlord"};
+            for (String group : groups) {
+                org.bukkit.Bukkit.dispatchCommand(org.bukkit.Bukkit.getConsoleSender(),
+                        "lp creategroup " + group);
+                org.bukkit.Bukkit.dispatchCommand(org.bukkit.Bukkit.getConsoleSender(),
+                        "lp group " + group + " permission set vkchat.donate." + group + " true");
+                sender.sendMessage(ChatColor.GRAY + "  lp creategroup " + group + " + права → OK");
+            }
+
             sender.sendMessage("");
-            sender.sendMessage(ChatColor.YELLOW + "═ Настройка LuckPerms — выполни команды в консоли:");
-            sender.sendMessage(ChatColor.WHITE + "lp creategroup spark");
-            sender.sendMessage(ChatColor.WHITE + "lp creategroup flame");
-            sender.sendMessage(ChatColor.WHITE + "lp creategroup star");
-            sender.sendMessage(ChatColor.WHITE + "lp creategroup legend");
-            sender.sendMessage(ChatColor.WHITE + "lp creategroup overlord");
-            sender.sendMessage("");
-            sender.sendMessage(ChatColor.GREEN + "✅ Готово! Донат-система активирована.");
-            sender.sendMessage(ChatColor.GRAY + "Перезапусти сервер или перезагрузи плагин для старта опроса API.");
+            sender.sendMessage(ChatColor.GREEN + "✅ Готово! Донат-система настроена.");
+            sender.sendMessage(ChatColor.GRAY + "Перезапусти сервер для старта опроса API.");
             return true;
         }
 
