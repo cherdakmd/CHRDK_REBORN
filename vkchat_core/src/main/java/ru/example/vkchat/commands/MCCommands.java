@@ -174,36 +174,33 @@ public class MCCommands implements CommandExecutor, org.bukkit.command.TabComple
             if (!(sender instanceof Player)) return true;
             Player p = (Player) sender;
             if (!plugin.getAuthManager().isWaiting2fa(p)) {
-                p.sendMessage(org.bukkit.ChatColor.RED + "❌ Для вашего аккаунта сейчас не требуется ввод 2FA.");
+                p.sendMessage(org.bukkit.ChatColor.RED + "❌ Подтверждение не требуется. Войди: /login <пароль>");
                 return true;
             }
             if (args.length < 1) {
-                p.sendMessage(org.bukkit.ChatColor.RED + "❌ Использование: /2fa <код_из_вк>");
+                p.sendMessage(org.bukkit.ChatColor.RED + "❌ Введи код из ЛС ВК: /2fa <код>");
                 return true;
             }
             
             String code = args[0].trim();
-            // Используем TwoFactorManager для подтверждения
             TwoFactorManager.TwoFactorResult result = plugin.getTwoFactorManager().confirm2fa(p.getUniqueId(), code);
             if (result == TwoFactorManager.TwoFactorResult.SUCCESS) {
-                // Обновляем SessionManager
                 plugin.getSessionManager().setState(p.getUniqueId(), SessionManager.SessionState.LOGGED_IN);
-                // Обновляем старый AuthManager
                 plugin.getAuthManager().setLoggedIn(p.getUniqueId(), true);
                 plugin.getAuthManager().updateLastActivity(p.getUniqueId());
                 p.sendMessage("");
-                p.sendMessage(org.bukkit.ChatColor.GREEN + "✓ [2FA] Вход успешно подтвержден! Приятной игры!");
+                p.sendMessage(org.bukkit.ChatColor.GREEN + "✅ Подтверждено! Приятной игры.");
                 p.sendMessage("");
                 p.playSound(p.getLocation(), org.bukkit.Sound.ENTITY_PLAYER_LEVELUP, 1.0f, 1.0f);
             } else if (result == TwoFactorManager.TwoFactorResult.WRONG_CODE) {
                 int remaining = plugin.getTwoFactorManager().getRemainingAttempts(p.getUniqueId());
-                p.sendMessage(org.bukkit.ChatColor.RED + "❌ Неверный код! Осталось попыток: " + remaining);
+                p.sendMessage(org.bukkit.ChatColor.RED + "❌ Неверный код. Попыток: " + remaining);
             } else if (result == TwoFactorManager.TwoFactorResult.LOCKED) {
-                p.sendMessage(org.bukkit.ChatColor.RED + "🔒 Слишком много попыток! Подожди 5 минут.");
+                p.sendMessage(org.bukkit.ChatColor.RED + "🔒 Слишком много попыток. Подожди 5 мин.");
             } else if (result == TwoFactorManager.TwoFactorResult.EXPIRED) {
-                p.sendMessage(org.bukkit.ChatColor.RED + "⏰ Код истёк! Перезайди на сервер.");
+                p.sendMessage(org.bukkit.ChatColor.RED + "⏰ Код просрочен. Перезайди на сервер.");
             } else {
-                p.sendMessage(org.bukkit.ChatColor.RED + "❌ Нет ожидающего кода 2FA.");
+                p.sendMessage(org.bukkit.ChatColor.RED + "❌ Нет активного кода. Перезайди на сервер.");
             }
             return true;
         }
@@ -215,7 +212,7 @@ public class MCCommands implements CommandExecutor, org.bukkit.command.TabComple
             // Шорткат: если игрок ожидает 2FA, разрешаем подтвердить код и через /login <code>
             if (plugin.getTwoFactorManager().isWaiting2fa(p.getUniqueId())) {
                 if (args.length < 1) {
-                    p.sendMessage(org.bukkit.ChatColor.RED + "❌ Использование: /login <код_из_вк>");
+                    p.sendMessage(org.bukkit.ChatColor.RED + "❌ Введи код из ЛС ВК: /login <код>");
                     return true;
                 }
                 String code = args[0].trim();
@@ -225,19 +222,19 @@ public class MCCommands implements CommandExecutor, org.bukkit.command.TabComple
                     plugin.getAuthManager().setLoggedIn(p.getUniqueId(), true);
                     plugin.getAuthManager().updateLastActivity(p.getUniqueId());
                     p.sendMessage("");
-                    p.sendMessage(org.bukkit.ChatColor.GREEN + "✓ [2FA] Вход успешно подтвержден! Приятной игры!");
+                    p.sendMessage(org.bukkit.ChatColor.GREEN + "✅ Подтверждено! Приятной игры.");
                     p.sendMessage("");
                     p.playSound(p.getLocation(), org.bukkit.Sound.ENTITY_PLAYER_LEVELUP, 1.0f, 1.0f);
                     return true;
                 } else if (result == TwoFactorManager.TwoFactorResult.WRONG_CODE) {
                     int remaining = plugin.getTwoFactorManager().getRemainingAttempts(p.getUniqueId());
-                    p.sendMessage(org.bukkit.ChatColor.RED + "❌ Неверный код! Осталось попыток: " + remaining);
+                    p.sendMessage(org.bukkit.ChatColor.RED + "❌ Неверный код. Попыток: " + remaining);
                     return true;
                 } else if (result == TwoFactorManager.TwoFactorResult.LOCKED) {
-                    p.sendMessage(org.bukkit.ChatColor.RED + "🔒 Слишком много попыток! Подожди 5 минут.");
+                    p.sendMessage(org.bukkit.ChatColor.RED + "🔒 Слишком много попыток. Подожди 5 мин.");
                     return true;
                 } else if (result == TwoFactorManager.TwoFactorResult.EXPIRED) {
-                    p.sendMessage(org.bukkit.ChatColor.RED + "⏰ Код истёк! Перезайди на сервер.");
+                    p.sendMessage(org.bukkit.ChatColor.RED + "⏰ Код просрочен. Перезайди на сервер.");
                     return true;
                 }
             }

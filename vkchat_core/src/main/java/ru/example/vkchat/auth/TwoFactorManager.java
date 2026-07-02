@@ -34,7 +34,7 @@ public class TwoFactorManager {
         // Проверяем блокировку
         if (isLocked(p.getUniqueId())) {
             long remaining = getLockoutRemaining(p.getUniqueId());
-            p.sendMessage("§c🔒 Слишком много неудачных попыток! Подожди " + (remaining / 1000) + " сек.");
+            p.sendMessage("§c🔒 Слишком много попыток. Подожди " + (remaining / 1000) + " сек.");
             return false;
         }
 
@@ -52,9 +52,9 @@ public class TwoFactorManager {
 
         // Отправляем код в ЛС ВК
         try {
-            String message = "🔐 Твой код для входа на сервер: " + code + "\n" +
-                           "Отправь его в чат Майнкрафта для подтверждения.\n" +
-                           "Код действителен " + plugin.getConfig().getInt("auth.2fa.expiry-minutes", 5) + " минут.";
+            String message = "🔐 Код для входа: " + code + "\n" +
+                           "Введи его в чате игры командой /2fa " + code + "\n" +
+                           "Код действует " + plugin.getConfig().getInt("auth.2fa.expiry-minutes", 5) + " мин.";
             plugin.getVkManager().sendMessage(vkId, message);
         } catch (Exception e) {
             plugin.getLogger().warning("Не удалось отправить 2FA код в ВК: " + e.getMessage());
@@ -62,8 +62,8 @@ public class TwoFactorManager {
         }
 
         // Уведомляем игрока
-        p.sendMessage("§e🔐 Код подтверждения отправлен в твои личные сообщения ВКонтакте!");
-        p.sendMessage("§7Введи код в чат для подтверждения входа.");
+        p.sendMessage("§b📱 Код отправлен в ЛС ВК! Проверь сообщения.");
+        p.sendMessage("§7Введи в чате: /2fa <код>");
 
         return true;
     }

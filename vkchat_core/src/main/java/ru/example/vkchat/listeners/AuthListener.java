@@ -78,16 +78,14 @@ public class AuthListener implements Listener {
                 start2faFlow(p, vkId, session);
             }
         } else {
-            // ВК НЕ ПРИВЯЗАН — пускаем, но показываем инструкцию
-            p.sendMessage("§c❌ Для игры необходимо привязать ВКонтакте!");
-            p.sendMessage("§eПривязка ВК:");
-            p.sendMessage("§71. Вступи в группу: §b" + plugin.getConfig().getString("vk.group-link", "https://vk.com/chrdk_reborn"));
-            p.sendMessage("§72. Введи §a/vklink §7— получишь код");
-            p.sendMessage("§73. Отправь код в беседу ВК боту");
-            p.sendMessage("§74. Введи 2FA код из ЛС ВК");
-            p.sendMessage("§75. Зарегистрируйся: §a/register <пароль>");
-            p.sendTitle("§c⚠ Привяжи ВК!", "§7/vklink для получения кода", 10, 70, 10);
-            // Ставим в безопасное место
+            // ВК НЕ ПРИВЯЗАН — пускаем и показываем инструкцию
+            p.sendMessage("§c⚠ Для игры нужна привязка ВК!");
+            p.sendMessage("§7➊ Вступи в группу: §b" + plugin.getConfig().getString("vk.group-link", "https://vk.com/chrdk_reborn"));
+            p.sendMessage("§7➋ Введи §a/vklink §7— получишь код");
+            p.sendMessage("§7➌ Отправь код в беседу ВК боту");
+            p.sendMessage("§7➍ Подтверди вход через /2fa <код>");
+            p.sendMessage("§7➎ Зарегистрируйся: §a/register <пароль>");
+            p.sendTitle("§c⚠ Привяжи ВК!", "§7/vklink — получить код", 10, 70, 10);
             placeSafetyPlatform(p);
             p.setVelocity(new Vector(0, 0, 0));
         }
@@ -250,10 +248,10 @@ public class AuthListener implements Listener {
         // Проверяем, ожидает ли 2FA
         if (plugin.getTwoFactorManager() != null && plugin.getTwoFactorManager().isWaiting2fa(p.getUniqueId())) {
             p.sendMessage("");
-            p.sendMessage(ChatColor.translateAlternateColorCodes('&', "&e&m================================================="));
-            p.sendMessage("§e🔐 Код подтверждения отправлен в твои личные сообщения ВК!");
-            p.sendMessage("§7Введи код в чат для подтверждения входа.");
-            p.sendMessage(ChatColor.translateAlternateColorCodes('&', "&e&m================================================="));
+            p.sendMessage(ChatColor.translateAlternateColorCodes('&', "&b&m================================================="));
+            p.sendMessage("§b📱 Код подтверждения отправлен в ЛС ВК!");
+            p.sendMessage("§7Введи в чате: /2fa <код>");
+            p.sendMessage(ChatColor.translateAlternateColorCodes('&', "&b&m================================================="));
             p.sendMessage("");
             return;
         }
@@ -270,8 +268,8 @@ public class AuthListener implements Listener {
             p.sendMessage("");
         } else {
             // VK привязан — показываем статус 2FA
-            p.sendMessage(ChatColor.translateAlternateColorCodes('&', " &f✅ &lВК привязан!"));
-            p.sendMessage(ChatColor.translateAlternateColorCodes('&', " &fОжидание подтверждения через ВК..."));
+            p.sendMessage(ChatColor.translateAlternateColorCodes('&', " &a✅ &lВК привязан!"));
+            p.sendMessage(ChatColor.translateAlternateColorCodes('&', " &7Проверь ЛС ВК — тебе отправлен код."));
         }
         p.sendMessage(ChatColor.translateAlternateColorCodes('&', "&b&m================================================="));
         p.sendMessage("");
