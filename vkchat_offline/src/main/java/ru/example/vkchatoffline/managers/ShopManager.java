@@ -108,7 +108,7 @@ public class ShopManager {
             for (SetPiece p : SetPiece.values()) {
                 if (p.name.toLowerCase().contains(item.toLowerCase())) {
                     if (data.hasPiece(vkId, p.name)) {
-                        mgr.sendMsg(vkId, "❌ У вас уже есть эта часть сета!");
+                        mgr.sendWithKb(vkId, "❌ У вас уже есть эта часть сета!", Keyboards.shopBack());
                         return;
                     }
                     cost = p.repCost;
@@ -119,13 +119,13 @@ public class ShopManager {
         }
 
         if (cost == 0) {
-            mgr.sendMsg(vkId, "❌ Товар не найден: " + item);
+            mgr.sendWithKb(vkId, "❌ Товар не найден: " + item, Keyboards.shopBack());
             return;
         }
 
         int balance = data.getAdventureRep(vkId);
         if (balance < cost) {
-            mgr.sendMsg(vkId, "❌ Недостаточно репы! Нужно " + cost + ", есть " + balance);
+            mgr.sendWithKb(vkId, "❌ Недостаточно репы! Нужно " + cost + ", есть " + balance, Keyboards.shopBack());
             return;
         }
 
