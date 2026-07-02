@@ -1,7 +1,5 @@
 package ru.example.vkchatoffline.managers;
 
-import org.bukkit.Bukkit;
-import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.event.Listener;
@@ -14,7 +12,6 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Главный менеджер офлайн-походов
- * Интегрирован с CombatManager, CharacterManager, LootManager, CampaignManager
  */
 public class AdventureManager implements Listener {
     private final VKChatOfflinePlugin plugin;
@@ -24,7 +21,6 @@ public class AdventureManager implements Listener {
     private final Map<Integer, Long> cooldowns = new ConcurrentHashMap<>();
     private final Map<Integer, Long> injuries = new ConcurrentHashMap<>();
 
-    // Данные активного похода
     public static class ActiveAdventure {
         public int vkId;
         public String playerName, route;
@@ -49,43 +45,51 @@ public class AdventureManager implements Listener {
 
     public boolean isActiveAdventure(int vkId) { return active.containsKey(vkId); }
 
+    // ═══ ПОКАЗ МЕНЮ ВЫБОРА МАРШРУТА ═══
+    public void showMenu(int vkId) {
+        String msg = "⛺ CHRDK ADVENTURES\n\n" +
+                "Выбери маршрут для похода:\n\n" +
+                "🌲 Лес — легкий, для новичков\n" +
+                "⛏ Шахты — средний, много ресурсов\n" +
+                "🏛 Руины — сложный, ценный лут\n" +
+                "🌿 Болота — опасный, яд\n" +
+                "🏰 Замок — очень сложный\n" +
+                "🔥 Незер — экстрим\n\n" +
+                "Нажми кнопку для выбора!";
+
+        sendMessage(vkId, msg);
+        sendKeyboard(vkId, "Выбери маршрут", OfflineKeyboardFactory.routeSelection());
+    }
+
     // ═══ НАЧАЛО ПОХОДА ═══
     public void startAdventure(int vkId, String route) {
         if (active.containsKey(vkId)) {
             sendMessage(vkId, "❌ У тебя уже есть активный поход!");
+            sendKeyboard(vkId, "Поход активен", OfflineKeyboardFactory.adventureChoices());
             return;
         }
         if (injuries.containsKey(vkId) && System.currentTimeMillis() < injuries.get(vkId)) {
             long left = (injuries.get(vkId) - System.currentTimeMillis()) / 60000;
             sendMessage(vkId, "❌ Ты ранен! Подожди " + left + " мин.");
+            sendKeyboard(vkId, "Ранен", OfflineKeyboardFactory.afterDefeat());
             return;
         }
 
         ActiveAdventure adv = new ActiveAdventure(vkId, "Игрок", route);
-        adv.nextEventTime = System.currentTimeMillis() + 10000; // Первое событие через 10 сек
+        adv.nextEventTime = System.currentTimeMillis() + 10000;
         active.put(vkId, adv);
 
-        sendMessage(vkId, "🚶 Поход начат!\n\n🌲 " + route + "\n👤 " + adv.playerName + "\n❤️ HP: " + adv.hp + "/" + adv.maxHp + "\n🥫 Припасы: " + adv.supplies + "\n📍 Этап: 0/" + adv.maxStages + "\n\n⏳ Первый выбор появится скоро.");
-        sendKeyboard(vkId, "Поход начат!", OfflineKeyboardFactory.main(Collections.emptyList(), Collections.emptyList()));
-        saveAll();
-    }
+        String msg = "🚶 Поход начат!\n\n" +
+                "📍 " + route + "\n" +
+                "👤 " + adv.playerName + "\n" +
+                "❤️ HP: " + adv.hp + "/" + adv.maxHp + "\n" +
+                "🥫 Припасы: " + adv.supplies + "\n" +
+                "📍 Этап: 0/" + adv.maxStages + "\n\n" +
+                "⏳ Первый выбор появится скоро...";
 
-    // ═══ ТИК — проверка событий ═══
-    private void startTickTask() {
-        new org.bukkit.scheduler.BukkitRunnable() {
-            @Override public void run() {
-                long now = System.currentTimeMillis();
-                for (ActiveAdventure adv : active.values()) {
-                    if (adv.waitingChoice) {
-                        if (now >= adv.choiceDeadline) {
-                            resolveChoice(adv, new Random().nextInt(4) + 1, true);
-                        }
-                    } else if (now >= adv.nextEventTime) {
-                        createEvent(adv);
-                    }
-                }
-            }
-        }.runTaskTimer(plugin, 600L, 600L); // Каждые 30 сек
+        sendMessage(vkId, msg);
+        sendKeyboard(vkId, "Поход начат!", OfflineKeyboardFactory.adventureChoices());
+        saveAll();
     }
 
     // ═══ СОЗДАНИЕ СОБЫТИЯ ═══
@@ -97,19 +101,24 @@ public class AdventureManager implements Listener {
         adv.pendingType = type;
         adv.pendingTitle = title;
         adv.waitingChoice = true;
-        adv.choiceDeadline = System.currentTimeMillis() + 300000; // 5 мин
+        adv.choiceDeadline = System.currentTimeMillis() + 300000;
 
         String msg = "⚠ Выбор в походе\n\n" +
-                "🌲 " + adv.route + "\n" +
-                "📍 Этап: " + (adv.stage + 1) + "/" + adv.maxStages + "\n" +
+                "📍 " + adv.route + " | Этап: " + (adv.stage + 1) + "/" + adv.maxStages + "\n" +
                 "❤️ HP: " + adv.hp + "/" + adv.maxHp + "\n" +
                 "🥫 " + adv.supplies + "   🧠 " + adv.morale + "%\n\n" +
                 "🎲 " + title + "\n" +
                 "⏳ Ответ: ~300 сек.\n\n" +
-                "Выбери действие кнопкой.";
+                "Выбери действие кнопкой!";
 
         sendMessage(adv.vkId, msg);
-        sendKeyboard(adv.vkId, "Выбор", OfflineKeyboardFactory.choices());
+
+        // Клавиатура зависит от типа события
+        if (isCombatEvent(type)) {
+            sendKeyboard(adv.vkId, "Бой!", OfflineKeyboardFactory.combatActions());
+        } else {
+            sendKeyboard(adv.vkId, "Выбор", OfflineKeyboardFactory.adventureChoices());
+        }
     }
 
     // ═══ ОБРАБОТКА ВЫБОРА ═══
@@ -133,7 +142,7 @@ public class AdventureManager implements Listener {
             adv.waitingChoice = false;
 
             sendMessage(vkId, encounter.getCombatDescription());
-            sendKeyboard(vkId, "Бой!", OfflineKeyboardFactory.combatActive());
+            sendKeyboard(vkId, "Бой!", OfflineKeyboardFactory.combatActions());
             return;
         }
 
@@ -145,7 +154,7 @@ public class AdventureManager implements Listener {
     private void resolveChoice(ActiveAdventure adv, int choice, boolean timeout) {
         Random rand = new Random();
         int roll = rand.nextInt(20) + 1;
-        boolean success = roll >= 10; // Простая проверка
+        boolean success = roll >= 10;
 
         StringBuilder msg = new StringBuilder();
         if (timeout) msg.append("⏱ Авто-выбор\n\n");
@@ -178,6 +187,7 @@ public class AdventureManager implements Listener {
             if (adv.hp <= 0) {
                 killAdventure(adv, "Поражение в походе");
                 sendMessage(adv.vkId, msg.toString());
+                sendKeyboard(adv.vkId, "Поражение", OfflineKeyboardFactory.afterDefeat());
                 return;
             }
         }
@@ -185,7 +195,6 @@ public class AdventureManager implements Listener {
         adv.stage++;
         adv.waitingChoice = false;
 
-        // Проверка завершения похода
         if (adv.stage >= adv.maxStages) {
             finishAdventure(adv);
         } else {
@@ -209,7 +218,7 @@ public class AdventureManager implements Listener {
         if (result.success && result.encounter != null) {
             // Бой продолжается
             sendMessage(vkId, result.encounter.getCombatDescription());
-            sendKeyboard(vkId, "Раунд " + result.encounter.round, OfflineKeyboardFactory.combatActive());
+            sendKeyboard(vkId, "Раунд " + result.encounter.round, OfflineKeyboardFactory.combatActions());
         } else if (result.success && result.encounter == null) {
             // Победа
             sendMessage(vkId, result.getResultDescription());
@@ -225,13 +234,13 @@ public class AdventureManager implements Listener {
                     adv.gold += result.rewards.getOrDefault("gold", 0);
                     adv.stage++;
                     adv.waitingChoice = false;
-                    adv.nextEventTime = System.currentTimeMillis() + 5000;
 
                     if (adv.stage >= adv.maxStages) {
                         finishAdventure(adv);
                     } else {
+                        adv.nextEventTime = System.currentTimeMillis() + 5000;
                         sendMessage(vkId, "📍 Прогресс: " + adv.stage + "/" + adv.maxStages);
-                        sendKeyboard(vkId, "Продолжить", OfflineKeyboardFactory.combatVictory());
+                        sendKeyboard(vkId, "Победа!", OfflineKeyboardFactory.afterVictory());
                     }
                 }
             }
@@ -240,8 +249,26 @@ public class AdventureManager implements Listener {
             sendMessage(vkId, result.getResultDescription());
             ActiveAdventure adv = active.get(vkId);
             if (adv != null) killAdventure(adv, "Поражение в бою");
-            sendKeyboard(vkId, "Поражение", OfflineKeyboardFactory.combatDefeat());
+            sendKeyboard(vkId, "Поражение", OfflineKeyboardFactory.afterDefeat());
         }
+    }
+
+    // ═══ ТИК — проверка событий ═══
+    private void startTickTask() {
+        new org.bukkit.scheduler.BukkitRunnable() {
+            @Override public void run() {
+                long now = System.currentTimeMillis();
+                for (ActiveAdventure adv : active.values()) {
+                    if (adv.waitingChoice) {
+                        if (now >= adv.choiceDeadline) {
+                            resolveChoice(adv, new Random().nextInt(4) + 1, true);
+                        }
+                    } else if (now >= adv.nextEventTime) {
+                        createEvent(adv);
+                    }
+                }
+            }
+        }.runTaskTimer(plugin, 600L, 600L);
     }
 
     // ═══ ЗАВЕРШЕНИЕ ПОХОДА ═══
@@ -253,11 +280,9 @@ public class AdventureManager implements Listener {
         try { VKChatPlugin.getInstance().getApi().addReputation(adv.vkId, totalRep); } catch (Exception ignored) {}
         plugin.getCharacterManager().addXp(adv.vkId, xp);
 
-        // Генерация лута
         var loot = plugin.getLootManager().generateLoot(adv.stage * 5, adv.route, false);
         plugin.getRewardManager().grantAdventureReward(adv.vkId, loot, 0, 0);
 
-        // Проверка кампании
         var chapter = plugin.getCampaignManager().getCurrentChapter(adv.vkId);
         if (chapter != null && adv.route.equalsIgnoreCase(chapter.route)) {
             plugin.getCampaignManager().completeChapter(adv.vkId, chapter.id);
@@ -273,7 +298,7 @@ public class AdventureManager implements Listener {
                 "📦 Предметы в тайнике: /stash";
 
         sendMessage(adv.vkId, msg);
-        sendKeyboard(adv.vkId, "Успех!", OfflineKeyboardFactory.main(Collections.emptyList(), Collections.emptyList()));
+        sendKeyboard(adv.vkId, "Успех!", OfflineKeyboardFactory.afterAdventure());
 
         active.remove(adv.vkId);
         saveAll();
@@ -281,17 +306,8 @@ public class AdventureManager implements Listener {
 
     // ═══ СМЕРТЬ ═══
     private void killAdventure(ActiveAdventure adv, String reason) {
-        cooldowns.put(adv.vkId, System.currentTimeMillis() + 14400000); // 4 часа
-        injuries.put(adv.vkId, System.currentTimeMillis() + 43200000); // 12 часов
-
-        String msg = "💀 Поход окончен: " + reason + "\n\n" +
-                "❤️ HP: 0/" + adv.maxHp + "\n" +
-                "📍 Этап: " + adv.stage + "/" + adv.maxStages + "\n\n" +
-                "⚠ Кулдаун: 4 часа\n" +
-                "🩹 Ранение: 12 часов\n\n" +
-                "Используй /stash чтобы забрать что успел собрать.";
-
-        sendMessage(adv.vkId, msg);
+        cooldowns.put(adv.vkId, System.currentTimeMillis() + 14400000);
+        injuries.put(adv.vkId, System.currentTimeMillis() + 43200000);
         active.remove(adv.vkId);
         saveAll();
     }
@@ -321,26 +337,13 @@ public class AdventureManager implements Listener {
         try { VKChatPlugin.getInstance().getApi().sendKeyboard(vkId, title, keyboard); } catch (Exception ignored) {}
     }
 
-    // ═══ СОХРАНЕНИЕ/ЗАГРУЗКА ═══
-    public void loadAll() {
-        if (!plugin.getDataFolder().exists()) plugin.getDataFolder().mkdirs();
-        data = YamlConfiguration.loadConfiguration(file);
-        // Загрузка активных походов и кулдаунов
-    }
-
-    public void saveAll() {
-        // Сохранение активных походов и кулдаунов
-        try { data.save(file); } catch (Exception ignored) {}
-    }
-
     // ═══ ПОКАЗ СТАТУСА ═══
     public void showStatus(int vkId) {
         ActiveAdventure adv = active.get(vkId);
         if (adv == null) { sendMessage(vkId, "❌ Нет активного похода."); return; }
 
         String msg = "📊 Статус похода\n\n" +
-                "🌲 " + adv.route + "\n" +
-                "📍 Этап: " + adv.stage + "/" + adv.maxStages + "\n" +
+                "📍 " + adv.route + " | Этап: " + adv.stage + "/" + adv.maxStages + "\n" +
                 "❤️ HP: " + adv.hp + "/" + adv.maxHp + "\n" +
                 "🥫 Припасы: " + adv.supplies + "\n" +
                 "🧠 Мораль: " + adv.morale + "%\n" +
@@ -350,27 +353,11 @@ public class AdventureManager implements Listener {
         sendMessage(vkId, msg);
     }
 
-    // ═══ ПОКАЗ МЕНЮ ═══
-    public void showMenu(int vkId) {
-        String msg = "⛺ CHRDK ADVENTURES\n\n" +
-                "Выбери маршрут для похода:\n\n" +
-                "🌲 Лес — легкий, для новичков\n" +
-                "⛏ Шахты — средний, много ресурсов\n" +
-                "🏛 Руины — сложный, ценный лут\n" +
-                "🌿 Болота — опасный, яд\n" +
-                "🏰 Замок — очень сложный\n" +
-                "🔥 Незер — экстрим\n\n" +
-                "Напиши: !пойти <маршрут>";
-
-        sendMessage(vkId, msg);
-        sendKeyboard(vkId, "Меню", OfflineKeyboardFactory.main(Collections.emptyList(), Collections.emptyList()));
-    }
-
     // ═══ ПОКАЗ ГЕРОЯ ═══
     public void showHero(int vkId) {
         String info = plugin.getCharacterManager().getCharacterInfo(vkId);
         sendMessage(vkId, info);
-        sendKeyboard(vkId, "Герой", OfflineKeyboardFactory.hero());
+        sendKeyboard(vkId, "Герой", OfflineKeyboardFactory.heroMenu());
     }
 
     // ═══ ПОКАЗ НАВЫКОВ ═══
@@ -404,11 +391,34 @@ public class AdventureManager implements Listener {
                 if (plugin.getCombatManager().isInCombat(vkId)) {
                     var encounter = plugin.getCombatManager().getActiveCombat(vkId);
                     sendMessage(vkId, encounter.getCombatDescription());
-                    sendKeyboard(vkId, "Бой", OfflineKeyboardFactory.combatActive());
+                    sendKeyboard(vkId, "Бой", OfflineKeyboardFactory.combatActions());
                 } else {
                     sendMessage(vkId, "❌ Нет активного боя.");
                 }
                 break;
+            case "!продолжить":
+                ActiveAdventure adv = active.get(vkId);
+                if (adv != null && adv.waitingChoice) {
+                    sendMessage(vkId, "⏳ Ожидание выбора...");
+                    if (isCombatEvent(adv.pendingType)) {
+                        sendKeyboard(vkId, "Бой", OfflineKeyboardFactory.combatActions());
+                    } else {
+                        sendKeyboard(vkId, "Выбор", OfflineKeyboardFactory.adventureChoices());
+                    }
+                } else {
+                    sendMessage(vkId, "❌ Нет активного похода.");
+                }
+                break;
         }
+    }
+
+    // ═══ СОХРАНЕНИЕ/ЗАГРУЗКА ═══
+    public void loadAll() {
+        if (!plugin.getDataFolder().exists()) plugin.getDataFolder().mkdirs();
+        data = YamlConfiguration.loadConfiguration(file);
+    }
+
+    public void saveAll() {
+        try { data.save(file); } catch (Exception ignored) {}
     }
 }
