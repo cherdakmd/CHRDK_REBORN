@@ -790,6 +790,10 @@ public class AuthManager {
         }
         // Проверяем ВК-привязку
         if (!isLinked(p)) return false;
+        // Проверяем, не ожидает ли 2FA
+        if (plugin.getTwoFactorManager() != null && plugin.getTwoFactorManager().isWaiting2fa(p.getUniqueId())) {
+            return false; // Ожидает 2FA — не авторизован
+        }
         // Проверяем регистрацию (обязательно!)
         if (!isRegistered(p)) return false;
         // Проверяем вход
