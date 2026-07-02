@@ -4,9 +4,7 @@ import org.bukkit.Material;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
 import ru.example.vkchatoffline.VKChatOfflinePlugin;
-
 import java.io.File;
 import java.util.*;
 
@@ -21,152 +19,67 @@ public class StashManager {
         load();
     }
 
-    public synchronized void load() {
-        if (!plugin.getDataFolder().exists()) plugin.getDataFolder().mkdirs();
+    private void load() {
+        if (!file.exists()) try { plugin.getDataFolder().mkdirs(); file.createNewFile(); } catch (Exception ignored) {}
         data = YamlConfiguration.loadConfiguration(file);
     }
 
-    public synchronized void save() {
-        try { data.save(file); } catch (Exception e) { plugin.getLogger().warning("Не удалось сохранить stash.yml: " + e.getMessage()); }
+    public void save() {
+        try { data.save(file); } catch (Exception ignored) {}
     }
 
-    public synchronized List<ItemStack> getItems(UUID uuid) {
-        // Пробуем Base64 формат
-        String base64 = data.getString("players." + uuid + ".items_base64", null);
-        if (base64 != null && !base64.isEmpty()) {
-            try {
-                return ru.example.vkchatoffline.utils.Base64Util.fromBase64(base64);
-            } catch (Exception e) {
-                plugin.getLogger().warning("Ошибка чтения stash Base64 для " + uuid);
-            }
-        }
-        // Фоллбэк на старый формат
-        List<String> raw = data.getStringList("players." + uuid + ".items");
+    public List<ItemStack> getItems(UUID uuid) {
         List<ItemStack> items = new ArrayList<>();
-        for (String line : raw) {
-            ItemStack item = parseItem(line);
-            if (item != null) items.add(item);
+        String path = "players." + uuid.toString() + ".items";
+        if (data.contains(path)) {
+            for (Map<?, ?> map : data.getMapList(path)) {
+                try {
+                    ItemStack item = ItemStack.deserialize((Map<String, Object>) map);
+                    if (item != null) items.add(item);
+                } catch (Exception ignored) {}
+            }
         }
         return items;
     }
 
-    public synchronized void saveItems(UUID uuid, List<ItemStack> items) {
-        // Фильтруем невалидные
-        List<ItemStack> valid = new ArrayList<>();
+    public void saveItems(UUID uuid, List<ItemStack> items) {
+        List<Map<String, Object>> serialized = new ArrayList<>();
         for (ItemStack item : items) {
-            if (item != null && item.getType() != Material.AIR && item.getAmount() > 0) {
-                valid.add(item);
-            }
+            if (item != null && item.getType() != Material.AIR) serialized.add(item.serialize());
         }
-        // Сохраняем в Base64 (сохраняет все метаданные)
-        try {
-            String base64 = ru.example.vkchatoffline.utils.Base64Util.toBase64(valid);
-            data.set("players." + uuid + ".items_base64", base64);
-            data.set("players." + uuid + ".items", null); // Удаляем старый формат
-        } catch (Exception e) {
-            plugin.getLogger().warning("Ошибка сохранения stash Base64 для " + uuid + ": " + e.getMessage());
-            // Фоллбэк на старый формат
-            List<String> raw = new ArrayList<>();
-            for (ItemStack item : valid) {
-                String encoded = item.getType().name() + ";" + item.getAmount();
-                if (item.hasItemMeta() && item.getItemMeta().hasDisplayName()) {
-                    encoded += ";name=" + item.getItemMeta().getDisplayName().replace(";", "§");
-                }
-                raw.add(encoded);
-            }
-            data.set("players." + uuid + ".items", raw);
-        }
+        data.set("players." + uuid.toString() + ".items", serialized);
         save();
     }
 
-    public synchronized void addItem(UUID uuid, ItemStack item) {
+    public void addItem(UUID uuid, ItemStack item) {
         List<ItemStack> items = getItems(uuid);
         items.add(item);
         saveItems(uuid, items);
     }
 
-    public synchronized void addItems(UUID uuid, List<ItemStack> rewardItems) {
+    public void addItems(UUID uuid, List<ItemStack> newItems) {
         List<ItemStack> items = getItems(uuid);
-        items.addAll(rewardItems);
+        items.addAll(newItems);
         saveItems(uuid, items);
     }
 
-    public synchronized boolean isEmpty(UUID uuid) {
-        return getItems(uuid).isEmpty();
-    }
+    public boolean isEmpty(UUID uuid) { return getItems(uuid).isEmpty(); }
 
-    public synchronized boolean consumeNamedItem(UUID uuid, Material material, String displayName) {
-        List<ItemStack> items = getItems(uuid);
-        for (int i = 0; i < items.size(); i++) {
-            ItemStack item = items.get(i);
-            if (item.getType() == material && item.hasItemMeta() && displayName.equals(item.getItemMeta().getDisplayName())) {
-                if (item.getAmount() <= 1) items.remove(i);
-                else item.setAmount(item.getAmount() - 1);
-                saveItems(uuid, items);
-                return true;
-            }
-        }
-        return false;
-    }
-
-    public String renderPage(UUID uuid, int page, int pageSize) {
-        List<ItemStack> items = getItems(uuid);
-        if (items.isEmpty()) return "🎒 Тайник пуст.";
-        int pages = Math.max(1, (int) Math.ceil(items.size() / (double) pageSize));
-        page = Math.max(1, Math.min(page, pages));
-        int from = (page - 1) * pageSize;
-        int to = Math.min(items.size(), from + pageSize);
-        StringBuilder sb = new StringBuilder("🎒 Тайник — страница " + page + "/" + pages + "\n");
-        for (int i = from; i < to; i++) {
-            ItemStack item = items.get(i);
-            String name = item.hasItemMeta() && item.getItemMeta().hasDisplayName() ? item.getItemMeta().getDisplayName() : item.getType().name();
-            sb.append(i + 1).append(". ").append(name).append(" x").append(item.getAmount()).append("\n");
-        }
-        sb.append("\nЗабрать предметы в игре: /stash");
-        return sb.toString();
-    }
-
-    public ItemStack namedKey(String displayName) {
-        // Устарело - ключи удалены
-        return null;
-    }
-
-    private ItemStack parseItem(String line) {
-        if (line == null || line.trim().isEmpty()) return null;
-        try {
-            String[] parts = line.split(";");
-            Material material = Material.valueOf(parts[0].trim().toUpperCase(Locale.ROOT));
-            int amount = parts.length > 1 ? Integer.parseInt(parts[1].trim()) : 1;
-            amount = Math.max(1, Math.min(64, amount));
-            ItemStack item = new ItemStack(material, amount);
-            for (String part : parts) {
-                if (part.startsWith("name=")) {
-                    ItemMeta meta = item.getItemMeta();
-                    meta.setDisplayName(part.substring("name=".length()).replace("§", ";"));
-                    item.setItemMeta(meta);
-                }
-            }
-            return item;
-        } catch (Exception ignored) {
-            return null;
-        }
-    }
-
-    /**
-     * Показать меню тайника через ВК
-     */
     public void showStashMenu(int vkId) {
         try {
             UUID uuid = ru.example.vkchat.VKChatPlugin.getInstance().getApi().getUuidByVkId(vkId);
-            if (uuid == null) {
-                ru.example.vkchat.VKChatPlugin.getInstance().getApi().sendMessage(vkId, "❌ Твой ВК не привязан к аккаунту!");
-                return;
+            if (uuid == null) { ru.example.vkchat.VKChatPlugin.getInstance().getApi().sendMessage(vkId, "❌ ВК не привязан!"); return; }
+            List<ItemStack> items = getItems(uuid);
+            if (items.isEmpty()) { ru.example.vkchat.VKChatPlugin.getInstance().getApi().sendMessage(vkId, "🎒 Тайник пуст."); return; }
+            StringBuilder sb = new StringBuilder("🎒 ТАЙНИК:\n");
+            for (int i = 0; i < items.size(); i++) {
+                ItemStack item = items.get(i);
+                sb.append(i + 1).append(". ").append(item.getType().name()).append(" x").append(item.getAmount()).append("\n");
             }
-
-            String content = renderPage(uuid, 0, 10);
-            ru.example.vkchat.VKChatPlugin.getInstance().getApi().sendMessage(vkId, content);
+            sb.append("\nВведи /stash в игре чтобы забрать!");
+            ru.example.vkchat.VKChatPlugin.getInstance().getApi().sendMessage(vkId, sb.toString());
         } catch (Exception e) {
-            ru.example.vkchat.VKChatPlugin.getInstance().getApi().sendMessage(vkId, "❌ Ошибка при открытии тайника.");
+            ru.example.vkchat.VKChatPlugin.getInstance().getApi().sendMessage(vkId, "❌ Ошибка.");
         }
     }
 }
