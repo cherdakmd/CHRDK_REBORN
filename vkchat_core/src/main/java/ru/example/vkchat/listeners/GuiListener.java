@@ -107,8 +107,8 @@ public class GuiListener implements Listener {
         inv.setItem(14, item(Material.TOTEM_OF_UNDYING, ChatColor.LIGHT_PURPLE + "🏺 Артефакты", ChatColor.GRAY + "Артефакты, эликсиры, свитки.", ChatColor.YELLOW + "/artifacts"));
         inv.setItem(16, item(Material.ZOMBIE_HEAD, ChatColor.DARK_RED + "☠ Охота", ChatColor.GRAY + "Элитки, боссы, фрагменты сетов.", ChatColor.YELLOW + "/mobs"));
         inv.setItem(28, item(Material.BOOK, ChatColor.YELLOW + "💼 Профессии", ChatColor.GRAY + "Blacksmith влияет на Gear, другие Jobs — на прогресс.", ChatColor.YELLOW + "/jobs"));
-        inv.setItem(30, item(Material.CAMPFIRE, ChatColor.GOLD + "⛺ DnD-походы", ChatColor.GRAY + "В ЛС ВК: классы, спутники, d20, дневник.", ChatColor.YELLOW + "!поход"));
-        inv.setItem(32, item(Material.BARREL, ChatColor.GOLD + "🎒 Тайник", ChatColor.GRAY + "Предметные награды из ВК и походов.", ChatColor.YELLOW + "/stash"));
+        inv.setItem(30, item(Material.MAP, ChatColor.WHITE + "📖 Помощь", ChatColor.GRAY + "Wiki, команды, FAQ.", ChatColor.YELLOW + "Открыть подраздел"));
+        inv.setItem(32, item(Material.BARREL, ChatColor.GOLD + "🏆 Достижения", ChatColor.GRAY + "Прогресс сервера и статистика.", ChatColor.YELLOW + "/events info"));
         inv.setItem(49, backItem());
         p.openInventory(inv);
     }
@@ -117,10 +117,9 @@ public class GuiListener implements Listener {
         Inventory inv = Bukkit.createInventory(null, 54, VK_TITLE);
         fill(inv, Material.LIGHT_BLUE_STAINED_GLASS_PANE);
         inv.setItem(10, item(Material.PLAYER_HEAD, ChatColor.AQUA + "📱 ВК-профиль", ChatColor.GRAY + "Привязка аккаунта и репутация.", ChatColor.YELLOW + "/vklink /rep"));
-        inv.setItem(12, item(Material.CAMPFIRE, ChatColor.GOLD + "⛺ Походы в ЛС", ChatColor.GRAY + "!поход, !персонаж, !сумка, !дневник", ChatColor.YELLOW + "Пиши боту в ЛС"));
-        inv.setItem(14, item(Material.ZOMBIE_HEAD, ChatColor.RED + "🏹 Охота ВК", ChatColor.GRAY + "!охота, !мобы, !контракт", ChatColor.YELLOW + "Инфо про элиток и награды"));
-        inv.setItem(16, item(Material.EMERALD, ChatColor.GREEN + "🎁 Промокоды", ChatColor.GRAY + "Промокоды публикуются в ВК и событиях сервера.", ChatColor.YELLOW + "!промо <код>"));
-        inv.setItem(28, item(Material.PAPER, ChatColor.YELLOW + "Команды ВК", ChatColor.GRAY + "!поход, !охота, !профиль, !рейтинг", ChatColor.YELLOW + "Пиши боту или в беседу"));
+        inv.setItem(12, item(Material.ZOMBIE_HEAD, ChatColor.RED + "🏹 Охота ВК", ChatColor.GRAY + "!охота, !мобы, !контракт", ChatColor.YELLOW + "Инфо про элиток и награды"));
+        inv.setItem(14, item(Material.EMERALD, ChatColor.GREEN + "🎁 Промокоды", ChatColor.GRAY + "Промокоды публикуются в ВК и событиях сервера.", ChatColor.YELLOW + "!промо <код>"));
+        inv.setItem(16, item(Material.PAPER, ChatColor.YELLOW + "Команды ВК", ChatColor.GRAY + "!охота, !профиль, !рейтинг, !бонус", ChatColor.YELLOW + "Пиши боту или в беседу"));
         inv.setItem(30, item(Material.BOOK, ChatColor.GOLD + "Группа ВК", ChatColor.WHITE + plugin.getConfig().getString("vk.group-link", "https://vk.com/chrdk_reborn")));
         inv.setItem(49, backItem());
         p.openInventory(inv);

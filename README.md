@@ -7,7 +7,7 @@
 
 <p align="center">
   <b>RPG-экосистема Minecraft ↔ ВКонтакте</b><br>
-  Purpur 1.20.4 • 12 модулей • 35 обновлений v2.1.0
+  Purpur 1.20.4 • 13 модулей • v2.1.0
 </p>
 
 <p align="center">
@@ -37,12 +37,12 @@
 /jobs
 ```
 
-## 📦 Модули (12)
+## 📦 Модули (13)
 
 | Модуль | Назначение |
 |---|---|
 | vkchat_core | Ядро + ВК + Авторизация + Репутация |
-| vkchat_nations | Нации + Приваты + ClaimDefenseManager |
+| vkchat_nations | Нации + Приваты + защита территории |
 | vkchat_gear | Кузня 2.0 + 22 сета + 5 Mythical + Ancient кристалл |
 | vkchat_mobs | 6 стихий + 6 архетипов + MobStorm + контракты |
 | vkchat_events | 16 катаклизмов + автоспавн + ивенты |
