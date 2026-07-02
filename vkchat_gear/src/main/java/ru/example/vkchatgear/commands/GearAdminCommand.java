@@ -14,6 +14,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
 import ru.example.vkchatgear.VKChatGearPlugin;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -30,6 +31,38 @@ public class GearAdminCommand implements CommandExecutor, TabCompleter {
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!sender.hasPermission("vkchat.gear.admin")) {
             sender.sendMessage(ChatColor.RED + "Нет прав.");
+            return true;
+        }
+
+        if (args.length > 0 && args[0].equalsIgnoreCase("list")) {
+            sender.sendMessage(ChatColor.GOLD + "═══ ИМЕНОВАННОЕ СНАРЯЖЕНИЕ (35 предметов) ═══");
+            sender.sendMessage(ChatColor.GRAY + "Формат: [Редкость] Имя | Материал | Энчант (уровень)");
+
+            try {
+                Field field = plugin.getGearManager().getClass().getDeclaredField("NAMED_GEAR");
+                field.setAccessible(true);
+                String[][] namedGear = (String[][]) field.get(null);
+                for (String[] gear : namedGear) {
+                    String name = gear[0];
+                    String mat = gear[1];
+                    String rarity = gear[2];
+                    String enchant = gear[3];
+                    String level = gear[4];
+
+                    ChatColor color;
+                    switch (rarity) {
+                        case "ancient": color = ChatColor.GOLD; break;
+                        case "legendary": color = ChatColor.DARK_PURPLE; break;
+                        case "epic": color = ChatColor.BLUE; break;
+                        case "rare": color = ChatColor.AQUA; break;
+                        default: color = ChatColor.GREEN; break;
+                    }
+                    sender.sendMessage(color + "[" + rarity.toUpperCase() + "] " + ChatColor.WHITE + name +
+                            ChatColor.GRAY + " | " + mat + " | " + enchant + " " + level);
+                }
+            } catch (Exception e) {
+                sender.sendMessage(ChatColor.RED + "Ошибка чтения списка предметов.");
+            }
             return true;
         }
 
@@ -152,7 +185,7 @@ public class GearAdminCommand implements CommandExecutor, TabCompleter {
         if (!sender.hasPermission("vkchat.gear.admin")) return new ArrayList<>();
 
         if (args.length == 1) {
-            List<String> options = new ArrayList<>(Arrays.asList("fragment"));
+            List<String> options = new ArrayList<>(Arrays.asList("fragment", "list"));
             for (Player p : Bukkit.getOnlinePlayers()) options.add(p.getName());
             return filterPartial(args[0], options);
         }

@@ -15,6 +15,7 @@ import ru.example.vkchat.VKChatPlugin;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -23,18 +24,27 @@ public class TeleportManager {
     private final File homesFile;
     private FileConfiguration homesConfig;
 
+    private ru.example.vkchatteleport.features.TeleportFeatures features;
+
     // Сетка домов: UUID -> Имя дома -> HomeLocation
     private final Map<UUID, Map<String, HomeLocation>> playerHomes = new ConcurrentHashMap<>();
 
     // Кулдауны игроков: Тип кулдауна -> UUID -> Время последнего использования (мс)
     private final Map<String, Map<UUID, Long>> cooldowns = new ConcurrentHashMap<>();
 
-    // Ожидающие TPA запросы: Кому (цель) -> От кого (отправитель)
-    private final Map<UUID, UUID> tpaRequests = new ConcurrentHashMap<>();
+    // Ожидающие TPA запросы: Кому (цель) -> Инфо запроса
+    private final Map<UUID, TpaRequestInfo> tpaRequests = new ConcurrentHashMap<>();
     private final Map<UUID, BukkitTask> tpaTimeoutTasks = new ConcurrentHashMap<>();
 
     // Текущие телепортации с задержкой: UUID -> WarmupTask
     private final Map<UUID, WarmupTask> activeWarmups = new ConcurrentHashMap<>();
+
+    // История телепортаций: UUID -> List<TeleportHistoryEntry>
+    private final Map<UUID, List<TeleportHistoryEntry>> teleportHistory = new ConcurrentHashMap<>();
+    private static final int MAX_HISTORY_SIZE = 20;
+
+    // Точки смерти игроков для /back
+    private final Map<UUID, Location> deathLocations = new ConcurrentHashMap<>();
 
     public TeleportManager(VKChatTeleportPlugin plugin) {
         this.plugin = plugin;
@@ -43,8 +53,14 @@ public class TeleportManager {
         cooldowns.put("rtp", new ConcurrentHashMap<>());
         cooldowns.put("home", new ConcurrentHashMap<>());
         cooldowns.put("tpa", new ConcurrentHashMap<>());
+        cooldowns.put("tpahere", new ConcurrentHashMap<>());
+        cooldowns.put("back", new ConcurrentHashMap<>());
         
         loadHomes();
+    }
+
+    public void setFeatures(ru.example.vkchatteleport.features.TeleportFeatures features) {
+        this.features = features;
     }
 
     // ==========================================
@@ -173,19 +189,45 @@ public class TeleportManager {
     // ==========================================
 
     public boolean sendTpaRequest(Player sender, Player target) {
-        // Проверяем, есть ли уже запрос от этого отправителя к кому-то, или просто перезаписываем
-        tpaRequests.put(target.getUniqueId(), sender.getUniqueId());
+        tpaRequests.put(target.getUniqueId(), new TpaRequestInfo(sender.getUniqueId(), false));
 
-        // Снимаем старый таймаут таск если был
         BukkitTask oldTask = tpaTimeoutTasks.remove(target.getUniqueId());
         if (oldTask != null) oldTask.cancel();
 
-        // Запуск таймаута на 60 секунд (1200 тиков)
         BukkitTask task = Bukkit.getScheduler().runTaskLater(plugin, () -> {
-            if (tpaRequests.remove(target.getUniqueId(), sender.getUniqueId())) {
+            TpaRequestInfo info = tpaRequests.get(target.getUniqueId());
+            if (info != null && info.sender.equals(sender.getUniqueId())) {
+                tpaRequests.remove(target.getUniqueId());
                 tpaTimeoutTasks.remove(target.getUniqueId());
                 if (sender.isOnline()) {
                     sender.sendMessage(ChatColor.RED + "⏳ Запрос на телепортацию к " + target.getName() + " истек.");
+                }
+                if (target.isOnline()) {
+                    target.sendMessage(ChatColor.RED + "⏳ Запрос от " + sender.getName() + " истек.");
+                }
+            }
+        }, 1200L);
+
+        tpaTimeoutTasks.put(target.getUniqueId(), task);
+        return true;
+    }
+
+    public boolean sendTpaHereRequest(Player sender, Player target) {
+        tpaRequests.put(target.getUniqueId(), new TpaRequestInfo(sender.getUniqueId(), true));
+
+        BukkitTask oldTask = tpaTimeoutTasks.remove(target.getUniqueId());
+        if (oldTask != null) oldTask.cancel();
+
+        BukkitTask task = Bukkit.getScheduler().runTaskLater(plugin, () -> {
+            TpaRequestInfo info = tpaRequests.get(target.getUniqueId());
+            if (info != null && info.sender.equals(sender.getUniqueId())) {
+                tpaRequests.remove(target.getUniqueId());
+                tpaTimeoutTasks.remove(target.getUniqueId());
+                if (sender.isOnline()) {
+                    sender.sendMessage(ChatColor.RED + "⏳ Запрос на телепортацию " + target.getName() + " к вам истек.");
+                }
+                if (target.isOnline()) {
+                    target.sendMessage(ChatColor.RED + "⏳ Запрос от " + sender.getName() + " истек.");
                 }
             }
         }, 1200L);
@@ -195,7 +237,23 @@ public class TeleportManager {
     }
 
     public UUID getTpaRequest(UUID targetId) {
+        TpaRequestInfo info = tpaRequests.get(targetId);
+        return info != null ? info.sender : null;
+    }
+
+    public TpaRequestInfo getTpaRequestInfo(UUID targetId) {
         return tpaRequests.get(targetId);
+    }
+
+    public UUID cancelOutgoingTpa(UUID senderId) {
+        for (Map.Entry<UUID, TpaRequestInfo> entry : tpaRequests.entrySet()) {
+            if (entry.getValue().sender.equals(senderId)) {
+                UUID targetId = entry.getKey();
+                clearTpaRequest(targetId);
+                return targetId;
+            }
+        }
+        return null;
     }
 
     public void clearTpaRequest(UUID targetId) {
@@ -207,6 +265,30 @@ public class TeleportManager {
     // ==========================================
     // ТЕЛЕПОРТАЦИЯ С ЗАДЕРЖКОЙ (WARMUP SYSTEM)
     // ==========================================
+
+    public void saveDeathLocation(UUID uuid, Location loc) {
+        deathLocations.put(uuid, loc.clone());
+    }
+
+    public Location getDeathLocation(UUID uuid) {
+        return deathLocations.remove(uuid);
+    }
+
+    public boolean hasDeathLocation(UUID uuid) {
+        return deathLocations.containsKey(uuid);
+    }
+
+    public void recordTeleportHistory(UUID uuid, Location from, Location to, String type) {
+        List<TeleportHistoryEntry> history = teleportHistory.computeIfAbsent(uuid, k -> new ArrayList<>());
+        history.add(new TeleportHistoryEntry(from, to, type));
+        if (history.size() > MAX_HISTORY_SIZE) {
+            history.remove(0);
+        }
+    }
+
+    public List<TeleportHistoryEntry> getTeleportHistory(UUID uuid) {
+        return teleportHistory.getOrDefault(uuid, Collections.emptyList());
+    }
 
     public void startTeleportWarmup(Player player, Location target, String successMessage, int cost, String cooldownType, Runnable onComplete) {
         UUID uuid = player.getUniqueId();
@@ -224,18 +306,27 @@ public class TeleportManager {
         task.run();
     }
 
+    public Location getActiveWarmupStartLocation(UUID uuid) {
+        WarmupTask task = activeWarmups.get(uuid);
+        return task != null ? task.getStartLocation() : null;
+    }
+
     public boolean isTeleporting(UUID uuid) {
         return activeWarmups.containsKey(uuid);
     }
 
     public void cancelActiveWarmup(UUID uuid, boolean notify) {
+        cancelActiveWarmup(uuid, notify, "Вы сдвинулись или получили урон!");
+    }
+
+    public void cancelActiveWarmup(UUID uuid, boolean notify, String reason) {
         WarmupTask task = activeWarmups.remove(uuid);
         if (task != null) {
             task.cancel();
             if (notify) {
                 Player player = Bukkit.getPlayer(uuid);
                 if (player != null && player.isOnline()) {
-                    player.sendMessage(ChatColor.RED + "❌ Телепортация отменена! Вы сдвинулись или получили урон.");
+                    player.sendMessage(ChatColor.RED + "❌ Телепортация отменена! " + reason);
                     player.playSound(player.getLocation(), Sound.ENTITY_ITEM_BREAK, 1.0f, 0.5f);
                 }
             }
@@ -255,25 +346,30 @@ public class TeleportManager {
             return;
         }
 
-        // Снимаем репутацию
+        Location from = player.getLocation().clone();
+
         if (cost > 0) {
             VKChatPlugin.getInstance().getApi().takeReputation(vkId, cost);
         }
 
-        // Телепортируем
         player.teleport(target);
         player.sendMessage(successMessage);
         player.playSound(target, Sound.ENTITY_ENDERMAN_TELEPORT, 1.0f, 1.0f);
         
-        // Спавн частиц на финише
         spawnFinishParticles(target);
 
-        // Ставим кулдаун
+        recordTeleportHistory(player.getUniqueId(), from, target, cooldownType != null ? cooldownType : "teleport");
+
+        if (features != null) {
+            int distance = (int) from.distance(target);
+            if (from.getWorld() != target.getWorld()) distance = 0;
+            features.recordTeleport(player.getUniqueId(), distance);
+        }
+
         if (cooldownType != null) {
             setCooldown(cooldownType, player.getUniqueId());
         }
 
-        // Запускаем кастомный коллбек если есть
         if (onComplete != null) {
             onComplete.run();
         }
@@ -294,6 +390,7 @@ public class TeleportManager {
     private class WarmupTask {
         private final Player player;
         private final Location target;
+        private final Location startLocation;
         private final int totalSeconds;
         private final String successMessage;
         private final int cost;
@@ -306,11 +403,16 @@ public class TeleportManager {
         public WarmupTask(Player player, Location target, int delay, String successMessage, int cost, String cooldownType, Runnable onComplete) {
             this.player = player;
             this.target = target;
+            this.startLocation = player.getLocation().clone();
             this.totalSeconds = delay;
             this.successMessage = successMessage;
             this.cost = cost;
             this.cooldownType = cooldownType;
             this.onComplete = onComplete;
+        }
+
+        public Location getStartLocation() {
+            return startLocation;
         }
 
         public void run() {
@@ -367,6 +469,40 @@ public class TeleportManager {
     }
 
     // Вспомогательный класс-структура координат
+    public static class TpaRequestInfo {
+        public final UUID sender;
+        public final boolean isHere;
+
+        TpaRequestInfo(UUID sender, boolean isHere) {
+            this.sender = sender;
+            this.isHere = isHere;
+        }
+    }
+
+    public static class TeleportHistoryEntry {
+        public final String fromWorld, toWorld;
+        public final double fromX, fromY, fromZ, toX, toY, toZ;
+        public final long timestamp;
+        public final String type;
+
+        TeleportHistoryEntry(Location from, Location to, String type) {
+            this.fromWorld = from.getWorld().getName();
+            this.fromX = from.getBlockX();
+            this.fromY = from.getBlockY();
+            this.fromZ = from.getBlockZ();
+            this.toWorld = to.getWorld().getName();
+            this.toX = to.getBlockX();
+            this.toY = to.getBlockY();
+            this.toZ = to.getBlockZ();
+            this.timestamp = System.currentTimeMillis();
+            this.type = type;
+        }
+
+        public String getFormattedTime() {
+            return new SimpleDateFormat("HH:mm:ss").format(new Date(timestamp));
+        }
+    }
+
     public static class HomeLocation {
         public final String worldName;
         public final double x, y, z;

@@ -7,9 +7,11 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerBedEnterEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.player.PlayerRespawnEvent;
 import ru.example.vkchatteleport.VKChatTeleportPlugin;
 
 public class TeleportListener implements Listener {
@@ -27,14 +29,19 @@ public class TeleportListener implements Listener {
             Location to = event.getTo();
             if (to == null) return;
             
-            // Проверяем изменение координат блока (игнорируем поворот головы)
+            Location startLoc = plugin.getTeleportManager().getActiveWarmupStartLocation(p.getUniqueId());
+
             if (from.getBlockX() != to.getBlockX() || 
                 from.getBlockY() != to.getBlockY() || 
                 from.getBlockZ() != to.getBlockZ()) {
                 
                 boolean cancelOnMove = plugin.getConfig().getBoolean("teleportation.warmup.cancel-on-move", true);
                 if (cancelOnMove) {
-                    plugin.getTeleportManager().cancelActiveWarmup(p.getUniqueId(), true);
+                    double distance = startLoc != null ? startLoc.distance(to) : 0;
+                    String reason = startLoc != null && distance > 2.0
+                            ? "Вы отошли слишком далеко от точки старта (" + String.format("%.1f", distance) + " блоков)!"
+                            : "Вы сдвинулись с места!";
+                    plugin.getTeleportManager().cancelActiveWarmup(p.getUniqueId(), true, reason);
                 }
             }
         }
@@ -47,9 +54,24 @@ public class TeleportListener implements Listener {
             if (plugin.getTeleportManager().isTeleporting(p.getUniqueId())) {
                 boolean cancelOnDamage = plugin.getConfig().getBoolean("teleportation.warmup.cancel-on-damage", true);
                 if (cancelOnDamage) {
-                    plugin.getTeleportManager().cancelActiveWarmup(p.getUniqueId(), true);
+                    plugin.getTeleportManager().cancelActiveWarmup(p.getUniqueId(), true, "Вы получили урон!");
                 }
             }
+        }
+    }
+
+    @EventHandler
+    public void onPlayerDeath(PlayerDeathEvent event) {
+        Player p = event.getEntity();
+        plugin.getTeleportManager().cancelActiveWarmup(p.getUniqueId(), false);
+        plugin.getTeleportManager().saveDeathLocation(p.getUniqueId(), p.getLocation());
+    }
+
+    @EventHandler
+    public void onPlayerRespawn(PlayerRespawnEvent event) {
+        Player p = event.getPlayer();
+        if (plugin.getTeleportManager().hasDeathLocation(p.getUniqueId())) {
+            p.sendMessage(ChatColor.YELLOW + "⚰ Используйте " + ChatColor.GOLD + "/back" + ChatColor.YELLOW + " чтобы вернуться к месту смерти. Стоимость: " + ChatColor.GOLD + plugin.getConfig().getInt("teleportation.back.cost", 50) + " реп.");
         }
     }
 

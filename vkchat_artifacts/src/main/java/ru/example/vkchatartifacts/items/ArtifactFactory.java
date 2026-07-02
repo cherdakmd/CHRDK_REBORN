@@ -201,6 +201,7 @@ public class ArtifactFactory {
         }
         
         item.setItemMeta(meta);
+        plugin.incrementArtifactsGenerated();
         return item;
     }
 
@@ -262,11 +263,12 @@ public class ArtifactFactory {
         meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "curse_type"), PersistentDataType.STRING, "NONE");
         meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "artifact_name"), PersistentDataType.STRING, name);
 
-        if (rarity.equals("mythic")) {
+        if (rarity.equals("mythic") || rarity.equals("legendary")) {
             meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "is_mythic"), PersistentDataType.INTEGER, 1);
         }
 
         item.setItemMeta(meta);
+        plugin.incrementArtifactsGenerated();
         return item;
     }
 

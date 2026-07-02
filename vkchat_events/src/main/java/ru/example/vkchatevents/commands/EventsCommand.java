@@ -35,12 +35,43 @@ public class EventsCommand implements CommandExecutor, TabCompleter, Listener {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+        if (args.length > 0) {
+            if (args[0].equalsIgnoreCase("stats")) {
+                if (!sender.hasPermission("vkchat.events.stats")) {
+                    sender.sendMessage(ChatColor.RED + "Нет прав.");
+                    return true;
+                }
+                showStats(sender);
+                return true;
+            }
+            if (args[0].equalsIgnoreCase("reload") || args[0].equalsIgnoreCase("admin")) {
+                if (!sender.hasPermission("vkchat.events.admin")) {
+                    sender.sendMessage(ChatColor.RED + "Нет прав.");
+                    return true;
+                }
+                sender.sendMessage(ChatColor.GREEN + "VKChatEvents v3.0 — 16 активных менеджеров.");
+                sender.sendMessage(ChatColor.GRAY + "Используйте /events для открытия GUI.");
+                return true;
+            }
+        }
+
         if (!(sender instanceof Player)) {
-            sender.sendMessage(ChatColor.RED + "Только для игроков!");
+            sender.sendMessage(ChatColor.RED + "Только для игроков! Используйте /events stats для статистики.");
             return true;
         }
         openDashboard((Player) sender);
         return true;
+    }
+
+    private void showStats(CommandSender sender) {
+        sender.sendMessage(ChatColor.GOLD + "═══ СТАТИСТИКА СОБЫТИЙ ═══");
+        boolean invasionActive = plugin.getInvasionManager().isActive();
+        boolean bossActive = plugin.getWrathManager().isActive();
+        String cataclysm = plugin.getWrathManager().getActiveCataclysm();
+        sender.sendMessage(ChatColor.DARK_PURPLE + "Разлом Бездны: " + (invasionActive ? ChatColor.GREEN + "АКТИВЕН" : ChatColor.RED + "Закрыт"));
+        sender.sendMessage(ChatColor.DARK_RED + "Аватар Гнева: " + (bossActive ? ChatColor.GREEN + "ПРИЗВАН" : ChatColor.RED + "Не призван"));
+        sender.sendMessage(ChatColor.AQUA + "Катаклизм: " + (cataclysm != null ? ChatColor.GREEN + cataclysm : ChatColor.YELLOW + "Нет"));
+        sender.sendMessage(ChatColor.GRAY + "Менеджеров активно: 16");
     }
 
     public void openDashboard(Player p) {
@@ -186,8 +217,12 @@ public class EventsCommand implements CommandExecutor, TabCompleter, Listener {
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String label, String[] args) {
         if (args.length == 1) {
-            return Arrays.asList("info", "boss", "ores", "artifacts", "shop", "quests", "challenges")
-                .stream().filter(s -> s.startsWith(args[0].toLowerCase())).collect(Collectors.toList());
+            List<String> options = new ArrayList<>(Arrays.asList("info", "boss", "ores", "artifacts", "shop", "quests", "challenges", "stats"));
+            if (sender.hasPermission("vkchat.events.admin")) {
+                options.add("reload");
+                options.add("admin");
+            }
+            return options.stream().filter(s -> s.startsWith(args[0].toLowerCase())).collect(Collectors.toList());
         }
         return new ArrayList<>();
     }

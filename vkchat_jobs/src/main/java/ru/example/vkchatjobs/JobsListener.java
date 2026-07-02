@@ -87,6 +87,32 @@ public class JobsListener implements Listener {
         return true;
     }
 
+    private void notifyXpGain(Player p, String job, int xpGained) {
+        if (!plugin.getConfig().getBoolean("settings.xp-feedback", true)) return;
+        int lvl = plugin.getJobsDataManager().getLevel(p.getUniqueId(), job);
+        int exp = plugin.getJobsDataManager().getExp(p.getUniqueId(), job);
+        int req = Math.max(1, lvl * 1000);
+        String jobEmoji = getJobEmoji(job);
+        p.spigot().sendMessage(net.md_5.bungee.api.ChatMessageType.ACTION_BAR,
+            new net.md_5.bungee.api.chat.TextComponent(
+                org.bukkit.ChatColor.AQUA + jobEmoji + " +" + xpGained + " XP | " +
+                org.bukkit.ChatColor.GREEN + exp + "/" + req + " XP"
+            ));
+    }
+
+    private String getJobEmoji(String job) {
+        switch (job) {
+            case "miner": return "⛏";
+            case "woodcutter": return "🌲";
+            case "farmer": return "🌾";
+            case "alchemist": return "⚗";
+            case "blacksmith": return "⚒";
+            case "hunter": return "🏹";
+            case "fisherman": return "🎣";
+            default: return "⭐";
+        }
+    }
+
     @EventHandler
     public void onBreak(BlockBreakEvent e) {
         if (e.isCancelled()) return;
@@ -97,6 +123,7 @@ public class JobsListener implements Listener {
             if (plugin.getPlacedBlockTracker() != null && plugin.getPlacedBlockTracker().consumeIfPlaced(e.getBlock())) return;
             if (checkFatigue(p, "miner")) {
                 plugin.getJobsDataManager().addExp(p, "miner", 50);
+                notifyXpGain(p, "miner", 50);
                 plugin.getJobsDataManager().addDailyProgress(p, "miner", 1);
                 plugin.getJobsDataManager().addActionReputation(p, "miner", m.name(), 1);
                 if (plugin.getWeeklyTaskManager() != null) plugin.getWeeklyTaskManager().addProgress(p, "mine", 1);
@@ -167,6 +194,7 @@ public class JobsListener implements Listener {
             if (plugin.getPlacedBlockTracker() != null && plugin.getPlacedBlockTracker().consumeIfPlaced(e.getBlock())) return;
             if (checkFatigue(p, "woodcutter")) {
                 plugin.getJobsDataManager().addExp(p, "woodcutter", 20);
+                notifyXpGain(p, "woodcutter", 20);
                 plugin.getJobsDataManager().addDailyProgress(p, "woodcutter", 1);
                 plugin.getJobsDataManager().addActionReputation(p, "woodcutter", m.name(), 1);
                 if (plugin.getWeeklyTaskManager() != null) plugin.getWeeklyTaskManager().addProgress(p, "mine", 1);
@@ -207,6 +235,7 @@ public class JobsListener implements Listener {
             }
             if (checkFatigue(p, "farmer")) {
                 plugin.getJobsDataManager().addExp(p, "farmer", 15);
+                notifyXpGain(p, "farmer", 15);
                 plugin.getJobsDataManager().addDailyProgress(p, "farmer", 1);
                 plugin.getJobsDataManager().addActionReputation(p, "farmer", m.name(), 1);
                 if (plugin.getWeeklyTaskManager() != null) plugin.getWeeklyTaskManager().addProgress(p, "build", 1);
@@ -262,6 +291,7 @@ public class JobsListener implements Listener {
         if (p == null) return;
         if (checkFatigue(p, "alchemist")) {
             plugin.getJobsDataManager().addExp(p, "alchemist", 150);
+            notifyXpGain(p, "alchemist", 150);
             plugin.getJobsDataManager().addDailyProgress(p, "alchemist", 1);
             plugin.getJobsDataManager().addActionReputation(p, "alchemist", "BREW", 1);
             if (plugin.getWeeklyTaskManager() != null) plugin.getWeeklyTaskManager().addProgress(p, "craft", 1);
@@ -307,6 +337,7 @@ public class JobsListener implements Listener {
         if (n.endsWith("_SWORD") || n.endsWith("_CHESTPLATE") || n.endsWith("_PICKAXE") || n.endsWith("_HELMET") || n.endsWith("_LEGGINGS") || n.endsWith("_BOOTS") || n.endsWith("_AXE")) {
             if (checkFatigue(p, "blacksmith")) {
                 plugin.getJobsDataManager().addExp(p, "blacksmith", 100);
+                notifyXpGain(p, "blacksmith", 100);
                 plugin.getJobsDataManager().addDailyProgress(p, "blacksmith", 1);
                 if (plugin.getWeeklyTaskManager() != null) plugin.getWeeklyTaskManager().addProgress(p, "craft", 1);
                 if (plugin.getRankingManager() != null) plugin.getRankingManager().addWeeklyRep(p.getUniqueId(), 1);
@@ -346,6 +377,7 @@ public class JobsListener implements Listener {
                 xp = (int) (xp * 1.5);
             }
             plugin.getJobsDataManager().addExp(p, "hunter", xp);
+            notifyXpGain(p, "hunter", xp);
 
             if (plugin.getJobsDataManager().hasSkill(p.getUniqueId(), "hunter", "hunt_loot")) {
                 if (Math.random() < 0.1) {
@@ -388,6 +420,7 @@ public class JobsListener implements Listener {
             plugin.getJobsDataManager().addDailyProgress(p, "fisherman", 1);
             int xp = 40;
             plugin.getJobsDataManager().addExp(p, "fisherman", xp);
+            notifyXpGain(p, "fisherman", xp);
             if (plugin.getWeeklyTaskManager() != null) plugin.getWeeklyTaskManager().addProgress(p, "fish", 1);
             if (plugin.getRankingManager() != null) plugin.getRankingManager().addWeeklyRep(p.getUniqueId(), 1);
             String caughtKey = "FISH";

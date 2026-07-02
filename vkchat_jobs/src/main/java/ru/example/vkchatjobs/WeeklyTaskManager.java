@@ -28,6 +28,7 @@ public class WeeklyTaskManager {
     };
     private static final int[] TASK_TARGETS = {500, 100, 50, 30, 200};
     private static final int[] TASK_REWARDS = {150, 200, 100, 120, 80};
+    private static final String[] TASK_REWARD_ITEMS = {"IRON_INGOT:8", "BONE:12", "EXPERIENCE_BOTTLE:5", "COD:4", "OAK_LOG:16"};
 
     public WeeklyTaskManager(VKChatJobsPlugin plugin) {
         this.plugin = plugin;
@@ -141,10 +142,12 @@ public class WeeklyTaskManager {
 
         int rep = TASK_REWARDS[idx];
         rewardVkRep(p, rep, "Еженедельное задание: " + taskType);
+        giveTaskItemReward(p, idx);
 
         if (count >= plugin.getConfig().getInt("weekly-tasks.tasks-per-week", 3)) {
             int bonus = plugin.getConfig().getInt("weekly-tasks.bonus-rep", 500);
             rewardVkRep(p, bonus, "Бонус за все еженедельные задания");
+            giveBonusItemReward(p);
             p.sendMessage(org.bukkit.ChatColor.GOLD + "🏆 Вы выполнили ВСЕ еженедельные задания! Бонус: +" + bonus + " репутации!");
         }
 
@@ -174,6 +177,29 @@ public class WeeklyTaskManager {
                     api.getClass().getMethod("addReputation", int.class, int.class).invoke(api, vkId, amount);
                 }
             }
+        } catch (Exception ignored) {}
+    }
+
+    private void giveTaskItemReward(Player p, int taskIdx) {
+        if (taskIdx < 0 || taskIdx >= TASK_REWARD_ITEMS.length) return;
+        String[] parts = TASK_REWARD_ITEMS[taskIdx].split(":");
+        if (parts.length != 2) return;
+        try {
+            org.bukkit.Material mat = org.bukkit.Material.valueOf(parts[0]);
+            int amount = Integer.parseInt(parts[1]);
+            org.bukkit.inventory.ItemStack reward = new org.bukkit.inventory.ItemStack(mat, amount);
+            java.util.Map<Integer, org.bukkit.inventory.ItemStack> left = p.getInventory().addItem(reward);
+            left.values().forEach(item -> p.getWorld().dropItemNaturally(p.getLocation(), item));
+            p.sendMessage(org.bukkit.ChatColor.GRAY + "📦 Бонусный предмет: " + mat.name() + " x" + amount);
+        } catch (Exception ignored) {}
+    }
+
+    private void giveBonusItemReward(Player p) {
+        try {
+            org.bukkit.inventory.ItemStack reward = new org.bukkit.inventory.ItemStack(org.bukkit.Material.DIAMOND, 3);
+            java.util.Map<Integer, org.bukkit.inventory.ItemStack> left = p.getInventory().addItem(reward);
+            left.values().forEach(item -> p.getWorld().dropItemNaturally(p.getLocation(), item));
+            p.sendMessage(org.bukkit.ChatColor.AQUA + "💎 Бонус за все задания: DIAMOND x3");
         } catch (Exception ignored) {}
     }
 }

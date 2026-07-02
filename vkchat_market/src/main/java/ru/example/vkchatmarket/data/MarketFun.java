@@ -56,8 +56,12 @@ public class MarketFun {
 
         String name = plugin.getConfig().getString("items." + flashSaleItemId + ".name", flashSaleItemId);
         int percent = (int) (flashSaleDiscount * 100);
+        long durationSec = plugin.getConfig().getLong("market2.flash-sale.duration-ms", 300000) / 1000;
         Bukkit.broadcastMessage(ChatColor.LIGHT_PURPLE + "⚡ [Flash Sale] " + ChatColor.YELLOW + name +
-                ChatColor.LIGHT_PURPLE + " -" + percent + "% на 5 минут!");
+                ChatColor.LIGHT_PURPLE + " -" + percent + "% на " + durationSec / 60 + " минут!");
+        for (Player p : Bukkit.getOnlinePlayers()) {
+            p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_PLING, 1f, 1.5f);
+        }
     }
 
     public boolean isFlashSaleActive(String itemId) {

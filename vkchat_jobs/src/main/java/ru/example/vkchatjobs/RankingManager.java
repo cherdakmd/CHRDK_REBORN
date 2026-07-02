@@ -68,7 +68,22 @@ public class RankingManager {
     }
 
     public void addWeeklyRep(UUID uuid, int amount) {
-        weeklyRepEarned.merge(uuid, amount, Integer::sum);
+        if (amount <= 0) return;
+        double donorMult = 1.0;
+        Player p = Bukkit.getPlayer(uuid);
+        if (p != null && p.isOnline()) {
+            if (p.hasPermission("vkchat.donate.overlord")) donorMult = 1.70;
+            else if (p.hasPermission("vkchat.donate.legend")) donorMult = 1.50;
+            else if (p.hasPermission("vkchat.donate.star")) donorMult = 1.35;
+            else if (p.hasPermission("vkchat.donate.flame")) donorMult = 1.20;
+            else if (p.hasPermission("vkchat.donate.spark")) donorMult = 1.10;
+            else if (p.hasPermission("vkchat.donate.vip")) donorMult = 1.05;
+        }
+        int finalAmount = Math.max(1, (int) Math.round(amount * donorMult));
+        weeklyRepEarned.merge(uuid, finalAmount, Integer::sum);
+        if (plugin.getConfig().getBoolean("ranking.debug-log", false)) {
+            plugin.getLogger().info("[Ranking] +" + finalAmount + " rep for " + uuid + " (base=" + amount + ", donor=" + String.format("%.2f", donorMult) + ")");
+        }
     }
 
     public void tryBroadcast() {

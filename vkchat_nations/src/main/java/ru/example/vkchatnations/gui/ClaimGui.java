@@ -17,6 +17,7 @@ import ru.example.vkchatnations.VKChatNationsPlugin;
 import ru.example.vkchatnations.data.ChunkClaim;
 import ru.example.vkchat.VKChatPlugin;
 
+import java.util.UUID;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -48,9 +49,16 @@ public class ClaimGui implements Listener {
         List<String> loreInfo = new ArrayList<>();
         loreInfo.add(ChatColor.GRAY + "Прочность (Аренда): " + ChatColor.GREEN + claim.getDurability() + "/" + claim.getMaxDurability());
         loreInfo.add(ChatColor.GRAY + "Уровень привата: " + ChunkClaim.getLevelColor(claim.getLevel()) + claim.getLevel() + " — " + ChunkClaim.getLevelName(claim.getLevel()));
+        loreInfo.add(ChatColor.GRAY + "Радиус защиты: " + ChatColor.YELLOW + claim.getRadius() + " блоков");
         loreInfo.add("");
         loreInfo.add(ChatColor.GRAY + "Доверенных игроков: " + ChatColor.WHITE + claim.getTrusted().size());
-        loreInfo.add(ChatColor.GRAY + "Налог с доверенных: " + ChatColor.GREEN + (claim.getTrusted().size() * 2) + " реп/час");
+        for (UUID trustedId : claim.getTrusted()) {
+            String tName = Bukkit.getOfflinePlayer(trustedId).getName();
+            loreInfo.add(ChatColor.GRAY + "  • " + ChatColor.GREEN + (tName != null ? tName : trustedId.toString().substring(0, 8)));
+        }
+        loreInfo.add("");
+        loreInfo.add(ChatColor.GRAY + "Налог с доверенных: " + ChatColor.GREEN + (claim.getTrusted().size() * 2) + " реп/день");
+        loreInfo.add(ChatColor.GRAY + "Ежедневный износ: " + ChatColor.RED + "-2 прочности/день");
         metaInfo.setLore(loreInfo);
         metaInfo.getPersistentDataContainer().set(chunkKeyX, PersistentDataType.INTEGER, chunk.getX());
         metaInfo.getPersistentDataContainer().set(chunkKeyZ, PersistentDataType.INTEGER, chunk.getZ());

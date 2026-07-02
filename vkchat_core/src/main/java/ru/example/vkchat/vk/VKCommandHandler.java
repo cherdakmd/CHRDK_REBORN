@@ -34,7 +34,8 @@ public class VKCommandHandler {
                     "║   🎮 CHRDK REBORN 🎮      ║\n" +
                     "╚═══════════════════════════╝\n\n" +
                     " ⛏ Смены:\n" +
-                    " !шахта — Шахтёрские смены\n\n" +
+                    " !шахта — Шахтёрские смены\n" +
+                    " !смена / !shift — То же самое\n\n" +
                     " 📊 Профиль:\n" +
                     " !профиль - Твоя статистика\n" +
                     " !рейтинг - Репутация\n" +
@@ -43,7 +44,8 @@ public class VKCommandHandler {
                     " 💰 Экономика:\n" +
                     " !бонус - Ежедневный бонус\n" +
                     " !сейф - Взлом сейфа\n" +
-                    " !промо <код> - Активировать код\n\n" +
+                    " !промо <код> - Активировать код\n" +
+                    " !донат / !donate - Поддержка сервера\n\n" +
                     " 🔧 Сервер:\n" +
                     " !online - Онлайн\n" +
                     " !status - Статус сервера\n" +
@@ -279,6 +281,36 @@ public class VKCommandHandler {
                              " Достижений: " + achievements;
             plugin.getVkManager().sendMessage(peer, fromId, profile);
 
+        } else if (cmd.equals("!смена") || cmd.equals("!shift") || cmd.equals("!шахта")) {
+            String shiftInfo = "⛏ Шахтёрские смены\n\n" +
+                    "Отправляйся в шахту и получай ресурсы!\n" +
+                    "Доступные длительности:\n" +
+                    "• 1 час — базовые ресурсы\n" +
+                    "• 3 часа — улучшенный лут\n" +
+                    "• 8 часов — редкие ресурсы\n" +
+                    "• 12 часов — максимальная награда\n\n" +
+                    "Награду забирай через /stash в игре!";
+            if (peer < 2000000000) {
+                plugin.getVkManager().sendKeyboard(peer, shiftInfo, VKKeyboardBuilder.mainDmMenu());
+            } else {
+                plugin.getVkManager().sendMessage(peer, fromId, "Эта команда работает в ЛС бота ВК. Напиши боту в личные сообщения!");
+            }
+        } else if (cmd.equals("!донат") || cmd.equals("!donate")) {
+            String donateInfo = "💰 Поддержка сервера CHRDK REBORN\n\n" +
+                    "5 статусов от 250₽ до 5000₽ на 30 дней!\n" +
+                    "Скидки до -65% на длительные подписки.\n\n" +
+                    "• Bronze — базовые бонусы\n" +
+                    "• Silver — улучшенные награды\n" +
+                    "• Gold — премиум доступ\n" +
+                    "• Diamond — максимальные привилегии\n" +
+                    "• Legend — эксклюзивный статус\n\n" +
+                    "Подробнее: /donate info в игре\n" +
+                    "Поддержать: https://donatepay.ru/don/CHRDK";
+            if (peer < 2000000000) {
+                plugin.getVkManager().sendKeyboard(peer, donateInfo, VKKeyboardBuilder.mainDmMenu());
+            } else {
+                plugin.getVkManager().sendMessage(peer, fromId, donateInfo);
+            }
         } else if (cmd.equals("!работы") || cmd.equals("!jobs")) {
             plugin.getVkManager().sendMessage(peer, fromId, "Эта команда теперь обрабатывается модулем VKChatJobs.");
         } else if (cmd.equals("!анекдот") || cmd.equals("!joke")) {

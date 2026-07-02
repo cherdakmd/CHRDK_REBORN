@@ -38,6 +38,16 @@ commands:
   rtp:
     description: Телепортироваться в случайную безопасную точку диких земель за репутацию ВК
     permission: vkchat.teleport.player
+  tpahere:
+    description: Пригласить игрока телепортироваться к вам за репутацию ВК
+    usage: /tpahere <player>
+    permission: vkchat.teleport.player
+  back:
+    description: Вернуться к месту последней смерти за репутацию ВК
+    permission: vkchat.teleport.player
+  tphistory:
+    description: Показать историю ваших телепортаций
+    permission: vkchat.teleport.player
 permissions:
   vkchat.teleport.player:
     description: Доступ к использованию личных точек дома, RTP и запросов TPA

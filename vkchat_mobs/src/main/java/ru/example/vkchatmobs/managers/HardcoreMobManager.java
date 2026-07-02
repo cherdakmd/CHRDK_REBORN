@@ -80,10 +80,13 @@ public class HardcoreMobManager implements Listener {
             return;
         }
 
+        int playerCount = mob.getWorld().getPlayers().size();
         int maxPerWorld = plugin.getConfig().getInt("hardcore-mobs.anti-farm.max-elites-per-world", 35);
-        if (countElites(mob.getWorld()) >= maxPerWorld) return;
+        int scaledMax = maxPerWorld + (playerCount * 2);
+        if (countElites(mob.getWorld()) >= scaledMax) return;
 
-        double chance = plugin.getConfig().getDouble("hardcore-mobs.elites.natural-spawn-chance", 2.0);
+        double baseChance = plugin.getConfig().getDouble("hardcore-mobs.elites.natural-spawn-chance", 2.0);
+        double chance = baseChance + (playerCount * plugin.getConfig().getDouble("hardcore-mobs.elites.player-bonus", 0.5));
         if (isNightOrCave(mob.getLocation())) chance += plugin.getConfig().getDouble("hardcore-mobs.elites.night-cave-bonus", 3.0);
         if (isBloodMoonLike()) chance += plugin.getConfig().getDouble("hardcore-mobs.elites.event-bonus", 8.0);
 

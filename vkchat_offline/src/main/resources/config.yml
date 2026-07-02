@@ -1,4 +1,9 @@
 # Шахтёрские смены — конфигурация
+settings:
+  cooldown-minutes: 0  # Кулдаун между сменами (0 = без кулдауна)
+  consec-bonus-3: 25   # Бонус в % за 3+ смен подряд
+  consec-bonus-5: 50   # Бонус в % за 5+ смен подряд
+
 shifts:
   1h:
     name: "Короткая смена"
@@ -21,6 +26,8 @@ shifts:
       - "GOLD_INGOT:1:4"
       - "REDSTONE:3:8"
       - "COAL:8:16"
+      - "COPPER_INGOT:2:6"
+      - "RAW_IRON:1:3"
   8h:
     name: "Ночная смена"
     icon: "⛏⛏⛏"
@@ -32,6 +39,8 @@ shifts:
       - "DIAMOND:1:3"
       - "LAPIS_LAZULI:4:10"
       - "IRON_INGOT:6:15"
+      - "EMERALD:1:2"
+      - "AMETHYST_SHARD:2:5"
   12h:
     name: "Полный рабочий день"
     icon: "⛏⛏⛏⛏"
@@ -44,3 +53,5 @@ shifts:
       - "NETHERITE_SCRAP:1:2"
       - "GOLD_INGOT:5:12"
       - "IRON_INGOT:10:20"
+      - "ANCIENT_DEBRIS:1:1"
+      - "RAW_GOLD:2:5"

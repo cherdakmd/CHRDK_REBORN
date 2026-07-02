@@ -8,6 +8,10 @@ commands:
     description: Забрать награды из шахты
     aliases: [тайник, склад, сейф]
     permission: vkchat.offline.player
+  shift:
+    description: Проверить статус шахтёрской смены
+    aliases: [шахта, смена]
+    permission: vkchat.offline.player
 permissions:
   vkchat.offline.player:
     description: Доступ к сменам и /stash

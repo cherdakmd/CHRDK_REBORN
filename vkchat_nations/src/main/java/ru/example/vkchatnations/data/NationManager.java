@@ -30,6 +30,8 @@ public class NationManager {
     private final Map<String, Integer> nationBank = new ConcurrentHashMap<>();
     private final Set<UUID> autoClaimPlayers = ConcurrentHashMap.newKeySet();
     private final Map<UUID, Set<String>> unlockedMutations = new ConcurrentHashMap<>();
+    private final Map<String, Integer> nationLevels = new ConcurrentHashMap<>();
+    private final Map<String, Integer> nationExp = new ConcurrentHashMap<>();
 
     public NationManager(VKChatNationsPlugin plugin) {
         this.plugin = plugin;
@@ -76,6 +78,8 @@ public class NationManager {
             for (String nation : data.getConfigurationSection("nations").getKeys(false)) {
                 try {
                     nationBank.put(nation, data.getInt("nations." + nation + ".bank", 0));
+                    nationLevels.put(nation, data.getInt("nations." + nation + ".level", 1));
+                    nationExp.put(nation, data.getInt("nations." + nation + ".exp", 0));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -145,6 +149,8 @@ public class NationManager {
             if (plugin.getConfig().getConfigurationSection("nations") != null) {
                 for (String nation : plugin.getConfig().getConfigurationSection("nations").getKeys(false)) {
                     out.set("nations." + nation + ".bank", nationBank.getOrDefault(nation, 0));
+                    out.set("nations." + nation + ".level", nationLevels.getOrDefault(nation, 1));
+                    out.set("nations." + nation + ".exp", nationExp.getOrDefault(nation, 0));
                 }
             }
 
@@ -472,11 +478,63 @@ public class NationManager {
     // ==========================================
     public void depositReputation(String nation, int amount) {
         nationBank.put(nation, Math.max(0, getBank(nation) + amount));
+        if (amount > 0) addNationExp(nation, amount);
         saveAll();
     }
 
     public int getBank(String nation) {
         return nationBank.getOrDefault(nation, 0);
+    }
+
+    public int getMemberCount(String nation) {
+        int count = 0;
+        for (String n : playerNations.values()) {
+            if (nation.equals(n)) count++;
+        }
+        return count;
+    }
+
+    public int getNationLevel(String nation) {
+        return nationLevels.getOrDefault(nation, 1);
+    }
+
+    public int getNationExp(String nation) {
+        return nationExp.getOrDefault(nation, 0);
+    }
+
+    public int getNationExpToNextLevel(String nation) {
+        int level = getNationLevel(nation);
+        return level * 5000;
+    }
+
+    public void addNationExp(String nation, int exp) {
+        int current = nationExp.getOrDefault(nation, 0) + exp;
+        int level = nationLevels.getOrDefault(nation, 1);
+        int needed = level * 5000;
+        while (current >= needed) {
+            current -= needed;
+            level++;
+            needed = level * 5000;
+            nationLevels.put(nation, level);
+            broadcastToNationWithPrefix(nation,
+                    ChatColor.GOLD + "★ Нация достигла уровня " + level + "! ★");
+        }
+        nationExp.put(nation, current);
+        saveAll();
+    }
+
+    public String getNationProgressBar(String nation) {
+        int level = getNationLevel(nation);
+        int exp = getNationExp(nation);
+        int needed = getNationExpToNextLevel(nation);
+        int bars = (int) ((double) exp / needed * 10);
+        StringBuilder sb = new StringBuilder(ChatColor.GREEN + "" + ChatColor.BOLD + "Ур." + level + " ");
+        sb.append(ChatColor.DARK_GREEN);
+        for (int i = 0; i < 10; i++) {
+            sb.append(i < bars ? "■" : "□");
+        }
+        sb.append(ChatColor.GRAY).append(" ").append(exp).append("/").append(needed).append(" EXP");
+        return sb.toString();
     }
 
     public void processDailyTaxes() {
@@ -488,6 +546,7 @@ public class NationManager {
 
         // --- 3. ВАНИЛЬНОЕ ОБЕСПЕЧЕНИЕ ПРОЧНОСТИ ЧАНКОВ (Оригинальная логика) ---
         List<String> toRemove = new ArrayList<>();
+        int totalTaxCollected = 0;
 
         for (Map.Entry<String, ChunkClaim> entry : nationClaims.entrySet()) {
             String key = entry.getKey();
@@ -538,12 +597,10 @@ public class NationManager {
                             int oVk = api.getLinkedVkId(ownerP);
                             if (oVk != -1) api.addReputation(oVk, 2);
 
-                            // Сообщение владельцу
                             ownerP.sendMessage(ChatColor.YELLOW + "💰 " + tPlayer.getName() + " оплатил налог: 2 реп.");
-
-                            // Сообщение доверенному
                             tPlayer.sendMessage(ChatColor.GREEN + "✓ Налог оплачен: -2 реп.");
                         }
+                        totalTaxCollected += 2;
                     } else {
                         toUntrust.add(trustedId);
                         tPlayer.sendMessage(ChatColor.RED + "⚠️ Вы выселены из привата за неуплату!");
@@ -558,6 +615,16 @@ public class NationManager {
 
         for (String key : toRemove) {
             nationClaims.remove(key);
+        }
+
+        if (totalTaxCollected > 0) {
+            for (String n : plugin.getConfig().getConfigurationSection("nations").getKeys(false)) {
+                int memberCount = getMemberCount(n);
+                int expGain = memberCount > 0 ? totalTaxCollected / 2 : 0;
+                if (expGain > 0) {
+                    addNationExp(n, expGain);
+                }
+            }
         }
 
         saveAll();

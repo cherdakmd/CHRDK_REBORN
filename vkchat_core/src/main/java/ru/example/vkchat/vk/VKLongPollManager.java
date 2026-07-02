@@ -405,11 +405,18 @@ public class VKLongPollManager {
 
                 JSONObject json = new JSONObject(response.body());
                 if (json.has("error")) {
-                    plugin.getLogger().warning("[VK] Ошибка отправки клавиатуры: " + 
-                        json.getJSONObject("error").optString("error_msg"));
+                    JSONObject err = json.getJSONObject("error");
+                    int errCode = err.optInt("error_code", -1);
+                    String errMsg = err.optString("error_msg", "unknown");
+                    plugin.getLogger().warning("[VK] Ошибка отправки клавиатуры (peer=" + targetPeer + ", code=" + errCode + "): " + errMsg);
+                    if (errCode == 901 || errCode == 902) {
+                        plugin.getLogger().severe("[VK] Keyboard send — нет доступа к сообщениям или пользователь заблокировал бота (peer=" + targetPeer + ")");
+                    } else if (errCode == 10 || errCode == 15) {
+                        plugin.getLogger().warning("[VK] Keyboard send — внутренняя ошибка VK API, будет повтор при следующем запросе (peer=" + targetPeer + ")");
+                    }
                 }
             } catch (Exception e) {
-                plugin.getLogger().warning("[VK] Не удалось отправить клавиатуру: " + e.getMessage());
+                plugin.getLogger().warning("[VK] Не удалось отправить клавиатуру (peer=" + targetPeer + "): " + e.getClass().getSimpleName() + " - " + e.getMessage());
             }
         });
     }

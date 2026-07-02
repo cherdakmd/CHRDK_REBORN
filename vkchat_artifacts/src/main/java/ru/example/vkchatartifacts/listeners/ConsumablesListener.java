@@ -252,6 +252,13 @@ public class ConsumablesListener implements Listener {
                     case "FLAME_TONGUE": buffLore = ChatColor.GREEN + "➕ Пылающий язык " + lvl + " ур."; break;
                     case "WIND_WALKER": buffLore = ChatColor.GREEN + "➕ Шагающий по ветру " + lvl + " ур."; break;
                     case "ECHO_STRIKE": buffLore = ChatColor.GREEN + "➕ Удар-эхо " + lvl + " ур. (шанс двойного удара)"; break;
+                    case "SOUL_SHIELD": buffLore = ChatColor.GREEN + "➕ Щит души (Абсорбция при HP<30%)"; break;
+                    case "FIRE_RESISTANCE_AURA": buffLore = ChatColor.GREEN + "➕ Аура огнестойкости (радиус 5 блоков)"; break;
+                    case "XP_MAGNET": buffLore = ChatColor.GREEN + "➕ Магнит опыта +" + (lvl * 50) + "%"; break;
+                    case "LOOT_FIND": buffLore = ChatColor.GREEN + "➕ Поиск добычи +" + (lvl * 25) + "%"; break;
+                    case "REVIVAL": buffLore = ChatColor.GREEN + "➕ Возрождение (50% HP при смерти, КД 10м)"; break;
+                    case "ABYSSAL_POWER": buffLore = ChatColor.GREEN + "➕ Сила Бездны (+10 урон, невидимость при HP<30%)"; break;
+                    case "DRAGON_BLOOD": buffLore = ChatColor.GREEN + "➕ Кровь Дракона (+10 HP, Реген II, +50% огонь)"; break;
                     default: buffLore = ChatColor.GREEN + "➕ " + newBuff + " " + lvl + " ур."; break;
                 }
                 lore.add(2, buffLore);

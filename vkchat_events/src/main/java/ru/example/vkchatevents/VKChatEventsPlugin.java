@@ -7,46 +7,25 @@ import ru.example.vkchatevents.tasks.*;
 import ru.example.vkchatevents.commands.*;
 
 /**
- * VKChatEvents v3.0 — 35 обновлений
+ * VKChatEvents v3.0 — система серверных событий
  * 
- * ═══ СУЩЕСТВУЮЩИЕ СИСТЕМЫ (улучшены) ═══
+ * ═══ УПРАВЛЯЮЩИЕ МЕНЕДЖЕРЫ ═══
  * 1. BountyManager — контракты на убийство
  * 2. QuestManager — сюжетные квесты
  * 3. InvasionManager — вторжение из Бездны
  * 4. WrathManager — катаклизмы и боссы
- * 5. ReminderTask — напоминания
- * 6. EventsCommand — GUI дашборд
- * 
- * ═══ НОВЫЕ СИСТЕМЫ ═══
- * 7. DailyRewardManager — ежедневные награды
- * 8. ChallengeManager — ежедневные/недельные испытания
- * 9. EventShopManager — магазин событий
- * 10. AchievementManager — достижения событий
- * 11. LeaderboardManager — таблицы лидеров
- * 12. StatisticsManager — статистика событий
- * 13. VotingManager — голосование за события
- * 14. ComboManager — комбо-система
- * 15. PredictionManager — предсказания
- * 16. TradingManager — торговля событиями
- * 17. CraftingManager — крафт событийных предметов
- * 18. MiningManager — события добычи
- * 19. FishingManager — события рыбалки
- * 20. BuildingManager — события строительства
- * 21. ExploringManager — события исследования
- * 22. SurvivalManager — события выживания
- * 23. PvPManager — PvP события
- * 24. PvEManager — PvE события
- * 25. TeamworkManager — командные события
- * 26. SabotageManager — саботаж
- * 27. DiplomacyManager — дипломатия
- * 28. EspionageManager — шпионаж
- * 29. RevolutionManager — революция
- * 30. EvolutionManager — эволюция
- * 31. MutationManager — мутации
- * 32. FusionManager — слияние
- * 33. TranscendenceManager — трансцендентность
- * 34. ApocalypseManager — апокалипсис
- * 35. RebirthManager — перерождение
+ * 5. DailyRewardManager — ежедневные награды
+ * 6. ChallengeManager — ежедневные/недельные испытания
+ * 7. EventShopManager — магазин событий
+ * 8. AchievementManager — достижения событий
+ * 9. LeaderboardManager — таблицы лидеров
+ * 10. StatisticsManager — статистика событий
+ * 11. VotingManager — голосование за события
+ * 12. ComboManager — комбо-система
+ * 13. ActivityManager — активность игрока
+ * 14. CombatManager — боевая статистика
+ * 15. SocialManager — социальные взаимодействия
+ * 16. EvolutionManager — эволюция персонажа
  */
 public class VKChatEventsPlugin extends JavaPlugin {
     private static VKChatEventsPlugin instance;

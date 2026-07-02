@@ -62,8 +62,19 @@ public class MobStormManager implements Listener {
         int mobRank = plugin.getConfig().getInt("mob-storm.mob-rank", 5);
         double mobMultiplier = plugin.getConfig().getDouble("mob-storm.mob-multiplier", 2.0);
 
-        String broadcast = "⚡ ШТОРМ МобОВ! " + totalMobs + " монстров обрушиваются на мир!";
+        String broadcast = "⚡ ШТОРМ МобОВ! " + totalMobs + " монстров обрушиваются на мир " + center.getWorld().getName() + "!";
         Bukkit.broadcastMessage(ChatColor.RED + ChatColor.BOLD.toString() + broadcast);
+        for (Player onlineP : Bukkit.getOnlinePlayers()) {
+            onlineP.playSound(onlineP.getLocation(), Sound.ENTITY_LIGHTNING_BOLT_THUNDER, 0.8f, 1.0f);
+        }
+
+        Bukkit.getScheduler().runTaskLater(plugin, () -> {
+            if (stormActive) Bukkit.broadcastMessage(ChatColor.YELLOW + "⚡ [ШТОРМ] Приготовьтесь! До конца 20 секунд!");
+        }, 600L);
+
+        Bukkit.getScheduler().runTaskLater(plugin, () -> {
+            if (stormActive) Bukkit.broadcastMessage(ChatColor.RED + "⚡ [ШТОРМ] 10 секунд до окончания!");
+        }, 800L);
 
         List<Map<?, ?>> waves = plugin.getConfig().getMapList("mob-storm.waves");
         if (waves.isEmpty()) {

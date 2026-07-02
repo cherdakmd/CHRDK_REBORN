@@ -426,9 +426,11 @@ public class CombatListener implements Listener {
             ItemStack weapon = p.getInventory().getItemInMainHand();
 
             int gearScore = plugin.getGearManager().calculateGearScore(p);
-            String actionBar = ChatColor.GOLD + "GS: " + ChatColor.YELLOW + gearScore +
+            String rarityKey = plugin.getGearManager().getRarityKey(weapon);
+            String actionBar = ChatColor.GOLD + "⚔ GS: " + ChatColor.YELLOW + gearScore +
                     ChatColor.GRAY + " | " + ChatColor.RED + "DMG: " + ChatColor.WHITE +
-                    String.format("%.1f", e.getFinalDamage());
+                    String.format("%.1f", e.getFinalDamage()) +
+                    ChatColor.GRAY + " | " + ChatColor.LIGHT_PURPLE + rarityKey.toUpperCase();
             p.spigot().sendMessage(net.md_5.bungee.api.ChatMessageType.ACTION_BAR,
                     net.md_5.bungee.api.chat.TextComponent.fromLegacyText(actionBar));
 

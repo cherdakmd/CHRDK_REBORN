@@ -39,9 +39,11 @@ public class PreventListener implements Listener {
             Location to = e.getTo();
             if (to == null) return;
 
-            // Блокируем абсолютно любое передвижение (позволяем только крутить головой)
             if (from.getX() != to.getX() || from.getY() != to.getY() || from.getZ() != to.getZ()) {
-                e.setTo(from); // Отбрасываем назад/замораживаем
+                e.setTo(from);
+                if (System.currentTimeMillis() % 3000 < 100) {
+                    p.sendMessage(ChatColor.RED + "Выберите Нацию через /nation, чтобы начать движение!");
+                }
             }
         }
     }
@@ -72,6 +74,7 @@ public class PreventListener implements Listener {
         Player p = e.getPlayer();
         if (isAwaitingNationSelection(p)) {
             e.setCancelled(true);
+            p.sendMessage(ChatColor.RED + "Взаимодействие заблокировано! Сначала выберите Нацию: /nation");
         }
     }
 
@@ -80,6 +83,7 @@ public class PreventListener implements Listener {
         Player p = e.getPlayer();
         if (isAwaitingNationSelection(p)) {
             e.setCancelled(true);
+            p.sendMessage(ChatColor.RED + "Разрушение блоков заблокировано! Сначала выберите Нацию: /nation");
         }
     }
 
@@ -88,6 +92,7 @@ public class PreventListener implements Listener {
         Player p = e.getPlayer();
         if (isAwaitingNationSelection(p)) {
             e.setCancelled(true);
+            p.sendMessage(ChatColor.RED + "Установка блоков заблокирована! Сначала выберите Нацию: /nation");
         }
     }
 
@@ -96,6 +101,7 @@ public class PreventListener implements Listener {
         Player p = e.getPlayer();
         if (isAwaitingNationSelection(p)) {
             e.setCancelled(true);
+            p.sendMessage(ChatColor.RED + "Выбрасывание заблокировано! Сначала выберите Нацию: /nation");
         }
     }
 
@@ -105,6 +111,7 @@ public class PreventListener implements Listener {
             Player p = (Player) e.getEntity();
             if (isAwaitingNationSelection(p)) {
                 e.setCancelled(true);
+                p.sendMessage(ChatColor.RED + "Подбор предметов заблокирован! Сначала выберите Нацию: /nation");
             }
         }
     }

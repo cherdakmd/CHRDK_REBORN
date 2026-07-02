@@ -354,13 +354,17 @@ public class SiegeManager {
         ActiveSiege siege = activeSieges.get(sKey);
         if (siege != null) {
             siege.aliveMonsters.remove(mob.getUniqueId());
-            
-            // Взрыв частиц при убийстве осадного моба
+
             mob.getWorld().spawnParticle(org.bukkit.Particle.SOUL, mob.getLocation().add(0, 1, 0), 15, 0.3, 0.5, 0.3, 0.05);
             mob.getWorld().playSound(mob.getLocation(), Sound.ENTITY_VEX_DEATH, 0.8f, 0.5f);
 
             if (killer != null) {
-                killer.sendMessage("§a☠ Вы повергли Осадного Разрушителя!");
+                killer.sendMessage("§a☠ Вы повергли Осадного Разрушителя! §7[Осталось: " + siege.aliveMonsters.size() + "]");
+                try {
+                    int vkId = VKChatPlugin.getInstance().getAuthManager().getLinkedVkId(killer);
+                    if (vkId != -1) VKChatPlugin.getInstance().getReputationManager().addPoints(vkId, 12);
+                    killer.sendMessage("§a🔺 +12 репутации ВК за убийство осадного монстра!");
+                } catch (Throwable ignored) {}
             }
         }
     }

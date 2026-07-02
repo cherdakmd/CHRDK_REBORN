@@ -46,6 +46,7 @@ public class MobCommand implements CommandExecutor, Listener, TabCompleter {
             String sub = args[0].toLowerCase();
             if (sub.equals("accept") || sub.equals("взять")) { acceptContract(p); return true; }
             if (sub.equals("status")) { displayStatus(p); return true; }
+            if (sub.equals("stats") || sub.equals("статистика")) { displayStats(p); return true; }
         }
         openGui(p);
         return true;
@@ -184,6 +185,25 @@ public class MobCommand implements CommandExecutor, Listener, TabCompleter {
         p.sendMessage("§8======================================================");
     }
 
+    private void displayStats(Player p) {
+        p.sendMessage(" ");
+        p.sendMessage("§8================§e [СТАТИСТИКА ОХОТЫ] §8================");
+        p.sendMessage("§fРанг охотника: " + contractManager.getHunterRank(p));
+        p.sendMessage("§fВыполнено контрактов: §e" + contractManager.getCompletedContracts(p));
+        p.sendMessage("§fJobs-Охотник уровень: §b" + contractManager.getHunterJobLevel(p));
+        p.sendMessage("§f");
+        p.sendMessage("§fАктивных мировых угроз: §c" + plugin.getEvents2Manager().getActiveThreatCount());
+        p.sendMessage("§fАктивных элиток: §c" + plugin.getHardcoreMobManager().getActiveEliteCount());
+        p.sendMessage("§fШторм активен: " + (plugin.getMobStormManager().isStormActive() ? "§4ДА" : "§aНЕТ"));
+        if (contractManager.hasActiveContract(p)) {
+            ContractManager.ContractType c = contractManager.getActiveContract(p);
+            p.sendMessage("§fКонтракт: " + c.getDisplayName() + " §7[" + contractManager.getProgress(p) + "/" + c.getRequired() + "]");
+        }
+        p.sendMessage("§f");
+        p.sendMessage("§7Контракты доступны через: /mobs accept");
+        p.sendMessage("§8======================================================");
+    }
+
     private String format(long ms) { long t = Math.max(0, ms/1000); long h=t/3600, m=(t%3600)/60; return h + " ч. " + m + " мин."; }
     private ItemStack button(Material mat, String action, String name, String... lore) { ItemStack it = item(mat, name, lore); ItemMeta meta = it.getItemMeta(); meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "mobs_gui_action"), PersistentDataType.STRING, action); it.setItemMeta(meta); return it; }
     private ItemStack item(Material mat, String name, String... lore) { ItemStack it = new ItemStack(mat); ItemMeta meta = it.getItemMeta(); meta.setDisplayName(name); meta.setLore(Arrays.asList(lore)); meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES); it.setItemMeta(meta); return it; }
@@ -195,7 +215,7 @@ public class MobCommand implements CommandExecutor, Listener, TabCompleter {
         String last = args.length > 0 ? args[args.length - 1].toLowerCase() : "";
 
         if (args.length == 1) {
-            completions.addAll(Arrays.asList("accept", "взять", "status", "spawn", "list", "debug", "reload", "give", "contract", "stop", "threat"));
+            completions.addAll(Arrays.asList("accept", "взять", "status", "stats", "статистика", "spawn", "list", "debug", "reload", "give", "contract", "stop", "threat"));
         } else if (args.length == 2) {
             String sub = args[0].toLowerCase();
             if (sub.equals("spawn")) {

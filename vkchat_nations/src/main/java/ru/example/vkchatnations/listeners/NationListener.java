@@ -241,9 +241,10 @@ public class NationListener implements Listener {
         String nationName = plugin.getNationManager().getNationNamePublic(nation);
         String nationPrefix = plugin.getNationManager().getNationPrefixPublic(nation);
         String coloredName = nationPrefix + nationName;
+        int memberCount = plugin.getNationManager().getMemberCount(nation);
 
         if (isYourChunk) {
-            sendActionbar(p, "&a&l➡ Вход: " + coloredName + " &7(Своя земля)");
+            sendActionbar(p, "&a&l➡ Вход: " + coloredName + " &7(Своя земля · " + memberCount + " жителей)");
             if (plugin.getConfig().getBoolean("messages.enter_your_chunk.enabled", true)) {
                 format = plugin.getConfig().getString("messages.enter_your_chunk.format", "&8[&a+&8] &f{player} &7вернулся на свою территорию [&a{nation}&7]");
                 String msg = format.replace("{player}", p.getName())
@@ -253,9 +254,9 @@ public class NationListener implements Listener {
             }
         }
 
-        sendActionbar(p, "&c&l➡ Вход: " + coloredName);
+        sendActionbar(p, "&c&l➡ Вход: " + coloredName + " &7(" + memberCount + " жителей)");
         if (plugin.getConfig().getBoolean("messages.enter_nation.enabled", true)) {
-            format = plugin.getConfig().getString("messages.enter_nation.format", "&8[&c!&8] &f{player} &7вошёл на территорию нации [&c{nation}&7]");
+            format = plugin.getConfig().getString("messages.enter_nation.format", "&8[&c!&8] &f{player} &7вошёл на территорию нации [&c{nation}&7] &8(" + memberCount + " жителей)");
             String msg = format.replace("{player}", p.getName())
                     .replace("{nation}", coloredName);
             p.sendMessage(ChatColor.translateAlternateColorCodes('&', msg));

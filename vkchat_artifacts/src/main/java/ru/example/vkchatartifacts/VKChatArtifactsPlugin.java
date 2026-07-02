@@ -21,6 +21,8 @@ public class VKChatArtifactsPlugin extends JavaPlugin {
     private final Map<UUID, Long> airdropCooldowns = new ConcurrentHashMap<>();
     private final Map<Location, Long> activeChests = new ConcurrentHashMap<>();
     private final Random rng = new Random();
+    private final java.util.concurrent.atomic.AtomicLong totalArtifactsGenerated = new java.util.concurrent.atomic.AtomicLong(0);
+    private final Map<UUID, Integer> playerArtifactCounts = new ConcurrentHashMap<>();
 
     @Override
     public void onEnable() {
@@ -71,6 +73,26 @@ public class VKChatArtifactsPlugin extends JavaPlugin {
     
     public BossManager getBossManager() {
         return bossManager;
+    }
+
+    public long getTotalArtifactsGenerated() {
+        return totalArtifactsGenerated.get();
+    }
+
+    public long incrementArtifactsGenerated() {
+        return totalArtifactsGenerated.incrementAndGet();
+    }
+
+    public int getPlayerArtifactCount(UUID uuid) {
+        return playerArtifactCounts.getOrDefault(uuid, 0);
+    }
+
+    public void setPlayerArtifactCount(UUID uuid, int count) {
+        playerArtifactCounts.put(uuid, count);
+    }
+
+    public void incrementPlayerArtifactCount(UUID uuid) {
+        playerArtifactCounts.merge(uuid, 1, Integer::sum);
     }
 
     // ==================== АЛХИМИЧЕСКИЙ ТАЙНИК ====================

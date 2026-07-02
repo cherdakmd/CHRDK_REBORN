@@ -188,10 +188,10 @@ public class GuiListener implements Listener {
             case 29: p.closeInventory(); p.sendMessage(ChatColor.AQUA + "Телепорты: /rtp, /sethome, /home, /tpa"); break;
             case 30: run(p, "salvage"); break;
             case 31: run(p, "market"); break;
-            case 32: p.closeInventory(); p.sendMessage(ChatColor.GOLD + "⛺ Оффлайн DnD-походы в ЛС ВК: !поход, !персонаж, !сумка, !дневник, !дейлик"); break;
+            case 32: p.closeInventory(); p.sendMessage(ChatColor.GOLD + "⛏ Смены в ЛС ВК: !шахта, !смена, !shift"); p.sendMessage(ChatColor.YELLOW + "Также доступны: !донат, !stash, !профиль, !рейтинг"); break;
             case 33: openHelpMenu(p); break;
             case 34: openHelpMenu(p); break;
-            case 41: p.closeInventory(); p.sendMessage(ChatColor.GOLD + "⛺ Оффлайн DnD-походы работают в ЛС ВК-бота: !поход, !персонаж, !сумка, !дневник, !дейлик"); break;
+            case 41: p.closeInventory(); p.sendMessage(ChatColor.GOLD + "⛏ Шахтёрские смены: !шахта, !смена, !shift — в ЛС бота ВК"); p.sendMessage(ChatColor.YELLOW + "Донат: !донат / !donate — в ЛС бота ВК"); break;
         }
     }
 

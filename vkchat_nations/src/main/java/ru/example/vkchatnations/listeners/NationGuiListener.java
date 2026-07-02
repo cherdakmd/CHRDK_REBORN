@@ -199,11 +199,14 @@ public class NationGuiListener implements Listener {
         ItemMeta meta = i.getItemMeta();
         meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', name));
         
+        int members = plugin.getNationManager().getMemberCount(nationId);
+        
         List<String> lore = new ArrayList<>();
         for (String line : descLines) {
             lore.add(ChatColor.translateAlternateColorCodes('&', line));
         }
         lore.add("");
+        lore.add(ChatColor.AQUA + "Жителей: " + ChatColor.WHITE + members);
         lore.add(ChatColor.YELLOW + "▶ Нажмите, чтобы присягнуть на верность! ◀");
         meta.setLore(lore);
 

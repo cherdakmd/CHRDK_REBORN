@@ -45,7 +45,10 @@ public class ContractManager {
         SLAYER("slayer", "§4☠ Истребитель ☠", "Убить 50 мобов любого типа", 50, 400, 3, 2),
         BOSS_HUNTER("boss_hunter", "§c⚔ Охотник на Боссов", "Убить 5 мини-боссов", 5, 500, 4, 3),
         ELEMENT_MASTER("element_master", "§d✦ Мастер Стихий", "Убить 30 мобов одной стихии", 30, 350, 2, 2),
-        ARCHETYPE_SLAYER("archetype_slayer", "§5☠ Убийца Архетипов", "Убить 20 мобов одного архетипа", 20, 450, 3, 2);
+        ARCHETYPE_SLAYER("archetype_slayer", "§5☠ Убийца Архетипов", "Убить 20 мобов одного архетипа", 20, 450, 3, 2),
+        STORM_BREAKER("storm_breaker", "§9⚡ Гроза Шторма", "Убить 25 штормовых мобов", 25, 375, 2, 1),
+        VOID_CLEANSER("void_cleanser", "§5🌀 Очиститель Бездны", "Убить 10 эндерменов/странников", 10, 320, 1, 2),
+        SIEGE_DEFENDER("siege_defender", "§4🛡 Защитник", "Убить 15 осадных мобов", 15, 450, 3, 2);
 
         private final String id;
         private final String displayName;
@@ -140,6 +143,11 @@ public class ContractManager {
         if (completed >= 25 || hunter >= 40) available.add(ContractType.LEGENDARY);
         if (completed >= 5 || hunter >= 15) available.add(ContractType.ELEMENTAL);
         if (completed >= 15 || hunter >= 30) available.add(ContractType.SLAYER);
+        if (completed >= 20 || hunter >= 35) available.add(ContractType.BOSS_HUNTER);
+        if (completed >= 12 || hunter >= 25) available.add(ContractType.ELEMENT_MASTER);
+        if (completed >= 30 || hunter >= 45) available.add(ContractType.STORM_BREAKER);
+        if (completed >= 22 || hunter >= 38) available.add(ContractType.VOID_CLEANSER);
+        if (completed >= 18 || hunter >= 30) available.add(ContractType.SIEGE_DEFENDER);
         ContractType selected = available.get(ThreadLocalRandom.current().nextInt(available.size()));
 
         PersistentDataContainer pdc = p.getPersistentDataContainer();
@@ -181,10 +189,14 @@ public class ContractManager {
     }
 
     public void handleMobKill(Player p, int rank, boolean isMiniBoss, boolean isSuperBoss) {
-        handleMobKill(p, rank, isMiniBoss, isSuperBoss, null);
+        handleMobKill(p, rank, isMiniBoss, isSuperBoss, null, null);
     }
 
     public void handleMobKill(Player p, int rank, boolean isMiniBoss, boolean isSuperBoss, String element) {
+        handleMobKill(p, rank, isMiniBoss, isSuperBoss, element, null);
+    }
+
+    public void handleMobKill(Player p, int rank, boolean isMiniBoss, boolean isSuperBoss, String element, org.bukkit.entity.LivingEntity mob) {
         ContractType contract = getActiveContract(p);
         if (contract == null) return;
 
@@ -197,6 +209,14 @@ public class ContractManager {
             String contractElement = p.getPersistentDataContainer().getOrDefault(contractElementKey, PersistentDataType.STRING, "");
             if (element.equalsIgnoreCase(contractElement)) qualifies = true;
         } else if (contract == ContractType.SLAYER) qualifies = true; // Убийство любого моба засчитывается
+        else if (contract == ContractType.BOSS_HUNTER && isMiniBoss) qualifies = true;
+        else if (contract == ContractType.STORM_BREAKER && mob != null) {
+            if (mob.getPersistentDataContainer().has(new NamespacedKey(plugin, "from_mob_storm"), PersistentDataType.INTEGER)) qualifies = true;
+        } else if (contract == ContractType.VOID_CLEANSER && mob != null) {
+            if (mob.getType() == org.bukkit.entity.EntityType.ENDERMAN || mob.getType() == org.bukkit.entity.EntityType.ENDERMITE) qualifies = true;
+        } else if (contract == ContractType.SIEGE_DEFENDER && mob != null) {
+            if (mob.getPersistentDataContainer().has(new NamespacedKey(plugin, "is_siege_monster"), PersistentDataType.INTEGER)) qualifies = true;
+        }
 
         if (!qualifies) return;
 

@@ -27,6 +27,7 @@ public class DonateManager {
     private final File dataFile;
     private FileConfiguration dataCfg;
     private final Map<String, StatusDef> statuses = new LinkedHashMap<>();
+    private final Map<String, Double> totalDonated = new LinkedHashMap<>();
     private int lastProcessedId = 0;
     private static final long MONTH_SECONDS = 2592000L; // 30 дней
 
@@ -71,10 +72,16 @@ public class DonateManager {
         if (!dataFile.exists()) try { dataFile.getParentFile().mkdirs(); dataFile.createNewFile(); } catch (Exception e) {}
         dataCfg = YamlConfiguration.loadConfiguration(dataFile);
         lastProcessedId = dataCfg.getInt("last_id", 0);
+        for (String key : dataCfg.getConfigurationSection("donated") != null ? dataCfg.getConfigurationSection("donated").getKeys(false) : Collections.<String>emptySet()) {
+            totalDonated.put(key, dataCfg.getDouble("donated." + key, 0));
+        }
     }
 
     private void saveData() {
         dataCfg.set("last_id", lastProcessedId);
+        for (Map.Entry<String, Double> e : totalDonated.entrySet()) {
+            dataCfg.set("donated." + e.getKey(), e.getValue());
+        }
         try { dataCfg.save(dataFile); } catch (IOException ignored) {}
     }
 
@@ -180,6 +187,10 @@ public class DonateManager {
             announceDonation(nick, bestStatus, amountRub, false);
         }
 
+        // Track total donated
+        String key = offPlayer.getName().toLowerCase();
+        totalDonated.put(key, totalDonated.getOrDefault(key, 0.0) + amountRub);
+
         plugin.getLogger().info("ДОНАТ: " + nick + " → " + bestStatus.display + " (" + amountRub + "₽) #" + txId);
     }
 
@@ -247,17 +258,22 @@ public class DonateManager {
 
     private void announceDonation(String nick, StatusDef status, double amount, boolean extending) {
         String action = extending ? "продлил" : "получил";
-        String mcMsg = ChatColor.translateAlternateColorCodes('&',
-                "&6💰 &e" + nick + " &6" + action + " статус " + status.name + " &6за донат!");
-        String vkMsg = "💰 " + nick + " " + action + " статус " + status.display + " за донат!";
+        boolean broadcast = plugin.getConfig().getBoolean("broadcasts.enabled", true);
 
         // В Minecraft чат
-        Bukkit.broadcastMessage(mcMsg);
+        if (broadcast) {
+            String mcMsg = ChatColor.translateAlternateColorCodes('&',
+                    "&6💰 &e" + nick + " &6" + action + " статус " + status.name + " &6за донат!");
+            Bukkit.broadcastMessage(mcMsg);
+        }
 
         // В ВК беседу
-        try {
-            VKChatPlugin.getInstance().getApi().sendToMainChat(vkMsg);
-        } catch (Exception ignored) {}
+        if (broadcast) {
+            String vkMsg = "💰 " + nick + " " + action + " статус " + status.display + " за донат!";
+            try {
+                VKChatPlugin.getInstance().getApi().sendToMainChat(vkMsg);
+            } catch (Exception ignored) {}
+        }
 
         // Игроку лично
         Player player = Bukkit.getPlayerExact(nick);
@@ -324,5 +340,50 @@ public class DonateManager {
     public double getJobsXpMult(Player player) {
         StatusDef s = getPlayerStatus(player);
         return s != null ? s.jobsXpMult : 1.0;
+    }
+
+    public long getDaysLeft(Player player) {
+        StatusDef s = getPlayerStatus(player);
+        if (s == null) return 0;
+
+        String permission = "vkchat.donate." + s.id;
+        try {
+            org.bukkit.plugin.Plugin lpPlugin = Bukkit.getPluginManager().getPlugin("LuckPerms");
+            if (lpPlugin == null || !lpPlugin.isEnabled()) return 30;
+            Object api = lpPlugin.getClass().getMethod("getProvider").invoke(null);
+            Object userManager = api.getClass().getMethod("getUserManager").invoke(api);
+            Object user = userManager.getClass().getMethod("getUser", java.util.UUID.class).invoke(userManager, player.getUniqueId());
+            if (user != null) {
+                Object nodes = user.getClass().getMethod("getNodes").invoke(user);
+                for (Object node : (Iterable<?>) nodes) {
+                    String key = (String) node.getClass().getMethod("getKey").invoke(node);
+                    if (permission.equals(key)) {
+                        boolean hasExpiry = (boolean) node.getClass().getMethod("hasExpiry").invoke(node);
+                        if (hasExpiry) {
+                            Object expiry = node.getClass().getMethod("getExpiry").invoke(node);
+                            if (expiry != null) {
+                                long epoch = (long) expiry.getClass().getMethod("toEpochMilli").invoke(expiry);
+                                long secLeft = (epoch - System.currentTimeMillis()) / 1000;
+                                return Math.max(0, secLeft / 86400);
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            return 30;
+        }
+        return 30;
+    }
+
+    public double getTotalDonated(String playerName) {
+        return totalDonated.getOrDefault(playerName.toLowerCase(), 0.0);
+    }
+
+    public List<Map.Entry<String, Double>> getTopDonors(int limit) {
+        return totalDonated.entrySet().stream()
+                .sorted(Map.Entry.<String, Double>comparingByValue().reversed())
+                .limit(limit)
+                .collect(java.util.stream.Collectors.toList());
     }
 }

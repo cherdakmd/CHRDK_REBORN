@@ -491,6 +491,8 @@ public class MarketGuiListener implements Listener {
         VKChatPlugin.getInstance().getApi().addReputation(vkId, rep);
         p.sendMessage("§a§l💰 Продано §f" + count + " шт. §a→ §e" + rep + " реп.");
         p.playSound(p.getLocation(), org.bukkit.Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1f, 1f);
+        p.sendTitle("§a§l+ " + rep + " реп.", "§fПродано " + count + " шт. " + itemId, 5, 20, 5);
+        plugin.getMarketManager().logTransaction(p.getName(), itemId, count, "SELL", plugin.getMarketManager().getCurrentPrice(itemId), rep);
         plugin.getMarketFun().recordQuestProgress(p, itemId, count, "sell");
     }
 
@@ -519,6 +521,8 @@ public class MarketGuiListener implements Listener {
         VKChatPlugin.getInstance().getApi().takeReputation(vkId, cost);
         p.sendMessage("§6§l💰 Куплено §f" + actual + " шт. §6→ §e" + cost + " реп.");
         p.playSound(p.getLocation(), org.bukkit.Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1f, 1.2f);
+        p.sendTitle("§6§l- " + cost + " реп.", "§fКуплено " + actual + " шт. " + itemId, 5, 20, 5);
+        plugin.getMarketManager().logTransaction(p.getName(), itemId, actual, "BUY", plugin.getMarketManager().getBuyPrice(itemId), cost);
         plugin.getMarketFun().recordQuestProgress(p, itemId, actual, "buy");
     }
 
@@ -865,18 +869,37 @@ public class MarketGuiListener implements Listener {
     }
 
     private static String getDonorStatus(Player p) {
+        if (p.hasPermission("vkchat.donate.overlord")) return "Повелитель";
+        if (p.hasPermission("vkchat.donate.legend")) return "Легенда";
+        if (p.hasPermission("vkchat.donate.star")) return "Звезда";
+        if (p.hasPermission("vkchat.donate.flame")) return "Пламя";
+        if (p.hasPermission("vkchat.donate.spark")) return "Искра";
+        if (p.hasPermission("vkchat.donate.vip")) return "VIP";
         return "";
     }
 
     private static String getSellBonus(Player p) {
+        double mult = donorSellMultiplierStatic(p);
+        if (mult > 1.0) return "+" + String.format("%.0f", (mult - 1.0) * 100) + "%";
         return "нет";
     }
 
     private static String getBuyBonus(Player p) {
+        if (p.hasPermission("vkchat.donate.overlord")) return "-65%";
+        if (p.hasPermission("vkchat.donate.legend")) return "-50%";
+        if (p.hasPermission("vkchat.donate.star")) return "-35%";
+        if (p.hasPermission("vkchat.donate.flame")) return "-20%";
+        if (p.hasPermission("vkchat.donate.spark")) return "-10%";
+        if (p.hasPermission("vkchat.donate.vip")) return "-5%";
         return "нет";
     }
 
     private static String getLimitBonus(Player p) {
-        return "нет";
+        if (p.hasPermission("vkchat.donate.overlord")) return "x2.5";
+        if (p.hasPermission("vkchat.donate.legend")) return "x2.0";
+        if (p.hasPermission("vkchat.donate.star")) return "x1.5";
+        if (p.hasPermission("vkchat.donate.flame")) return "x1.3";
+        if (p.hasPermission("vkchat.donate.spark")) return "x1.1";
+        return "стандарт";
     }
 }

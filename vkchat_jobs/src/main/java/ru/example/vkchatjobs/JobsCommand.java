@@ -69,6 +69,20 @@ public class JobsCommand implements CommandExecutor, TabCompleter {
                 sendRanking(p);
                 return true;
             }
+            if (sub.equals("help") || sub.equals("помощь")) {
+                sendHelp(p);
+                return true;
+            }
+            if (sub.equals("stats") || sub.equals("стата")) {
+                if (args.length >= 2 && p.hasPermission("vkchatjobs.admin")) {
+                    Player target = org.bukkit.Bukkit.getPlayer(args[1]);
+                    if (target != null) sendStats(p, target);
+                    else p.sendMessage(ChatColor.RED + "Игрок не найден.");
+                } else {
+                    sendStats(p, p);
+                }
+                return true;
+            }
         }
         openMain(p);
         return true;
@@ -152,7 +166,9 @@ public class JobsCommand implements CommandExecutor, TabCompleter {
             if (total <= 7) continue;
             String name = org.bukkit.Bukkit.getOfflinePlayer(uuid).getName();
             if (name == null) name = uuid.toString().substring(0, 8);
-            p.sendMessage(ChatColor.YELLOW + "#" + (++n) + " " + ChatColor.WHITE + name + ChatColor.GRAY + " — " + ChatColor.AQUA + total);
+            String topJob = plugin.getJobsDataManager().getTopJob(uuid);
+            p.sendMessage(ChatColor.YELLOW + "#" + (++n) + " " + ChatColor.WHITE + name + ChatColor.GRAY + " — " + ChatColor.AQUA + total
+                    + ChatColor.GRAY + " [" + topJob + "]");
             if (n >= 10) break;
         }
         if (n == 0) p.sendMessage(ChatColor.GRAY + "Пока нет данных для топа.");
@@ -270,6 +286,49 @@ public class JobsCommand implements CommandExecutor, TabCompleter {
         }
     }
 
+    private void sendHelp(Player p) {
+        p.sendMessage(ChatColor.GOLD + "═══ /jobs Помощь ═══");
+        p.sendMessage(ChatColor.YELLOW + "/jobs" + ChatColor.GRAY + " — открыть GUI профессий");
+        p.sendMessage(ChatColor.YELLOW + "/jobs info" + ChatColor.GRAY + " — ежедневки + специализации");
+        p.sendMessage(ChatColor.YELLOW + "/jobs top" + ChatColor.GRAY + " — топ игроков по уровням");
+        p.sendMessage(ChatColor.YELLOW + "/jobs stats [игрок]" + ChatColor.GRAY + " — детальная статистика");
+        p.sendMessage(ChatColor.YELLOW + "/jobs spec <job> <xp|stamina|reward>" + ChatColor.GRAY + " — выбрать специализацию");
+        p.sendMessage(ChatColor.YELLOW + "/jobs daily" + ChatColor.GRAY + " — прогресс ежедневок");
+        p.sendMessage(ChatColor.YELLOW + "/jobs claim <job>" + ChatColor.GRAY + " — забрать ежедневку");
+        p.sendMessage(ChatColor.YELLOW + "/jobs weekly" + ChatColor.GRAY + " — еженедельные задания");
+        p.sendMessage(ChatColor.YELLOW + "/jobs weekly claim <type>" + ChatColor.GRAY + " — забрать недельное");
+        p.sendMessage(ChatColor.YELLOW + "/jobs rank" + ChatColor.GRAY + " — рейтинг профессий");
+        p.sendMessage("");
+        p.sendMessage(ChatColor.AQUA + "Доступные профессии:");
+        p.sendMessage(ChatColor.GRAY + "miner — Шахтёр (добыча руд)");
+        p.sendMessage(ChatColor.GRAY + "woodcutter — Лесоруб (рубка дерева)");
+        p.sendMessage(ChatColor.GRAY + "farmer — Фермер (сбор урожая)");
+        p.sendMessage(ChatColor.GRAY + "alchemist — Алхимик (варка зелий)");
+        p.sendMessage(ChatColor.GRAY + "blacksmith — Кузнец (крафт брони/оружия)");
+        p.sendMessage(ChatColor.GRAY + "hunter — Охотник (убийство мобов)");
+        p.sendMessage(ChatColor.GRAY + "fisherman — Рыбак (рыбалка)");
+    }
+
+    private void sendStats(Player sender, Player target) {
+        String[] jobs = {"miner", "woodcutter", "farmer", "alchemist", "blacksmith", "hunter", "fisherman"};
+        String[] names = {"Шахтёр", "Лесоруб", "Фермер", "Алхимик", "Кузнец", "Охотник", "Рыбак"};
+        sender.sendMessage(ChatColor.GOLD + "═══ Статистика: " + target.getName() + " ═══");
+        int total = 0;
+        for (int i = 0; i < jobs.length; i++) {
+            int lvl = plugin.getJobsDataManager().getLevel(target.getUniqueId(), jobs[i]);
+            int exp = plugin.getJobsDataManager().getExp(target.getUniqueId(), jobs[i]);
+            int rep = plugin.getJobsDataManager().getRepEarned(target.getUniqueId(), jobs[i]);
+            String spec = plugin.getJobsDataManager().getSpecialization(target.getUniqueId(), jobs[i]);
+            total += lvl;
+            sender.sendMessage(ChatColor.GRAY + names[i] + ": " + ChatColor.AQUA + "ур." + lvl + ChatColor.GRAY
+                    + " | exp: " + exp + "/" + (lvl * 1000) + " | реп: " + rep
+                    + (spec.isEmpty() ? "" : " | спец: " + specName(spec)));
+        }
+        sender.sendMessage(ChatColor.YELLOW + "Суммарный уровень: " + ChatColor.AQUA + total);
+        sender.sendMessage(ChatColor.YELLOW + "Усталость: " + fatigueLine(target));
+        sender.sendMessage(ChatColor.YELLOW + "Контрактов выполнено: " + ChatColor.AQUA + plugin.getJobsDataManager().getCompletedContracts(target.getUniqueId()));
+    }
+
     private ItemStack item(Material mat, String name, String... lore) {
         ItemStack item = new ItemStack(mat);
         ItemMeta meta = item.getItemMeta();
@@ -291,7 +350,7 @@ public class JobsCommand implements CommandExecutor, TabCompleter {
         String last = args.length > 0 ? args[args.length - 1].toLowerCase() : "";
 
         if (args.length == 1) {
-            completions.addAll(Arrays.asList("daily", "дейлик", "top", "топ", "info", "инфо", "claim", "забрать", "spec", "спек", "weekly", "неделя", "rank", "рейтинг"));
+            completions.addAll(Arrays.asList("daily", "дейлик", "top", "топ", "info", "инфо", "claim", "забрать", "spec", "спек", "weekly", "неделя", "rank", "рейтинг", "help", "помощь", "stats", "стата"));
         } else if (args.length == 2) {
             String sub = args[0].toLowerCase();
             if (sub.equals("spec") || sub.equals("спек")) {

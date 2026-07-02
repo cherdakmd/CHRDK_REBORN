@@ -36,6 +36,17 @@ public class MarketCommand implements CommandExecutor, TabCompleter {
             return true;
         }
 
+        if (args.length > 0 && (args[0].equalsIgnoreCase("prices") || args[0].equalsIgnoreCase("цены"))) {
+            showPrices(p);
+            return true;
+        }
+
+        if (args.length > 0 && (args[0].equalsIgnoreCase("search") || args[0].equalsIgnoreCase("поиск"))) {
+            if (args.length < 2) { p.sendMessage(org.bukkit.ChatColor.RED + "Использование: /market search <название>"); return true; }
+            showSearch(p, args[1]);
+            return true;
+        }
+
         if (args.length > 0 && (args[0].equalsIgnoreCase("trends") || args[0].equalsIgnoreCase("тренды"))) {
             MarketGuiListener.openTrendsMenu(plugin, p);
         } else if (args.length > 0 && (args[0].equalsIgnoreCase("history") || args[0].equalsIgnoreCase("история"))) {
@@ -80,6 +91,50 @@ public class MarketCommand implements CommandExecutor, TabCompleter {
         p.sendMessage(org.bukkit.ChatColor.GRAY + "Осталось: " + remaining + " сек.");
     }
 
+    private void showPrices(Player p) {
+        p.sendMessage(org.bukkit.ChatColor.GOLD + "═══ 📊 Все цены рынка ═══");
+        if (plugin.getConfig().getConfigurationSection("items") == null) {
+            p.sendMessage(org.bukkit.ChatColor.GRAY + "Нет товаров в конфигурации.");
+            return;
+        }
+        var mgr = plugin.getMarketManager();
+        for (String itemId : plugin.getConfig().getConfigurationSection("items").getKeys(false)) {
+            String name = plugin.getConfig().getString("items." + itemId + ".name", itemId);
+            double sell = mgr.getCurrentPrice(itemId);
+            double buy = mgr.getBuyPrice(itemId);
+            String trend = mgr.getTrendLabel(itemId);
+            p.sendMessage(org.bukkit.ChatColor.GRAY + "• " + org.bukkit.ChatColor.WHITE + name
+                + org.bukkit.ChatColor.GRAY + " | Продать: " + org.bukkit.ChatColor.GREEN + String.format("%.2f", sell)
+                + org.bukkit.ChatColor.GRAY + " | Купить: " + org.bukkit.ChatColor.GOLD + String.format("%.2f", buy)
+                + org.bukkit.ChatColor.GRAY + " | " + trend);
+        }
+    }
+
+    private void showSearch(Player p, String query) {
+        String lowerQuery = query.toLowerCase();
+        p.sendMessage(org.bukkit.ChatColor.GOLD + "═══ 🔍 Поиск: " + query + " ═══");
+        if (plugin.getConfig().getConfigurationSection("items") == null) {
+            p.sendMessage(org.bukkit.ChatColor.GRAY + "Нет товаров.");
+            return;
+        }
+        int found = 0;
+        var mgr = plugin.getMarketManager();
+        for (String itemId : plugin.getConfig().getConfigurationSection("items").getKeys(false)) {
+            String name = plugin.getConfig().getString("items." + itemId + ".name", itemId);
+            String cat = plugin.getConfig().getString("items." + itemId + ".category", "");
+            if (itemId.toLowerCase().contains(lowerQuery) || name.toLowerCase().contains(lowerQuery) || cat.toLowerCase().contains(lowerQuery)) {
+                double sell = mgr.getCurrentPrice(itemId);
+                double buy = mgr.getBuyPrice(itemId);
+                p.sendMessage(org.bukkit.ChatColor.WHITE + name
+                    + org.bukkit.ChatColor.GRAY + " | Sell: " + org.bukkit.ChatColor.GREEN + String.format("%.2f", sell)
+                    + org.bukkit.ChatColor.GRAY + " | Buy: " + org.bukkit.ChatColor.GOLD + String.format("%.2f", buy));
+                found++;
+                if (found >= 20) { p.sendMessage(org.bukkit.ChatColor.GRAY + "... и ещё результаты (показано 20)"); break; }
+            }
+        }
+        if (found == 0) p.sendMessage(org.bukkit.ChatColor.GRAY + "Ничего не найдено по запросу: " + query);
+    }
+
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String label, String[] args) {
         List<String> completions = new ArrayList<>();
@@ -87,7 +142,7 @@ public class MarketCommand implements CommandExecutor, TabCompleter {
 
         if (args.length == 1) {
             completions.addAll(Arrays.asList("spawnnpc", "sellall", "продатьвсе", "trends", "тренды", "history", "история",
-                "quest", "квест", "flash", "flashsale"));
+                "quest", "квест", "flash", "flashsale", "prices", "цены", "search", "поиск"));
         }
 
         return completions.stream().filter(s -> last.isEmpty() || s.toLowerCase().startsWith(last)).collect(Collectors.toList());

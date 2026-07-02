@@ -4,7 +4,7 @@
 
 teleportation:
   rtp:
-    cost: 250
+    cost: 150
     cooldown: 60
     min-x: -5000
     max-x: 5000
@@ -12,17 +12,23 @@ teleportation:
     max-z: 5000
 
   home:
-    cost: 250
-    cooldown: 60
+    cost: 100
+    cooldown: 30
     max-homes: 3
 
   tpa:
-    cost: 250
-    cooldown: 60
+    cost: 100
+    cooldown: 30
+
+  tpahere:
+    cost: 100
+    cooldown: 30
+
+  back:
+    cost: 50
+    cooldown: 120
 
   warmup:
     delay: 3
     cancel-on-move: true
     cancel-on-damage: true
-
-

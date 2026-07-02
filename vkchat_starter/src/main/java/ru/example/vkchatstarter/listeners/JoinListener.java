@@ -104,8 +104,20 @@ public class JoinListener implements Listener {
         // === 9. ПРИВЕТСТВЕННОЕ СООБЩЕНИЕ ===
         String msg = plugin.getConfig().getString("settings.welcome-message");
         if (msg != null && !msg.isEmpty()) {
+            p.sendMessage("");
             p.sendMessage(ChatColor.translateAlternateColorCodes('&', msg));
+            p.sendMessage("");
         }
+
+        // Показ фич сервера
+        p.sendMessage(ChatColor.GRAY + "" + ChatColor.ITALIC + "Фичи сервера:");
+        p.sendMessage(ChatColor.GRAY + "  • " + ChatColor.GOLD + "/nation " + ChatColor.GRAY + "— выбор нации и приваты");
+        p.sendMessage(ChatColor.GRAY + "  • " + ChatColor.GOLD + "/quest " + ChatColor.GRAY + "— обучение с наградами");
+        p.sendMessage(ChatColor.GRAY + "  • " + ChatColor.GOLD + "/shop " + ChatColor.GRAY + "— торговля за репутацию");
+        p.sendMessage(ChatColor.GRAY + "  • " + ChatColor.GOLD + "/runes " + ChatColor.GRAY + "— заточка предметов");
+        p.sendMessage(ChatColor.GRAY + "  • " + ChatColor.GOLD + "!шахта " + ChatColor.GRAY + "в ВК — заработок офлайн");
+        p.sendMessage(ChatColor.GRAY + "  • " + ChatColor.GOLD + "/stash " + ChatColor.GRAY + "— забрать награды шахты");
+        p.sendMessage("");
 
         // === 10. ИНИЦИАЛИЗАЦИЯ КВЕСТА ===
         initQuest(p);

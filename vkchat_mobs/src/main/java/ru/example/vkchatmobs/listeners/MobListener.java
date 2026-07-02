@@ -3,6 +3,9 @@ package ru.example.vkchatmobs.listeners;
 import org.bukkit.NamespacedKey;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeInstance;
+import org.bukkit.boss.BarColor;
+import org.bukkit.boss.BarStyle;
+import org.bukkit.boss.BossBar;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Monster;
@@ -53,6 +56,8 @@ public class MobListener implements Listener {
 
     // Таймеры для способностей супер-боссов
     private final Map<String, Long> lastSpellTime = new ConcurrentHashMap<>();
+
+    private final Map<UUID, BossBar> bossBars = new ConcurrentHashMap<>();
 
     // Антифарм боссов: глобальный кулдаун и отслеживание спавнов
     private long lastSuperBossSpawnTime = 0L;
@@ -161,7 +166,6 @@ public class MobListener implements Listener {
                     boolean isSuper = mob.getPersistentDataContainer().has(isSuperBossKey, PersistentDataType.INTEGER);
 
                     if (isMini && !isSuper) {
-                        // Зеленая пыльца вокруг мини-боссов
                         world.spawnParticle(Particle.VILLAGER_HAPPY, mob.getLocation().add(0, 1, 0), 4, 0.4, 0.5, 0.4, 0.02);
                     }
 
@@ -362,7 +366,8 @@ public class MobListener implements Listener {
         // --- [НОВОЕ] РЕДКИЙ СПАВН МИРОВЫХ СУПЕР-БОССОВ (шанс 0.2%) ---
         // Антифарм: глобальный кулдаун + проверка на мобофабрику
         long now = System.currentTimeMillis();
-        if (e.getSpawnReason() == CreatureSpawnEvent.SpawnReason.NATURAL && ThreadLocalRandom.current().nextInt(1000) < 2) {
+        double bossSpawnChance = plugin.getConfig().getDouble("scaling.super-boss-spawn-chance", 2.0);
+        if (e.getSpawnReason() == CreatureSpawnEvent.SpawnReason.NATURAL && ThreadLocalRandom.current().nextInt(1000) < (int)(bossSpawnChance * 10)) {
             // Глобальный кулдаун между супер-боссами
             if (now - lastSuperBossSpawnTime < SUPER_BOSS_COOLDOWN_MS) {
                 // Too soon, skip boss spawn
@@ -621,6 +626,41 @@ public class MobListener implements Listener {
         
         mob.setCustomName(plate);
         mob.setCustomNameVisible(false);
+        updateBossBar(mob);
+    }
+
+    private void updateBossBar(LivingEntity mob) {
+        boolean isSuperBoss = mob.getPersistentDataContainer().has(isSuperBossKey, PersistentDataType.INTEGER);
+        boolean isMiniBoss = mob.getPersistentDataContainer().has(isBossKey, PersistentDataType.INTEGER);
+        if (!isSuperBoss && !isMiniBoss) return;
+
+        UUID id = mob.getUniqueId();
+        BossBar bar = bossBars.get(id);
+        if (bar == null) {
+            String title = mob.getCustomName() != null ? org.bukkit.ChatColor.stripColor(mob.getCustomName().replace("☠", "").trim()) : "Босс";
+            BarColor color = isSuperBoss ? BarColor.PURPLE : BarColor.RED;
+            bar = org.bukkit.Bukkit.createBossBar(title, color, BarStyle.SEGMENTED_10);
+            bossBars.put(id, bar);
+        }
+        AttributeInstance maxHpAttr = mob.getAttribute(Attribute.GENERIC_MAX_HEALTH);
+        if (maxHpAttr == null) return;
+        double progress = Math.max(0, Math.min(1.0, mob.getHealth() / maxHpAttr.getValue()));
+        bar.setProgress(progress);
+
+        org.bukkit.entity.Player nearest = null;
+        double nearestDist = 64.0 * 64.0;
+        for (org.bukkit.entity.Player p : mob.getWorld().getPlayers()) {
+            double d = p.getLocation().distanceSquared(mob.getLocation());
+            if (d < nearestDist) { nearestDist = d; nearest = p; }
+        }
+        for (org.bukkit.entity.Player p : mob.getWorld().getPlayers()) {
+            double d = p.getLocation().distanceSquared(mob.getLocation());
+            if (d < (isSuperBoss ? 100.0 * 100.0 : 48.0 * 48.0)) {
+                bar.addPlayer(p);
+            } else {
+                bar.removePlayer(p);
+            }
+        }
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
@@ -845,6 +885,11 @@ public class MobListener implements Listener {
             plugin.getSiegeManager().handleSiegeMonsterKill(mob, killer);
         }
 
+        BossBar bar = bossBars.remove(mob.getUniqueId());
+        if (bar != null) {
+            bar.removeAll();
+        }
+
         // 1. [НОВОЕ] ЗАЩИТА ОТ ФАРМА НА СПАВНЕРАХ/КАЧАЛКАХ (10% Опыта, 0 Репутации ВК, стандартный дроп)
         if (mob.getPersistentDataContainer().has(new NamespacedKey(plugin, "from_spawner"), PersistentDataType.INTEGER)) {
             if (killer != null) {
@@ -865,7 +910,7 @@ public class MobListener implements Listener {
         // Начисление контракта
         if (killer != null && plugin.getContractManager() != null) {
             String element = mob.getPersistentDataContainer().getOrDefault(elementKey, PersistentDataType.STRING, null);
-            plugin.getContractManager().handleMobKill(killer, rank, isMiniBoss, isSuperBoss, element);
+            plugin.getContractManager().handleMobKill(killer, rank, isMiniBoss, isSuperBoss, element, mob);
         }
 
         // Начисление репутации ВК за убийство монстра

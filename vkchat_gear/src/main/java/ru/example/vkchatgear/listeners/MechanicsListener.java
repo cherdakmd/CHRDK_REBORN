@@ -30,6 +30,26 @@ public class MechanicsListener implements Listener {
                 ItemMeta meta = tool.getItemMeta();
                 if (meta == null || !meta.hasLore()) return;
 
+                // Durability warning
+                if (meta instanceof org.bukkit.inventory.meta.Damageable) {
+                    org.bukkit.inventory.meta.Damageable dmgMeta = (org.bukkit.inventory.meta.Damageable) meta;
+                    int max = tool.getType().getMaxDurability();
+                    int dmg = dmgMeta.getDamage();
+                    if (max > 0 && dmg > 0) {
+                        double pct = (dmg / (double) max) * 100.0;
+                        if (pct >= 90) {
+                            long now = System.currentTimeMillis();
+                            Long last = p.hasMetadata("gear_low_durability_warn") ?
+                                    p.getMetadata("gear_low_durability_warn").get(0).asLong() : 0L;
+                            if (now - last >= 30000) {
+                                p.setMetadata("gear_low_durability_warn",
+                                        new org.bukkit.metadata.FixedMetadataValue(plugin, now));
+                                p.sendMessage(org.bukkit.ChatColor.RED + "⚠ Инструмент почти сломан! Отремонтируйте в /forge.");
+                            }
+                        }
+                    }
+                }
+
                 java.util.List<String> lore = meta.getLore();
 
                 // Ore Magnet & Auto-smelt & Telekinesis

@@ -74,6 +74,9 @@ public class MarketManager {
     private int marketCyclePhase = 0; // 0=normal, 1=boom, 2=bust
     private long cycleEndTime = 0L;
 
+    private final Map<String, java.util.List<Double>> priceHistory = new ConcurrentHashMap<>();
+    private int priceHistoryTick = 0;
+
     // Рыночные события (поддержка множественных)
     private final java.util.List<MarketEvent> activeEvents = new CopyOnWriteArrayList<>();
 
@@ -256,6 +259,12 @@ public class MarketManager {
     public double getBuyPrice(String itemId) {
         double sellPrice = getCurrentPrice(itemId);
         double spread = plugin.getConfig().getDouble("settings.buy-spread", 0.20);
+
+        if (plugin.getMarketFun() != null && plugin.getMarketFun().isFlashSaleActive(itemId)) {
+            double discount = plugin.getMarketFun().getFlashSaleDiscount();
+            sellPrice *= (1.0 - discount);
+        }
+
         return Math.round(sellPrice * (1.0 + spread) * 100.0) / 100.0;
     }
 
@@ -370,7 +379,6 @@ public class MarketManager {
         int repToGive = Math.max(1, (int) Math.round(totalPrice));
 
         // Обновляем моментум (продажа давит на цену)
-        // Каждый предмет понижает цену на trade-impact %
         double mom = momentum.getOrDefault(itemId, 0.0);
         double tradeImpact = plugin.getConfig().getDouble("market2.trade-impact", 0.05);
         double impact = actualAmount * tradeImpact;
@@ -448,6 +456,14 @@ public class MarketManager {
 
         // Проверяем цикл рынка
         checkMarketCycle();
+
+        priceHistoryTick++;
+        if (priceHistoryTick % 10 == 0) {
+            for (String itemId : plugin.getConfig().getConfigurationSection("items").getKeys(false)) {
+                priceHistory.computeIfAbsent(itemId, k -> new java.util.ArrayList<>()).add(getCurrentPrice(itemId));
+                if (priceHistory.get(itemId).size() > 200) priceHistory.get(itemId).remove(0);
+            }
+        }
 
         saveAll();
     }
@@ -755,6 +771,25 @@ public class MarketManager {
         if (marketCyclePhase == 1) return "📈 БУМ (+30%)";
         if (marketCyclePhase == 2) return "📉 КРАХ (-30%)";
         return "➡ Стабильно";
+    }
+
+    public void logTransaction(String player, String itemId, int amount, String type, double price, int rep) {
+        String stamp = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new java.util.Date());
+        String line = stamp + " | " + player + " | " + type + " | " + itemId + " x" + amount + " | цена: " + String.format("%.2f", price) + " | реп: " + rep;
+        recordToTransactionLog(line);
+    }
+
+    private void recordToTransactionLog(String line) {
+        java.io.File logFile = new java.io.File(plugin.getDataFolder(), "transactions.log");
+        try (java.io.FileWriter fw = new java.io.FileWriter(logFile, true);
+             java.io.BufferedWriter bw = new java.io.BufferedWriter(fw);
+             java.io.PrintWriter out = new java.io.PrintWriter(bw)) {
+            out.println(line);
+        } catch (java.io.IOException ignored) {}
+    }
+
+    public java.util.List<Double> getPriceHistory(String itemId) {
+        return priceHistory.getOrDefault(itemId, new java.util.ArrayList<>());
     }
 
     private String today() {

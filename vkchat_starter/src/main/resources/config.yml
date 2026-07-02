@@ -36,16 +36,16 @@ settings:
         - "&8Первое оружие для выживания"
       enchants:
         - "DAMAGE_ALL;1"
-        - "DURABILITY;3"
+        - "DURABILITY;2"
     pickaxe:
-      material: "WOODEN_PICKAXE"
+      material: "STONE_PICKAXE"
       name: "&7[Обычный] &fКирка Скитальца"
       lore:
         - "&7Редкость: &7[Обычный]"
         - "&8Базовый инструмент для добычи руды"
       enchants:
         - "DIG_SPEED;1"
-        - "DURABILITY;3"
+        - "DURABILITY;2"
     axe:
       material: "STONE_AXE"
       name: "&7[Обычный] &fТопор Скитальца"
@@ -54,31 +54,40 @@ settings:
         - "&8Для рубки деревьев и ближнего боя"
       enchants:
         - "DIG_SPEED;1"
-        - "DURABILITY;3"
+        - "DURABILITY;2"
     shovel:
-      material: "WOODEN_SHOVEL"
+      material: "STONE_SHOVEL"
       name: "&7[Обычный] &fЛопата Скитальца"
       lore:
         - "&7Редкость: &7[Обычный]"
         - "&8Для быстрой копки земли и песка"
       enchants:
         - "DIG_SPEED;1"
-        - "DURABILITY;3"
+        - "DURABILITY;2"
 
   # Стартовые ресурсы
   resources:
-    food:
+    food1:
       material: "BREAD"
-      amount: 32
+      amount: 16
+    food2:
+      material: "COOKED_BEEF"
+      amount: 8
     torches:
       material: "TORCH"
-      amount: 64
-    cobblestone:
+      amount: 32
+    building1:
       material: "COBBLESTONE"
       amount: 64
-    wood:
+    building2:
       material: "OAK_PLANKS"
-      amount: 32
+      amount: 64
+    building3:
+      material: "OAK_LOG"
+      amount: 16
+    utility:
+      material: "IRON_INGOT"
+      amount: 3
 
   # Стартовый бонус репутации
   starter-reputation: 500
@@ -216,6 +225,7 @@ guide-book:
     - "&2&l🛡 БЛОК ПРИВАТА\n\n&0Ты получил блок привата!\n\nПоставь его в мире — вокруг создастся защищённая зона (8 блоков).\n\n&0Питай приват: &9/n feed\n&0Купить ещё: &9/n buyclaim"
     - "&5&l⚔ КУЗНЯ И РУНЫ\n\n&0Усиливай снаряжение до &4+25&0!\n\nКристаллы заточки: &9/runes\nКузня: &9/forge\n\n&0Цены динамические — следи за рынком!"
     - "&6&l💰 ЭКОНОМИКА\n\n&0Репутация — главная валюта.\n\nЗаработай: квесты, мобы, события\nПотратить: &9/shop &0, &9/runes\n\n&8Группа: vk.com/chrdk_reborn"
+    - "&d&l💖 ПОДДЕРЖКА\n\n&0Нравится сервер? Поддержи!\n\n&9/n donate <сумма>&0 — пожертвование в казну нации.\n\n&9/vkchat donate&0 — донат в ВК.\n\n&8Спасибо, что играешь с нами!"
 
 # ==========================================
 # Уведомления

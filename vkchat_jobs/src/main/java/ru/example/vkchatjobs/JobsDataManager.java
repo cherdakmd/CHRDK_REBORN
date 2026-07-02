@@ -141,7 +141,8 @@ public class JobsDataManager {
     }
 
     public void addFatigue(UUID uuid, int amount) {
-        fatigueData.put(uuid, getFatigue(uuid) + amount);
+        int max = plugin.getConfig().getInt("fatigue.max-fatigue", 1000);
+        fatigueData.put(uuid, Math.min(max, getFatigue(uuid) + amount));
     }
 
     public void removeFatigue(UUID uuid, int amount) {
@@ -254,6 +255,33 @@ public class JobsDataManager {
             total += getLevel(uuid, job);
         }
         return total;
+    }
+
+    public String getTopJob(UUID uuid) {
+        String best = "miner";
+        int bestLvl = 0;
+        for (String job : java.util.Arrays.asList("miner", "woodcutter", "farmer", "alchemist", "blacksmith", "hunter", "fisherman")) {
+            int lvl = getLevel(uuid, job);
+            if (lvl > bestLvl) { bestLvl = lvl; best = job; }
+        }
+        return getJobDisplayName(best) + " (" + bestLvl + ")";
+    }
+
+    private String getJobDisplayName(String job) {
+        switch (job) {
+            case "miner": return "⛏";
+            case "woodcutter": return "🌲";
+            case "farmer": return "🌾";
+            case "alchemist": return "⚗";
+            case "blacksmith": return "⚒";
+            case "hunter": return "🏹";
+            case "fisherman": return "🎣";
+            default: return job;
+        }
+    }
+
+    public int getCompletedContracts(UUID uuid) {
+        return 0;
     }
 
     private void rewardVkRep(org.bukkit.entity.Player p, int amount, String reason) {
@@ -381,6 +409,7 @@ public class JobsDataManager {
         if (p.hasPermission("vkchat.donate.star")) return 1.35;
         if (p.hasPermission("vkchat.donate.flame")) return 1.20;
         if (p.hasPermission("vkchat.donate.spark")) return 1.10;
+        if (p.hasPermission("vkchat.donate.vip")) return 1.05;
         return 1.0;
     }
 
@@ -440,6 +469,7 @@ public class JobsDataManager {
             levelsGained++;
             p.sendMessage(org.bukkit.ChatColor.GREEN + "✨ Уровень профессии " + job + " повышен до " + currentLvl + "!");
             p.playSound(p.getLocation(), org.bukkit.Sound.ENTITY_PLAYER_LEVELUP, 1f, 1f);
+            sendVkLevelUpNotification(p, job, currentLvl);
 
             if (pointEvery > 0 && currentLvl % pointEvery == 0) {
                 skillPoints.get(uuid).put(job, getSkillPoints(uuid, job) + 1);
@@ -452,6 +482,29 @@ public class JobsDataManager {
         expData.get(uuid).put(job, currentExp);
         lvlData.get(uuid).put(job, currentLvl);
         if (levelsGained > 0) saveAll();
+    }
+
+    private void sendVkLevelUpNotification(org.bukkit.entity.Player p, String job, int newLevel) {
+        if (!plugin.getConfig().getBoolean("settings.vk-notify-levelup", true)) return;
+        int milestone = plugin.getConfig().getInt("settings.vk-notify-level-milestone", 5);
+        if (newLevel % milestone != 0) return;
+        try {
+            org.bukkit.plugin.Plugin corePlugin = org.bukkit.Bukkit.getPluginManager().getPlugin("VKChat");
+            if (corePlugin != null && corePlugin.isEnabled()) {
+                Object api = corePlugin.getClass().getMethod("getApi").invoke(corePlugin);
+                int vkId = (int) api.getClass().getMethod("getLinkedVkId", org.bukkit.entity.Player.class).invoke(api, p);
+                if (vkId != -1) {
+                    String jobName = plugin.getConfig().getString("jobs." + job + ".name", job);
+                    int peerId = (int) api.getClass().getMethod("getPeerIdByVkId", int.class).invoke(api, vkId);
+                    if (peerId != 0) {
+                        api.getClass().getMethod("sendMessage", int.class, String.class).invoke(api, peerId,
+                            "\uD83C\uDF1F Твоя профессия \"" + jobName + "\" достигла уровня " + newLevel + "!");
+                    }
+                }
+            }
+        } catch (Exception ignored) {
+            plugin.getLogger().warning("Не удалось отправить VK-уведомление о повышении уровня для " + p.getName());
+        }
     }
 
 }

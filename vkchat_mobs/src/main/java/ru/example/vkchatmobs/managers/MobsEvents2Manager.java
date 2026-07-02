@@ -203,12 +203,17 @@ public class MobsEvents2Manager implements Listener {
 
     private void spawnAdds(Location loc, int count) {
         World w = loc.getWorld(); if (w == null) return;
-        EntityType[] types = {EntityType.ZOMBIE, EntityType.SKELETON, EntityType.SPIDER, EntityType.HUSK};
+        EntityType[] types = {EntityType.ZOMBIE, EntityType.SKELETON, EntityType.SPIDER, EntityType.HUSK, EntityType.STRAY, EntityType.WITCH, EntityType.PILLAGER, EntityType.VINDICATOR};
         for (int i = 0; i < count; i++) {
             Location s = loc.clone().add(ThreadLocalRandom.current().nextInt(12)-6, 0, ThreadLocalRandom.current().nextInt(12)-6);
             s.setY(w.getHighestBlockYAt(s) + 1);
             Entity e = w.spawnEntity(s, types[ThreadLocalRandom.current().nextInt(types.length)]);
             if (e instanceof LivingEntity) plugin.getHardcoreMobManager().makeElite((LivingEntity) e, "elite", null, worldElement(w), true);
+        }
+        if (count >= 8 && ThreadLocalRandom.current().nextInt(100) < 30) {
+            Location miniloc = loc.clone().add(ThreadLocalRandom.current().nextInt(8)-4, 0, ThreadLocalRandom.current().nextInt(8)-4);
+            miniloc.setY(w.getHighestBlockYAt((int)miniloc.getX(), (int)miniloc.getZ()) + 1);
+            plugin.getHardcoreMobManager().spawnCustom(miniloc, "mini", null, worldElement(w));
         }
     }
 

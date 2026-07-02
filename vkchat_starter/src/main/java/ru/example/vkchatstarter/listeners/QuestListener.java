@@ -286,6 +286,19 @@ public class QuestListener implements Listener {
     // ==================== ОБРАБОТЧИКИ СОБЫТИЙ ====================
 
     @EventHandler
+    public void onJoin(PlayerJoinEvent e) {
+        Player p = e.getPlayer();
+        int vkId = getVkId(p);
+        if (vkId == -1) return;
+        int stage = getStage(p);
+        if (stage >= 0 && stage < stages.size()) {
+            QuestStage current = stages.get(stage);
+            p.sendMessage(ChatColor.GOLD + "Квест обучения: " + ChatColor.WHITE + current.name);
+            p.sendMessage(ChatColor.GRAY + "Прогресс этапа " + (stage + 1) + "/" + stages.size() + ". Награда за этап: +" + rewardPerStage + " реп.");
+        }
+    }
+
+    @EventHandler
     public void onBreak(BlockBreakEvent e) {
         if (e.isCancelled()) return;
         Player p = e.getPlayer();
@@ -297,6 +310,11 @@ public class QuestListener implements Listener {
 
         if (matchesTarget(stage, e.getBlock().getType().name())) {
             handleProgress(p, stage, getProgress(p));
+        }
+
+        if (e.getBlock().getType().name().contains("ORE")) {
+            int vkId = getVkId(p);
+            if (vkId != -1) unlockAchievement(p, vkId, "first_mine");
         }
     }
 
@@ -314,6 +332,9 @@ public class QuestListener implements Listener {
         if (matchesTarget(stage, e.getCurrentItem().getType().name())) {
             handleProgress(p, stage, getProgress(p));
         }
+
+        int vkId = getVkId(p);
+        if (vkId != -1) unlockAchievement(p, vkId, "first_craft");
     }
 
     @EventHandler
@@ -329,6 +350,9 @@ public class QuestListener implements Listener {
         if (matchesTarget(stage, e.getEntity().getType().name())) {
             handleProgress(p, stage, getProgress(p));
         }
+
+        int vkId = getVkId(p);
+        if (vkId != -1) unlockAchievement(p, vkId, "first_kill");
     }
 
     @EventHandler

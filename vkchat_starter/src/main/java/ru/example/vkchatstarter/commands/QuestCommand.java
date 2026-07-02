@@ -54,6 +54,20 @@ public class QuestCommand implements CommandExecutor, TabCompleter {
         }
         Player p = (Player) sender;
 
+        if (args.length >= 1 && args[0].equalsIgnoreCase("list")) {
+            p.sendMessage(ChatColor.GOLD + "=== Все этапы обучения ===");
+            for (int i = 0; i < stageNames.size(); i++) {
+                boolean done = getPlayerStage(p) > i;
+                String prefix = done ? ChatColor.GREEN + "✔ " : ChatColor.GRAY + "○ ";
+                String suffix = done ? ChatColor.GRAY + " (выполнено)" : "";
+                p.sendMessage(prefix + ChatColor.YELLOW + (i + 1) + ". " + ChatColor.WHITE + stageNames.get(i) + suffix);
+            }
+            if (getPlayerStage(p) >= stageNames.size()) {
+                p.sendMessage(ChatColor.GOLD + "🎉 Все этапы пройдены!");
+            }
+            return true;
+        }
+
         if (args.length >= 1 && args[0].equalsIgnoreCase("reset") && p.hasPermission("vkchat.admin")) {
             if (args.length < 2) {
                 p.sendMessage(ChatColor.YELLOW + "Используй: /quest reset <ник>");
@@ -95,6 +109,7 @@ public class QuestCommand implements CommandExecutor, TabCompleter {
     public List<String> onTabComplete(CommandSender sender, Command command, String label, String[] args) {
         List<String> completions = new ArrayList<>();
         if (args.length == 1) {
+            completions.add("list");
             if (sender.hasPermission("vkchat.admin")) {
                 completions.add("reset");
             }
@@ -106,5 +121,9 @@ public class QuestCommand implements CommandExecutor, TabCompleter {
         return completions.stream()
             .filter(s -> s.toLowerCase().startsWith(args[args.length - 1].toLowerCase()))
             .collect(Collectors.toList());
+    }
+
+    private int getPlayerStage(Player p) {
+        return p.getPersistentDataContainer().getOrDefault(stageKey, PersistentDataType.INTEGER, 0);
     }
 }
