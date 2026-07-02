@@ -293,7 +293,6 @@ public class AuthListener implements Listener {
             p.sendMessage(ChatColor.translateAlternateColorCodes('&', " &f✅ &lВК привязан!"));
             p.sendMessage(ChatColor.translateAlternateColorCodes('&', " &fОжидание подтверждения через ВК..."));
         }
-        }
         p.sendMessage(ChatColor.translateAlternateColorCodes('&', "&b&m================================================="));
         p.sendMessage("");
     }
