@@ -35,7 +35,6 @@
 | `/nation sethome` | Точка дома |
 | `/nation home` | Телепорт домой (20 реп.) |
 | `/nation tp <X> <Y> <Z>` | Телепорт к привату (20 реп.) |
-| `/nation defend` | Запуск обороны привата |
 | `/nation leave` | Покинуть нацию |
 | `/nation festival` | Фестиваль (1000 реп.) |
 | `/nation change` | Смена нации (5000 реп.) |

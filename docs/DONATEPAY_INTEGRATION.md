@@ -379,8 +379,6 @@ donor-statuses:
 - `vkchat.donate.gear.*` — скидки Кузни/Gear;
 - `vkchat.donate.market.*` — бонусы рынка;
 - `vkchat.donate.teleport.*` — скидки телепортации;
-- `vkchat.donate.offline.*` — бонусы оффлайн-походов.
-
 Права сторонних плагинов в стандартной настройке больше не выдаются.
 
 ### Актуальная месячная логика статусов
@@ -474,7 +472,6 @@ DonatePay-статусы читаются разными модулями ком
 | VKChatGear | скидка на операции кузни, руны и заточку |
 | VKChatMarket | бонус к продаже и скидка на покупку |
 | VKChatTeleport | скидка на телепорты |
-| VKChatOffline | скидка в оффлайн-лавке и бонус к наградам походов |
 | VKChatDonatePay | пассивные эффекты, шанс доп. добычи/лута, бонус опыта и репутации |
 
 ---
@@ -491,7 +488,6 @@ vkchat.donate.jobs.*
 vkchat.donate.gear.*
 vkchat.donate.market.*
 vkchat.donate.teleport.*
-vkchat.donate.offline.*
 ```
 
 Эти права читаются самими VKChat-модулями.
@@ -504,7 +500,6 @@ vkchat.donate.offline.*
 | Gear / Кузня | скидка на операции кузни, руны, кристаллы и ремонт |
 | Market | бонус к продаже и скидка на покупку |
 | Teleport | скидка на RTP/home/TPA/gateway |
-| Offline | скидка в лавке/лечении и бонус к финальной награде походов |
 | DonatePay | пассивные эффекты, шанс доп. добычи/лута, бонус опыта и репутации |
 
 ### Default-группа
@@ -525,6 +520,5 @@ vkchat.jobs.player
 vkchat.gear.player
 vkchat.artifacts.player
 vkchat.nations.player
-vkchat.offline.player
 vkchat.events.player
 ```

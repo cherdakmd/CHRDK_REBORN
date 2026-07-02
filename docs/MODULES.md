@@ -5,7 +5,7 @@
 | # | Модуль | Файл | Назначение |
 |---|---|---|---|
 | 1 | **VKChat Core** | `VKChat.jar` | Ядро: авторизация, VK-интеграция, команды, репутация |
-| 2 | **VKChat Nations** | `VKChatNations.jar` | Нации, приваты, ClaimDefenseManager, фестивали |
+| 2 | **VKChat Nations** | `VKChatNations.jar` | Нации, приваты, фестивали |
 | 3 | **VKChat Gear** | `VKChatGear.jar` | Кузня 2.0, 22 набора, 5 Mythical, 4 тира кристаллов, +25, зачарования |
 | 4 | **VKChat Mobs** | `VKChatMobs.jar` | Хардкор- mob-система, 6 стихий, 6 архетипов, ELEMENTAL контракт |
 | 5 | **VKChat Events** | `VKChatEvents.jar` | 16 катаклизмов, автоспавн, ивенты, защита приватов |
