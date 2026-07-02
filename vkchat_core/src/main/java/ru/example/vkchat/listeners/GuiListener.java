@@ -46,7 +46,7 @@ public class GuiListener implements Listener {
         int rep = linked ? plugin.getReputationManager().getPoints(vkId) : 0;
         inv.setItem(11, profile(p, rep, linked));
         inv.setItem(13, item(Material.COMPASS, ChatColor.GOLD + "🏠 Главное меню сервера", ChatColor.GRAY + "Все основные механики в одном меню."));
-        inv.setItem(15, item(Material.BOOK, ChatColor.GOLD + "Наша группа ВК", ChatColor.GRAY + "Мини-игры, походы, новости и поддержка.", ChatColor.YELLOW + "Группа: " + ChatColor.WHITE + plugin.getConfig().getString("vk.group-link", "https://vk.com")));
+        inv.setItem(15, item(Material.BOOK, ChatColor.GOLD + "Наша группа ВК", ChatColor.GRAY + "Мини-игры, новости и поддержка.", ChatColor.YELLOW + "Группа: " + ChatColor.WHITE + plugin.getConfig().getString("vk.group-link", "https://vk.com")));
         fill(inv, Material.LIGHT_BLUE_STAINED_GLASS_PANE);
         p.openInventory(inv);
     }
@@ -58,10 +58,10 @@ public class GuiListener implements Listener {
         int rep = vkId != -1 ? plugin.getReputationManager().getPoints(vkId) : 0;
         inv.setItem(4, profile(p, rep, vkId != -1));
 
-        inv.setItem(10, item(Material.NETHER_STAR, ChatColor.LIGHT_PURPLE + "⭐ RPG-прогресс", ChatColor.GRAY + "Gear, артефакты, мобы, профессии, DnD-походы.", ChatColor.YELLOW + "Открыть подраздел"));
+        inv.setItem(10, item(Material.NETHER_STAR, ChatColor.LIGHT_PURPLE + "⭐ RPG-прогресс", ChatColor.GRAY + "Gear, артефакты, мобы, профессии.", ChatColor.YELLOW + "Открыть подраздел"));
         inv.setItem(12, item(Material.EMERALD, ChatColor.GREEN + "💰 Экономика и цены", ChatColor.GRAY + "Баланс, цены, лимиты и репутационные сливы.", ChatColor.YELLOW + "Открыть подраздел"));
         inv.setItem(14, item(Material.WRITABLE_BOOK, ChatColor.YELLOW + "🌱 Путь новичка", ChatColor.GRAY + "Пошаговый старт, безопасные активности и первые награды.", ChatColor.YELLOW + "Открыть подраздел"));
-        inv.setItem(16, item(Material.PAPER, ChatColor.AQUA + "📱 ВК и социалка", ChatColor.GRAY + "Профиль ВК, походы, охота, промокоды.", ChatColor.YELLOW + "Открыть подраздел"));
+        inv.setItem(16, item(Material.PAPER, ChatColor.AQUA + "📱 ВК и социалка", ChatColor.GRAY + "Профиль ВК, охота, промокоды.", ChatColor.YELLOW + "Открыть подраздел"));
 
         inv.setItem(19, item(Material.SHIELD, ChatColor.AQUA + "👥 Нации и приваты", ChatColor.GRAY + "Выбор нации, мутации, блоки привата.", ChatColor.YELLOW + "/nation"));
         inv.setItem(20, item(Material.ANVIL, ChatColor.RED + "⚒ Кузня", ChatColor.GRAY + "GUI-перековка, дефекты, сетовые фрагменты.", ChatColor.YELLOW + "/forge"));

@@ -1,6 +1,6 @@
 # Модули VKChat Ultimate
 
-## Список jar-модулей (13)
+## Список jar-модулей (12)
 
 | # | Модуль | Файл | Назначение |
 |---|---|---|---|
@@ -11,8 +11,7 @@
 | 5 | **VKChat Events** | `VKChatEvents.jar` | 16 катаклизмов, автоспавн, ивенты, защита приватов |
 | 6 | **VKChat Jobs** | `VKChatJobs.jar` | 7 профессий, навыки, ежедневки, еженедельки, рейтинг |
 | 7 | **VKChat Artifacts** | `VKChatArtifacts.jar` | Артефакты с проклятиями, Mythic шанс, Алхимический тайник |
-| 8 | **VKChat Offline** | `VKChatOffline.jar` | DnD-походы через ЛС ВК, 6 маршрутов, классы, компаньоны |
-| 9 | **VKChat Market** | `VKChatMarket.jar` | Рынок с трендами, историей, лимитированными товарами |
+| 7 | **VKChat Market** | `VKChatMarket.jar` | Рынок с трендами, историей, лимитированными товарами |
 | 10 | **VKChat DonatePay** | `VKChatDonatePay.jar` | 4 статуса, VIP-команды, интеграция |
 | 11 | **VKChat Teleport** | `VKChatTeleport.jar` | Телепорт-система (rtp, home, tpa) |
 | 12 | **VKChat Announcer** | `VKChatAnnouncer.jar` | Объявления и уведомления |
@@ -38,7 +37,6 @@ VKChat Core ← VKChatAPI (библиотека)
 | Events | `config.yml` |
 | Jobs | `config.yml` + `jobs_data.yml` + `weekly_tasks.yml` + `ranking.yml` |
 | Artifacts | `config.yml` |
-| Offline | `config.yml` + `offline_data.yml` |
 | Market | `config.yml` |
 | DonatePay | `config.yml` |
 

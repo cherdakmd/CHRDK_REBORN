@@ -7,7 +7,7 @@
 
 <p align="center">
   <b>RPG-экосистема Minecraft ↔ ВКонтакте</b><br>
-  Purpur 1.20.4 • 13 модулей • 35 обновлений v2.1.0
+  Purpur 1.20.4 • 12 модулей • 35 обновлений v2.1.0
 </p>
 
 <p align="center">
@@ -25,7 +25,6 @@
 **CHRDK REBORN** — сервер Minecraft с глубокой интеграцией ВКонтакте:
 - Репутация ВК как основная валюта
 - Управление персонажем через VK-бота
-- Оффлайн DnD-походы в ЛС
 - Нации, приваты, MMO-Gear, профессии, катаклизмы, рынок
 
 ## 🚀 Быстрый старт
@@ -38,9 +37,7 @@
 /jobs
 ```
 
-Оффлайн-походы: напиши боту ВК `!поход`
-
-## 📦 Модули (13)
+## 📦 Модули (12)
 
 | Модуль | Назначение |
 |---|---|
@@ -51,7 +48,6 @@
 | vkchat_events | 16 катаклизмов + автоспавн + ивенты |
 | vkchat_jobs | 7 профессий + навыки + ежедневки + еженедельки + рейтинг |
 | vkchat_artifacts | Артефакты + проклятия + Mythic шанс |
-| vkchat_offline | DnD-походы в ЛС ВК |
 | vkchat_market | Динамический рынок |
 | vkchat_donatepay | 4 статуса + умная выдача + `/donatepay lpsetup` |
 | vkchat_teleport | Телепортация за репутацию |
@@ -66,8 +62,6 @@
 - [🗺️ Нации и приваты](docs/NATIONS.md)
 - [⚒️ Gear и Кузня](docs/GEAR_AND_RUNES.md)
 - [💼 Профессии](docs/JOBS_AND_SKILLS.md)
-- [🧭 Оффлайн-походы](docs/OFFLINE_ADVENTURES.md)
-
 ## 🤝 Сообщество
 
 - **YouTube:** [UCHo-PDiBZgHJwrSZWwbEFbg](https://www.youtube.com/channel/UCHo-PDiBZgHJwrSZWwbEFbg)
@@ -87,7 +81,6 @@
 | `vkchat_core`         | Ядро + ВК + Авторизация + Репутация |
 | `vkchat_nations`      | Нации + Приваты + Мутации           |
 | `vkchat_gear`         | Кузня + Руны + Сеты                 |
-| `vkchat_offline`      | Оффлайн-походы в ВК                 |
 | `vkchat_jobs`         | Профессии + Ежедневки               |
 | `vkchat_market`       | Динамический рынок                  |
 | `vkchat_mobs`         | Элитные мобы + Контракты            |
@@ -109,8 +102,6 @@
 /jobs
 ```
 
-**Оффлайн-походы:** Напишите боту в ВК `!поход`
-
 ### Для администраторов
 ```bash
 1. Скопируйте jar-файлы в plugins/
@@ -125,7 +116,6 @@
 - [👑 Руководство администратора](docs/ADMIN_GUIDE.md)
 - [🗺️ Нации и приваты](docs/NATIONS.md)
 - [⚒️ Gear и Кузня](docs/GEAR_AND_RUNES.md)
-- [🧭 Оффлайн-походы](docs/OFFLINE_ADVENTURES.md)
 
 ## 🤝 Вклад
 

@@ -109,7 +109,6 @@
 ### Исправления (все модули)
 
 - **vkchat_teleport:** команды gateway/portal зарегистрированы (были объявлены, но не подключены)
-- **vkchat_offline:** null-safety для VKChatJobsPlugin.getInstance()
 - **vkchat_starter:** softdepend на VKChatMobs и VKChatArtifacts
 - **vkchat_core:** BloodMoonManager world теперь конфигурируется
 - **vkchat_core:** QuestManager → `quest_progress.yml`, BountyManager → `bounties.yml`
@@ -130,7 +129,6 @@
 
 ### Major Features
 - **Forge 2.0:** хаб `/forge`, слияние редкости, свитки, защита, логи
-- **Offline 2.0:** кампания, психика, травмы, госпиталь, коллекции
 - **Jobs 2.0:** ежедневки и специализации
 - **Market 2.0:** тренды дня, история, ротация редкостей
 - **Mobs/Events 2.0:** контракты, рейд-боссы, мировые угрозы

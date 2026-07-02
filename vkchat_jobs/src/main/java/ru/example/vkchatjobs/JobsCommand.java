@@ -132,10 +132,7 @@ public class JobsCommand implements CommandExecutor, TabCompleter {
         inv.setItem(30, item(Material.EMERALD, ChatColor.GREEN + "Экономика профессий",
                 ChatColor.GRAY + "Профессии будут мягко связываться с рынком.",
                 ChatColor.GRAY + "Цены одинаковые для всех, но профессии дают прогресс и доступы."));
-        inv.setItem(32, item(Material.CAMPFIRE, ChatColor.LIGHT_PURPLE + "Оффлайн-интеграция",
-                ChatColor.GRAY + "Уровни Jobs сохраняются при выходе",
-                ChatColor.GRAY + "и помогают в оффлайн DnD-походах."));
-        inv.setItem(34, item(Material.ANVIL, ChatColor.RED + "Gear-интеграция",
+        inv.setItem(32, item(Material.ANVIL, ChatColor.RED + "Gear-интеграция",
                 ChatColor.GRAY + "Кузнец влияет на скидки и качество ковки.",
                 ChatColor.GRAY + "Алхимик полезен против ядов/проклятий."));
 
@@ -262,9 +259,9 @@ public class JobsCommand implements CommandExecutor, TabCompleter {
 
     private String integrationLore(String job) {
         switch (job) {
-            case "miner": return ChatColor.DARK_AQUA + "Интеграция: шахты, рынок руд, оффлайн-походы";
+            case "miner": return ChatColor.DARK_AQUA + "Интеграция: шахты, рынок руд, пещеры";
             case "woodcutter": return ChatColor.DARK_AQUA + "Интеграция: дерево, рынок, лесные события";
-            case "farmer": return ChatColor.DARK_AQUA + "Интеграция: припасы, еда, оффлайн-лагерь";
+            case "farmer": return ChatColor.DARK_AQUA + "Интеграция: припасы, еда, зелья";
             case "alchemist": return ChatColor.DARK_AQUA + "Интеграция: зелья, яды, проклятия, артефакты";
             case "blacksmith": return ChatColor.DARK_AQUA + "Интеграция: Gear, ковка, редкость, скидки";
             case "hunter": return ChatColor.DARK_AQUA + "Интеграция: мобы, боссы, фрагменты сетов";

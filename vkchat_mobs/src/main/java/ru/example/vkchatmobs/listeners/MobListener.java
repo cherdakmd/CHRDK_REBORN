@@ -1136,7 +1136,7 @@ public class MobListener implements Listener {
         boolean isRuneToken = meta.getPersistentDataContainer().has(new NamespacedKey(plugin, "is_rune_token"), PersistentDataType.INTEGER);
         boolean isArtifactShard = meta.getPersistentDataContainer().has(new NamespacedKey(plugin, "is_artifact_shard"), PersistentDataType.INTEGER);
 
-        // Совместимость со старыми наградами из оффлайн-походов, которые были созданы только по имени без PDC.
+        // Совместимость со старыми наградами, созданными только по имени без PDC.
         if (!isRuneToken && !isArtifactShard && meta.hasDisplayName()) {
             String display = ChatColor.stripColor(meta.getDisplayName());
             if (item.getType() == Material.GOLD_NUGGET && display.equalsIgnoreCase("Древний Жетон Рун")) {
