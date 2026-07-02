@@ -7,22 +7,19 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
+import ru.example.vkchat.VKChatPlugin;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
-import java.net.URLEncoder;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
- * Менеджер донатов — опрос DonatePay API, обработка платежей, выдача LuckPerms прав
+ * Менеджер донатов — опрос DonatePay API, обработка платежей, выдача LuckPerms прав на 30 дней
  */
 public class DonateManager {
     private final VKChatDonatePlugin plugin;
@@ -31,6 +28,7 @@ public class DonateManager {
     private FileConfiguration dataCfg;
     private final Map<String, StatusDef> statuses = new LinkedHashMap<>();
     private int lastProcessedId = 0;
+    private static final long MONTH_SECONDS = 2592000L; // 30 дней
 
     public static class StatusDef {
         public final String id, name, display, description;
@@ -118,10 +116,9 @@ public class DonateManager {
                 if (!status.equals("success")) continue;
 
                 double amount = tx.optDouble("amount", 0);
-                String comment = tx.optString("comment", "").trim();
                 String sender = tx.optString("what", "").trim();
 
-                processDonation(txId, amount, comment, sender);
+                processDonation(txId, amount, sender);
                 lastProcessedId = Math.max(lastProcessedId, txId);
             }
             saveData();
@@ -130,11 +127,11 @@ public class DonateManager {
         }
     }
 
-    private void processDonation(int txId, double amountRub, String comment, String sender) {
-        // Извлечь ник из комментария: "ник PlayerName" или "nick PlayerName"
-        String nick = extractNick(comment, sender);
+    private void processDonation(int txId, double amountRub, String sender) {
+        // Никнейм из ИМЕНИ отправителя (игрок указывает ник в имени донатера)
+        String nick = extractNickFromSender(sender);
         if (nick == null) {
-            plugin.getLogger().info("Донат #" + txId + " (" + amountRub + "₽) — ник не указан");
+            plugin.getLogger().info("Донат #" + txId + " (" + amountRub + "₽) — ник не извлечён из '" + sender + "'");
             return;
         }
 
@@ -149,53 +146,71 @@ public class DonateManager {
         }
 
         // Найти игрока
-        Player player = Bukkit.getPlayerExact(nick);
-        OfflinePlayer offPlayer = player;
-        if (offPlayer == null) {
-            offPlayer = Bukkit.getOfflinePlayer(nick);
-            if (offPlayer == null || !offPlayer.hasPlayedBefore()) {
-                plugin.getLogger().info("Донат #" + txId + " — игрок " + nick + " не найден");
-                return;
-            }
-        }
-
-        // Проверить, не выше ли текущий статус
-        String permNode = "vkchat.donate." + bestStatus.id;
-        if (offPlayer.getPlayer() != null && hasHigherStatus(offPlayer.getPlayer(), bestStatus.id)) {
-            plugin.getLogger().info("Донат #" + txId + " от " + nick + " — уже есть выше статус");
+        OfflinePlayer offPlayer = Bukkit.getOfflinePlayer(nick);
+        if (!offPlayer.hasPlayedBefore()) {
+            plugin.getLogger().info("Донат #" + txId + " — игрок " + nick + " не найден");
             return;
         }
 
-        // Выдать права через LuckPerms
-        grantStatus(offPlayer, bestStatus);
+        // Проверить — продление или выдача нового
+        boolean extending = hasAnyStatus(offPlayer);
+        boolean higherExists = offPlayer.getPlayer() != null && hasHigherStatus(offPlayer.getPlayer(), bestStatus.id);
 
-        // Сообщения
-        String thanksMsg = plugin.getConfig().getString("messages.donate-thanks", "&aСпасибо за донат!")
-                .replace("{player}", nick).replace("{status}", bestStatus.display);
-        String broadMsg = plugin.getConfig().getString("messages.donate-broadcast", "")
-                .replace("{player}", nick).replace("{status}", bestStatus.display);
+        if (higherExists) {
+            // Уже есть статус выше — только продлеваем ТЕКУЩИЙ высший
+            StatusDef current = getPlayerStatus(offPlayer.getPlayer());
+            if (current != null) {
+                extendStatus(offPlayer, current);
+                announceDonation(nick, current, amountRub, true);
+            }
+            return;
+        }
 
-        if (player != null) {
-            player.sendMessage(ChatColor.translateAlternateColorCodes('&', thanksMsg));
+        // Выдача/продление нового статуса
+        if (extending && bestStatus.price <= getCurrentStatusPrice(offPlayer)) {
+            // Продление текущего статуса
+            StatusDef current = getPlayerStatusByOffline(offPlayer);
+            if (current != null) {
+                extendStatus(offPlayer, current);
+                announceDonation(nick, current, amountRub, true);
+            }
+        } else {
+            // Новый статус или повышение
+            grantStatus(offPlayer, bestStatus);
+            announceDonation(nick, bestStatus, amountRub, false);
         }
-        if (!broadMsg.isEmpty()) {
-            Bukkit.broadcastMessage(ChatColor.translateAlternateColorCodes('&', broadMsg));
-        }
+
         plugin.getLogger().info("ДОНАТ: " + nick + " → " + bestStatus.display + " (" + amountRub + "₽) #" + txId);
     }
 
-    private String extractNick(String comment, String sender) {
-        // Паттерн: "ник PlayerName" или "nick PlayerName" или если имя отправителя содержит ник
-        if (comment != null) {
-            Matcher m = Pattern.compile("(?i)(?:ник|nick)\\s+(\\w{2,16})").matcher(comment);
-            if (m.find()) return m.group(1);
-        }
-        // Если нет комментария — попробовать извлечь из имени отправителя
-        if (sender != null && !sender.isEmpty()) {
-            String cleaned = sender.replaceAll("[^a-zA-Z0-9_а-яА-Я]", "");
-            if (cleaned.length() >= 2 && cleaned.length() <= 16) return cleaned;
-        }
+    private String extractNickFromSender(String sender) {
+        if (sender == null || sender.isEmpty()) return null;
+        // Имя отправителя ДОЛЖНО содержать ник игрока
+        // Очищаем от спецсимволов, оставляем буквы/цифры/подчёркивания
+        String cleaned = sender.replaceAll("[^a-zA-Z0-9_а-яА-Я]", "");
+        if (cleaned.length() >= 2 && cleaned.length() <= 16) return cleaned;
         return null;
+    }
+
+    private int getCurrentStatusPrice(OfflinePlayer player) {
+        for (StatusDef s : statuses.values()) {
+            if (player.getPlayer() != null && player.getPlayer().hasPermission("vkchat.donate." + s.id))
+                return s.price;
+        }
+        return 0;
+    }
+
+    private StatusDef getPlayerStatusByOffline(OfflinePlayer player) {
+        if (player.getPlayer() == null) return null;
+        return getPlayerStatus(player.getPlayer());
+    }
+
+    private boolean hasAnyStatus(OfflinePlayer player) {
+        if (player.getPlayer() == null) return false;
+        for (String id : statuses.keySet()) {
+            if (player.getPlayer().hasPermission("vkchat.donate." + id)) return true;
+        }
+        return false;
     }
 
     private boolean hasHigherStatus(Player player, String newStatusId) {
@@ -210,16 +225,46 @@ public class DonateManager {
     private void grantStatus(OfflinePlayer player, StatusDef status) {
         // Удалить предыдущие донат-права
         for (String id : statuses.keySet()) {
-            runLuckPermsCommand(player, "lp user " + player.getName() + " permission unset vkchat.donate." + id);
+            runLuckPermsCommand("lp user " + player.getName() + " permission unset vkchat.donate." + id);
         }
-        // Выдать новый статус
-        runLuckPermsCommand(player, "lp user " + player.getName() + " permission set vkchat.donate." + status.id + " true");
-        plugin.getLogger().info("LuckPerms: " + player.getName() + " → vkchat.donate." + status.id);
+        // Выдать на 30 дней
+        runLuckPermsCommand("lp user " + player.getName()
+                + " permission settemp vkchat.donate." + status.id + " true " + MONTH_SECONDS + "s");
+        plugin.getLogger().info("LuckPerms: " + player.getName() + " → vkchat.donate." + status.id + " (30д)");
     }
 
-    private void runLuckPermsCommand(OfflinePlayer player, String cmd) {
+    private void extendStatus(OfflinePlayer player, StatusDef status) {
+        // Продлить на 30 дней
+        runLuckPermsCommand("lp user " + player.getName()
+                + " permission settemp vkchat.donate." + status.id + " true " + MONTH_SECONDS + "s accumulate");
+        plugin.getLogger().info("LuckPerms: " + player.getName() + " → продление vkchat.donate." + status.id + " +30д");
+    }
+
+    private void runLuckPermsCommand(String cmd) {
         Bukkit.getScheduler().runTask(plugin, () ->
                 Bukkit.dispatchCommand(Bukkit.getConsoleSender(), cmd));
+    }
+
+    private void announceDonation(String nick, StatusDef status, double amount, boolean extending) {
+        String action = extending ? "продлил" : "получил";
+        String mcMsg = ChatColor.translateAlternateColorCodes('&',
+                "&6💰 &e" + nick + " &6" + action + " статус " + status.name + " &6за донат!");
+        String vkMsg = "💰 " + nick + " " + action + " статус " + status.display + " за донат!";
+
+        // В Minecraft чат
+        Bukkit.broadcastMessage(mcMsg);
+
+        // В ВК беседу
+        try {
+            VKChatPlugin.getInstance().getApi().sendToMainChat(vkMsg);
+        } catch (Exception ignored) {}
+
+        // Игроку лично
+        Player player = Bukkit.getPlayerExact(nick);
+        if (player != null) {
+            player.sendMessage(ChatColor.translateAlternateColorCodes('&',
+                    "&a✨ Спасибо за донат! Статус " + status.name + " &aактивен на 30 дней."));
+        }
     }
 
     public StatusDef getPlayerStatus(Player player) {
@@ -239,9 +284,10 @@ public class DonateManager {
         StringBuilder sb = new StringBuilder();
         sb.append("§6═══ ДОНАТ-СТАТУСЫ (DonatePay) ═══\n\n");
         sb.append("§7Ссылка: §ehttps://donatepay.ru/don/ВАШ_АККАУНТ\n\n");
-        sb.append("§7В комментарии к донату укажите: §fник PlayerName\n\n");
+        sb.append("§7⚠ ВАЖНО: В ИМЕНИ отправителя укажите свой НИКНЕЙМ!\n");
+        sb.append("§7Статусы действуют 30 дней, продлеваются при повторной покупке.\n\n");
         for (StatusDef s : statuses.values()) {
-            sb.append(s.name).append(" §7— ").append(s.price).append("₽\n");
+            sb.append(s.name).append(" §7— ").append(s.price).append("₽ / 30 дней\n");
             sb.append("  §7Скидка: §f").append((int)(s.repDiscount * 100))
                     .append("% §7| КД ТП: §f×").append(s.tpCooldownMult)
                     .append(" §7| Домов: §f").append(s.maxHomes)
@@ -254,9 +300,6 @@ public class DonateManager {
     public void shutdown() {
         saveData();
     }
-
-    // === ПУБЛИЧНЫЕ ГЕТТЕРЫ ДЛЯ ДРУГИХ МОДУЛЕЙ ===
-    // Эти методы вызываются другими модулями через рефлексию
 
     public double getRepDiscount(Player player) {
         StatusDef s = getPlayerStatus(player);

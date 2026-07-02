@@ -80,8 +80,6 @@ statuses:
 # СООБЩЕНИЯ
 # ═══════════════════════════════════════
 messages:
-  donate-thanks: "&a✨ Спасибо за донат, {player}! Статус {status} активирован."
-  donate-broadcast: "&6💰 {player} получил статус {status} &6за донат!"
-  no-player: "&c❌ Укажите ник в комментарии к донату: 'ник Игрок'"
-  no-nickname: "&c❌ Игрок с ником {nick} не найден на сервере"
-  already-higher: "&e⚠ У игрока уже есть более высокий статус"
+  donate-broadcast-mc: "&6💰 &e{player} &6получил статус {status} &6за донат!"
+  donate-broadcast-vk: "💰 {player} получил статус {status} за донат!"
+  donate-thanks: "&a✨ Спасибо за донат, {player}! Статус {status} активирован на 30 дней."
