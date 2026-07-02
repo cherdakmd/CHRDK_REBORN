@@ -19,6 +19,9 @@ import java.util.HashMap;
 public class AuthManager {
     private final VKChatPlugin plugin;
 
+    // Файловое хранилище привязок UUID↔VK
+    private final LinkStorage linkStorage;
+
     // Новые менеджеры
     private final SessionManager sessionManager;
     private final TwoFactorManager twoFactorManager;
@@ -42,6 +45,7 @@ public class AuthManager {
 
     public AuthManager(VKChatPlugin plugin) {
         this.plugin = plugin;
+        this.linkStorage = new LinkStorage(plugin);
         this.sessionManager = new SessionManager(plugin);
         this.twoFactorManager = new TwoFactorManager(plugin);
         startCleanupTask();
@@ -51,6 +55,7 @@ public class AuthManager {
 
     public SessionManager getSessionManager() { return sessionManager; }
     public TwoFactorManager getTwoFactorManager() { return twoFactorManager; }
+    public LinkStorage getLinkStorage() { return linkStorage; }
 
     // ═══ МЕТОДЫ СИНХРОНИЗАЦИИ С SESSIONMANAGER ═══
 
@@ -265,18 +270,11 @@ public class AuthManager {
             return false;
         }
         
-        // Anti-twink check via SQL
+        // Anti-twink check via file
         if (plugin.getConfig().getBoolean("auth.twink-protection", true)) {
-            try (Connection conn = plugin.getDatabaseManager().getConnection()) {
-                PreparedStatement ps = conn.prepareStatement("SELECT uuid FROM vkchat_auth WHERE vk_id = ?");
-                ps.setInt(1, vkId);
-                ResultSet rs = ps.executeQuery();
-                if (rs.next()) {
-                    plugin.getVkManager().sendMessage(replyPeer, plugin.getConfigManager().formatColor(plugin.getConfigManager().getMessage("vk_twink_blocked")));
-                    return false;
-                }
-            } catch (SQLException e) {
-                e.printStackTrace();
+            if (linkStorage.isVkLinked(vkId)) {
+                plugin.getVkManager().sendMessage(replyPeer, plugin.getConfigManager().formatColor(plugin.getConfigManager().getMessage("vk_twink_blocked")));
+                return false;
             }
         }
         
@@ -286,23 +284,8 @@ public class AuthManager {
                 .findFirst().orElse(null);
                 
         if (uuid != null) {
-            // Сохраняем в SQL
-            plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
-                try (Connection conn = plugin.getDatabaseManager().getConnection()) {
-                    PreparedStatement ps;
-                    if (plugin.getConfig().getBoolean("database.use-mysql", false)) {
-                        ps = conn.prepareStatement("INSERT INTO vkchat_auth (uuid, vk_id) VALUES (?, ?) ON DUPLICATE KEY UPDATE vk_id = ?");
-                    } else {
-                        ps = conn.prepareStatement("INSERT INTO vkchat_auth (uuid, vk_id) VALUES (?, ?) ON CONFLICT(uuid) DO UPDATE SET vk_id = ?");
-                    }
-                    ps.setString(1, uuid.toString());
-                    ps.setInt(2, vkId);
-                    ps.setInt(3, vkId);
-                    ps.executeUpdate();
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                }
-            });
+            // Сохраняем в файл
+            linkStorage.link(uuid, vkId);
 
             Player p = plugin.getServer().getPlayer(uuid);
             if (p != null) {
@@ -577,17 +560,7 @@ public class AuthManager {
     }
     
     public int getLinkedVkId(UUID uuid) {
-        try (Connection conn = plugin.getDatabaseManager().getConnection()) {
-            PreparedStatement ps = conn.prepareStatement("SELECT vk_id FROM vkchat_auth WHERE uuid = ?");
-            ps.setString(1, uuid.toString());
-            ResultSet rs = ps.executeQuery();
-            if (rs.next()) {
-                return rs.getInt("vk_id");
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return -1;
+        return linkStorage.getVkId(uuid);
     }
     
     public int getLinkedVkId(Player player) {
@@ -603,26 +576,11 @@ public class AuthManager {
     }
 
     public boolean isLinkedByVkId(int vkId) {
-        try (Connection conn = plugin.getDatabaseManager().getConnection()) {
-            PreparedStatement ps = conn.prepareStatement("SELECT uuid FROM vkchat_auth WHERE vk_id = ?");
-            ps.setInt(1, vkId);
-            ResultSet rs = ps.executeQuery();
-            return rs.next();
-        } catch (SQLException e) {
-            return false;
-        }
+        return linkStorage.isVkLinked(vkId);
     }
 
     public void unlink(Player player) {
-        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
-            try (Connection conn = plugin.getDatabaseManager().getConnection()) {
-                PreparedStatement ps = conn.prepareStatement("UPDATE vkchat_auth SET vk_id = -1 WHERE uuid = ?");
-                ps.setString(1, player.getUniqueId().toString());
-                ps.executeUpdate();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-        });
+        linkStorage.unlink(player.getUniqueId());
         loggedIn.put(player.getUniqueId(), false);
     }
 

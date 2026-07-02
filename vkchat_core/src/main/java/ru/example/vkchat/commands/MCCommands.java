@@ -686,19 +686,13 @@ public class MCCommands implements CommandExecutor, org.bukkit.command.TabComple
                     } else {
                         final String targetName = args[1];
                         plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
-                            try (java.sql.Connection conn = plugin.getDatabaseManager().getConnection()) {
-                                @SuppressWarnings("deprecation")
-                                org.bukkit.OfflinePlayer offline = plugin.getServer().getOfflinePlayer(targetName);
-                                if (offline != null && (offline.hasPlayedBefore() || offline.isOnline())) {
-                                    java.sql.PreparedStatement ps = conn.prepareStatement("UPDATE vkchat_auth SET vk_id = -1 WHERE uuid = ?");
-                                    ps.setString(1, offline.getUniqueId().toString());
-                                    ps.executeUpdate();
-                                    sender.sendMessage("✓ Оффлайн-игрок " + targetName + " успешно отвязан от ВКонтакте в базе данных!");
-                                } else {
-                                    sender.sendMessage("❌ Игрок " + targetName + " не найден на сервере.");
-                                }
-                            } catch (Exception e) {
-                                sender.sendMessage("❌ Ошибка работы с базой данных: " + e.getMessage());
+                            @SuppressWarnings("deprecation")
+                            org.bukkit.OfflinePlayer offline = plugin.getServer().getOfflinePlayer(targetName);
+                            if (offline != null && (offline.hasPlayedBefore() || offline.isOnline())) {
+                                plugin.getAuthManager().getLinkStorage().unlink(offline.getUniqueId());
+                                sender.sendMessage("✓ Оффлайн-игрок " + targetName + " успешно отвязан от ВКонтакте!");
+                            } else {
+                                sender.sendMessage("❌ Игрок " + targetName + " не найден на сервере.");
                             }
                         });
                     }

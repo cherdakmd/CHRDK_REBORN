@@ -95,17 +95,7 @@ public class VKChatAPI {
      * Получить UUID игрока по его VK ID (возвращает null, если не привязан)
      */
     public UUID getUuidByVkId(int vkId) {
-        try (java.sql.Connection conn = plugin.getDatabaseManager().getConnection()) {
-            java.sql.PreparedStatement ps = conn.prepareStatement("SELECT uuid FROM vkchat_auth WHERE vk_id = ?");
-            ps.setInt(1, vkId);
-            java.sql.ResultSet rs = ps.executeQuery();
-            if (rs.next()) {
-                return UUID.fromString(rs.getString("uuid"));
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return null;
+        return plugin.getAuthManager().getLinkStorage().getUuid(vkId);
     }
 
     /**
