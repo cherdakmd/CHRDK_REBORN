@@ -605,13 +605,11 @@ public class MCCommands implements CommandExecutor, org.bukkit.command.TabComple
                     appendPluginValue(sb, "VKChatGear", "hardcore-forging.cleanse-cost", "Defect cleanse cost", 350);
                     appendPluginValue(sb, "VKChatGear", "hardcore-forging.rune-apply-cost", "Rune apply cost", 75);
                     appendPluginValue(sb, "VKChatGear", "hardcore-forging.crystal-apply-cost", "Crystal apply cost", 50);
-                    appendPluginValue(sb, "VKChatOffline", "mmorpg.healing-after-death.cost-percent", "Offline death heal percent", 5);
-                    appendPluginValue(sb, "VKChatOffline", "death-rep-loss-percent", "Offline death loss percent", 10);
                     appendPluginValue(sb, "VKChatMobs", "reputation.max-farm-per-hour", "Mob farm cap per hour", 300);
                     sb.append("\n## Warnings\n\n");
                     sb.append("- Check high pure-reputation rewards: prefer items/materials for repeatable content.\n");
                     sb.append("- Expensive/risky actions should be confirmed in GUI or explained in lore.\n");
-                    sb.append("- Keep anti-farm enabled for mobs and offline rewards.\n");
+                    sb.append("- Keep anti-farm enabled for mobs.\n");
                     java.nio.file.Files.write(report.toPath(), sb.toString().getBytes(java.nio.charset.StandardCharsets.UTF_8));
                     sender.sendMessage("§aEconomy report created: " + report.getAbsolutePath());
                 } catch (Exception ex) {

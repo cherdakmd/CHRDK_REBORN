@@ -94,7 +94,6 @@ public class GuiListener implements Listener {
         inv.setItem(13, priceItem(Material.ENCHANTING_TABLE, "🔮 Нанесение руны", "VKChatGear", "hardcore-forging.rune-apply-cost", 75, "Доп. цена нанесения руны"));
         inv.setItem(14, priceItem(Material.EXPERIENCE_BOTTLE, "💎 Заточка", "VKChatGear", "hardcore-forging.crystal-apply-cost", 50, "Попытка заточки кристаллом"));
         inv.setItem(15, priceItem(Material.ENDER_PEARL, "⏳ RTP", "VKChatTeleport", "costs.rtp-percent", 1, "Телепорты часто стоят % от баланса"));
-        inv.setItem(16, priceItem(Material.CAMPFIRE, "💚 Лечение после смерти", "VKChatOffline", "mmorpg.healing-after-death.cost-percent", 5, "5% текущей репутации"));
         inv.setItem(28, item(Material.HOPPER, ChatColor.YELLOW + "Антиинфляция", ChatColor.GRAY + "• лимиты наград", ChatColor.GRAY + "• антифарм мобов", ChatColor.GRAY + "• редкий лут вместо чистой репы", ChatColor.GRAY + "• риск = награда"));
         inv.setItem(31, item(Material.PAPER, ChatColor.AQUA + "Аудит экономики", ChatColor.GRAY + "Админ-команда:", ChatColor.YELLOW + "/vkchat economy", ChatColor.GRAY + "Создаёт economy-report.md"));
         inv.setItem(34, donateStatusItem());

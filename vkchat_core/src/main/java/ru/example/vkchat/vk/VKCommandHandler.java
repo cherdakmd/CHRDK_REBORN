@@ -38,8 +38,6 @@ public class VKCommandHandler {
                     " !рейтинг - Репутация\n" +
                     " !топ - Лучшие игроки\n" +
                     " !топреп - Богачи чата\n\n" +
-                    " 🏕 Походы:\n" +
-                    " !поход - Оффлайн-экспедиция\n\n" +
                     " 💰 Экономика:\n" +
                     " !бонус - Ежедневный бонус\n" +
                     " !сейф - Взлом сейфа\n" +
@@ -60,7 +58,6 @@ public class VKCommandHandler {
             if (peer < 2000000000) {
                 String welcome = "🏠 Главное меню CHRDK REBORN\n\n" +
                         "Выбери режим:\n" +
-                        "🏕 Походы — оффлайн-экспедиции\n" +
                         "👤 Аккаунт — управление профилем\n\n" +
                         "Или используй команды напрямую.";
                 plugin.getVkManager().sendKeyboard(peer, welcome, VKKeyboardBuilder.mainDmMenu());
@@ -728,7 +725,6 @@ public class VKCommandHandler {
                 if (peer < 2000000000) {
                     String welcome = "🏠 Главное меню CHRDK REBORN\n\n" +
                             "Выбери режим:\n" +
-                            "🏕 Походы — оффлайн-экспедиции\n" +
                             "👤 Аккаунт — управление профилем\n\n" +
                             "Или используй команды напрямую.";
                     plugin.getVkManager().sendKeyboard(peer, welcome, VKKeyboardBuilder.mainDmMenu());

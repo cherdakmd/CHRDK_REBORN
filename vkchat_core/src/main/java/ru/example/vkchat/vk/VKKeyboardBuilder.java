@@ -102,15 +102,13 @@ public class VKKeyboardBuilder {
     public static String mainDmMenu() {
         return new VKKeyboardBuilder()
                 .oneTime(false)
-                .positive("🏕 Походы", "!поход")
-                .textButton("👤 Аккаунт", "!аккаунт", "primary")
-                .row()
+                .positive("👤 Аккаунт", "!аккаунт")
                 .secondary("📊 Профиль", "!профиль")
+                .row()
                 .secondary("⭐ Рейтинг", "!рейтинг")
-                .row()
                 .secondary("🎁 Бонус", "!бонус")
-                .secondary("💼 Работы", "!работы")
                 .row()
+                .secondary("💼 Работы", "!работы")
                 .secondary("🛟 Помощь", "!помощь")
                 .build();
     }
@@ -132,25 +130,6 @@ public class VKKeyboardBuilder {
                 .row()
                 .secondary("🔗 Отвязать ВК", "!отвязать")
                 .secondary("🚪 Выйти", "!выйти")
-                .row()
-                .secondary("◀ Назад", "!меню")
-                .build();
-    }
-
-    /**
-     * Меню походов (перенаправляет в offline модуль).
-     */
-    public static String adventureMenu() {
-        return new VKKeyboardBuilder()
-                .oneTime(false)
-                .positive("🗺 Маршруты", "!походы")
-                .secondary("🎒 Тайник", "!тайник 1")
-                .row()
-                .secondary("👤 Герой", "!герой")
-                .secondary("📖 Кампания", "!кампания")
-                .row()
-                .secondary("🧠 Навыки", "!навыки")
-                .secondary("🛒 Магазин", "!магазин")
                 .row()
                 .secondary("◀ Назад", "!меню")
                 .build();
@@ -192,7 +171,6 @@ public class VKKeyboardBuilder {
                 .textButton("💼 Работы", "!работы", "secondary")
                 .textButton("🎁 Бонус", "!бонус", "secondary")
                 .row()
-                .textButton("🎒 Поход", "!поход", "positive")
                 .textButton("🎰 Казино", "!казино 100", "negative")
                 .row()
                 .textButton("🛟 Помощь", "!помощь", "secondary")
@@ -205,7 +183,6 @@ public class VKKeyboardBuilder {
                 .textButton("👤 Профиль", "!профиль", "primary")
                 .textButton("⭐ Рейтинг", "!рейтинг", "primary")
                 .row()
-                .textButton("🏕 Поход", "!поход", "positive")
                 .textButton("🎁 Бонус", "!бонус", "secondary")
                 .row()
                 .textButton("🛟 Меню", "!меню", "secondary")
