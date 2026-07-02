@@ -297,11 +297,14 @@ public class DonateManager {
     public Collection<StatusDef> getStatuses() { return statuses.values(); }
 
     public String getSetupInfo() {
+        String token = plugin.getConfig().getString("api-token", "");
+        boolean configured = !token.isEmpty() && !token.equals("YOUR_DONATEPAY_TOKEN");
         StringBuilder sb = new StringBuilder();
         sb.append("§6═══ ДОНАТ-СТАТУСЫ (DonatePay) ═══\n\n");
-        sb.append("§7Ссылка: §ehttps://donatepay.ru/don/ВАШ_АККАУНТ\n\n");
-        sb.append("§7⚠ ВАЖНО: В ИМЕНИ отправителя укажите свой НИКНЕЙМ!\n");
-        sb.append("§7Статусы действуют 30 дней, продлеваются при повторной покупке.\n\n");
+        sb.append("§7Статус: ").append(configured ? "§a✅ Настроен" : "§c❌ Не настроен").append("\n");
+        sb.append("§7Команда настройки: §e/donate setup <API-токен>\n\n");
+        sb.append("§7⚠ В ИМЕНИ отправителя укажите свой НИКНЕЙМ!\n");
+        sb.append("§7Статусы действуют 30 дней, продлеваются.\n\n");
         for (StatusDef s : statuses.values()) {
             sb.append(s.name).append(" §7— ").append(s.price).append("₽ / 30 дней\n");
             sb.append("  §7Скидка: §f").append((int)(s.repDiscount * 100))

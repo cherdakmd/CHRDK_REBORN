@@ -6,6 +6,7 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
+import java.io.File;
 import java.util.List;
 import java.util.Map;
 
@@ -28,13 +29,29 @@ public class DonateCommand implements CommandExecutor {
                 sender.sendMessage(ChatColor.RED + "Нет прав.");
                 return true;
             }
-            sender.sendMessage(ChatColor.GREEN + "═══ Настройка DonatePay ═══");
-            sender.sendMessage(ChatColor.YELLOW + "1. " + ChatColor.WHITE + "Зайди на donatepay.ru → Мои кассы");
-            sender.sendMessage(ChatColor.YELLOW + "2. " + ChatColor.WHITE + "Создай кассу, скопируй API-токен");
-            sender.sendMessage(ChatColor.YELLOW + "3. " + ChatColor.WHITE + "В config.yml пропиши api-token: \"ТВОЙ_ТОКЕН\"");
-            sender.sendMessage(ChatColor.YELLOW + "4. " + ChatColor.WHITE + "Перезапусти сервер или /donate reload");
+            if (args.length < 2) {
+                sender.sendMessage(ChatColor.RED + "Укажи API-токен: " + ChatColor.WHITE + "/donate setup <токен>");
+                sender.sendMessage(ChatColor.GRAY + "Токен получить: donatepay.ru → Мои кассы → API");
+                return true;
+            }
+
+            String token = args[1];
+            plugin.getConfig().set("api-token", token);
+            plugin.saveConfig();
+            plugin.reloadConfig();
+
+            // Настройка LuckPerms групп
+            sender.sendMessage(ChatColor.GREEN + "✅ Токен сохранён!");
             sender.sendMessage("");
-            sender.sendMessage(ChatColor.GRAY + "Игроки указывают ник в комментарии: " + ChatColor.WHITE + "ник PlayerName");
+            sender.sendMessage(ChatColor.YELLOW + "═ Настройка LuckPerms — выполни команды в консоли:");
+            sender.sendMessage(ChatColor.WHITE + "lp creategroup spark");
+            sender.sendMessage(ChatColor.WHITE + "lp creategroup flame");
+            sender.sendMessage(ChatColor.WHITE + "lp creategroup star");
+            sender.sendMessage(ChatColor.WHITE + "lp creategroup legend");
+            sender.sendMessage(ChatColor.WHITE + "lp creategroup overlord");
+            sender.sendMessage("");
+            sender.sendMessage(ChatColor.GREEN + "✅ Готово! Донат-система активирована.");
+            sender.sendMessage(ChatColor.GRAY + "Перезапусти сервер или перезагрузи плагин для старта опроса API.");
             return true;
         }
 
@@ -45,7 +62,7 @@ public class DonateCommand implements CommandExecutor {
             }
             plugin.reloadConfig();
             plugin.getDonateManager().shutdown();
-            sender.sendMessage(ChatColor.GREEN + "Конфиг перезагружен. Перезапусти сервер для применения API-токена.");
+            sender.sendMessage(ChatColor.GREEN + "Конфиг перезагружен. Перезапусти плагин для старта опроса API.");
             return true;
         }
 
