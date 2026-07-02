@@ -288,20 +288,11 @@ public class AuthListener implements Listener {
             p.sendMessage(ChatColor.translateAlternateColorCodes('&', " &7Через ВК: &aбесплатно&7, но нужен аккаунт ВК"));
             p.sendMessage(ChatColor.translateAlternateColorCodes('&', " &7Через донат: &e500р/мес&7, можно без ВК"));
             p.sendMessage(ChatColor.translateAlternateColorCodes('&', " &7Ссылка: &bhttps://donatepay.ru/don/dedworkshop"));
-        } else if (!plugin.getAuthManager().isRegistered(p)) {
-            p.sendMessage(ChatColor.translateAlternateColorCodes('&', " &f✅ &lВК успешно привязан!"));
-            p.sendMessage(ChatColor.translateAlternateColorCodes('&', " &fОстался последний шаг: &aпридумай надежный пароль&f."));
-            p.sendMessage("");
-            TextComponent msg = new TextComponent(ChatColor.translateAlternateColorCodes('&', " &a&l▶ НАЖМИ СЮДА ДЛЯ РЕГИСТРАЦИИ ◀"));
-            msg.setClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/register "));
-            p.spigot().sendMessage(msg);
-        } else if (!plugin.getAuthManager().isLoggedIn(p)) {
-            p.sendMessage(ChatColor.translateAlternateColorCodes('&', " &f &lС возвращением!"));
-            p.sendMessage(ChatColor.translateAlternateColorCodes('&', " &fПожалуйста, введи свой пароль для входа в игру."));
-            p.sendMessage("");
-            TextComponent msg = new TextComponent(ChatColor.translateAlternateColorCodes('&', " &e&l▶ НАЖМИ СЮДА ДЛЯ ВХОДА ◀"));
-            msg.setClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/login "));
-            p.spigot().sendMessage(msg);
+        } else {
+            // VK привязан — показываем статус 2FA
+            p.sendMessage(ChatColor.translateAlternateColorCodes('&', " &f✅ &lВК привязан!"));
+            p.sendMessage(ChatColor.translateAlternateColorCodes('&', " &fОжидание подтверждения через ВК..."));
+        }
         }
         p.sendMessage(ChatColor.translateAlternateColorCodes('&', "&b&m================================================="));
         p.sendMessage("");

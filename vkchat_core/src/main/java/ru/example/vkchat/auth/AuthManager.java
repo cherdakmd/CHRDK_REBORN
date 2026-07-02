@@ -393,11 +393,21 @@ public class AuthManager {
     }
 
     public boolean isWaiting2fa(Player p) {
+        // Проверяем новую TwoFactorManager систему
+        if (plugin.getTwoFactorManager() != null && plugin.getTwoFactorManager().isWaiting2fa(p.getUniqueId())) {
+            return true;
+        }
+        // Fallback на старую систему
         cleanupExpired2fa();
         return await2fa.containsKey(p.getUniqueId()) && !is2faExpired(p.getUniqueId());
     }
 
     public boolean isWaiting2fa(UUID uuid) {
+        // Проверяем новую TwoFactorManager систему
+        if (plugin.getTwoFactorManager() != null && plugin.getTwoFactorManager().isWaiting2fa(uuid)) {
+            return true;
+        }
+        // Fallback на старую систему
         cleanupExpired2fa();
         return await2fa.containsKey(uuid) && !is2faExpired(uuid);
     }
@@ -791,14 +801,13 @@ public class AuthManager {
         // Проверяем ВК-привязку
         if (!isLinked(p)) return false;
         // Проверяем, не ожидает ли 2FA
-        if (plugin.getTwoFactorManager() != null && plugin.getTwoFactorManager().isWaiting2fa(p.getUniqueId())) {
+        if (isWaiting2fa(p)) {
             return false; // Ожидает 2FA — не авторизован
         }
-        // Проверяем регистрацию (обязательно!)
-        if (!isRegistered(p)) return false;
-        // Проверяем вход
+        // Проверяем вход (ВК-игроки не требуют пароль)
         if (plugin.getConfig().getBoolean("auth.require-auth", true)) {
-            return isLoggedIn(p);
+            // Если привязан к ВК и прошёл 2FA — авторизован
+            return true;
         }
         return true;
     }
