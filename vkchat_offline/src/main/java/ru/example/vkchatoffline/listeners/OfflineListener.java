@@ -30,34 +30,21 @@ public class OfflineListener implements Listener {
             return;
         }
 
-        // Команды походов
-        if (cmd.equals("!поход") || cmd.equals("!походы") || cmd.equals("!пойти") || 
-            cmd.equals("!выбор") || cmd.equals("!статус") || cmd.equals("!герой") ||
-            cmd.equals("!навыки") || cmd.equals("!кампания") || cmd.equals("!характеристики") ||
-            cmd.equals("!статы") || cmd.equals("!бой") || cmd.equals("!продолжить") ||
-            cmd.equals("!забрать") || cmd.equals("!лечиться") || cmd.equals("!глава") ||
-            cmd.equals("!класс") || cmd.equals("!спутник") || cmd.equals("!лавка") ||
-            cmd.equals("!магазин") || cmd.equals("!купить") || cmd.equals("!навык") ||
-            cmd.equals("!госпиталь") || cmd.equals("!психика") || cmd.equals("!дневник") ||
-            cmd.equals("!ачивки") || cmd.equals("!тайник") || cmd.equals("!стеш") ||
-            cmd.equals("!отмена") || cmd.equals("!инфо")) {
-            plugin.getAdventureManager().handleCommand(sender, cmd, args);
-            e.setCancelled(true);
-            return;
-        }
+        // Все команды походов
+        plugin.getAdventureManager().handleCommand(sender, cmd, args);
+        e.setCancelled(true);
     }
 
     @EventHandler
     public void onVKMessage(VKMessageEvent e) {
         if (e.isCancelled()) return;
-        // Обрабатываем только ЛС (peer == sender)
         if (e.getPeer() != e.getSenderId()) return;
 
         String msg = e.getMessage() == null ? "" : e.getMessage().trim().toLowerCase();
         int sender = e.getSenderId();
 
-        // Обработка кнопок походов (текстовые метки с эмодзи)
-        if (msg.contains("поход") || msg.contains("🌲 лес") || msg.equals("лес")) {
+        // ═══ МАРШРУТЫ ═══
+        if (msg.contains("🌲") || msg.equals("лес")) {
             plugin.getAdventureManager().handleCommand(sender, "!пойти", new String[]{"!пойти", "лес"});
             e.setCancelled(true);
         } else if (msg.contains("⛏") || msg.contains("шахт")) {
@@ -75,7 +62,10 @@ public class OfflineListener implements Listener {
         } else if (msg.contains("🔥") || msg.contains("незер")) {
             plugin.getAdventureManager().handleCommand(sender, "!пойти", new String[]{"!пойти", "незер"});
             e.setCancelled(true);
-        } else if (msg.contains("герой") || msg.contains("👤")) {
+        }
+
+        // ═══ НАВИГАЦИЯ ═══
+        else if (msg.contains("герой") || msg.contains("👤")) {
             plugin.getAdventureManager().handleCommand(sender, "!герой", new String[]{});
             e.setCancelled(true);
         } else if (msg.contains("тайник") || msg.contains("🎒")) {
@@ -90,32 +80,65 @@ public class OfflineListener implements Listener {
         } else if (msg.contains("характеристики") || msg.contains("статы") || msg.contains("📊")) {
             plugin.getAdventureManager().handleCommand(sender, "!характеристики", new String[]{});
             e.setCancelled(true);
-        } else if (msg.contains("бой") || msg.contains("⚔")) {
-            plugin.getAdventureManager().handleCommand(sender, "!бой", new String[]{});
+        } else if (msg.contains("статус")) {
+            plugin.getAdventureManager().handleCommand(sender, "!статус", new String[]{});
             e.setCancelled(true);
-        } else if (msg.contains("продолжить") || msg.contains("▶")) {
-            plugin.getAdventureManager().handleCommand(sender, "!продолжить", new String[]{});
-            e.setCancelled(true);
-        } else if (msg.contains("рискнуть") || msg.contains("ударить")) {
+        }
+
+        // ═══ ВЫБОР ДЕЙСТВИЯ ═══
+        else if (msg.contains("рискнуть")) {
             plugin.getAdventureManager().handleCommand(sender, "!выбор", new String[]{"!выбор", "1"});
             e.setCancelled(true);
-        } else if (msg.contains("осторожно") || msg.contains("защита")) {
+        } else if (msg.contains("осторожно") || msg.contains("🛡")) {
             plugin.getAdventureManager().handleCommand(sender, "!выбор", new String[]{"!выбор", "2"});
             e.setCancelled(true);
-        } else if (msg.contains("исследовать") || msg.contains("приём")) {
+        } else if (msg.contains("исследовать") || msg.contains("🔍")) {
             plugin.getAdventureManager().handleCommand(sender, "!выбор", new String[]{"!выбор", "3"});
             e.setCancelled(true);
-        } else if (msg.contains("отступить") || msg.contains("побег")) {
+        } else if (msg.contains("отступить") || msg.contains("🏃")) {
             plugin.getAdventureManager().handleCommand(sender, "!выбор", new String[]{"!выбор", "4"});
             e.setCancelled(true);
-        } else if (msg.contains("атака")) {
+        }
+
+        // ═══ БОЙ ═══
+        else if (msg.contains("атака") || msg.contains("⚔")) {
             plugin.getAdventureManager().handleCombatAction(sender, ru.example.vkchatoffline.combat.CombatManager.CombatAction.ATTACK);
             e.setCancelled(true);
-        } else if (msg.contains("способность")) {
+        } else if (msg.contains("защита")) {
+            plugin.getAdventureManager().handleCombatAction(sender, ru.example.vkchatoffline.combat.CombatManager.CombatAction.DEFEND);
+            e.setCancelled(true);
+        } else if (msg.contains("способность") || msg.contains("🔥")) {
             plugin.getAdventureManager().handleCombatAction(sender, ru.example.vkchatoffline.combat.CombatManager.CombatAction.SKILL);
             e.setCancelled(true);
-        } else if (msg.contains("предмет") || msg.contains("зелье")) {
+        } else if (msg.contains("зелье") || msg.contains("🧪")) {
             plugin.getAdventureManager().handleCombatAction(sender, ru.example.vkchatoffline.combat.CombatManager.CombatAction.ITEM);
+            e.setCancelled(true);
+        } else if (msg.contains("побег")) {
+            plugin.getAdventureManager().handleCombatAction(sender, ru.example.vkchatoffline.combat.CombatManager.CombatAction.FLEE);
+            e.setCancelled(true);
+        }
+
+        // ═══ ПРОДОЛЖЕНИЕ ═══
+        else if (msg.contains("продолжить") || msg.contains("▶")) {
+            plugin.getAdventureManager().handleCommand(sender, "!продолжить", new String[]{});
+            e.setCancelled(true);
+        } else if (msg.contains("забрать") || msg.contains("🎉")) {
+            plugin.getAdventureManager().handleCommand(sender, "!забрать", new String[]{});
+            e.setCancelled(true);
+        } else if (msg.contains("лечиться") || msg.contains("🏥")) {
+            plugin.getAdventureManager().handleCommand(sender, "!лечиться", new String[]{});
+            e.setCancelled(true);
+        }
+
+        // ═══ ПОХОДЫ ═══
+        else if (msg.contains("поход") || msg.contains("⛺")) {
+            plugin.getAdventureManager().handleCommand(sender, "!поход", new String[]{});
+            e.setCancelled(true);
+        }
+
+        // ═══ ДРУГОЕ ═══
+        else if (msg.contains("смена") || msg.contains("⛏")) {
+            plugin.getShiftManager().handleCommand(0, sender, null, new String[]{"!смена"});
             e.setCancelled(true);
         }
     }

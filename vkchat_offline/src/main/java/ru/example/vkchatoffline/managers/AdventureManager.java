@@ -386,6 +386,7 @@ public class AdventureManager implements Listener {
             case "!кампания": showCampaign(vkId); break;
             case "!характеристики": case "!статы":
                 sendMessage(vkId, plugin.getCharacterManager().getCharacterInfo(vkId));
+                sendKeyboard(vkId, "Характеристики", OfflineKeyboardFactory.heroMenu());
                 break;
             case "!бой":
                 if (plugin.getCombatManager().isInCombat(vkId)) {
@@ -394,22 +395,121 @@ public class AdventureManager implements Listener {
                     sendKeyboard(vkId, "Бой", OfflineKeyboardFactory.combatActions());
                 } else {
                     sendMessage(vkId, "❌ Нет активного боя.");
+                    sendKeyboard(vkId, "Меню", OfflineKeyboardFactory.routeSelection());
                 }
                 break;
             case "!продолжить":
-                ActiveAdventure adv = active.get(vkId);
-                if (adv != null && adv.waitingChoice) {
-                    sendMessage(vkId, "⏳ Ожидание выбора...");
-                    if (isCombatEvent(adv.pendingType)) {
-                        sendKeyboard(vkId, "Бой", OfflineKeyboardFactory.combatActions());
-                    } else {
-                        sendKeyboard(vkId, "Выбор", OfflineKeyboardFactory.adventureChoices());
+                handleContinue(vkId);
+                break;
+            case "!забрать":
+                handleClaimLoot(vkId);
+                break;
+            case "!лечиться":
+                handleHeal(vkId);
+                break;
+            case "!глава":
+                if (args.length > 0) {
+                    try {
+                        int chapter = Integer.parseInt(args[0]);
+                        plugin.getCampaignManager().completeChapter(vkId, chapter);
+                        plugin.getRewardManager().grantChapterReward(vkId, chapter);
+                        sendMessage(vkId, "✅ Глава " + chapter + " завершена!");
+                    } catch (Exception e) {
+                        sendMessage(vkId, "❌ Неверный номер главы.");
                     }
-                } else {
-                    sendMessage(vkId, "❌ Нет активного похода.");
                 }
                 break;
+            case "!класс":
+                if (args.length > 0) {
+                    var character = plugin.getCharacterManager().getCharacter(vkId);
+                    character.className = args[0];
+                    sendMessage(vkId, "✅ Класс выбран: " + args[0]);
+                    sendKeyboard(vkId, "Герой", OfflineKeyboardFactory.heroMenu());
+                } else {
+                    sendKeyboard(vkId, "Выбор класса", OfflineKeyboardFactory.classSelection());
+                }
+                break;
+            case "!спутник":
+                if (args.length > 0) {
+                    var character = plugin.getCharacterManager().getCharacter(vkId);
+                    character.companionId = args[0];
+                    sendMessage(vkId, "✅ Спутник выбран: " + args[0]);
+                    sendKeyboard(vkId, "Герой", OfflineKeyboardFactory.heroMenu());
+                } else {
+                    sendKeyboard(vkId, "Выбор спутника", OfflineKeyboardFactory.companionSelection());
+                }
+                break;
+            case "!лавка": case "!магазин":
+                sendKeyboard(vkId, "Лавка", OfflineKeyboardFactory.shopMenu());
+                break;
+            case "!навык":
+                if (args.length > 0) {
+                    var character = plugin.getCharacterManager().getCharacter(vkId);
+                    boolean success = plugin.getSkillTreeManager().learnSkill(vkId, args[0], character);
+                    if (success) {
+                        sendMessage(vkId, "✅ Навык изучен!");
+                    } else {
+                        sendMessage(vkId, "❌ Не удалось изучить навык.");
+                    }
+                }
+                showSkills(vkId);
+                break;
+            case "!госпиталь":
+                sendKeyboard(vkId, "Госпиталь", OfflineKeyboardFactory.hospital());
+                break;
+            case "!тайник": case "!стеш":
+                sendKeyboard(vkId, "Тайник", OfflineKeyboardFactory.stashMenu());
+                break;
+            default:
+                showMenu(vkId);
+                break;
         }
+    }
+
+    // ═══ ОБРАБОТКА ПРОДОЛЖЕНИЯ ═══
+    private void handleContinue(int vkId) {
+        ActiveAdventure adv = active.get(vkId);
+        if (adv == null) {
+            sendMessage(vkId, "❌ Нет активного похода.");
+            sendKeyboard(vkId, "Меню", OfflineKeyboardFactory.routeSelection());
+            return;
+        }
+        if (adv.waitingChoice) {
+            sendMessage(vkId, "⏳ Ожидание выбора...");
+            if (isCombatEvent(adv.pendingType)) {
+                sendKeyboard(vkId, "Бой", OfflineKeyboardFactory.combatActions());
+            } else {
+                sendKeyboard(vkId, "Выбор", OfflineKeyboardFactory.adventureChoices());
+            }
+        } else {
+            sendMessage(vkId, "⏳ Следующее событие скоро...");
+            sendKeyboard(vkId, "Поход", OfflineKeyboardFactory.adventureChoices());
+        }
+    }
+
+    // ═══ ОБРАБОТКА ЗАБОРА ЛУТА ═══
+    private void handleClaimLoot(int vkId) {
+        var rewards = plugin.getRewardManager().getPendingRewards(vkId);
+        if (rewards != null && !rewards.isEmpty()) {
+            // Предметы уже выдаются при входе на сервер
+            sendMessage(vkId, "✅ Лут забран! Проверь инвентарь на сервере.");
+        } else {
+            sendMessage(vkId, "❌ Нет лута для забора.");
+        }
+        sendKeyboard(vkId, "Меню", OfflineKeyboardFactory.routeSelection());
+    }
+
+    // ═══ ОБРАБОТКА ЛЕЧЕНИЯ ═══
+    private void handleHeal(int vkId) {
+        var character = plugin.getCharacterManager().getCharacter(vkId);
+        if (character.hp >= character.maxHp) {
+            sendMessage(vkId, "✅ Ты полностью здоров!");
+        } else {
+            int healAmount = character.maxHp - character.hp;
+            character.hp = character.maxHp;
+            sendMessage(vkId, "💚 Вылечен! +" + healAmount + " HP");
+        }
+        sendKeyboard(vkId, "Герой", OfflineKeyboardFactory.heroMenu());
     }
 
     // ═══ СОХРАНЕНИЕ/ЗАГРУЗКА ═══
