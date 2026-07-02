@@ -102,8 +102,8 @@ public class VKKeyboardBuilder {
     public static String mainDmMenu() {
         return new VKKeyboardBuilder()
                 .oneTime(false)
-                .positive("👤 Аккаунт", "!аккаунт")
-                .secondary("📊 Профиль", "!профиль")
+                .positive("⛏ Смены", "!шахта")
+                .textButton("👤 Аккаунт", "!аккаунт", "primary")
                 .row()
                 .secondary("📊 Профиль", "!профиль")
                 .secondary("⭐ Рейтинг", "!рейтинг")
