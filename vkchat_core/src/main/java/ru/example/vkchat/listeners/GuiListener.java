@@ -69,7 +69,7 @@ public class GuiListener implements Listener {
         inv.setItem(22, item(Material.TOTEM_OF_UNDYING, ChatColor.LIGHT_PURPLE + "🏺 Артефакты", ChatColor.GRAY + "Артефакты, эликсиры, свитки.", ChatColor.YELLOW + "/artifacts"));
         inv.setItem(23, item(Material.CLOCK, ChatColor.GOLD + "🌋 События", ChatColor.GRAY + "Аирдропы, боссы, катаклизмы.", ChatColor.YELLOW + "/events"));
         inv.setItem(24, item(Material.ZOMBIE_HEAD, ChatColor.DARK_RED + "☠ Охота", ChatColor.GRAY + "Элитные мобы, контракты, осады.", ChatColor.YELLOW + "/mobs"));
-        inv.setItem(25, item(Material.BARREL, ChatColor.GOLD + "🎒 Тайник", ChatColor.GRAY + "Лут из оффлайн-походов и наград.", ChatColor.YELLOW + "/stash"));
+        inv.setItem(25, item(Material.GOLD_INGOT, ChatColor.GOLD + "💰 Донат", ChatColor.GRAY + "Поддержи сервер — получи бонусы!", ChatColor.GRAY + "5 статусов от 250₽ до 5000₽ на 30 дней.", ChatColor.YELLOW + "Нажми чтобы узнать ссылку"));
 
         inv.setItem(28, item(Material.BOOK, ChatColor.YELLOW + "💼 Профессии", ChatColor.GRAY + "Jobs, навыки, blacksmith для ковки.", ChatColor.YELLOW + "/jobs"));
         inv.setItem(29, item(Material.ENDER_PEARL, ChatColor.AQUA + "⏳ Телепорты", ChatColor.GRAY + "RTP, home, TPA.", ChatColor.YELLOW + "/rtp /home /tpa"));
@@ -141,7 +141,7 @@ public class GuiListener implements Listener {
         inv.setItem(12, item(Material.COMPASS, ChatColor.AQUA + "Шаг 2: Безопасный старт", ChatColor.GRAY + "Найди место через RTP и поставь приват.", ChatColor.YELLOW + "/rtp, /nation buyclaim"));
         inv.setItem(14, item(Material.WOODEN_PICKAXE, ChatColor.GOLD + "Шаг 3: Профессии", ChatColor.GRAY + "Возьми работу и копи уровни.", ChatColor.YELLOW + "/jobs"));
         inv.setItem(16, item(Material.IRON_CHESTPLATE, ChatColor.RED + "Шаг 4: Gear", ChatColor.GRAY + "Куй осторожно: репутация ценная.", ChatColor.YELLOW + "/forge, /runes"));
-        inv.setItem(28, item(Material.BARREL, ChatColor.YELLOW + "Шаг 5: Награды", ChatColor.GRAY + "Лут со смен и наград лежит тут.", ChatColor.YELLOW + "/stash"));
+        inv.setItem(28, item(Material.CHEST, ChatColor.YELLOW + "Шаг 5: Награды", ChatColor.GRAY + "Лут со смен и наград — тут.", ChatColor.YELLOW + "/stash"));
         inv.setItem(49, backItem());
         p.openInventory(inv);
     }
@@ -183,7 +183,7 @@ public class GuiListener implements Listener {
             case 22: run(p, "artifacts"); break;
             case 23: run(p, "events"); break;
             case 24: run(p, "mobs"); break;
-            case 25: run(p, "stash"); break;
+            case 25: p.closeInventory(); p.sendMessage(ChatColor.GOLD + "💰 Поддержать сервер: " + ChatColor.WHITE + "https://donatepay.ru/don/CHRDK"); p.sendMessage(ChatColor.GRAY + "5 статусов на 30 дней со скидками до -65%!"); p.sendMessage(ChatColor.YELLOW + "Подробнее: /donate info"); break;
             case 28: run(p, "jobs"); break;
             case 29: p.closeInventory(); p.sendMessage(ChatColor.AQUA + "Телепорты: /rtp, /sethome, /home, /tpa"); break;
             case 30: run(p, "salvage"); break;
