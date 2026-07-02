@@ -247,31 +247,21 @@ public class AuthListener implements Listener {
     private void sendJoinInstructions(Player p) {
         // Проверяем, ожидает ли 2FA
         if (plugin.getTwoFactorManager() != null && plugin.getTwoFactorManager().isWaiting2fa(p.getUniqueId())) {
+            // Код уже отправлен через TwoFactorManager — не дублируем, просто напоминаем
             p.sendMessage("");
-            p.sendMessage(ChatColor.translateAlternateColorCodes('&', "&b&m================================================="));
-            p.sendMessage("§b📱 Код подтверждения отправлен в ЛС ВК!");
-            p.sendMessage("§7Введи в чате: /2fa <код>");
-            p.sendMessage(ChatColor.translateAlternateColorCodes('&', "&b&m================================================="));
+            p.sendMessage(ChatColor.translateAlternateColorCodes('&', "&7⌛ Ожидание кода из ВК... Введи &e/2fa <код>&7."));
             p.sendMessage("");
             return;
         }
 
-        p.sendMessage("");
-        p.sendMessage(ChatColor.translateAlternateColorCodes('&', "&b&m================================================="));
         if (!plugin.getAuthManager().isLinked(p)) {
-            p.sendMessage(ChatColor.translateAlternateColorCodes('&', " &f &lПриветствуем на сервере!"));
-            p.sendMessage(ChatColor.translateAlternateColorCodes('&', " &fДля игры необходимо привязать аккаунт к &bВКонтакте&f."));
-            p.sendMessage("");
-            TextComponent msg = new TextComponent(ChatColor.translateAlternateColorCodes('&', " &a&l▶ НАЖМИ СЮДА, ЧТОБЫ ПОЛУЧИТЬ КОД ◀"));
+            p.sendMessage(ChatColor.translateAlternateColorCodes('&', " &fПривет! Для игры нужна &bпривязка ВК&f."));
+            TextComponent msg = new TextComponent(ChatColor.translateAlternateColorCodes('&', " &a&l▶ НАЖМИ СЮДА ДЛЯ ПРИВЯЗКИ ◀"));
             msg.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/vklink"));
             p.spigot().sendMessage(msg);
-            p.sendMessage("");
         } else {
-            // VK привязан — показываем статус 2FA
-            p.sendMessage(ChatColor.translateAlternateColorCodes('&', " &a✅ &lВК привязан!"));
-            p.sendMessage(ChatColor.translateAlternateColorCodes('&', " &7Проверь ЛС ВК — тебе отправлен код."));
+            p.sendMessage(ChatColor.translateAlternateColorCodes('&', " &a✅ ВК привязан! Проверь ЛС ВК."));
         }
-        p.sendMessage(ChatColor.translateAlternateColorCodes('&', "&b&m================================================="));
         p.sendMessage("");
     }
 
