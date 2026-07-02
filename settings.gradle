@@ -1,5 +1,5 @@
 rootProject.name = 'VKChat_Ultimate'
-include 'vkchat_jobs', 'vkchat_events', 'vkchat_gear', 'vkchat_core', 'vkchat_nations', 'vkchat_mobs', 'vkchat_artifacts', 'vkchat_offline', 'vkchat_teleport'
+include 'vkchat_jobs', 'vkchat_events', 'vkchat_gear', 'vkchat_core', 'vkchat_nations', 'vkchat_mobs', 'vkchat_artifacts', 'vkchat_teleport'
 include 'vkchat_announcer'
 include 'vkchat_starter'
 include 'vkchat_market'

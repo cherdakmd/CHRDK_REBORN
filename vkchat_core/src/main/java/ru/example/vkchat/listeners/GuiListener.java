@@ -75,9 +75,7 @@ public class GuiListener implements Listener {
         inv.setItem(29, item(Material.ENDER_PEARL, ChatColor.AQUA + "⏳ Телепорты", ChatColor.GRAY + "RTP, home, TPA.", ChatColor.YELLOW + "/rtp /home /tpa"));
         inv.setItem(30, item(Material.CHEST, ChatColor.GREEN + "🗑 Разбор", ChatColor.GRAY + "Утилизация MMO-предметов.", ChatColor.YELLOW + "/salvage"));
         inv.setItem(31, item(Material.EMERALD_BLOCK, ChatColor.GREEN + "📈 Рынок", ChatColor.GRAY + "Покупка и продажа ресурсов.", ChatColor.YELLOW + "/market"));
-        inv.setItem(32, item(Material.CAMPFIRE, ChatColor.GOLD + "⛺ Оффлайн DnD", ChatColor.GRAY + "ЛС ВК: d20, классы, спутники, дневник.", ChatColor.YELLOW + "!поход"));
-        inv.setItem(33, item(Material.MAP, ChatColor.WHITE + "📖 Wiki и помощь", ChatColor.GRAY + "Документация, FAQ и команды.", ChatColor.YELLOW + "Открыть помощь"));
-        inv.setItem(34, item(Material.MAP, ChatColor.WHITE + "📖 Помощь", ChatColor.GRAY + "Wiki, команды, FAQ, подсказки.", ChatColor.YELLOW + "Открыть подраздел"));
+        inv.setItem(32, item(Material.MAP, ChatColor.WHITE + "📖 Помощь", ChatColor.GRAY + "Wiki, команды, FAQ, подсказки.", ChatColor.YELLOW + "Открыть подраздел"));
         inv.setItem(40, donateStatusItem());
         p.openInventory(inv);
     }

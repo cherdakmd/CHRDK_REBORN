@@ -33,8 +33,6 @@ public class VKCommandHandler {
             String help = "╔═══════════════════════════╗\n" +
                     "║   🎮 CHRDK REBORN 🎮      ║\n" +
                     "╚═══════════════════════════╝\n\n" +
-                    " ⚔ Приключения:\n" +
-                    " !adv - Оффлайн RPG-походы\n\n" +
                     " 📊 Профиль:\n" +
                     " !профиль - Твоя статистика\n" +
                     " !рейтинг - Репутация\n" +
@@ -60,7 +58,6 @@ public class VKCommandHandler {
             if (peer < 2000000000) {
                 String welcome = "🏠 Главное меню CHRDK REBORN\n\n" +
                         "Выбери режим:\n" +
-                        "⚔ Приключения — RPG-походы через ВК\n" +
                         "👤 Аккаунт — управление профилем\n\n" +
                         "Или используй команды напрямую.";
                 plugin.getVkManager().sendKeyboard(peer, welcome, VKKeyboardBuilder.mainDmMenu());
