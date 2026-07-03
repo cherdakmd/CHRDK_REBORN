@@ -254,6 +254,7 @@ public class ForgeCommand implements CommandExecutor, Listener, TabCompleter {
                     resetConfirmButton(title, top);
                 }
             }
+            e.setCancelled(true);
             return;
         }
 

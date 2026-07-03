@@ -19,6 +19,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
 import ru.example.vkchatgear.VKChatGearPlugin;
 import ru.example.vkchat.VKChatPlugin;
+import ru.example.vkchat.util.VKChatBridge;
 import org.bukkit.command.TabCompleter;
 
 import java.util.ArrayList;
@@ -118,22 +119,23 @@ public class SalvageCommand implements CommandExecutor, Listener, TabCompleter {
     public void onInventoryClick(InventoryClickEvent e) {
         if (!e.getView().getTitle().equals(GUI_TITLE)) return;
         
+        e.setCancelled(true); // Всегда отменяем — защита от двойного клика
         int slot = e.getRawSlot();
-        // Разрешаем кликать только в инвентарь игрока (>= 27) и в средний ряд (9..17)
-        if (slot >= 0 && slot < 27) {
-            if (slot < 9 || slot > 17) {
-                e.setCancelled(true);
-                
-                if (slot == 22) {
-                    Player p = (Player) e.getWhoClicked();
-                    processSalvage(p, e.getInventory());
-                }
-            }
+        
+        // Разрешаем перемещение в средний ряд (слоты для предметов) и инвентарь игрока
+        if ((slot >= 9 && slot <= 17) || slot >= 27) {
+            e.setCancelled(false);
+            return;
         }
-      }
+        
+        if (slot == 22) {
+            Player p = (Player) e.getWhoClicked();
+            processSalvage(p, e.getInventory());
+        }
+    }
 
     private void processSalvage(Player p, Inventory inv) {
-        int vkId = VKChatPlugin.getInstance().getApi().getLinkedVkId(p);
+        int vkId = VKChatBridge.getLinkedVkId(p);
         if (vkId == -1) {
             p.sendMessage(ChatColor.RED + "❌ Для утилизации привяжите свой ВКонтакте! (/vklink)");
             return;
@@ -164,7 +166,7 @@ public class SalvageCommand implements CommandExecutor, Listener, TabCompleter {
 
         // Общая стоимость разборки (налог): 5 репутации за каждый предмет в стопке
         int totalTax = itemsCount * 5;
-        int currentRep = VKChatPlugin.getInstance().getApi().getReputation(vkId);
+        int currentRep = VKChatBridge.getReputation(vkId);
 
         if (currentRep < totalTax) {
             p.sendMessage(ChatColor.RED + "❌ Недостаточно репутации для массового налога разборки! Требуется " + totalTax + " реп. ВК (У вас: " + currentRep + ").");
@@ -173,7 +175,7 @@ public class SalvageCommand implements CommandExecutor, Listener, TabCompleter {
         }
 
         // Списываем налог
-        VKChatPlugin.getInstance().getApi().takeReputation(vkId, totalTax);
+        VKChatBridge.takeReputation(vkId, totalTax);
 
         int totalFinalRep = 0;
         int totalFinalExp = 0;
@@ -263,7 +265,7 @@ public class SalvageCommand implements CommandExecutor, Listener, TabCompleter {
         }
 
         // Начисляем репутацию и опыт
-        VKChatPlugin.getInstance().getApi().addReputation(vkId, totalFinalRep);
+        VKChatBridge.addPoints(vkId, totalFinalRep);
         p.giveExp(totalFinalExp);
 
         // Объединяем одинаковые предметы для чистого вывода в чат и инвентарь
