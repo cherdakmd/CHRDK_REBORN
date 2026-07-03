@@ -9,7 +9,7 @@ shifts:
     name: "Короткая смена"
     icon: "⛏"
     duration-minutes: 60
-    rare-chance: 5           # Шанс редкого лута, %
+    rare-chance: 3           # Шанс редкого лута, %
     rep-min: 50
     rep-max: 100
     resources:
@@ -20,7 +20,7 @@ shifts:
     name: "Стандартная смена"
     icon: "⛏⛏"
     duration-minutes: 180
-    rare-chance: 8
+    rare-chance: 6
     rep-min: 200
     rep-max: 400
     resources:
@@ -34,7 +34,7 @@ shifts:
     name: "Ночная смена"
     icon: "⛏⛏⛏"
     duration-minutes: 480
-    rare-chance: 12
+    rare-chance: 10
     rep-min: 600
     rep-max: 1000
     resources:
@@ -57,5 +57,5 @@ shifts:
       - "NETHERITE_SCRAP:1:2"
       - "GOLD_INGOT:5:12"
       - "IRON_INGOT:10:20"
-      - "ANCIENT_DEBRIS:1:1"
+      - "ANCIENT_DEBRIS:1:2"
       - "RAW_GOLD:2:5"

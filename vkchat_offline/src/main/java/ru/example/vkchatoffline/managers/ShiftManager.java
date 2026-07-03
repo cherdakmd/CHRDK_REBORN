@@ -331,22 +331,23 @@ public class ShiftManager {
     }
 
     private int getRareLootChance(String key) {
-        // Базовый шанс из конфига + бонус за длительность
+        // Шанс из конфига: базовый + бонус за длительность (но не больше 25%)
         int base = plugin.getConfig().getInt("shifts." + key + ".rare-chance", 5);
         int minutes = plugin.getConfig().getInt("shifts." + key + ".duration-minutes", 60);
-        return base + (minutes / 60); // +1% за каждый час
+        int bonus = Math.min(minutes / 120, 10); // +1% за каждые 2 часа, макс +10%
+        return Math.min(base + bonus, 25);
     }
 
     private ItemStack rollRareLoot(Random rnd) {
         int roll = rnd.nextInt(100);
-        if (roll < 35) return new ItemStack(Material.DIAMOND, 1 + rnd.nextInt(2));
-        if (roll < 55) return new ItemStack(Material.EMERALD, 1 + rnd.nextInt(2));
-        if (roll < 70) return new ItemStack(Material.ANCIENT_DEBRIS, 1);
-        if (roll < 80) return new ItemStack(Material.NETHERITE_SCRAP, 1 + rnd.nextInt(2));
-        if (roll < 88) return new ItemStack(Material.GOLDEN_APPLE, 1 + rnd.nextInt(2));
-        if (roll < 94) return new ItemStack(Material.ENCHANTED_GOLDEN_APPLE, 1);
-        if (roll < 97) return new ItemStack(Material.ENDER_PEARL, 2 + rnd.nextInt(4));
-        if (roll < 99) return new ItemStack(Material.SHULKER_SHELL, 1 + rnd.nextInt(2));
-        return new ItemStack(Material.NETHER_STAR, 1); // 1%
+        if (roll < 25) return new ItemStack(Material.DIAMOND, 2 + rnd.nextInt(3));
+        if (roll < 45) return new ItemStack(Material.EMERALD, 2 + rnd.nextInt(3));
+        if (roll < 60) return new ItemStack(Material.NETHERITE_SCRAP, 1 + rnd.nextInt(3));
+        if (roll < 72) return new ItemStack(Material.ANCIENT_DEBRIS, 1 + rnd.nextInt(2));
+        if (roll < 82) return new ItemStack(Material.GOLDEN_APPLE, 2 + rnd.nextInt(3));
+        if (roll < 90) return new ItemStack(Material.ENCHANTED_GOLDEN_APPLE, 1);
+        if (roll < 95) return new ItemStack(Material.ENDER_PEARL, 4 + rnd.nextInt(4));
+        if (roll < 98) return new ItemStack(Material.SHULKER_SHELL, 1 + rnd.nextInt(2));
+        return new ItemStack(Material.NETHER_STAR, 1); // 2%
     }
 }
