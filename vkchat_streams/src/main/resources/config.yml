@@ -16,9 +16,19 @@ twitch:
   channels:
     - "example_channel"
 
+# Ссылки на Ютуб и ВК стримеров (по имени Twitch-канала)
+# Будут показаны в анонсе вместе со ссылкой на Twitch
+streamers:
+  example_channel:
+    youtube: "https://youtube.com/@example"
+    vk: "https://vk.com/example"
+
 announcement:
   # Задержка между повторными анонсами одного канала (секунды)
   cooldown-seconds: 300
+
+  # Клавиатура с кнопками в беседе ВК
+  keyboard: true
 
   # Анонс в беседу ВК
   chat:
@@ -26,11 +36,11 @@ announcement:
     - "🎮 {channel} — {game}"
     - "📺 {title}"
     - "👁 {viewers} зрителей"
-    - "🔗 {url}"
+    - "🔗 {links}"
     - "💎 /stream reward — награда за просмотр!"
 
   # Анонс в ЛС игрокам через ВК бота
-  player-dm: "🎮 {channel} запустил стрим! 📺 {title} 👁 {viewers} зрителей 🔗 {url} 💎 /stream reward"
+  player-dm: "🎮 {channel} запустил стрим! 📺 {title} 👁 {viewers} зрителей 🔗 {url}"
 
 # ═══ НАГРАДЫ ═══
 rewards:

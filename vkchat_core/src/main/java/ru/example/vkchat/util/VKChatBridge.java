@@ -67,6 +67,17 @@ public class VKChatBridge {
         try { a.sendToMainChat(text); return true; } catch (Exception e) { return false; }
     }
 
+    public static boolean sendKeyboard(int peerId, String text, String keyboardJson) {
+        if (text == null || peerId <= 0) return false;
+        VKChatAPI a = api(); if (a == null) return false;
+        try { a.sendKeyboard(peerId, text, keyboardJson); return true; } catch (Exception e) { return false; }
+    }
+
+    public static int getMainChatPeerId() {
+        if (!available || plugin == null) return -1;
+        try { return plugin.getConfig().getInt("vk.peer-id", -1); } catch (Exception e) { return -1; }
+    }
+
     public static boolean isBloodMoonActive() {
         if (!available) return false;
         try { return plugin.getBloodMoonManager() != null && plugin.getBloodMoonManager().isActive(); } catch (Exception e) { return false; }
