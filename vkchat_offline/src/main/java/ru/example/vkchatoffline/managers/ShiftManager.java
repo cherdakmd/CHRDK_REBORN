@@ -6,6 +6,7 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 import ru.example.vkchat.VKChatPlugin;
 import ru.example.vkchatoffline.VKChatOfflinePlugin;
 
@@ -340,14 +341,80 @@ public class ShiftManager {
 
     private ItemStack rollRareLoot(Random rnd) {
         int roll = rnd.nextInt(100);
-        if (roll < 25) return new ItemStack(Material.DIAMOND, 2 + rnd.nextInt(3));
-        if (roll < 45) return new ItemStack(Material.EMERALD, 2 + rnd.nextInt(3));
-        if (roll < 60) return new ItemStack(Material.NETHERITE_SCRAP, 1 + rnd.nextInt(3));
-        if (roll < 72) return new ItemStack(Material.ANCIENT_DEBRIS, 1 + rnd.nextInt(2));
-        if (roll < 82) return new ItemStack(Material.GOLDEN_APPLE, 2 + rnd.nextInt(3));
-        if (roll < 90) return new ItemStack(Material.ENCHANTED_GOLDEN_APPLE, 1);
-        if (roll < 95) return new ItemStack(Material.ENDER_PEARL, 4 + rnd.nextInt(4));
-        if (roll < 98) return new ItemStack(Material.SHULKER_SHELL, 1 + rnd.nextInt(2));
-        return new ItemStack(Material.NETHER_STAR, 1); // 2%
+        if (roll < 18) return new ItemStack(Material.DIAMOND, 2 + rnd.nextInt(3));
+        if (roll < 33) return new ItemStack(Material.EMERALD, 2 + rnd.nextInt(3));
+        if (roll < 45) return new ItemStack(Material.NETHERITE_SCRAP, 1 + rnd.nextInt(3));
+        if (roll < 55) return new ItemStack(Material.ANCIENT_DEBRIS, 1 + rnd.nextInt(2));
+        if (roll < 64) return new ItemStack(Material.GOLDEN_APPLE, 2 + rnd.nextInt(3));
+        if (roll < 71) return new ItemStack(Material.ENCHANTED_GOLDEN_APPLE, 1);
+        if (roll < 77) return new ItemStack(Material.ENDER_PEARL, 4 + rnd.nextInt(4));
+        if (roll < 82) return new ItemStack(Material.SHULKER_SHELL, 1 + rnd.nextInt(2));
+        if (roll < 86) return createPluginItem("rune_token");
+        if (roll < 89) return createPluginItem("artifact_shard");
+        if (roll < 92) return new ItemStack(Material.EXPERIENCE_BOTTLE, 8 + rnd.nextInt(16));
+        if (roll < 95) return createPluginItem("rep_boost");
+        if (roll < 97) return createPluginItem("speed_boost");
+        if (roll < 99) return createPluginItem("random_artifact");
+        return new ItemStack(Material.NETHER_STAR, 1); // 1%
+    }
+
+    private ItemStack createPluginItem(String type) {
+        switch (type) {
+            case "rune_token": {
+                ItemStack item = new ItemStack(Material.GOLD_NUGGET, 1);
+                ItemMeta meta = item.getItemMeta();
+                if (meta != null) {
+                    meta.setDisplayName("§6✦ Древний Жетон Рун");
+                    meta.setLore(java.util.Arrays.asList("§7Обменяйте в /runes на случайную руну", "§7Дроп из шахтёрских смен"));
+                }
+                item.setItemMeta(meta);
+                return item;
+            }
+            case "artifact_shard": {
+                ItemStack item = new ItemStack(Material.PRISMARINE_CRYSTALS, 1);
+                ItemMeta meta = item.getItemMeta();
+                if (meta != null) {
+                    meta.setDisplayName("§5✦ Осколок Артефакта");
+                    meta.setLore(java.util.Arrays.asList("§7Обменяйте в /artifacts на артефакт", "§7Дроп из шахтёрских смен"));
+                }
+                item.setItemMeta(meta);
+                return item;
+            }
+            case "rep_boost": {
+                ItemStack item = new ItemStack(Material.PAPER, 1);
+                ItemMeta meta = item.getItemMeta();
+                if (meta != null) {
+                    meta.setDisplayName("§e📜 Свиток Репутации");
+                    meta.setLore(java.util.Arrays.asList("§7ПКМ для получения +500 репутации ВК", "§7Дроп из шахтёрских смен"));
+                }
+                item.setItemMeta(meta);
+                return item;
+            }
+            case "speed_boost": {
+                ItemStack item = new ItemStack(Material.SUGAR, 1);
+                ItemMeta meta = item.getItemMeta();
+                if (meta != null) {
+                    meta.setDisplayName("§b⚡ Свиток Скорости");
+                    meta.setLore(java.util.Arrays.asList("§7ПКМ — Speed II на 30 минут", "§7Дроп из шахтёрских смен"));
+                }
+                item.setItemMeta(meta);
+                return item;
+            }
+            case "random_artifact": {
+                try {
+                    if (Bukkit.getPluginManager().isPluginEnabled("VKChatArtifacts")) {
+                        Class<?> factory = Class.forName("ru.example.vkchatartifacts.items.ArtifactFactory");
+                        Object plugin = Class.forName("ru.example.vkchatartifacts.VKChatArtifactsPlugin")
+                                .getMethod("getInstance").invoke(null);
+                        return (ItemStack) factory.getMethod("generateArtifact", plugin.getClass(), boolean.class)
+                                .invoke(null, plugin, false);
+                    }
+                } catch (Exception ignored) {}
+                // Fallback: даём звезду незера
+                return new ItemStack(Material.NETHER_STAR, 1);
+            }
+            default:
+                return new ItemStack(Material.DIAMOND, 1);
+        }
     }
 }
