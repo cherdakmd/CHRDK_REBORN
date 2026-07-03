@@ -169,12 +169,16 @@ public class StreamChecker {
         // VK чат
         if (plugin.getConfig().getBoolean("announcement.vk-enabled", true)) {
             for (String line : plugin.getConfig().getStringList("announcement.vk")) {
-                VKChatBridge.sendToMainChat(format(line, e, linksVk, linksGame));
+                String msg = format(line, e, linksVk, linksGame).trim();
+                if (!msg.isEmpty()) {
+                    VKChatBridge.sendToMainChat(msg);
+                }
             }
         }
 
         // VK ЛС админам
         for (int vkId : plugin.getConfig().getIntegerList("streams.admin-vk-ids")) {
+            if (vkId <= 0) continue;
             String dmTemplate = plugin.getConfig().getString("announcement.admin-dm",
                     "⚡ {channel} запустил стрим на {platform}!\n{title}\n{url}");
             VKChatBridge.sendMessage(vkId, format(dmTemplate, e, linksVk, linksGame));
