@@ -17,3 +17,6 @@ permissions:
   vkchat.nations.player:
     description: Доступ к выбору нации, приватам и фракционному меню
     default: true
+  vkchat.nations.bypass:
+    description: Обход защиты приватов (строительство везде)
+    default: op

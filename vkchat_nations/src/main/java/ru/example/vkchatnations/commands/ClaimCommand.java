@@ -9,9 +9,15 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import ru.example.vkchatnations.VKChatNationsPlugin;
 import ru.example.vkchatnations.data.ChunkClaim;
+import ru.example.vkchat.VKChatPlugin;
+
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class ClaimCommand implements CommandExecutor {
     private final VKChatNationsPlugin plugin;
+    private final Map<UUID, Long> homeCooldown = new ConcurrentHashMap<>();
 
     public ClaimCommand(VKChatNationsPlugin plugin) {
         this.plugin = plugin;
@@ -24,7 +30,7 @@ public class ClaimCommand implements CommandExecutor {
             return true;
         }
         if (args.length == 0 || args[0].equalsIgnoreCase("help")) {
-            p.sendMessage(ChatColor.GOLD + "/claim home " + ChatColor.GRAY + "— телепорт к дому привата");
+            p.sendMessage(ChatColor.GOLD + "/claim home " + ChatColor.GRAY + "— телепорт к дому привата (20 реп, кулдаун 5 мин)");
             return true;
         }
         if (args[0].equalsIgnoreCase("home")) {
@@ -40,8 +46,28 @@ public class ClaimCommand implements CommandExecutor {
                 p.sendMessage(ChatColor.RED + "Точка дома не установлена. Установи в меню привата.");
                 return true;
             }
+            // Кулдаун
+            long last = homeCooldown.getOrDefault(p.getUniqueId(), 0L);
+            if (System.currentTimeMillis() - last < 300000) {
+                long left = 300000 - (System.currentTimeMillis() - last);
+                p.sendMessage(ChatColor.RED + "⏳ Кулдаун: " + (left / 60000) + " мин " + ((left % 60000) / 1000) + " сек");
+                return true;
+            }
+            // Плата репутацией
+            int vkId = VKChatPlugin.getInstance().getApi().getLinkedVkId(p);
+            if (vkId == -1) {
+                p.sendMessage(ChatColor.RED + "❌ Привяжите ВК! (/vklink)");
+                return true;
+            }
+            int cost = plugin.getConfig().getInt("claim.teleport-cost", 20);
+            if (VKChatPlugin.getInstance().getApi().getReputation(vkId) < cost) {
+                p.sendMessage(ChatColor.RED + "❌ Нужно " + cost + " репутации для телепорта к дому.");
+                return true;
+            }
+            VKChatPlugin.getInstance().getApi().takeReputation(vkId, cost);
+            homeCooldown.put(p.getUniqueId(), System.currentTimeMillis());
             p.teleport(new Location(Bukkit.getWorld(claim.getWorldName()), claim.getHomeX(), claim.getHomeY(), claim.getHomeZ()));
-            p.sendMessage(ChatColor.GREEN + "♲ Телепорт к дому привата.");
+            p.sendMessage(ChatColor.GREEN + "♲ Телепорт к дому привата. Списано " + cost + " реп.");
             return true;
         }
         p.sendMessage(ChatColor.RED + "Неизвестная команда. /claim home");

@@ -21,6 +21,7 @@ import ru.example.vkchat.VKChatPlugin;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -28,7 +29,7 @@ public class MapGui implements Listener {
     private final VKChatNationsPlugin plugin;
     private final NamespacedKey chunkKeyX;
     private final NamespacedKey chunkKeyZ;
-    private final Map<Player, Long> tpCooldowns = new HashMap<>();
+    private final Map<Player, Long> tpCooldowns = new ConcurrentHashMap<>();
 
     public MapGui(VKChatNationsPlugin plugin) {
         this.plugin = plugin;

@@ -41,7 +41,7 @@ public class NationManager {
         this.plugin = plugin;
         load();
         // Авто-продление прочности каждые 10 минут
-        plugin.getServer().getScheduler().runTaskTimerAsynchronously(plugin, () -> {
+        plugin.getServer().getScheduler().runTaskTimer(plugin, () -> {
             for (ChunkClaim claim : nationClaims.values()) {
                 if (!claim.isAutoPayEnabled()) continue;
                 if (claim.getDurability() >= claim.getMaxDurability() * 0.2) continue;
@@ -316,7 +316,7 @@ public class NationManager {
     // ==========================================
     
     public ChunkClaim getClaimAt(Location loc) {
-        if (loc == null) return null;
+        if (loc == null || loc.getWorld() == null) return null;
         String world = loc.getWorld().getName();
         int x = loc.getBlockX();
         int z = loc.getBlockZ();
@@ -393,8 +393,9 @@ public class NationManager {
                 currentCount++;
             }
         }
-        if (currentCount >= 5) {
-            p.sendMessage(ChatColor.RED + "❌ Лимит приватов! Вы не можете установить более 5 блоков привата (У вас: " + currentCount + "/5).");
+        int maxClaims = plugin.getConfig().getInt("claim.max-per-player", 5);
+        if (currentCount >= maxClaims) {
+            p.sendMessage(ChatColor.RED + "❌ Лимит приватов! Вы не можете установить более " + maxClaims + " блоков привата (У вас: " + currentCount + "/" + maxClaims + ").");
             return false;
         }
 

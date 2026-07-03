@@ -28,6 +28,17 @@ public class NationCommand implements CommandExecutor, TabCompleter {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+        // Команда reload доступна и консоли
+        if (args.length > 0 && args[0].equalsIgnoreCase("reload")) {
+            if (!sender.hasPermission("vkchat.nations.admin") && !sender.isOp()) {
+                sender.sendMessage(ChatColor.RED + "Нет прав.");
+                return true;
+            }
+            plugin.reloadConfig();
+            sender.sendMessage(ChatColor.GREEN + "✓ Конфиг наций перезагружен.");
+            return true;
+        }
+
         if (!(sender instanceof Player)) return true;
         Player p = (Player) sender;
 
@@ -532,7 +543,7 @@ public class NationCommand implements CommandExecutor, TabCompleter {
         banks.sort(java.util.Collections.reverseOrder());
         int myBank = plugin.getNationManager().getBank(nation);
         for (int i = 0; i < banks.size(); i++) {
-            if (banks.get(i) == myBank) return i + 1;
+            if (banks.get(i).equals(myBank)) return i + 1;
         }
         return banks.size();
     }

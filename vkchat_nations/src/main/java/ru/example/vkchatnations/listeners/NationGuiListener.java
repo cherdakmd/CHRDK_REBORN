@@ -60,8 +60,13 @@ public class NationGuiListener implements Listener {
 
     @EventHandler
     public void onInventoryClose(InventoryCloseEvent event) {
-        if (event.getView().getTitle().equals(NATION_SELECT_TITLE)) {
-            Player p = (Player) event.getPlayer();
+        String title = event.getView().getTitle();
+        Player p = (Player) event.getPlayer();
+        // Чистим activeFeedingClaims при закрытии GUI привата
+        if (title.equals(CLAIM_FEED_TITLE) || title.equals(CLAIM_UPGRADE_TITLE)) {
+            activeFeedingClaims.remove(p.getUniqueId());
+        }
+        if (title.equals(NATION_SELECT_TITLE)) {
             // Если игрок авторизован, но пытается закрыть меню выбора наций без выбора — переоткрываем!
             if (VKChatPlugin.getInstance().getApi().isFullyAuthorized(p) && !plugin.getNationManager().hasNation(p)) {
                 Bukkit.getScheduler().runTask(plugin, () -> {
@@ -71,6 +76,11 @@ public class NationGuiListener implements Listener {
                 });
             }
         }
+    }
+
+    @EventHandler
+    public void onPlayerQuitCleanup(org.bukkit.event.player.PlayerQuitEvent e) {
+        activeFeedingClaims.remove(e.getPlayer().getUniqueId());
     }
 
     public void openNationSelection(Player p) {
