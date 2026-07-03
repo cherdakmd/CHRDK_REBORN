@@ -51,12 +51,41 @@ tab:
     - "&4⚔ &c/donate info &4⚔"
   update-ticks: 20
 
-# 🏷 Форматы join/quit
-join-format: "&8[&a+&8] {prefix} &7{player}"
-quit-format: "&8[&c-&8] {prefix} &7{player}"
-
-# 📢 Анонсы (смерти, убийства, ранги)
+# 🏷 Форматы join/quit (вариативные)
 broadcasts:
+  # Вход — обычные игроки
+  join-messages:
+    - "&8[&a+&8] {prefix} &7{player} &7зашёл на сервер"
+    - "&8[&a+&8] {prefix} &7{player} &7появился"
+    - "&8[&a+&8] {prefix} &7{player} &7в игре"
+    - "&8[&a+&8] {prefix} &7{player} &7присоединился"
+    - "&8[&a+&8] {prefix} &7{player} &7тут"
+  # Вход — новый игрок
+  join-new:
+    - "&8[&a+&8] {prefix} &7{player} &eвпервые на сервере! &6🎉"
+    - "&8[&a+&8] {prefix} &7{player} &eприсоединился впервые! &6🌟"
+    - "&8[&a+&8] {prefix} &7{player} &eновый игрок! &6Добро пожаловать!"
+  # Вход — донатер
+  join-donator:
+    - "&8[&a+&8] {prefix} &7{player} &6зашёл с сиянием"
+    - "&8[&a+&8] {prefix} &7{player} &6почтил сервер присутствием"
+    - "&8[&a+&8] {prefix} &7{player} &6прибыл"
+  # Вход — новый донатер
+  join-donator-new:
+    - "&8[&a+&8] {prefix} &7{player} &eвпервые здесь и уже донатер! &6👑"
+    - "&8[&a+&8] {prefix} &7{player} &eновый донатер на сервере! &6💎"
+  # Выход — обычный
+  quit-messages:
+    - "&8[&c-&8] {prefix} &7{player} &7вышел"
+    - "&8[&c-&8] {prefix} &7{player} &7покинул сервер"
+    - "&8[&c-&8] {prefix} &7{player} &7ушёл"
+    - "&8[&c-&8] {prefix} &7{player} &7отключился"
+  # Выход — донатер
+  quit-donator:
+    - "&8[&c-&8] {prefix} &7{player} &6ушёл по делам"
+    - "&8[&c-&8] {prefix} &7{player} &6покинул нас"
+    - "&8[&c-&8] {prefix} &7{player} &6ушёл в закат"
+
   kill-messages:
     - "&c☠ {killer} &7отправил &c{victim} &7на респаун"
     - "&c⚔ {killer} &7расправился с &c{victim}"

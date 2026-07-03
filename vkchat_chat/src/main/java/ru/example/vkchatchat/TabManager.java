@@ -10,7 +10,9 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
 
+import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -19,6 +21,7 @@ public class TabManager implements Listener {
     private final Map<UUID, String> playerTeams = new ConcurrentHashMap<>();
     private int statsIndex = 0;
     private final String[] statsLines = new String[4];
+    private final Random rnd = new Random();
 
     public TabManager(VKChatChatPlugin plugin) {
         this.plugin = plugin;
@@ -38,16 +41,54 @@ public class TabManager implements Listener {
             assignTeam(p);
             sendTab(p);
         }, 10L);
-        String fmt = plugin.getConfig().getString("join-format", "&8[&a+&8] {prefix} &7{player}");
-        e.setJoinMessage(ChatColor.translateAlternateColorCodes('&',
-                fmt.replace("{prefix}", getPrefix(p)).replace("{player}", p.getName())));
+        e.setJoinMessage(getJoinMessage(p));
     }
 
     @EventHandler
     public void onQuit(PlayerQuitEvent e) {
-        String fmt = plugin.getConfig().getString("quit-format", "&8[&c-&8] {prefix} &7{player}");
-        e.setQuitMessage(ChatColor.translateAlternateColorCodes('&',
-                fmt.replace("{prefix}", getPrefix(e.getPlayer())).replace("{player}", e.getPlayer().getName())));
+        e.setQuitMessage(getQuitMessage(e.getPlayer()));
+    }
+
+    private String getJoinMessage(Player p) {
+        String prefix = getPrefix(p);
+        boolean isDonator = p.hasPermission("vkchat.donate.spark");
+        boolean isNew = !p.hasPlayedBefore();
+
+        List<String> pool;
+        if (isNew && isDonator) {
+            pool = plugin.getConfig().getStringList("broadcasts.join-donator-new");
+        } else if (isDonator) {
+            pool = plugin.getConfig().getStringList("broadcasts.join-donator");
+        } else if (isNew) {
+            pool = plugin.getConfig().getStringList("broadcasts.join-new");
+        } else {
+            pool = plugin.getConfig().getStringList("broadcasts.join-messages");
+        }
+
+        if (pool.isEmpty()) {
+            pool = List.of("&8[&a+&8] {prefix} &7{player}");
+        }
+
+        String msg = pool.get(rnd.nextInt(pool.size()));
+        return ChatColor.translateAlternateColorCodes('&',
+                msg.replace("{prefix}", prefix).replace("{player}", p.getName()));
+    }
+
+    private String getQuitMessage(Player p) {
+        String prefix = getPrefix(p);
+        boolean isDonator = p.hasPermission("vkchat.donate.spark");
+
+        List<String> pool = isDonator
+                ? plugin.getConfig().getStringList("broadcasts.quit-donator")
+                : plugin.getConfig().getStringList("broadcasts.quit-messages");
+
+        if (pool.isEmpty()) {
+            pool = List.of("&8[&c-&8] {prefix} &7{player}");
+        }
+
+        String msg = pool.get(rnd.nextInt(pool.size()));
+        return ChatColor.translateAlternateColorCodes('&',
+                msg.replace("{prefix}", prefix).replace("{player}", p.getName()));
     }
 
     private void setupTeams() {
