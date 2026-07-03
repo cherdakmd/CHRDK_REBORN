@@ -1,106 +1,26 @@
-# ═══════════════════════════════════════════════════════════════
-# TAB GROUPS — CHRDK REBORN
-# ═══════════════════════════════════════════════════════════════
+# ═══════════════════════════════════════
+# TAB Groups — CHRDK REBORN
+# ═══════════════════════════════════════
 
-# ─── DEFAULT SETTINGS ───
-_DEFAULT_:
-  tabprefix: "%luckperms-prefix%"
-  tagprefix: "%luckperms-prefix%"
-  customtabname: "%player%"
-  tabsuffix: "%luckperms-suffix%"
-  tagsuffix: "%luckperms-suffix%"
-
-# ─── LEGEND (Highest donate) ───
-legend:
-  tabprefix: "&6&l[LEGEND] &6"
-  tagprefix: "&6&l[LEGEND] &6"
-  customtabname: "&6%player%"
-  tabsuffix: " &6★"
-  tagsuffix: " &6★"
-
-# ─── STAR ───
-star:
-  tabprefix: "&e&l[STAR] &e"
-  tagprefix: "&e&l[STAR] &e"
-  customtabname: "&e%player%"
-  tabsuffix: " &e☆"
-  tagsuffix: " &e☆"
-
-# ─── FLAME ───
-flame:
-  tabprefix: "&c&l[FLAME] &c"
-  tagprefix: "&c&l[FLAME] &c"
-  customtabname: "&c%player%"
-  tabsuffix: " &c🔥"
-  tagsuffix: " &c🔥"
-
-# ─── SPARK ───
-spark:
-  tabprefix: "&a&l[SPARK] &a"
-  tagprefix: "&a&l[SPARK] &a"
-  customtabname: "&a%player%"
-  tabsuffix: " &a⚡"
-  tagsuffix: " &a⚡"
-
-# ─── VIP ───
-vip:
-  tabprefix: "&b[VIP] &b"
-  tagprefix: "&b[VIP] &b"
-  customtabname: "&b%player%"
-  tabsuffix: " &b♦"
-  tagsuffix: " &b♦"
-
-# ─── PLAYER (Default) ───
-default:
-  tabprefix: "&7[Игрок] &7"
-  tagprefix: "&7[Игрок] &7"
-  customtabname: "&7%player%"
-  tabsuffix: ""
-  tagsuffix: ""
-
-# ─── ADMIN GROUPS ───
-owner:
-  tabprefix: "&4&l[OWNER] &4"
-  tagprefix: "&4&l[OWNER] &4"
-  customtabname: "&4%player%"
-  tabsuffix: " &4♛"
-  tagsuffix: " &4♛"
-
-admin:
-  tabprefix: "&c&l[ADMIN] &c"
-  tagprefix: "&c&l[ADMIN] &c"
-  customtabname: "&c%player%"
-  tabsuffix: " &c♚"
-  tagsuffix: " &c♚"
-
-moderator:
-  tabprefix: "&9&l[MOD] &9"
-  tagprefix: "&9&l[MOD] &9"
-  customtabname: "&9%player%"
-  tabsuffix: " &9⚒"
-  tagsuffix: " &9⚒"
-
-helper:
-  tabprefix: "&2[HELPER] &2"
-  tagprefix: "&2[HELPER] &2"
-  customtabname: "&2%player%"
-  tabsuffix: " &2✦"
-  tagsuffix: " &2✦"
-
-builder:
-  tabprefix: "&5[BUILDER] &5"
-  tagprefix: "&5[BUILDER] &5"
-  customtabname: "&5%player%"
-  tabsuffix: " &5✎"
-  tagsuffix: " &5✎"
-
-# ─── PER-WORLD OVERRIDES ───
-per-world:
-  world_nether:
-    default:
-      tabprefix: "&7[Игрок] &c"
-      tagprefix: "&7[Игрок] &c"
-  world_the_end:
-    default:
-      tabprefix: "&7[Игрок] &5"
-      tagprefix: "&7[Игрок] &5"
+groups:
+  overlord:
+    tabprefix: "&d&l💎 &r"
+    tagprefix: "&d&lВЛСТ &r"
+  legend:
+    tabprefix: "&5&l👑 &r"
+    tagprefix: "&5&lЛЕГ &r"
+  star:
+    tabprefix: "&e&l⭐ &r"
+    tagprefix: "&e&lЗВЗ &r"
+  flame:
+    tabprefix: "&6&l🔥 &r"
+    tagprefix: "&6&lПЛМ &r"
+  spark:
+    tabprefix: "&b&l⚡ &r"
+    tagprefix: "&b&lИСК &r"
+  vip:
+    tabprefix: "&a&l✓ &r"
+    tagprefix: "&a&lVIP &r"
+  default:
+    tabprefix: "&7&l• &r"
+    tagprefix: "&7&l║ &r"

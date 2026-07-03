@@ -1,86 +1,74 @@
 # ═══════════════════════════════════════════════════════════════
-# TAB CONFIG — ЧРДК REBORN
+# TAB CONFIG — CHRDK REBORN
 # ═══════════════════════════════════════════════════════════════
 
-# ─── HEADER & FOOTER ───
 header-footer:
   enabled: true
   designs:
     default:
       header:
-        - "&6&m                                                    "
-        - "&6&lЧРДК REBORN &7— &eMinecraft RPG Hardcore"
-        - "&b&l%player%&7, добро пожаловать!"
-        - "&7Онлайн: &f%online% &7| Ping: &f%ping%&7ms | Мир: &f%world%"
+        - "&5&m                                                    "
+        - "&5&lCHRDK REBORN &8— &dMinecraft Hardcore RPG"
+        - "&f%player%&7, добро пожаловать!"
+        - "&7Онлайн: &f%online% &8| &7Мир: &f%world% &8| &7Ping: &f%ping%ms"
         - ""
       footer:
         - ""
-        - "&7Репутация: &e%vkchat_reputation% &7| Ранг: &f%vault_prefix%"
-        - "&7Время: &f%time% &7| RAM: &f%memory-used%&7/&f%memory-max% MB"
-        - "&eВК: &bhttps://vk.com/chrdk_reborn"
-        - "&eДонат: &chttps://donatepay.ru/don/dedworkshop"
-        - "&6&m                                                    "
+        - "&7Репутация ВК: &e%vkchat_reputation% &8| &7Баланс: &a%vault_balance%"
+        - "&7Время: &f%time% &8| &7TPS: %server_tps_1_colored%"
+        - "&bВК: &fhttps://vk.com/chrdk_reborn"
+        - "&dДонат: &f/donate info"
+        - "&5&m                                                    "
 
-# ─── TABLIST NAME FORMATTING ───
 tablist-name-formatting:
   enabled: true
   disable-condition: '%world%=disabledworld'
 
-# ─── NAMETAGS (SCOREBOARD TEAMS) ───
 scoreboard-teams:
   enabled: true
   enable-collision: true
   invisible-nametags: false
   sorting-types:
-    - "GROUPS:legend,star,flame,spark,vip,default"
+    - "GROUPS:overlord,legend,star,flame,spark,vip,default"
     - "PLACEHOLDER_A_TO_Z:%player%"
   case-sensitive-sorting: true
   can-see-friendly-invisibles: false
   disable-condition: '%world%=disabledworld'
 
-# ─── PLAYERLIST OBJECTIVE (PING) ───
 playerlist-objective:
   enabled: true
   value: "%ping%"
   fancy-value: "&7Ping: %ping%ms"
-  title: "ЧРДК REBORN"
+  title: "CHRDK REBORN"
   render-type: INTEGER
   disable-condition: '%world%=disabledworld'
 
-# ─── BELOWNAME (HEALTH) ───
 belowname-objective:
   enabled: true
   value: "%health%"
   fancy-value: "&c%health%"
   fancy-value-default: "NPC"
-  title: "&cHP"
+  title: "&c❤"
   disable-condition: '%world%=disabledworld'
 
-# ─── SPECTATOR FIX ───
 prevent-spectator-effect:
   enabled: true
 
-# ─── BOSSBAR ───
 bossbar:
   enabled: false
 
-# ─── SCOREBOARD ───
 scoreboard:
   enabled: false
 
-# ─── LAYOUT ───
 layout:
   enabled: false
 
-# ─── PING SPOOF ───
 ping-spoof:
   enabled: false
 
-# ─── GLOBAL PLAYERLIST ───
 global-playerlist:
   enabled: false
 
-# ─── PLACEHOLDERS ───
 placeholders:
   date-format: "dd.MM.yyyy"
   time-format: "[HH:mm:ss]"
@@ -88,19 +76,19 @@ placeholders:
   register-tab-expansion: false
   locale: ru-RU
 
-# ─── PLACEHOLDER OUTPUT REPLACEMENTS ───
 placeholder-output-replacements:
   "%essentials_vanished%":
     "yes": "&7| Скрыт"
     "no": ""
   "%luckperms-group%":
-    "legend": "&6Легенда"
-    "star": "&eЗвезда"
-    "flame": "&cПламя"
-    "spark": "&aИскра"
+    "overlord": "&d💎 Властелин"
+    "legend": "&5👑 Легенда"
+    "star": "&e⭐ Звезда"
+    "flame": "&6🔥 Пламя"
+    "spark": "&b⚡ Искра"
+    "vip": "&aVIP"
     "default": "&7Игрок"
 
-# ─── CONDITIONS ───
 conditions:
   nick:
     conditions:
@@ -108,7 +96,6 @@ conditions:
     true: "%player%"
     false: "~%essentials_nickname%"
 
-# ─── PLACEHOLDER REFRESH INTERVALS ───
 placeholder-refresh-intervals:
   default-refresh-interval: 500
   "%server_uptime%": 1000
@@ -117,11 +104,12 @@ placeholder-refresh-intervals:
   "%player_health%": 200
   "%player_ping%": 1000
   "%vault_prefix%": 1000
+  "%vault_balance%": 5000
 
-# ─── GROUPS ───
 assign-groups-by-permissions: false
 
 primary-group-finding-list:
+  - overlord
   - legend
   - star
   - flame
@@ -133,20 +121,16 @@ permission-refresh-interval: 1000
 
 debug: false
 
-# ─── MYSQL ───
 mysql:
   enabled: false
 
-# ─── PROXY SUPPORT ───
 proxy-support:
   enabled: false
 
-# ─── COMPONENTS ───
 components:
   minimessage-support: true
   disable-shadow-for-heads: true
 
-# ─── PER-WORLD PLAYERLIST ───
 per-world-playerlist:
   enabled: false
 
