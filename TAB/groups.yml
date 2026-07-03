@@ -3,23 +3,23 @@
 # ═══════════════════════════════════════
 
 overlord:
-  tabprefix: "&d&l💎 Властелин &r"
-  tagprefix: "&d&l💎 Властелин &r"
+  tabprefix: "&d&lВЛАСТЕЛИН &r"
+  tagprefix: "&d&lВЛАСТЕЛИН &r"
 legend:
-  tabprefix: "&5&l👑 Легенда &r"
-  tagprefix: "&5&l👑 Легенда &r"
+  tabprefix: "&5&lЛЕГЕНДА &r"
+  tagprefix: "&5&lЛЕГЕНДА &r"
 star:
-  tabprefix: "&e&l⭐ Звезда &r"
-  tagprefix: "&e&l⭐ Звезда &r"
+  tabprefix: "&e&lЗВЕЗДА &r"
+  tagprefix: "&e&lЗВЕЗДА &r"
 flame:
-  tabprefix: "&6&l🔥 Пламя &r"
-  tagprefix: "&6&l🔥 Пламя &r"
+  tabprefix: "&6&lПЛАМЯ &r"
+  tagprefix: "&6&lПЛАМЯ &r"
 spark:
-  tabprefix: "&b&l⚡ Искра &r"
-  tagprefix: "&b&l⚡ Искра &r"
+  tabprefix: "&b&lИСКРА &r"
+  tagprefix: "&b&lИСКРА &r"
 vip:
-  tabprefix: "&a&l✓ VIP &r"
-  tagprefix: "&a&l✓ VIP &r"
+  tabprefix: "&a&lVIP &r"
+  tagprefix: "&a&lVIP &r"
 default:
   tabprefix: "&7&l• &r"
   tagprefix: "&7&l║ &r"

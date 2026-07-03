@@ -25,22 +25,22 @@ statuses:
     id: "spark"
     name: "&b⚡ Искра"
     display: "⚡ Искра"
-    prefix: "&b⚡"
+    prefix: "&b&lИСКРА&r"
     weight: 1
     price: 250
     description: "Начальный донат-статус"
     # Множители и бонусы
-    rep-discount: 0.10       # -10% к ценам в репутации
-    tp-cooldown-mult: 0.80   # КД телепортов ×0.8
+    rep-discount: 0.10
+    tp-cooldown-mult: 0.80
     max-homes: 5
-    market-mult: 1.10        # +10% к продаже на рынке
-    jobs-xp-mult: 1.10       # +10% XP профессий
+    market-mult: 1.10
+    jobs-xp-mult: 1.10
 
   flame:
     id: "flame"
     name: "&6🔥 Пламя"
     display: "🔥 Пламя"
-    prefix: "&6🔥"
+    prefix: "&6&lПЛАМЯ&r"
     weight: 2
     price: 500
     description: "Средний донат-статус"
@@ -54,7 +54,7 @@ statuses:
     id: "star"
     name: "&e⭐ Звезда"
     display: "⭐ Звезда"
-    prefix: "&e⭐"
+    prefix: "&e&lЗВЕЗДА&r"
     weight: 3
     price: 1000
     description: "Продвинутый донат-статус"
@@ -68,7 +68,7 @@ statuses:
     id: "legend"
     name: "&5👑 Легенда"
     display: "👑 Легенда"
-    prefix: "&5👑"
+    prefix: "&5&lЛЕГЕНДА&r"
     weight: 4
     price: 2500
     description: "Элитный донат-статус"
@@ -82,7 +82,7 @@ statuses:
     id: "overlord"
     name: "&d💎 Властелин"
     display: "💎 Властелин"
-    prefix: "&d💎"
+    prefix: "&d&lВЛАСТЕЛИН&r"
     weight: 5
     price: 5000
     description: "Максимальный донат-статус"
