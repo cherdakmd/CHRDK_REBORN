@@ -645,7 +645,7 @@ public class GearManager {
         } catch (Exception ignored) {}
 
         String rarityKey = capRarityByMaterialAndJob(rollRarity(luckPoints), item.getType(), blacksmithLvl);
-        String rarityName = ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("rarities." + rarityKey + ".name"));
+        String rarityName = ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("rarities." + rarityKey + ".name", rarityKey));
         int vanillaAmount = plugin.getConfig().getInt("rarities." + rarityKey + ".vanilla_enchants", 0);
         int excellentAmount = plugin.getConfig().getInt("rarities." + rarityKey + ".excellent_enchants", 0);
         int customAmount = plugin.getConfig().getInt("rarities." + rarityKey + ".custom_enchants", 0);
@@ -744,7 +744,7 @@ public class GearManager {
             String setKey = consumeSetFragment(crafter);
             if (setKey != null) {
                 lore.add("");
-                lore.add(ChatColor.GOLD + "Часть сета: " + plugin.getConfig().getString("sets." + setKey + ".name"));
+                lore.add(ChatColor.GOLD + "Часть сета: " + plugin.getConfig().getString("sets." + setKey + ".name", setKey));
                 meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "gear_set"), PersistentDataType.STRING, setKey);
                 markSetOrigin(meta, "fragment");
             }
@@ -889,7 +889,7 @@ public class GearManager {
             return; // Обычный не понижается (или ломается, но пока оставим так)
         }
         
-        newRarityName = ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("rarities." + newRarityKey + ".name"));
+        newRarityName = ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("rarities." + newRarityKey + ".name", newRarityKey));
         
         // Заменяем Лор
         lore.set(rarityLineIndex, ChatColor.GRAY + "Редкость: " + newRarityName);
@@ -1281,7 +1281,7 @@ public class GearManager {
 
             if (!conflictFound) {
                 selectedEnchantKey = cKey;
-                selectedEnchantName = plugin.getConfig().getString("custom_enchants." + cKey + ".name");
+                selectedEnchantName = plugin.getConfig().getString("custom_enchants." + cKey + ".name", cKey);
                 break;
             }
         }

@@ -71,7 +71,7 @@ public class VKLongPollManager {
      */
     public VKLongPollManager(VKChatPlugin plugin) {
         this.plugin = plugin;
-        this.token = plugin.getConfig().getString("vk.token");
+        this.token = plugin.getConfig().getString("vk.token", "");
         this.groupId = plugin.getConfig().getInt("vk.group-id");
         this.peerId = plugin.getConfig().getInt("vk.peer-id");
 

@@ -156,7 +156,7 @@ public class GearAdminCommand implements CommandExecutor, TabCompleter {
         java.util.List<String> lore = meta.getLore();
         
         // Меняем "Обычный" на "Легендарный" для красоты
-        String setName = plugin.getConfig().getString("sets." + setKey + ".name");
+        String setName = plugin.getConfig().getString("sets." + setKey + ".name", setKey);
         meta.setDisplayName(ChatColor.GOLD + "" + ChatColor.BOLD + "[ЛЕГЕНДАРНЫЙ] " + ChatColor.WHITE + setName + " " + getBaseName(item.getType()));
         
         // Убираем старую строку сета, если она сгенерировалась случайно
