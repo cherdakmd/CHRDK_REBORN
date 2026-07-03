@@ -33,25 +33,21 @@ public class ChatCommand implements CommandExecutor {
             plugin.getChatListener().toggleMute(target);
             boolean muted = plugin.getChatListener().isMuted(target);
             sender.sendMessage(ChatColor.YELLOW + target.getName() + (muted ? " замучен." : " размучен."));
-            if (muted) target.sendMessage(ChatColor.RED + "Вы замучены.");
-            else target.sendMessage(ChatColor.GREEN + "Вы размучены.");
+            target.sendMessage(muted ? ChatColor.RED + "Вы замучены." : ChatColor.GREEN + "Вы размучены.");
             return true;
         }
 
-        // /channel
+        // /channel или /chat
         if (!(sender instanceof Player)) {
             sender.sendMessage("Только для игроков.");
             return true;
         }
         Player p = (Player) sender;
-
-        if (args.length == 0) {
-            p.sendMessage(ChatColor.GRAY + "Твой канал: " + plugin.getChatListener().getChannel(p));
-            p.sendMessage(ChatColor.YELLOW + "/channel <global|local|trade|nation>");
-            return true;
-        }
-
-        plugin.getChatListener().setChannel(p, args[0].toLowerCase());
+        p.sendMessage(ChatColor.GRAY + "Чат по умолчанию — локальный.");
+        p.sendMessage(ChatColor.YELLOW + "  !сообщение — глобальный чат");
+        p.sendMessage(ChatColor.YELLOW + "  $сообщение — торговый чат");
+        p.sendMessage(ChatColor.YELLOW + "  /channel nation — чат нации");
+        p.sendMessage(ChatColor.YELLOW + "  текст — локальный чат");
         return true;
     }
 }
