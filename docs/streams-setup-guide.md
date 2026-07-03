@@ -93,35 +93,61 @@ client-id и client-secret. Токен живёт ~60 дней, плагин
 
 ## 3. VK (группа и видео)
 
-### Где брать токен:
+### Способ А — АВТО (рекомендуется)
 
-  1. Зайди на https://vkhost.github.io/
-  2. Выбери VK Me (или VK Admin)
-  3. В настройках приложения выдай права:
-     - wall (посты на стену)
-     - photos (загрузка фото)
-     - video (проверка видео)
-     - groups (проверка членства)
-  4. Авторизуйся
-  5. Скопируй access_token из адресной строки (после #access_token=...)
+Плагин сам получает токен через VK Direct Auth.
+Нужны ID приложения, защищённый ключ, логин и пароль ВК.
 
-  Токен живёт ~12 часов. Для вечного токена используй
-  standalone-приложение VK и получи токен через OAuth.
+### Где брать client-id и secure-key:
 
-### Где брать group-id:
-
-  - ID группы — число, например 123456789
-  - Если у группы есть короткий адрес (vk.com/groupname), ID можно узнать:
-    https://api.vk.com/method/groups.getById?group_id=groupname&v=5.131
-  - В ответе будет id: 123456789
+  1. Зайди на https://vk.com/apps?act=manage
+  2. Нажми «Создать приложение»
+  3. Название: CHRDK Stream Checker
+  4. Платформа: выбери Standalone-приложение
+  5. Нажми «Подключить приложение»
+  6. Перейди в настройки приложения
+  7. Скопируй «ID приложения» (client-id)
+  8. Скопируй «Защищённый ключ» (secure-key)
 
 ### Что писать в конфиг:
 
   streams:
     vk:
       enabled: true
-      token: "твой_vk_access_token"
-      group-id: "123456789"                  # ID группы ВК (цифры!)
+      token: ""                              # Способ А: оставь пустым
+      client-id: "1234567"                   # ID приложения ВК
+      secure-key: "AbCdEfGhIjKlMnOp"         # Защищённый ключ
+      login: "+79991234567"                  # Логин ВК (телефон или email)
+      password: "твой_пароль"                # Пароль ВК
+      group-id: "123456789"
+
+### Способ Б — РУЧНОЙ токен
+
+Если Auto не работает (например, включена 2FA):
+
+  1. Зайди на https://vkhost.github.io/
+  2. Выбери VK Admin
+  3. Включи права: wall, photos, video, groups, messages
+  4. Авторизуйся
+  5. Скопируй access_token из адресной строки
+  6. Вставь в token (имеет приоритет над авто)
+  7. Меняй раз в 12-24 часа
+
+### Где брать group-id и группы:
+
+  - ID группы — число, например 123456789
+  - Узнать ID: https://api.vk.com/method/groups.getById?group_id=screen_name&v=5.131
+  - groups — список screen_name групп где стримят (напр. "cherdakgroup")
+
+  streams:
+    vk:
+      enabled: true
+      token: ""                                # Способ А: оставь пустым
+      client-id: "1234567"                     # Способ А: ID приложения ВК
+      secure-key: "AbCd..."                    # Способ А: защищённый ключ
+      login: "+79991234567"                    # Способ А: логин ВК
+      password: "password"                     # Способ А: пароль ВК
+      group-id: "123456789"                    # ID группы ВК (цифры!)
       groups:
         - "имя_группы_для_проверки"          # screen_name или ID группы где стримят
       wall-post:
@@ -139,7 +165,7 @@ client-id и client-secret. Токен живёт ~60 дней, плагин
   streams:
     vkvideo:
       enabled: true
-      token: "тот_же_vk_token"
+      token: ""                                # использует тот же авто-токен из vk секции
       channels:
         - "имя_канала_vkvideo"               # например: "cherdak"
 
@@ -276,7 +302,11 @@ client-id и client-secret. Токен живёт ~60 дней, плагин
 
     vk:
       enabled: true
-      token: "vk1.a.AbCdEf..."
+      token: ""                               # Способ А: оставь пустым
+      client-id: "1234567"
+      secure-key: "AbCd..."
+      login: "+79991234567"
+      password: "password"
       group-id: "123456789"
       groups:
         - "cherdakgroup"
