@@ -216,6 +216,7 @@ public class TabManager implements Listener {
     }
 
     private void sendToVk(String msg) {
+        if (!plugin.getConfig().getBoolean("broadcasts.vk-join-quit", false)) return;
         try { VKChatPlugin.getInstance().getApi().sendToMainChat(msg); } catch (Exception ignored) {}
     }
 }

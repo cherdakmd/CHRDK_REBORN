@@ -123,7 +123,9 @@ public class BroadcastManager implements Listener {
 
     private void broadcast(String msg) {
         for (Player p : Bukkit.getOnlinePlayers()) p.sendMessage(msg);
-        try { VKChatPlugin.getInstance().getApi().sendToMainChat(ChatColor.stripColor(msg)); } catch (Exception ignored) {}
+        if (plugin.getConfig().getBoolean("broadcasts.send-to-vk", true)) {
+            try { VKChatPlugin.getInstance().getApi().sendToMainChat(ChatColor.stripColor(msg)); } catch (Exception ignored) {}
+        }
     }
 
     private String getStatus(Player p) {

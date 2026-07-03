@@ -53,6 +53,8 @@ tab:
 
 # 🏷 Форматы join/quit (вариативные)
 broadcasts:
+  send-to-vk: true           # Слать kill/death/jobs в ВК
+  vk-join-quit: false        # Join/quit в ВК (false — их уже шлёт JoinNotificationListener)
   join-messages:
     - "&8[&a+&8] {prefix} &7{player} &7зашёл на сервер"
     - "&8[&a+&8] {prefix} &7{player} &7появился в мире"
