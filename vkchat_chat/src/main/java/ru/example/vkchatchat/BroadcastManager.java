@@ -34,6 +34,7 @@ public class BroadcastManager implements Listener {
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onDeath(PlayerDeathEvent e) {
+        e.setDeathMessage(null); // убираем ванильное, показываем своё
         Player victim = e.getEntity();
         Player killer = victim.getKiller();
         String vkStatus = getStatus(victim);
