@@ -1,0 +1,14 @@
+name: VKChatStreams
+version: "${version}"
+main: ru.example.vkchatstreams.VKChatStreamsPlugin
+api-version: "1.16"
+depend: [VKChat]
+commands:
+  streams:
+    description: "Управление анонсами стримов"
+    aliases: [stream]
+    permission: vkchat.streams.admin
+permissions:
+  vkchat.streams.admin:
+    description: "Управление стрим-анонсером"
+    default: op

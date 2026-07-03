@@ -1,0 +1,50 @@
+# ═══════════════════════════════════════
+# VKChatStreams — анонсер стримов
+# ═══════════════════════════════════════
+
+config-version: 1
+
+# Как часто проверять стримы (в минутах)
+check-interval-minutes: 5
+
+streams:
+  twitch:
+    enabled: true
+    client-id: "YOUR_TWITCH_CLIENT_ID"
+    oauth-token: "YOUR_TWITCH_OAUTH"
+    channels:
+      - "example_channel"
+
+  youtube:
+    enabled: true
+    api-key: "YOUR_YOUTUBE_API_KEY"
+    channels:
+      - "UC_example_channel_id"
+
+  vk:
+    enabled: true
+    token: "YOUR_VK_TOKEN"  # Можно использовать тот же, что и в VKChat
+    groups:
+      - "example_group"
+
+  vkvideo:
+    enabled: true
+    token: "YOUR_VK_TOKEN"
+    channels:
+      - "example_channel"
+
+announcement:
+  vk-enabled: true
+  game:
+    - "&6&l⚡ СТРИМ ⚡"
+    - "&7Платформа: &f{platform}"
+    - "&7Канал: &f{channel}"
+    - "&7Название: &f{title}"
+    - "&7Ссылка: &b{url}"
+    - ""
+  vk:
+    - "⚡ СТРИМ ⚡"
+    - "Платформа: {platform}"
+    - "Канал: {channel}"
+    - "Название: {title}"
+    - "Ссылка: {url}"
