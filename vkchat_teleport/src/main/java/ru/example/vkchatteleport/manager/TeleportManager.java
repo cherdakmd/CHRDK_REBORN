@@ -361,8 +361,7 @@ public class TeleportManager {
         recordTeleportHistory(player.getUniqueId(), from, target, cooldownType != null ? cooldownType : "teleport");
 
         if (features != null) {
-            int distance = (int) from.distance(target);
-            if (from.getWorld() != target.getWorld()) distance = 0;
+            int distance = (from.getWorld() == target.getWorld()) ? (int) from.distance(target) : 0;
             features.recordTeleport(player.getUniqueId(), distance);
         }
 
