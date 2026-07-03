@@ -32,6 +32,7 @@ public class ShiftManager {
         public long endTime;
         public boolean completed;
         public boolean claimed;
+        public boolean notifiedHalfway;
     }
 
     public ShiftManager(VKChatOfflinePlugin plugin) {
@@ -48,6 +49,16 @@ public class ShiftManager {
                 if (!sd.completed && now >= sd.endTime) {
                     sd.completed = true;
                     notifyPlayer(e.getKey(), sd.shiftKey);
+                } else if (!sd.completed && !sd.notifiedHalfway) {
+                    // Уведомление на середине для длинных смен (≥6 часов)
+                    long total = sd.endTime - sd.startTime;
+                    long elapsed = now - sd.startTime;
+                    if (total >= 21600000 && elapsed >= total / 2) { // ≥6 часов
+                        sd.notifiedHalfway = true;
+                        long left = sd.endTime - now;
+                        long hrsLeft = left / 3600000;
+                        notifyProgress(e.getKey(), hrsLeft);
+                    }
                 }
             }
         }, 600L, 600L); // Каждые 30 сек
@@ -59,6 +70,13 @@ public class ShiftManager {
                     "⛏ Смена '" + getShiftName(shiftKey) + "' завершена! Напиши !шахта чтобы забрать награды.");
             VKChatPlugin.getInstance().getApi().sendKeyboard(vkId,
                     "Смена завершена!", Keyboards.shiftDone());
+        } catch (Exception ignored) {}
+    }
+
+    private void notifyProgress(int vkId, long hoursLeft) {
+        try {
+            VKChatPlugin.getInstance().getApi().sendMessage(vkId,
+                    "⛏ Ты на середине смены! Осталось примерно " + hoursLeft + " ч. Продолжай копать!");
         } catch (Exception ignored) {}
     }
 
@@ -198,7 +216,9 @@ public class ShiftManager {
             }
         }
 
-        String bonusMsg = consecutive >= 3 ? " +" + bonusRep + " бонус за " + consecutive + " смен подряд!" : "";
+        String bonusMsg = consecutive >= 5 ? " 🔥 ОГНЕННАЯ СЕРИЯ ×" + consecutive + "!" + " +" + bonusRep + " бонус!"
+                : consecutive >= 3 ? " ⚡ УДАРНАЯ СЕРИЯ ×" + consecutive + "!" + " +" + bonusRep + " бонус!"
+                : "";
         try {
             VKChatPlugin.getInstance().getApi().sendMessage(vkId,
                     "⛏ Награда за смену '" + getShiftName(key) + "': +" + rep + " репутации." + bonusMsg + " Ресурсы в /stash.");
