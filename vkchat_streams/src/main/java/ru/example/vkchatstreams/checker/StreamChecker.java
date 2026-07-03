@@ -7,6 +7,9 @@ import ru.example.vkchat.util.VKChatBridge;
 import ru.example.vkchatstreams.VKChatStreamsPlugin;
 import ru.example.vkchatstreams.StreamEvent;
 
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URI;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -17,10 +20,9 @@ public class StreamChecker {
     private final VKChatStreamsPlugin plugin;
     private final Set<String> announced = ConcurrentHashMap.newKeySet();
     private final Map<String, Set<UUID>> claimedRewards = new ConcurrentHashMap<>();
-    private volatile String currentCode = "";
+    private volatile int currentPostId = 0;
+    private volatile String currentVkToken = "";
     private int taskId = -1;
-    private int rotationTaskId = -1;
-    private final java.util.Random rnd = new java.util.Random();
 
     public StreamChecker(VKChatStreamsPlugin plugin) {
         this.plugin = plugin;
@@ -29,17 +31,10 @@ public class StreamChecker {
     public void start() {
         int interval = plugin.getConfig().getInt("check-interval-minutes", 5) * 1200;
         taskId = Bukkit.getScheduler().runTaskTimerAsynchronously(plugin, this::checkAll, 200L, Math.max(200, interval)).getTaskId();
-        // Ротация кода каждые 10 минут, если стрим активен
-        rotationTaskId = Bukkit.getScheduler().runTaskTimerAsynchronously(plugin, () -> {
-            if (!announced.isEmpty()) {
-                currentCode = String.valueOf(1000 + rnd.nextInt(9000));
-            }
-        }, 6000L, 6000L).getTaskId();
     }
 
     public void stop() {
         if (taskId != -1) Bukkit.getScheduler().cancelTask(taskId);
-        if (rotationTaskId != -1) Bukkit.getScheduler().cancelTask(rotationTaskId);
     }
 
     public void checkAll() {
@@ -52,7 +47,6 @@ public class StreamChecker {
         if (plugin.getConfig().getBoolean("streams.vk.enabled", true))
             events.addAll(VKChecker.check(plugin));
 
-        // Чистим старые ключи (снимаем флаг, если стрим закончился)
         for (String key : new HashSet<>(announced)) {
             if (events.stream().noneMatch(e -> key.equals(e.getPlatform() + ":" + e.getChannel()))) {
                 announced.remove(key);
@@ -71,53 +65,103 @@ public class StreamChecker {
     }
 
     private void announce(StreamEvent e) {
-        currentCode = String.valueOf(1000 + rnd.nextInt(9000));
-
         for (String line : plugin.getConfig().getStringList("announcement.game")) {
             String msg = ChatColor.translateAlternateColorCodes('&', format(line, e));
             Bukkit.broadcastMessage(msg);
         }
-        Bukkit.broadcastMessage(ChatColor.GOLD + "🎯 Код: /stream reward " + currentCode
-                + ChatColor.GRAY + " (скажет стример или смотри стрим!)");
 
-        // ВК: анонс в общий чат
+        // Публикуем анонс на стену группы ВК
+        currentVkToken = plugin.getConfig().getString("streams.vk.token", "");
+        String groupId = plugin.getConfig().getString("streams.vk.group-id", "");
+        if (!currentVkToken.isEmpty() && !groupId.isEmpty()) {
+            try {
+                String text = "⚡ СТРИМ ⚡\n" + e.getPlatform() + " " + e.getChannel() + " — " + e.getTitle() + "\n" + e.getUrl();
+                URI uri = new URI("https://api.vk.com/method/wall.post?owner_id=-" + groupId
+                        + "&message=" + java.net.URLEncoder.encode(text, "UTF-8")
+                        + "&v=5.131&access_token=" + currentVkToken);
+                HttpURLConnection conn = (HttpURLConnection) uri.toURL().openConnection();
+                conn.setConnectTimeout(5000);
+                conn.setReadTimeout(5000);
+
+                StringBuilder json = new StringBuilder();
+                try (var r = new InputStreamReader(conn.getInputStream())) {
+                    int c; while ((c = r.read()) != -1) json.append((char) c);
+                }
+                String resp = json.toString();
+                int pIdx = resp.indexOf("\"post_id\":");
+                if (pIdx != -1) {
+                    int pStart = pIdx + 10;
+                    int pEnd = resp.indexOf(",", pStart);
+                    if (pEnd == -1) pEnd = resp.indexOf("}", pStart);
+                    currentPostId = Integer.parseInt(resp.substring(pStart, pEnd).trim());
+                }
+            } catch (Exception ignored) {}
+        }
+
+        Bukkit.broadcastMessage(ChatColor.GOLD + "🎯 Поставь лайк посту в группе ВК → /stream reward");
+
         if (plugin.getConfig().getBoolean("announcement.vk-enabled", true)) {
             for (String line : plugin.getConfig().getStringList("announcement.vk")) {
                 VKChatBridge.sendToMainChat(format(line, e));
             }
         }
-
-        // ВК: код в ЛС всем админам (стример увидит на телефоне)
-        for (int adminId : plugin.getConfig().getIntegerList("streams.admin-vk-ids")) {
-            VKChatBridge.sendMessage(adminId, "🎯 Код награды за просмотр стрима: " + currentCode
-                    + "\nИгроки вводят: /stream reward " + currentCode
-                    + "\nКод автоматически меняется каждые 10 минут.");
-        }
     }
 
-    public boolean claimReward(Player p, String code) {
-        if (currentCode.isEmpty() || !currentCode.equals(code)) {
-            p.sendMessage(ChatColor.RED + "Неверный код! Смотри стрим — стример называет код в эфире.");
-            return false;
-        }
+    public boolean claimReward(Player p) {
         if (announced.isEmpty()) {
             p.sendMessage(ChatColor.RED + "Сейчас нет активных стримов.");
             return false;
         }
+        if (currentPostId == 0 || currentVkToken.isEmpty()) {
+            p.sendMessage(ChatColor.RED + "Пост ещё не создан. Попробуй через минуту.");
+            return false;
+        }
+
+        // Проверяем через VK API: поставил ли игрок лайк посту
+        int vkId = VKChatBridge.getLinkedVkId(p);
+        if (vkId == -1) {
+            p.sendMessage(ChatColor.RED + "Сначала привяжи ВК (/vklink)!");
+            return false;
+        }
+
+        try {
+            URI uri = new URI("https://api.vk.com/method/likes.isLiked?user_id=" + vkId
+                    + "&type=post&owner_id=-" + plugin.getConfig().getString("streams.vk.group-id", "0")
+                    + "&item_id=" + currentPostId
+                    + "&v=5.131&access_token=" + currentVkToken);
+            HttpURLConnection conn = (HttpURLConnection) uri.toURL().openConnection();
+            conn.setConnectTimeout(5000);
+            conn.setReadTimeout(5000);
+
+            StringBuilder json = new StringBuilder();
+            try (var r = new InputStreamReader(conn.getInputStream())) {
+                int c; while ((c = r.read()) != -1) json.append((char) c);
+            }
+            String resp = json.toString();
+
+            if (!resp.contains("\"liked\":1")) {
+                p.sendMessage(ChatColor.RED + "Ты ещё не поставил лайк! Зайди в группу ВК и лайкни пост.");
+                return false;
+            }
+        } catch (Exception e) {
+            p.sendMessage(ChatColor.RED + "Ошибка проверки ВК. Попробуй позже.");
+            return false;
+        }
+
+        // Проверяем не получал ли уже награду
         for (String key : announced) {
             Set<UUID> claimers = claimedRewards.get(key);
             if (claimers != null && claimers.contains(p.getUniqueId())) {
-                p.sendMessage(ChatColor.RED + "Вы уже получили награду за этот стрим!");
+                p.sendMessage(ChatColor.RED + "Ты уже получил награду за этот стрим!");
                 return false;
             }
         }
-        // Берём первый активный стрим
+
+        // Выдаём награду
         String firstKey = announced.iterator().next();
         claimedRewards.get(firstKey).add(p.getUniqueId());
 
-        // Начисляем награду
         int rep = plugin.getConfig().getInt("rewards.reputation", 50);
-        int vkId = VKChatBridge.getLinkedVkId(p);
         if (vkId != -1) VKChatBridge.addPoints(vkId, rep);
 
         for (String cmd : plugin.getConfig().getStringList("rewards.commands")) {
@@ -136,7 +180,7 @@ public class StreamChecker {
     }
 
     public Set<String> getAnnounced() { return announced; }
-    public String getCurrentCode() { return currentCode; }
-    public void setCurrentCode(String code) { this.currentCode = code; }
-    public void resetAnnounced() { announced.clear(); claimedRewards.clear(); currentCode = ""; }
+    public int getCurrentPostId() { return currentPostId; }
+    public void resetAnnounced() { announced.clear(); claimedRewards.clear(); currentPostId = 0; }
 }
+

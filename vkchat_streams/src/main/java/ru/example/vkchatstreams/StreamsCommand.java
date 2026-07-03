@@ -31,12 +31,7 @@ public class StreamsCommand implements CommandExecutor {
                 sender.sendMessage(ChatColor.RED + "Только для игроков.");
                 return true;
             }
-            if (args.length < 2) {
-                p.sendMessage(ChatColor.RED + "Использование: /stream reward <код>");
-                p.sendMessage(ChatColor.GRAY + "Код называет стример в эфире!");
-                return true;
-            }
-            plugin.getStreamChecker().claimReward(p, args[1]);
+            plugin.getStreamChecker().claimReward(p);
             return true;
         }
 
@@ -49,17 +44,6 @@ public class StreamsCommand implements CommandExecutor {
             case "check":
                 plugin.getStreamChecker().checkAll();
                 sender.sendMessage(ChatColor.GREEN + "✓ Проверка стримов запущена.");
-                break;
-            case "setcode":
-                if (args.length < 2) {
-                    sender.sendMessage(ChatColor.RED + "Использование: /streams setcode <код>");
-                    return true;
-                }
-                plugin.getStreamChecker().setCurrentCode(args[1]);
-                sender.sendMessage(ChatColor.GREEN + "✓ Код награды установлен: " + args[1]);
-                break;
-            case "code":
-                sender.sendMessage(ChatColor.GOLD + "Текущий код: " + plugin.getStreamChecker().getCurrentCode());
                 break;
             case "reset":
                 plugin.getStreamChecker().resetAnnounced();

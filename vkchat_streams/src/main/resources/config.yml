@@ -25,7 +25,8 @@ streams:
 
   vk:
     enabled: true
-    token: "YOUR_VK_TOKEN"  # Можно использовать тот же, что и в VKChat
+    token: "YOUR_VK_TOKEN"  # Тот же токен что в VKChat, с правами wall, groups, likes
+    group-id: "1"           # ID группы ВК (цифры, без минуса)
     groups:
       - "example_group"
 
