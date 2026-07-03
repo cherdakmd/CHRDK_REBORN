@@ -7,18 +7,14 @@ header-footer:
   designs:
     default:
       header:
-        - "&5&m                                                    "
-        - "&5&lCHRDK REBORN &8— &dMinecraft Hardcore RPG"
-        - "&f%player%&7, добро пожаловать!"
-        - "&7Онлайн: &f%online% &8| &7Мир: &f%world% &8| &7Ping: &f%ping%ms"
+        - "&4&lCHRDK REBORN"
+        - "&c%player%&7, добро пожаловать!"
         - ""
       footer:
         - ""
-        - "&7Репутация ВК: &e%vkchat_reputation% &8| &7Баланс: &a%vault_balance%"
-        - "&7Время: &f%time% &8| &7TPS: %server_tps_1_colored%"
-        - "&bВК: &fhttps://vk.com/chrdk_reborn"
-        - "&dДонат: &f/donate info"
-        - "&5&m                                                    "
+        - "&7Онлайн &c%online% &8| &7Репутация &c%vkchat_reputation%"
+        - "&4&lCHRDK &8— &cMinecraft Hardcore RPG"
+        - ""
 
 tablist-name-formatting:
   enabled: true
