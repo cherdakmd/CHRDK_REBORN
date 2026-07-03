@@ -2,14 +2,15 @@
 # VKChatStreams — анонсер стримов
 # ═══════════════════════════════════════
 
-config-version: 1
+config-version: 2
 
 # Как часто проверять стримы (в минутах)
 check-interval-minutes: 5
 
 streams:
-  admin-vk-ids:              # Кому в ЛС приходит код (стример увидит на телефоне)
+  admin-vk-ids:
     - 123456789
+
   twitch:
     enabled: true
     client-id: "YOUR_TWITCH_CLIENT_ID"
@@ -25,10 +26,20 @@ streams:
 
   vk:
     enabled: true
-    token: "YOUR_VK_TOKEN"  # Тот же токен что в VKChat, с правами wall, groups, likes
-    group-id: "1"           # ID группы ВК (цифры, без минуса)
+    token: "YOUR_VK_TOKEN"
+    group-id: "1"
     groups:
       - "example_group"
+
+    # Пост на стену группы ВК (требуются права wall, photos)
+    wall-post:
+      enabled: true
+      # attachment = photo-OWNERID_PHOTOID (загрузи картинку в альбом группы и скопируй ID)
+      photo-attachment: ""
+
+    # Шаблон поста в группу ВК (поддерживает \\n для переноса строк)
+    post-template: |
+      🔴⚡ НАЧАЛСЯ СТРИМ ⚡🔴\n\n🎮 {channel} запустил трансляцию!\n\n📺 {title}\n\n🔗 Смотреть: {url}\n\n{links}\n\n💎 Заходи на сервер CHRDK!\n⚡ /stream reward — награда за просмотр!
 
   vkvideo:
     enabled: true
@@ -36,25 +47,43 @@ streams:
     channels:
       - "example_channel"
 
+  # Ручное добавление стримеров (ссылки на все платформы)
+  manual:
+    example:
+      vk: "https://vk.com/example"
+      youtube: "https://youtube.com/@example"
+      twitch: "https://twitch.tv/example"
+
 announcement:
   vk-enabled: true
+
+  # Анонс в игре (цветовые коды &)
   game:
-    - "&6&l⚡ СТРИМ ⚡"
+    - "&4&l⚡ &c&lСТРИМ &4&l⚡"
     - "&7Платформа: &f{platform}"
-    - "&7Канал: &f{channel}"
+    - "&7Стример: &f{channel}"
     - "&7Название: &f{title}"
-    - "&7Ссылка: &b{url}"
-    - "&e/stream reward &7— получить награду за просмотр!"
+    - "&7Ссылка: &b&n{url}"
+    - "{links_game}"
+    - "&6&l🎯 &e/stream reward &6&l— награда за подписку на канал!"
     - ""
+
+  # Анонс в беседу ВК
   vk:
-    - "⚡ СТРИМ ⚡"
-    - "Платформа: {platform}"
-    - "Канал: {channel}"
-    - "Название: {title}"
-    - "Ссылка: {url}"
+    - "🔴⚡ НАЧАЛСЯ СТРИМ ⚡🔴"
+    - ""
+    - "🎮 {channel} запустил стрим!"
+    - "📺 {title}"
+    - ""
+    - "🔗 Смотреть: {url}"
+    - "{links_vk}"
+    - ""
+    - "💎 Заходи на сервер! /stream reward"
 
 # ═══ НАГРАДЫ ЗА ПРОСМОТР ═══
 rewards:
-  reputation: 50             # Репутации ВК за просмотр
-  commands:                  # Команды от консоли (можно несколько)
-    - "give {player} diamond 1"
+  reputation: 150
+  commands:
+    - "give {player} diamond 3"
+    - "eco give {player} 500"
+    - "xp add {player} 30 levels"
