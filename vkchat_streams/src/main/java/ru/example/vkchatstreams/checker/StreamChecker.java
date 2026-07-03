@@ -17,6 +17,7 @@ public class StreamChecker {
     private final VKChatStreamsPlugin plugin;
     private final Set<String> announced = ConcurrentHashMap.newKeySet();
     private final Map<String, Set<UUID>> claimedRewards = new ConcurrentHashMap<>();
+    private volatile String currentCode = "";
     private int taskId = -1;
 
     public StreamChecker(VKChatStreamsPlugin plugin) {
@@ -61,10 +62,15 @@ public class StreamChecker {
     }
 
     private void announce(StreamEvent e) {
+        // Генерируем код для этого стрима
+        currentCode = String.valueOf(1000 + new java.util.Random().nextInt(9000));
+
         for (String line : plugin.getConfig().getStringList("announcement.game")) {
             String msg = ChatColor.translateAlternateColorCodes('&', format(line, e));
             Bukkit.broadcastMessage(msg);
         }
+        Bukkit.broadcastMessage(ChatColor.GOLD + "🎯 Код для награды: /stream reward " + currentCode
+                + ChatColor.GRAY + " (скажет стример в эфире)");
         if (plugin.getConfig().getBoolean("announcement.vk-enabled", true)) {
             for (String line : plugin.getConfig().getStringList("announcement.vk")) {
                 VKChatBridge.sendToMainChat(format(line, e));
@@ -72,7 +78,11 @@ public class StreamChecker {
         }
     }
 
-    public boolean claimReward(Player p) {
+    public boolean claimReward(Player p, String code) {
+        if (currentCode.isEmpty() || !currentCode.equals(code)) {
+            p.sendMessage(ChatColor.RED + "Неверный код! Смотри стрим — стример называет код в эфире.");
+            return false;
+        }
         if (announced.isEmpty()) {
             p.sendMessage(ChatColor.RED + "Сейчас нет активных стримов.");
             return false;
@@ -109,5 +119,7 @@ public class StreamChecker {
     }
 
     public Set<String> getAnnounced() { return announced; }
-    public void resetAnnounced() { announced.clear(); claimedRewards.clear(); }
+    public String getCurrentCode() { return currentCode; }
+    public void setCurrentCode(String code) { this.currentCode = code; }
+    public void resetAnnounced() { announced.clear(); claimedRewards.clear(); currentCode = ""; }
 }
