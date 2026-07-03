@@ -94,13 +94,13 @@ public class RuneCommand implements CommandExecutor, TabCompleter {
         addCrystal(inv, 38, "Редкий [XI-XV]", "rare", "crystal_rare");
         addCrystal(inv, 39, "Легендарный [XVI-XX]", "legendary", "crystal_legendary");
         addCrystal(inv, 40, "Древний [XXI-XXV]", "ancient", "crystal_ancient");
-        addSafetyScroll(inv, 40, "Свиток Сохранения", "safety_scroll");
+        addSafetyScroll(inv, 41, "Свиток Сохранения", "safety_scroll");
         
         // Новые ультимативные руны
-        addRune(inv, 41, "Рефлексы Паука", "spider_reflexes");
-        addRune(inv, 42, "Магматический Шаг", "magma_walker");
-        addRune(inv, 43, "Метеоритный Дождь", "meteor_shower");
-        addFusionScroll(inv, 44);
+        addRune(inv, 42, "Рефлексы Паука", "spider_reflexes");
+        addRune(inv, 43, "Магматический Шаг", "magma_walker");
+        addRune(inv, 44, "Метеоритный Дождь", "meteor_shower");
+        addFusionScroll(inv, 45);
 
         // ═══ 35 УНИКАЛЬНЫХ ИМЕНОВАННЫХ РУН ═══
         // Атакующие руны (слот 45-49)

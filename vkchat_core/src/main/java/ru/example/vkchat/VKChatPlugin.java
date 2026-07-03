@@ -38,6 +38,7 @@ public class VKChatPlugin extends JavaPlugin {
     @Override
     public void onEnable() {
         instance = this;
+        ru.example.vkchat.util.VKChatBridge.init();
 
         getLogger().info("=========================================");
         getLogger().info("VKChat 2.0.7 успешно запущен!");

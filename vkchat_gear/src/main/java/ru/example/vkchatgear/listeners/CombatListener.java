@@ -856,4 +856,11 @@ public class CombatListener implements Listener {
             }
         }
     }
+
+    public void cleanupCooldowns(long now) {
+        meteorCooldowns.entrySet().removeIf(e -> now - e.getValue() > 600000);
+        meteorShowerCooldowns.entrySet().removeIf(e -> now - e.getValue() > 600000);
+        messageCooldowns.entrySet().removeIf(e -> now - e.getValue() > 600000);
+        enchantCooldowns.entrySet().removeIf(e -> now - e.getValue() > 600000);
+    }
 }

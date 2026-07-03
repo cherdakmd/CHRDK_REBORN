@@ -14,6 +14,7 @@ import ru.example.vkchatgear.commands.ForgeCommand;
 import ru.example.vkchatgear.commands.GearAdminCommand;
 import ru.example.vkchatgear.runes.RuneCommand;
 import ru.example.vkchatgear.runes.RuneListener;
+import ru.example.vkchat.util.VKChatBridge;
 
 import java.util.List;
 
@@ -21,6 +22,7 @@ public class VKChatGearPlugin extends JavaPlugin {
     private static VKChatGearPlugin instance;
     private GearManager gearManager;
     private ru.example.vkchatgear.runes.RuneMarketManager runeMarketManager;
+    private int magicEventTaskId = -1;
 
     // Магические события
     private String activeMagicEventName = null;
@@ -72,41 +74,53 @@ public class VKChatGearPlugin extends JavaPlugin {
             getServer().getPluginManager().disablePlugin(this);
             return;
         }
+        VKChatBridge.init();
 
         gearManager = new GearManager(this);
         runeMarketManager = new ru.example.vkchatgear.runes.RuneMarketManager(this);
         
+        CombatListener combatListener = new CombatListener(this);
         getServer().getPluginManager().registerEvents(new CraftListener(this), this);
-        getServer().getPluginManager().registerEvents(new CombatListener(this), this);
+        getServer().getPluginManager().registerEvents(combatListener, this);
         getServer().getPluginManager().registerEvents(new MechanicsListener(this), this);
         getServer().getPluginManager().registerEvents(new SynthesisListener(this), this);
         ForgeCommand forgeCommand = new ForgeCommand(this);
-        getCommand("forge").setExecutor(forgeCommand);
-        getCommand("forge").setTabCompleter(forgeCommand);
+        safeCommand("forge", forgeCommand);
         getServer().getPluginManager().registerEvents(forgeCommand, this);
         
         GearAdminCommand gearAdminCmd = new GearAdminCommand(this);
-        getCommand("gearadmin").setExecutor(gearAdminCmd);
-        getCommand("gearadmin").setTabCompleter(gearAdminCmd);
+        safeCommand("gearadmin", gearAdminCmd);
 
         RuneCommand runeCmd = new RuneCommand(this);
-        getCommand("runes").setExecutor(runeCmd);
-        getCommand("runes").setTabCompleter(runeCmd);
+        safeCommand("runes", runeCmd);
         
         ru.example.vkchatgear.commands.SalvageCommand salvageCmd = new ru.example.vkchatgear.commands.SalvageCommand(this);
-        getCommand("salvage").setExecutor(salvageCmd);
-        getCommand("salvage").setTabCompleter(salvageCmd);
+        safeCommand("salvage", salvageCmd);
         getServer().getPluginManager().registerEvents(salvageCmd, this);
         
         getServer().getPluginManager().registerEvents(new RuneListener(this), this);
 
+        // Чистка кулдаунов каждые 5 минут
+        getServer().getScheduler().runTaskTimer(this, () -> {
+            combatListener.cleanupCooldowns(System.currentTimeMillis());
+        }, 6000L, 6000L);
 
         startPassiveTasks();
         
         // Каждые 30 минут запускаем проверку магических событий на руны и кристаллы
-        getServer().getScheduler().runTaskTimer(this, () -> checkForMagicEvent(), 1200L, 36000L);
+        magicEventTaskId = getServer().getScheduler().runTaskTimer(this, () -> checkForMagicEvent(), 1200L, 36000L).getTaskId();
 
         getLogger().info("VKChatGear (MMO-Крафт, Заточка, Сеты) успешно запущен!");
+    }
+
+    private void safeCommand(String name, org.bukkit.command.CommandExecutor executor) {
+        if (getCommand(name) != null) {
+            getCommand(name).setExecutor(executor);
+            if (executor instanceof org.bukkit.command.TabCompleter)
+                getCommand(name).setTabCompleter((org.bukkit.command.TabCompleter) executor);
+        } else {
+            getLogger().warning("Команда '" + name + "' не найдена в plugin.yml");
+        }
     }
 
     private void startPassiveTasks() {
@@ -283,6 +297,7 @@ public class VKChatGearPlugin extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        if (magicEventTaskId != -1) getServer().getScheduler().cancelTask(magicEventTaskId);
         if (runeMarketManager != null) {
             runeMarketManager.save();
         }
