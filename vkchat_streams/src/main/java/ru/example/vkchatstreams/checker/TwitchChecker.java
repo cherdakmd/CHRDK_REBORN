@@ -18,15 +18,15 @@ public class TwitchChecker {
     private static final Object tokenLock = new Object();
 
     public static String getToken(VKChatStreamsPlugin plugin) {
-        String manualToken = plugin.getConfig().getString("streams.twitch.oauth-token", "");
+        String manualToken = plugin.getConfig().getString("twitch.oauth-token", "");
         if (!manualToken.isEmpty() && !manualToken.startsWith("YOUR_")) return manualToken;
 
         synchronized (tokenLock) {
             if (cachedToken != null && System.currentTimeMillis() < tokenExpiresAt - 60000)
                 return cachedToken;
 
-            String clientId = plugin.getConfig().getString("streams.twitch.client-id", "");
-            String clientSecret = plugin.getConfig().getString("streams.twitch.client-secret", "");
+            String clientId = plugin.getConfig().getString("twitch.client-id", "");
+            String clientSecret = plugin.getConfig().getString("twitch.client-secret", "");
             if (clientId.isEmpty() || clientSecret.isEmpty() || clientId.startsWith("YOUR_")) return "";
 
             try {
@@ -68,11 +68,11 @@ public class TwitchChecker {
 
     public static Set<StreamEvent> check(VKChatStreamsPlugin plugin) {
         Set<StreamEvent> result = new HashSet<>();
-        String clientId = plugin.getConfig().getString("streams.twitch.client-id", "");
+        String clientId = plugin.getConfig().getString("twitch.client-id", "");
         String oauth = getToken(plugin);
         if (clientId.isEmpty() || oauth.isEmpty()) return result;
 
-        for (String channel : plugin.getConfig().getStringList("streams.twitch.channels")) {
+        for (String channel : plugin.getConfig().getStringList("twitch.channels")) {
             try {
                 URI uri = new URI("https://api.twitch.tv/helix/streams?user_login=" + channel.trim().toLowerCase());
                 HttpURLConnection conn = (HttpURLConnection) uri.toURL().openConnection();
@@ -99,8 +99,7 @@ public class TwitchChecker {
                     String vc = extractJsonString(data, "\"viewer_count\":");
                     try { viewers = Integer.parseInt(vc); } catch (NumberFormatException ignored) {}
                 }
-                result.add(new StreamEvent("Twitch", channel.trim(), title, url, live,
-                        "", "", "", viewers, game));
+                result.add(new StreamEvent(channel.trim(), title, url, live, viewers, game));
             } catch (Exception ignore) {}
         }
         return result;

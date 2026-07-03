@@ -35,40 +35,24 @@ public class VKChatStreamsPlugin extends JavaPlugin {
     }
 
     private void validateConfig() {
-        boolean anyPlatform = false;
+        boolean configured = false;
 
-        if (getConfig().getBoolean("streams.twitch.enabled", true)) {
-            String cid = getConfig().getString("streams.twitch.client-id", "");
-            String oauth = getConfig().getString("streams.twitch.oauth-token", "");
-            String secret = getConfig().getString("streams.twitch.client-secret", "");
+        if (getConfig().getBoolean("twitch.enabled", true)) {
+            String cid = getConfig().getString("twitch.client-id", "");
+            String oauth = getConfig().getString("twitch.oauth-token", "");
+            String secret = getConfig().getString("twitch.client-secret", "");
             boolean hasToken = (!oauth.isEmpty() && !oauth.startsWith("YOUR_"))
                     || (!cid.isEmpty() && !cid.startsWith("YOUR_") && !secret.isEmpty() && !secret.startsWith("YOUR_"));
             if (hasToken)
-                anyPlatform = true;
+                configured = true;
             else
                 getLogger().warning("Twitch: не настроены oauth-token или client-id+client-secret.");
         }
 
-        if (getConfig().getBoolean("streams.youtube.enabled", true)) {
-            String key = getConfig().getString("streams.youtube.api-key", "");
-            if (!key.isEmpty() && !key.startsWith("YOUR_"))
-                anyPlatform = true;
-            else
-                getLogger().warning("YouTube: не настроен api-key.");
-        }
-
-        if (getConfig().getBoolean("streams.vk.enabled", true)) {
-            String token = getConfig().getString("streams.vk.token", "");
-            if (!token.isEmpty() && !token.startsWith("YOUR_"))
-                anyPlatform = true;
-            else
-                getLogger().warning("VK: не настроен token.");
-        }
-
-        if (!anyPlatform)
-            getLogger().warning("Ни одна платформа не настроена. Стримы не будут проверяться.");
+        if (!configured)
+            getLogger().warning("Twitch не настроен. Стримы не будут проверяться.");
         else
-            getLogger().info("Платформы настроены, мониторинг стримов активен.");
+            getLogger().info("Twitch настроен, мониторинг стримов активен.");
     }
 
     @Override

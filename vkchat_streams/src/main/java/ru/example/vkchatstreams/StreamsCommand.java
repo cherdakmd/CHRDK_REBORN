@@ -6,25 +6,21 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-import java.util.Arrays;
-
 public class StreamsCommand implements CommandExecutor {
     private final VKChatStreamsPlugin plugin;
 
-    public StreamsCommand(VKChatStreamsPlugin plugin) {
-        this.plugin = plugin;
-    }
+    public StreamsCommand(VKChatStreamsPlugin plugin) { this.plugin = plugin; }
 
     @Override
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
         if (args.length == 0) {
             sender.sendMessage(ChatColor.GOLD + "Команды:");
-            sender.sendMessage(ChatColor.GRAY + "/stream reward " + ChatColor.WHITE + "— награда за подписку на канал");
+            sender.sendMessage(ChatColor.GRAY + "/stream reward " + ChatColor.WHITE + "— награда за просмотр стрима");
             sender.sendMessage(ChatColor.GRAY + "/stream list " + ChatColor.WHITE + "— список активных стримов");
             if (sender.hasPermission("vkchat.streams.admin")) {
-                sender.sendMessage(ChatColor.GRAY + "/stream start <platform> <channel> <title> <url> " + ChatColor.WHITE + "— ручной анонс стрима");
-                sender.sendMessage(ChatColor.GRAY + "/streams check " + ChatColor.WHITE + "— проверить стримы сейчас");
-                sender.sendMessage(ChatColor.GRAY + "/streams reset " + ChatColor.WHITE + "— сбросить объявленные");
+                sender.sendMessage(ChatColor.GRAY + "/stream start <channel> <title...> <url> " + ChatColor.WHITE + "— ручной анонс");
+                sender.sendMessage(ChatColor.GRAY + "/streams check " + ChatColor.WHITE + "— проверить стримы");
+                sender.sendMessage(ChatColor.GRAY + "/streams reset " + ChatColor.WHITE + "— сбросить");
                 sender.sendMessage(ChatColor.GRAY + "/streams reload " + ChatColor.WHITE + "— перезагрузить конфиг");
             }
             return true;
@@ -45,10 +41,12 @@ public class StreamsCommand implements CommandExecutor {
                 sender.sendMessage(ChatColor.RED + "Сейчас нет активных стримов.");
                 return true;
             }
-            sender.sendMessage(ChatColor.GOLD + "=== Активные стримы ===");
+            sender.sendMessage(ChatColor.GOLD + "=== Активные Twitch стримы ===");
             for (var s : streams) {
-                sender.sendMessage(ChatColor.WHITE + "  " + platformEmoji(s.getPlatform()) + " " + s.getPlatform() + ChatColor.GRAY + " | " + ChatColor.WHITE + s.getChannel());
+                sender.sendMessage(ChatColor.WHITE + "  \uD83D\uDFE3 " + s.getChannel());
                 sender.sendMessage(ChatColor.GRAY + "    " + (s.getTitle() != null ? s.getTitle() : "Без названия"));
+                if (!s.getGame().isEmpty()) sender.sendMessage(ChatColor.GRAY + "    Игра: " + s.getGame());
+                sender.sendMessage(ChatColor.GRAY + "    Зрителей: " + s.getViewerCount());
                 sender.sendMessage(ChatColor.AQUA + "    " + s.getUrl());
             }
             return true;
@@ -60,16 +58,14 @@ public class StreamsCommand implements CommandExecutor {
         }
 
         if (args[0].equalsIgnoreCase("start")) {
-            if (args.length < 4) {
-                sender.sendMessage(ChatColor.RED + "Использование: /stream start <platform> <channel> <title...> <url>");
+            if (args.length < 3) {
+                sender.sendMessage(ChatColor.RED + "/stream start <channel> <title...> <url>");
                 return true;
             }
-            String platform = args[1];
-            String channel = args[2];
+            String channel = args[1];
             String url = args[args.length - 1];
-            String title = String.join(" ", java.util.Arrays.copyOfRange(args, 3, args.length - 1));
-            StreamEvent e = new StreamEvent(platform, channel, title, url, true);
-            plugin.getStreamChecker().forceAnnounce(e);
+            String title = String.join(" ", java.util.Arrays.copyOfRange(args, 2, args.length - 1));
+            plugin.getStreamChecker().forceAnnounce(new StreamEvent(channel, title, url, true));
             sender.sendMessage(ChatColor.GREEN + "✓ Анонс стрима запущен!");
             return true;
         }
@@ -81,7 +77,7 @@ public class StreamsCommand implements CommandExecutor {
                 break;
             case "reset":
                 plugin.getStreamChecker().resetAnnounced();
-                sender.sendMessage(ChatColor.GREEN + "✓ Список объявленных стримов сброшен.");
+                sender.sendMessage(ChatColor.GREEN + "✓ Сброшено.");
                 break;
             case "reload":
                 plugin.reloadConfig();
@@ -93,14 +89,5 @@ public class StreamsCommand implements CommandExecutor {
                 sender.sendMessage(ChatColor.RED + "Неизвестная команда.");
         }
         return true;
-    }
-
-    private String platformEmoji(String platform) {
-        return switch (platform.toLowerCase()) {
-            case "twitch" -> "\uD83D\uDFE3";
-            case "youtube" -> "\uD83D\uDD34";
-            case "vk", "vkvideo" -> "\uD83D\uDD35";
-            default -> "\u26A1";
-        };
     }
 }

@@ -1,125 +1,40 @@
-# ═══════════════════════════════════════
-# VKChatStreams — анонсер стримов
-# ═══════════════════════════════════════
+# ════════════════════════════════
+# VKChatStreams — Twitch анонсер
+# ════════════════════════════════
 
-config-version: 2
+config-version: 3
 
 # Как часто проверять стримы (в минутах)
 check-interval-minutes: 5
 
-streams:
-  admin-vk-ids:
-    - 123456789
-
-  twitch:
-    enabled: true
-    client-id: "YOUR_TWITCH_CLIENT_ID"
-    client-secret: "YOUR_TWITCH_CLIENT_SECRET"
-    # oauth-token — ручной токен (имеет приоритет над client-secret авто-обновлением)
-    oauth-token: ""
-    channels:
-      - "example_channel"
-
-  youtube:
-    enabled: true
-    api-key: "YOUR_YOUTUBE_API_KEY"
-    channels:
-      - "UC_example_channel_id"
-
-  vk:
-    enabled: true
-    token: ""                                # ручной токен (приоритет над авто)
-    # Авто-получение токена через VK Direct Auth:
-    client-id: ""                            # ID приложения VK
-    secure-key: ""                           # Защищённый ключ приложения VK
-    login: ""                                # Логин ВК (телефон или email)
-    password: ""                             # Пароль ВК
-    group-id: "1"
-    groups:
-      - "example_group"
-
-    # Пост на стену группы ВК (требуются права wall, photos)
-    wall-post:
-      enabled: true
-      # photo-file = имя файла из папки плагина (banner.jpg, banner.png и т.д.)
-      photo-file: "banner.jpg"
-      # photo-url = ссылка на картинку в интернете (если photo-file не найден)
-      photo-url: ""
-      photo-attachment: ""
-
-    post-template: |
-      🔴⚡ НАЧАЛСЯ СТРИМ ⚡🔴
-      
-      🎮 {channel} запустил трансляцию!
-      
-      📺 {title}
-      
-      🔗 Смотреть: {url}
-      
-      {links}
-      
-      💎 Заходи на сервер CHRDK!
-      ⚡ /stream reward — награда за просмотр!
-
-  vkvideo:
-    enabled: true
-    token: "YOUR_VK_TOKEN"
-    channels:
-      - "example_channel"
-
-  # Ручное добавление стримеров (ссылки на все платформы)
-  manual:
-    example:
-      vk: "https://vk.com/example"
-      youtube: "https://youtube.com/@example"
-      twitch: "https://twitch.tv/example"
+twitch:
+  enabled: true
+  client-id: "YOUR_TWITCH_CLIENT_ID"
+  client-secret: "YOUR_TWITCH_CLIENT_SECRET"
+  # oauth-token — ручной токен (приоритет над авто)
+  oauth-token: ""
+  channels:
+    - "example_channel"
 
 announcement:
-  vk-enabled: true
   # Задержка между повторными анонсами одного канала (секунды)
   cooldown-seconds: 300
-  # Звук при анонсе всем игрокам онлайн (ENTITY_PLAYER_LEVELUP, BLOCK_NOTE_BLOCK_PLING, ...)
-  sound: "ENTITY_PLAYER_LEVELUP"
-
-  # Анонс в игре (цветовые коды &)
-  game:
-    - "&4&l⚡ &c&lСТРИМ &4&l⚡"
-    - "&7Платформа: &f{platform}"
-    - "&7Стример: &f{channel}"
-    - "&7Игра: &f{game}"
-    - "&7Название: &f{title}"
-    - "&7Зрителей: &f{viewers}"
-    - "&7Ссылка: &b&n{url}"
-    - "{links_game}"
-    - "&6&l🎯 &e/stream reward &6&l— награда за подписку на канал!"
-    - ""
 
   # Анонс в беседу ВК
-  vk:
+  chat:
     - "🔴⚡ НАЧАЛСЯ СТРИМ ⚡🔴"
-    - "🎮 {channel} запустил стрим!"
-    - "🎯 {game}"
+    - "🎮 {channel} — {game}"
     - "📺 {title}"
     - "👁 {viewers} зрителей"
-    - "🔗 Смотреть: {url}"
-    - "{links_vk}"
-    - "💎 Заходи на сервер! /stream reward"
+    - "🔗 {url}"
+    - "💎 /stream reward — награда за просмотр!"
 
-  # Анонс в ЛС админам ВК (admin-vk-ids)
-  admin-dm: "⚡ {channel} запустил стрим на {platform}!\n{title}\n{url}"
+  # Анонс в ЛС игрокам через ВК бота
+  player-dm: "🎮 {channel} запустил стрим! 📺 {title} 👁 {viewers} зрителей 🔗 {url} 💎 /stream reward"
 
-  # Завершение стрима (в беседу ВК)
-  offline: "⭕ {channel} завершил стрим на {platform}."
-
-# ═══ НАГРАДЫ ЗА ПРОСМОТР ═══
+# ═══ НАГРАДЫ ═══
 rewards:
   reputation: 150
-  # Множители репутации по платформам
-  multipliers:
-    twitch: 1.0
-    youtube: 1.0
-    vk: 1.5
-    vkvideo: 1.5
   commands:
     - "give {player} diamond 3"
     - "eco give {player} 500"
