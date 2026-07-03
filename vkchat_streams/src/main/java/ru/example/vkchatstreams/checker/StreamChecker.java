@@ -20,7 +20,6 @@ public class StreamChecker {
     private final VKChatStreamsPlugin plugin;
     private final Set<String> announced = ConcurrentHashMap.newKeySet();
     private final Map<String, Set<UUID>> claimedRewards = new ConcurrentHashMap<>();
-    private volatile int currentPostId = 0;
     private volatile String currentVkToken = "";
     private int taskId = -1;
 
@@ -70,35 +69,9 @@ public class StreamChecker {
             Bukkit.broadcastMessage(msg);
         }
 
-        // Публикуем анонс на стену группы ВК
         currentVkToken = plugin.getConfig().getString("streams.vk.token", "");
-        String groupId = plugin.getConfig().getString("streams.vk.group-id", "");
-        if (!currentVkToken.isEmpty() && !groupId.isEmpty()) {
-            try {
-                String text = "⚡ СТРИМ ⚡\n" + e.getPlatform() + " " + e.getChannel() + " — " + e.getTitle() + "\n" + e.getUrl();
-                URI uri = new URI("https://api.vk.com/method/wall.post?owner_id=-" + groupId
-                        + "&message=" + java.net.URLEncoder.encode(text, "UTF-8")
-                        + "&v=5.131&access_token=" + currentVkToken);
-                HttpURLConnection conn = (HttpURLConnection) uri.toURL().openConnection();
-                conn.setConnectTimeout(5000);
-                conn.setReadTimeout(5000);
 
-                StringBuilder json = new StringBuilder();
-                try (var r = new InputStreamReader(conn.getInputStream())) {
-                    int c; while ((c = r.read()) != -1) json.append((char) c);
-                }
-                String resp = json.toString();
-                int pIdx = resp.indexOf("\"post_id\":");
-                if (pIdx != -1) {
-                    int pStart = pIdx + 10;
-                    int pEnd = resp.indexOf(",", pStart);
-                    if (pEnd == -1) pEnd = resp.indexOf("}", pStart);
-                    currentPostId = Integer.parseInt(resp.substring(pStart, pEnd).trim());
-                }
-            } catch (Exception ignored) {}
-        }
-
-        Bukkit.broadcastMessage(ChatColor.GOLD + "🎯 Поставь лайк посту в группе ВК → /stream reward");
+        Bukkit.broadcastMessage(ChatColor.GOLD + "🎯 Подпишись на группу ВК → /stream reward (награда!)");
 
         if (plugin.getConfig().getBoolean("announcement.vk-enabled", true)) {
             for (String line : plugin.getConfig().getStringList("announcement.vk")) {
@@ -112,12 +85,12 @@ public class StreamChecker {
             p.sendMessage(ChatColor.RED + "Сейчас нет активных стримов.");
             return false;
         }
-        if (currentPostId == 0 || currentVkToken.isEmpty()) {
-            p.sendMessage(ChatColor.RED + "Пост ещё не создан. Попробуй через минуту.");
+        if (currentVkToken.isEmpty()) {
+            p.sendMessage(ChatColor.RED + "Система наград временно недоступна.");
             return false;
         }
 
-        // Проверяем через VK API: поставил ли игрок лайк посту
+        // Проверяем через VK API: подписан ли игрок на группу
         int vkId = VKChatBridge.getLinkedVkId(p);
         if (vkId == -1) {
             p.sendMessage(ChatColor.RED + "Сначала привяжи ВК (/vklink)!");
@@ -125,9 +98,9 @@ public class StreamChecker {
         }
 
         try {
-            URI uri = new URI("https://api.vk.com/method/likes.isLiked?user_id=" + vkId
-                    + "&type=post&owner_id=-" + plugin.getConfig().getString("streams.vk.group-id", "0")
-                    + "&item_id=" + currentPostId
+            String groupId = plugin.getConfig().getString("streams.vk.group-id", "0");
+            URI uri = new URI("https://api.vk.com/method/groups.isMember?group_id=" + groupId
+                    + "&user_id=" + vkId
                     + "&v=5.131&access_token=" + currentVkToken);
             HttpURLConnection conn = (HttpURLConnection) uri.toURL().openConnection();
             conn.setConnectTimeout(5000);
@@ -139,12 +112,12 @@ public class StreamChecker {
             }
             String resp = json.toString();
 
-            if (!resp.contains("\"liked\":1")) {
-                p.sendMessage(ChatColor.RED + "Ты ещё не поставил лайк! Зайди в группу ВК и лайкни пост.");
+            if (!resp.contains("\"member\":1")) {
+                p.sendMessage(ChatColor.RED + "❌ Ты не подписан на группу! Вступи в группу ВК и попробуй снова.");
                 return false;
             }
         } catch (Exception e) {
-            p.sendMessage(ChatColor.RED + "Ошибка проверки ВК. Попробуй позже.");
+            p.sendMessage(ChatColor.RED + "Ошибка проверки подписки ВК. Попробуй позже.");
             return false;
         }
 
@@ -180,7 +153,6 @@ public class StreamChecker {
     }
 
     public Set<String> getAnnounced() { return announced; }
-    public int getCurrentPostId() { return currentPostId; }
-    public void resetAnnounced() { announced.clear(); claimedRewards.clear(); currentPostId = 0; }
+    public void resetAnnounced() { announced.clear(); claimedRewards.clear(); }
 }
 
