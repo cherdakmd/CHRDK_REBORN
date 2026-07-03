@@ -114,9 +114,13 @@ public class ClaimDefenseListener implements Listener {
     /** 5. Запрет поджога блоков (кремень, молния, lava→fire, fireball). */
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onIgnite(BlockIgniteEvent e) {
-        if (isProtected(plugin.getNationManager().getClaimAt(e.getBlock().getLocation()), fireLevel())) {
-            e.setCancelled(true);
-        }
+        ChunkClaim claim = plugin.getNationManager().getClaimAt(e.getBlock().getLocation());
+        if (!isProtected(claim, fireLevel())) return;
+
+        Player p = e.getPlayer();
+        if (p != null && (claim.getOwner().equals(p.getUniqueId()) || claim.getTrusted().contains(p.getUniqueId()))) return;
+
+        e.setCancelled(true);
     }
 
     /** 6. Запрет растекания огня по защищённой территории. */
