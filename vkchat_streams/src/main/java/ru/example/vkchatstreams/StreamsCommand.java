@@ -6,6 +6,8 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
+import java.util.Arrays;
+
 public class StreamsCommand implements CommandExecutor {
     private final VKChatStreamsPlugin plugin;
 
@@ -58,14 +60,14 @@ public class StreamsCommand implements CommandExecutor {
         }
 
         if (args[0].equalsIgnoreCase("start")) {
-            if (args.length < 5) {
-                sender.sendMessage(ChatColor.RED + "Использование: /stream start <platform> <channel> <title> <url>");
+            if (args.length < 4) {
+                sender.sendMessage(ChatColor.RED + "Использование: /stream start <platform> <channel> <title...> <url>");
                 return true;
             }
             String platform = args[1];
             String channel = args[2];
-            String title = args[3];
-            String url = args[4];
+            String url = args[args.length - 1];
+            String title = String.join(" ", java.util.Arrays.copyOfRange(args, 3, args.length - 1));
             StreamEvent e = new StreamEvent(platform, channel, title, url, true);
             plugin.getStreamChecker().forceAnnounce(e);
             sender.sendMessage(ChatColor.GREEN + "✓ Анонс стрима запущен!");
@@ -84,6 +86,7 @@ public class StreamsCommand implements CommandExecutor {
             case "reload":
                 plugin.reloadConfig();
                 plugin.getStreamChecker().reload();
+                plugin.getStreamChecker().restart();
                 sender.sendMessage(ChatColor.GREEN + "✓ Конфиг перезагружен.");
                 break;
             default:

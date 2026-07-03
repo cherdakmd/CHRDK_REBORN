@@ -39,10 +39,13 @@ public class VKChatStreamsPlugin extends JavaPlugin {
         if (getConfig().getBoolean("streams.twitch.enabled", true)) {
             String cid = getConfig().getString("streams.twitch.client-id", "");
             String oauth = getConfig().getString("streams.twitch.oauth-token", "");
-            if (!cid.isEmpty() && !cid.startsWith("YOUR_") && !oauth.isEmpty() && !oauth.startsWith("YOUR_"))
+            String secret = getConfig().getString("streams.twitch.client-secret", "");
+            boolean hasToken = (!oauth.isEmpty() && !oauth.startsWith("YOUR_"))
+                    || (!cid.isEmpty() && !cid.startsWith("YOUR_") && !secret.isEmpty() && !secret.startsWith("YOUR_"));
+            if (hasToken)
                 anyPlatform = true;
             else
-                getLogger().warning("Twitch: не настроены client-id / oauth-token.");
+                getLogger().warning("Twitch: не настроены oauth-token или client-id+client-secret.");
         }
 
         if (getConfig().getBoolean("streams.youtube.enabled", true)) {

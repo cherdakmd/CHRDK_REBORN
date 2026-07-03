@@ -14,7 +14,9 @@ streams:
   twitch:
     enabled: true
     client-id: "YOUR_TWITCH_CLIENT_ID"
-    oauth-token: "YOUR_TWITCH_OAUTH"
+    client-secret: "YOUR_TWITCH_CLIENT_SECRET"
+    # oauth-token — ручной токен (имеет приоритет над client-secret авто-обновлением)
+    oauth-token: ""
     channels:
       - "example_channel"
 
@@ -69,6 +71,8 @@ streams:
 
 announcement:
   vk-enabled: true
+  # Задержка между повторными анонсами одного канала (секунды)
+  cooldown-seconds: 300
   # Звук при анонсе всем игрокам онлайн (ENTITY_PLAYER_LEVELUP, BLOCK_NOTE_BLOCK_PLING, ...)
   sound: "ENTITY_PLAYER_LEVELUP"
 
@@ -77,7 +81,9 @@ announcement:
     - "&4&l⚡ &c&lСТРИМ &4&l⚡"
     - "&7Платформа: &f{platform}"
     - "&7Стример: &f{channel}"
+    - "&7Игра: &f{game}"
     - "&7Название: &f{title}"
+    - "&7Зрителей: &f{viewers}"
     - "&7Ссылка: &b&n{url}"
     - "{links_game}"
     - "&6&l🎯 &e/stream reward &6&l— награда за подписку на канал!"
@@ -88,7 +94,9 @@ announcement:
     - "🔴⚡ НАЧАЛСЯ СТРИМ ⚡🔴"
     - ""
     - "🎮 {channel} запустил стрим!"
+    - "🎯 {game}"
     - "📺 {title}"
+    - "👁 {viewers} зрителей"
     - ""
     - "🔗 Смотреть: {url}"
     - "{links_vk}"
@@ -104,6 +112,12 @@ announcement:
 # ═══ НАГРАДЫ ЗА ПРОСМОТР ═══
 rewards:
   reputation: 150
+  # Множители репутации по платформам
+  multipliers:
+    twitch: 1.0
+    youtube: 1.0
+    vk: 1.5
+    vkvideo: 1.5
   commands:
     - "give {player} diamond 3"
     - "eco give {player} 500"

@@ -9,9 +9,12 @@ public class StreamEvent {
     private final String vkUrl;
     private final String youtubeUrl;
     private final String twitchUrl;
+    private final int viewerCount;
+    private final String game;
 
     public StreamEvent(String platform, String channel, String title, String url, boolean live,
-                       String vkUrl, String youtubeUrl, String twitchUrl) {
+                       String vkUrl, String youtubeUrl, String twitchUrl,
+                       int viewerCount, String game) {
         this.platform = platform;
         this.channel = channel;
         this.title = title;
@@ -20,10 +23,17 @@ public class StreamEvent {
         this.vkUrl = vkUrl;
         this.youtubeUrl = youtubeUrl;
         this.twitchUrl = twitchUrl;
+        this.viewerCount = viewerCount;
+        this.game = game;
+    }
+
+    public StreamEvent(String platform, String channel, String title, String url, boolean live,
+                       String vkUrl, String youtubeUrl, String twitchUrl) {
+        this(platform, channel, title, url, live, vkUrl, youtubeUrl, twitchUrl, 0, "");
     }
 
     public StreamEvent(String platform, String channel, String title, String url, boolean live) {
-        this(platform, channel, title, url, live, "", "", "");
+        this(platform, channel, title, url, live, "", "", "", 0, "");
     }
 
     public String getPlatform() { return platform; }
@@ -34,4 +44,6 @@ public class StreamEvent {
     public String getVkUrl() { return vkUrl; }
     public String getYoutubeUrl() { return youtubeUrl; }
     public String getTwitchUrl() { return twitchUrl; }
+    public int getViewerCount() { return viewerCount; }
+    public String getGame() { return game; }
 }

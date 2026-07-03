@@ -32,6 +32,7 @@ public class StreamChecker {
     private final Map<String, StreamEvent> activeStreams = new ConcurrentHashMap<>();
     private final Map<String, Set<UUID>> claimedRewards = new ConcurrentHashMap<>();
     private final Map<String, String[]> manualLinks = new LinkedHashMap<>();
+    private final Map<String, Long> lastAnnounceTime = new ConcurrentHashMap<>();
     private volatile String cachedPhotoAttachment;
     private volatile boolean photoUploading;
     private int taskId = -1;
@@ -56,6 +57,11 @@ public class StreamChecker {
     public void start() {
         int interval = plugin.getConfig().getInt("check-interval-minutes", 5) * 1200;
         taskId = Bukkit.getScheduler().runTaskTimerAsynchronously(plugin, this::checkAll, 200L, Math.max(200, interval)).getTaskId();
+    }
+
+    public void restart() {
+        stop();
+        start();
     }
 
     public void stop() {
@@ -85,10 +91,16 @@ public class StreamChecker {
         }
 
         // Новые стримы
+        int cooldownSec = plugin.getConfig().getInt("announcement.cooldown-seconds", 300);
         for (StreamEvent e : events) {
             String key = e.getPlatform() + ":" + e.getChannel();
             if (!e.isLive() || announced.contains(key)) continue;
 
+            long now = System.currentTimeMillis();
+            Long last = lastAnnounceTime.get(key);
+            if (last != null && (now - last) < cooldownSec * 1000L) continue;
+
+            lastAnnounceTime.put(key, now);
             announced.add(key);
             claimedRewards.putIfAbsent(key, ConcurrentHashMap.newKeySet());
             StreamEvent enriched = enrichWithManualLinks(e);
@@ -130,7 +142,8 @@ public class StreamChecker {
         if (!e.getYoutubeUrl().isEmpty()) ytUrl = e.getYoutubeUrl();
         if (!e.getTwitchUrl().isEmpty()) twUrl = e.getTwitchUrl();
 
-        return new StreamEvent(e.getPlatform(), e.getChannel(), e.getTitle(), e.getUrl(), e.isLive(), vkUrl, ytUrl, twUrl);
+        return new StreamEvent(e.getPlatform(), e.getChannel(), e.getTitle(), e.getUrl(), e.isLive(),
+                vkUrl, ytUrl, twUrl, e.getViewerCount(), e.getGame());
     }
 
     private void announce(StreamEvent e) {
@@ -456,8 +469,10 @@ public class StreamChecker {
 
         claimedRewards.get(keyToClaim).add(p.getUniqueId());
         StreamEvent stream = activeStreams.get(keyToClaim);
+        String platform = stream != null ? stream.getPlatform().toLowerCase() : "default";
 
-        int rep = plugin.getConfig().getInt("rewards.reputation", 150);
+        double multiplier = plugin.getConfig().getDouble("rewards.multipliers." + platform, 1.0);
+        int rep = (int) (plugin.getConfig().getInt("rewards.reputation", 150) * multiplier);
         int vkId = VKChatBridge.getLinkedVkId(p);
         if (vkId != -1) VKChatBridge.addPoints(vkId, rep);
 
@@ -480,6 +495,8 @@ public class StreamChecker {
                 .replace("{platform_emoji}", platformEmoji(e.getPlatform()))
                 .replace("{channel}", e.getChannel())
                 .replace("{title}", title)
+                .replace("{game}", e.getGame() != null ? e.getGame() : "")
+                .replace("{viewers}", e.getViewerCount() > 0 ? String.valueOf(e.getViewerCount()) : "")
                 .replace("{url}", e.getUrl() != null ? e.getUrl() : "")
                 .replace("{links}", buildPlainLinks(e))
                 .replace("{links_vk}", linksVk)
@@ -507,6 +524,6 @@ public class StreamChecker {
     }
 
     public Set<String> getAnnounced() { return announced; }
-    public void resetAnnounced() { announced.clear(); activeStreams.clear(); claimedRewards.clear(); cachedPhotoAttachment = null; }
-    public void reload() { loadManualLinks(); cachedPhotoAttachment = null; }
+    public void resetAnnounced() { announced.clear(); activeStreams.clear(); claimedRewards.clear(); cachedPhotoAttachment = null; lastAnnounceTime.clear(); }
+    public void reload() { loadManualLinks(); cachedPhotoAttachment = null; lastAnnounceTime.clear(); TwitchChecker.resetToken(); }
 }
