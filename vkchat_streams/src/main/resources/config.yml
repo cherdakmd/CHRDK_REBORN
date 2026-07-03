@@ -2,7 +2,7 @@
 # VKChatStreams — Twitch анонсер
 # ════════════════════════════════
 
-config-version: 3
+config-version: 4
 
 # Как часто проверять стримы (в минутах)
 check-interval-minutes: 5
@@ -11,24 +11,30 @@ twitch:
   enabled: true
   client-id: "YOUR_TWITCH_CLIENT_ID"
   client-secret: "YOUR_TWITCH_CLIENT_SECRET"
-  # oauth-token — ручной токен (приоритет над авто)
   oauth-token: ""
   channels:
     - "example_channel"
 
-# Ссылки на Ютуб и ВК стримеров (по имени Twitch-канала)
-# Будут показаны в анонсе вместе со ссылкой на Twitch
 streamers:
   example_channel:
     youtube: "https://youtube.com/@example"
     vk: "https://vk.com/example"
 
 announcement:
-  # Задержка между повторными анонсами одного канала (секунды)
   cooldown-seconds: 300
-
-  # Клавиатура с кнопками в беседе ВК
   keyboard: true
+
+  # Анонс в игре (цветовые коды &)
+  game-enabled: true
+  game:
+    - "&4&l⚡ &c&lСТРИМ &4&l⚡"
+    - "&7Стример: &f{channel}"
+    - "&7Игра: &f{game}"
+    - "&7Название: &f{title}"
+    - "&7Зрителей: &f{viewers}"
+    - "&7Идёт: &f{uptime}"
+    - "&b&n{url}"
+    - "&6/stream reward &e— награда за просмотр!"
 
   # Анонс в беседу ВК
   chat:
@@ -39,10 +45,12 @@ announcement:
     - "🔗 {links}"
     - "💎 /stream reward — награда за просмотр!"
 
-  # Анонс в ЛС игрокам через ВК бота
+  # Завершение стрима (в беседу ВК)
+  offline: "⭕ {channel} завершил стрим. Итог: {claimed} наград выдано, шёл {uptime}."
+
+  # Анонс в ЛС игрокам
   player-dm: "🎮 {channel} запустил стрим! 📺 {title} 👁 {viewers} зрителей 🔗 {url}"
 
-# ═══ НАГРАДЫ ═══
 rewards:
   reputation: 150
   commands:

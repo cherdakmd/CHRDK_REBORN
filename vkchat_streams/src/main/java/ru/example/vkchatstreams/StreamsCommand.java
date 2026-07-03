@@ -43,10 +43,12 @@ public class StreamsCommand implements CommandExecutor {
             }
             sender.sendMessage(ChatColor.GOLD + "=== Активные Twitch стримы ===");
             for (var s : streams) {
+                int claimed = plugin.getStreamChecker().getClaimedCount(s.getChannel());
                 sender.sendMessage(ChatColor.WHITE + "  \uD83D\uDFE3 " + s.getChannel());
                 sender.sendMessage(ChatColor.GRAY + "    " + (s.getTitle() != null ? s.getTitle() : "Без названия"));
                 if (!s.getGame().isEmpty()) sender.sendMessage(ChatColor.GRAY + "    Игра: " + s.getGame());
-                sender.sendMessage(ChatColor.GRAY + "    Зрителей: " + s.getViewerCount());
+                sender.sendMessage(ChatColor.GRAY + "    Зрителей: " + s.getViewerCount() + " | Идёт: " + s.getUptime());
+                sender.sendMessage(ChatColor.GRAY + "    Наград выдано: " + claimed);
                 sender.sendMessage(ChatColor.AQUA + "    " + s.getUrl());
             }
             return true;
