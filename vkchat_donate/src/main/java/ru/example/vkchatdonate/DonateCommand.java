@@ -53,9 +53,9 @@ public class DonateCommand implements CommandExecutor {
 
                 dispatch("lp creategroup " + group);
                 dispatch("lp group " + group + " setweight " + weight);
-                dispatch("lp group " + group + " setprefix \"" + prefix + " \"");
+                dispatch("lp group " + group + " setprefix " + prefix + " ");
                 dispatch("lp group " + group + " permission set vkchat.donate." + group + " true");
-                dispatch("lp group " + group + " meta setprefix " + weight + " \"" + prefix + " \"");
+                dispatch("lp group " + group + " meta setprefix " + weight + " " + prefix + " ");
 
                 sender.sendMessage(ChatColor.GRAY + "  " + display + " — вес " + weight + " — OK");
             }
