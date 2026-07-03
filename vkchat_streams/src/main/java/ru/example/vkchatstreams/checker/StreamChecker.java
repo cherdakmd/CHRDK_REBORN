@@ -141,26 +141,47 @@ public class StreamChecker {
         if (cachedPhotoAttachment != null && !cachedPhotoAttachment.isEmpty())
             return cachedPhotoAttachment;
 
-        String photoUrl = plugin.getConfig().getString("streams.vk.wall-post.photo-url", "");
-        if (photoUrl.isEmpty()) return "";
-
         String token = plugin.getConfig().getString("streams.vk.token", "");
         String groupId = plugin.getConfig().getString("streams.vk.group-id", "");
         if (token.isEmpty() || groupId.isEmpty()) return "";
 
-        try {
-            // 1. Скачиваем картинку
-            byte[] imageBytes = downloadImage(photoUrl);
-            if (imageBytes == null || imageBytes.length == 0) return "";
+        byte[] imageBytes = null;
 
-            // 2. Получаем upload URL
+        // 1. Пробуем локальный файл из папки плагина
+        String photoFile = plugin.getConfig().getString("streams.vk.wall-post.photo-file", "banner.jpg");
+        java.io.File file = new java.io.File(plugin.getDataFolder(), photoFile);
+        if (file.exists()) {
+            try {
+                imageBytes = java.nio.file.Files.readAllBytes(file.toPath());
+                plugin.getLogger().info("Загружаю картинку из файла: " + file.getName());
+            } catch (Exception e) {
+                plugin.getLogger().warning("Ошибка чтения файла " + file.getName() + ": " + e.getMessage());
+            }
+        }
+
+        // 2. Если файла нет — пробуем URL
+        if (imageBytes == null) {
+            String photoUrl = plugin.getConfig().getString("streams.vk.wall-post.photo-url", "");
+            if (!photoUrl.isEmpty()) {
+                imageBytes = downloadImage(photoUrl);
+            }
+        }
+
+        if (imageBytes == null || imageBytes.length == 0) return "";
+
+        return uploadToVkAlbum(token, groupId, imageBytes);
+    }
+
+    private String uploadToVkAlbum(String token, String groupId, byte[] imageBytes) {
+        try {
+            // Получаем upload URL
             URI uploadServerUri = new URI("https://api.vk.com/method/photos.getWallUploadServer"
                     + "?group_id=" + groupId
                     + "&v=5.131&access_token=" + token);
             String uploadUrl = getJsonField(requestGet(uploadServerUri), "upload_url");
             if (uploadUrl.isEmpty()) return "";
 
-            // 3. Загружаем фото на upload сервер
+            // Загружаем фото на upload сервер
             String uploadResponse = uploadPhoto(uploadUrl, imageBytes);
             if (uploadResponse.isEmpty()) return "";
 
@@ -169,7 +190,7 @@ public class StreamChecker {
             String hash = getJsonField(uploadResponse, "hash");
             if (server.isEmpty() || photo.isEmpty() || hash.isEmpty()) return "";
 
-            // 4. Сохраняем фото в альбоме
+            // Сохраняем фото в альбоме
             URI saveUri = new URI("https://api.vk.com/method/photos.saveWallPhoto"
                     + "?group_id=" + groupId
                     + "&server=" + server
@@ -183,14 +204,6 @@ public class StreamChecker {
             if (!ownerId.isEmpty() && !photoId.isEmpty()) {
                 cachedPhotoAttachment = "photo" + ownerId + "_" + photoId;
                 plugin.getLogger().info("Фото загружено в ВК: " + cachedPhotoAttachment);
-                return cachedPhotoAttachment;
-            }
-
-            // fallback: парсим как photo_xxx из ответа "aid"
-            String aid = getJsonField(saveResponse, "aid");
-            String pid = getJsonField(saveResponse, "pid");
-            if (!aid.isEmpty() && !pid.isEmpty()) {
-                cachedPhotoAttachment = "photo" + aid + "_" + pid;
                 return cachedPhotoAttachment;
             }
         } catch (Exception e) {

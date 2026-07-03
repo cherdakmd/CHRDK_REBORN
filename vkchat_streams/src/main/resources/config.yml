@@ -34,10 +34,11 @@ streams:
     # Пост на стену группы ВК (требуются права wall, photos)
     wall-post:
       enabled: true
-      # photo-url = ссылка на картинку (плагин сам скачает и загрузит в альбом группы)
+      # photo-file = имя файла из папки плагина (banner.jpg, banner.png и т.д.)
+      photo-file: "banner.jpg"
+      # photo-url = ссылка на картинку в интернете (если photo-file не найден)
       photo-url: ""
-      # photo-attachment = ручной ID фото (photo-XXX_YYY). Если задан, photo-url игнорируется
-      photo-attachment: ""
+      # photo-attachment = ручной ID фото photo-XXX_YYY (приоритет над всем)
 
     # Шаблон поста в группу ВК (поддерживает \\n для переноса строк)
     post-template: |
