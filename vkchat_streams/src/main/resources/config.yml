@@ -38,11 +38,21 @@ streams:
       photo-file: "banner.jpg"
       # photo-url = ссылка на картинку в интернете (если photo-file не найден)
       photo-url: ""
-      # photo-attachment = ручной ID фото photo-XXX_YYY (приоритет над всем)
+      photo-attachment: ""
 
-    # Шаблон поста в группу ВК (поддерживает \\n для переноса строк)
     post-template: |
-      🔴⚡ НАЧАЛСЯ СТРИМ ⚡🔴\n\n🎮 {channel} запустил трансляцию!\n\n📺 {title}\n\n🔗 Смотреть: {url}\n\n{links}\n\n💎 Заходи на сервер CHRDK!\n⚡ /stream reward — награда за просмотр!
+      🔴⚡ НАЧАЛСЯ СТРИМ ⚡🔴
+      
+      🎮 {channel} запустил трансляцию!
+      
+      📺 {title}
+      
+      🔗 Смотреть: {url}
+      
+      {links}
+      
+      💎 Заходи на сервер CHRDK!
+      ⚡ /stream reward — награда за просмотр!
 
   vkvideo:
     enabled: true
