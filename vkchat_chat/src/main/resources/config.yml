@@ -53,52 +53,26 @@ tab:
 
 # 🏷 Форматы join/quit (вариативные)
 broadcasts:
-  # Вход — обычные игроки
   join-messages:
-    - "&8[&a+&8] {prefix} &7{player} &7зашёл на сервер"
-    - "&8[&a+&8] {prefix} &7{player} &7появился"
+    - "&8[&a+&8] {prefix} &7{player} &7зашёл"
     - "&8[&a+&8] {prefix} &7{player} &7в игре"
-    - "&8[&a+&8] {prefix} &7{player} &7присоединился"
-    - "&8[&a+&8] {prefix} &7{player} &7тут"
-  # Вход — новый игрок
   join-new:
-    - "&8[&a+&8] {prefix} &7{player} &eвпервые на сервере! &6🎉"
-    - "&8[&a+&8] {prefix} &7{player} &eприсоединился впервые! &6🌟"
-    - "&8[&a+&8] {prefix} &7{player} &eновый игрок! &6Добро пожаловать!"
-  # Вход — донатер
+    - "&8[&a+&8] {prefix} &7{player} &eвпервые на сервере! &6🌟"
   join-donator:
-    - "&8[&a+&8] {prefix} &7{player} &6зашёл с сиянием"
-    - "&8[&a+&8] {prefix} &7{player} &6почтил сервер присутствием"
     - "&8[&a+&8] {prefix} &7{player} &6прибыл"
-  # Вход — новый донатер
   join-donator-new:
-    - "&8[&a+&8] {prefix} &7{player} &eвпервые здесь и уже донатер! &6👑"
-    - "&8[&a+&8] {prefix} &7{player} &eновый донатер на сервере! &6💎"
-  # Выход — обычный
+    - "&8[&a+&8] {prefix} &7{player} &eвпервые и уже донатер! &6👑"
   quit-messages:
     - "&8[&c-&8] {prefix} &7{player} &7вышел"
-    - "&8[&c-&8] {prefix} &7{player} &7покинул сервер"
-    - "&8[&c-&8] {prefix} &7{player} &7ушёл"
     - "&8[&c-&8] {prefix} &7{player} &7отключился"
-  # Выход — донатер
   quit-donator:
-    - "&8[&c-&8] {prefix} &7{player} &6ушёл по делам"
-    - "&8[&c-&8] {prefix} &7{player} &6покинул нас"
-    - "&8[&c-&8] {prefix} &7{player} &6ушёл в закат"
+    - "&8[&c-&8] {prefix} &7{player} &6ушёл"
 
   kill-messages:
-    - "&c☠ {killer} &7отправил &c{victim} &7на респаун"
+    - "&c☠ {killer} &7убил &c{victim}"
     - "&c⚔ {killer} &7расправился с &c{victim}"
-    - "&c💀 {killer} &7убил &c{victim}"
-    - "&c🗡 {killer} &7победил &c{victim} &7в бою"
-    - "&c🔥 {killer} &7уничтожил &c{victim}"
   death-messages:
     - "&7☠ {player} &7погиб"
     - "&7💀 {player} &7ушёл в мир иной"
-    - "&7🪦 {player} &7отправился на тот свет"
-    - "&7⚰ {player} &7встретил смерть"
-    - "&7🕯 {player} &7пал в бою"
   job-level-messages:
     - "&e⭐ {player} &7достиг &e{level} &7уровня профессий!"
-    - "&e📈 {player} &7прокачал профессии до &e{level}"
-    - "&e🏆 {player} &7— &e{level} &7уровень Jobs!"
