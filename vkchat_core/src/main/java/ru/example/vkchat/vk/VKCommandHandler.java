@@ -742,18 +742,20 @@ public class VKCommandHandler {
                 
                 org.json.JSONObject user = plugin.getVkManager().getUserInfo(fromId);
                 String name = user != null ? user.getString("first_name") + " " + user.getString("last_name") : "VK User";
-                
-                String mcFormat = plugin.getConfigManager().getMessage("vk_to_mc_format")
-                        .replace("{name}", name)
-                        .replace("{message}", text);
-                
-                for (Player p : Bukkit.getOnlinePlayers()) {
-                    if (text.toLowerCase().contains(p.getName().toLowerCase())) {
-                        p.sendMessage(mcFormat.replace(p.getName(), org.bukkit.ChatColor.GREEN + p.getName() + org.bukkit.ChatColor.RESET));
-                        p.playSound(p.getLocation(), org.bukkit.Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1.0f, 1.0f);
-                    } else {
-                        p.sendMessage(mcFormat);
+
+                // Пробуем использовать VKChatChat плагин если есть
+                org.bukkit.plugin.Plugin chatPlugin = Bukkit.getPluginManager().getPlugin("VKChatChat");
+                if (chatPlugin != null && chatPlugin.isEnabled()) {
+                    try {
+                        chatPlugin.getClass().getMethod("getChatListener").invoke(chatPlugin)
+                                .getClass().getMethod("onVkMessage", String.class, String.class)
+                                .invoke(chatPlugin.getClass().getMethod("getChatListener").invoke(chatPlugin), name, text);
+                    } catch (Exception ex) {
+                        // Fallback
+                        sendVkToMcLegacy(name, text);
                     }
+                } else {
+                    sendVkToMcLegacy(name, text);
                 }
             } else {
                 // В ЛС: если сообщение не распознано как команда — показываем главное меню
@@ -764,6 +766,22 @@ public class VKCommandHandler {
                             "Или используй команды напрямую.";
                     plugin.getVkManager().sendKeyboard(peer, welcome, VKKeyboardBuilder.mainDmMenu());
                 }
+            }
+        }
+    }
+
+    private static void sendVkToMcLegacy(String name, String text) {
+        VKChatPlugin plugin = VKChatPlugin.getInstance();
+        String mcFormat = plugin.getConfigManager().getMessage("vk_to_mc_format")
+                .replace("{name}", name)
+                .replace("{message}", text);
+
+        for (org.bukkit.entity.Player p : org.bukkit.Bukkit.getOnlinePlayers()) {
+            if (text.toLowerCase().contains(p.getName().toLowerCase())) {
+                p.sendMessage(mcFormat.replace(p.getName(), org.bukkit.ChatColor.GREEN + p.getName() + org.bukkit.ChatColor.RESET));
+                p.playSound(p.getLocation(), org.bukkit.Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1.0f, 1.0f);
+            } else {
+                p.sendMessage(mcFormat);
             }
         }
     }

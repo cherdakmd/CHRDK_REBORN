@@ -1,0 +1,42 @@
+# ═══════════════════════════════════════
+# VKChatChat — чат с каналами и ВК интеграцией
+# ═══════════════════════════════════════
+
+# Формат чата (поддерживает {prefix}, {player}, {suffix}, {message})
+format: "{prefix}&r &7%player%&7: &f{message}"
+
+# Каналы
+channels:
+  global:
+    symbol: "&7[&6Г&7]"
+    radius: 0           # 0 = без радиуса
+    permission: ""
+  local:
+    symbol: "&7[&cЛ&7]"
+    radius: 100
+    permission: ""
+  trade:
+    symbol: "&7[&eТ&7]"
+    radius: 0
+    permission: "vkchat.chat.trade"
+  nation:
+    symbol: "&7[&5Н&7]"
+    radius: 0
+    permission: ""
+
+channel-default: "global"
+
+# Антиспам
+anti-spam:
+  enabled: true
+  cooldown-seconds: 2
+  max-caps-percent: 70
+  max-repeated-chars: 5
+
+# ↕ ВК интеграция
+vk:
+  enabled: true
+  mc-to-vk: true       # Minecraft → ВК
+  vk-to-mc: true       # ВК → Minecraft
+  format-to-vk: "{player}: {message}"
+  format-to-mc: "&b[ВК] {player}&7: &f{message}"
