@@ -10,6 +10,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerLevelChangeEvent;
+import ru.example.vkchat.VKChatPlugin;
 
 import java.util.List;
 import java.util.Random;
@@ -122,6 +123,7 @@ public class BroadcastManager implements Listener {
 
     private void broadcast(String msg) {
         for (Player p : Bukkit.getOnlinePlayers()) p.sendMessage(msg);
+        try { VKChatPlugin.getInstance().getApi().sendToMainChat(ChatColor.stripColor(msg)); } catch (Exception ignored) {}
     }
 
     private String getStatus(Player p) {

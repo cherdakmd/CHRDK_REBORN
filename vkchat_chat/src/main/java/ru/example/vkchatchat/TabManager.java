@@ -9,6 +9,7 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
+import ru.example.vkchat.VKChatPlugin;
 
 import java.util.List;
 import java.util.Map;
@@ -70,8 +71,10 @@ public class TabManager implements Listener {
         }
 
         String msg = pool.get(rnd.nextInt(pool.size()));
-        return ChatColor.translateAlternateColorCodes('&',
+        msg = ChatColor.translateAlternateColorCodes('&',
                 msg.replace("{prefix}", prefix).replace("{player}", p.getName()));
+        sendToVk(ChatColor.stripColor(msg).replace("  ", " ").trim());
+        return msg;
     }
 
     private String getQuitMessage(Player p) {
@@ -87,8 +90,10 @@ public class TabManager implements Listener {
         }
 
         String msg = pool.get(rnd.nextInt(pool.size()));
-        return ChatColor.translateAlternateColorCodes('&',
+        msg = ChatColor.translateAlternateColorCodes('&',
                 msg.replace("{prefix}", prefix).replace("{player}", p.getName()));
+        sendToVk(ChatColor.stripColor(msg).replace("  ", " ").trim());
+        return msg;
     }
 
     private void setupTeams() {
@@ -208,5 +213,9 @@ public class TabManager implements Listener {
         long mins = (millis % 3600000) / 60000;
         if (days > 0) return "Аптайм: " + days + "д " + hours + "ч";
         return "Аптайм: " + hours + "ч " + mins + "м";
+    }
+
+    private void sendToVk(String msg) {
+        try { VKChatPlugin.getInstance().getApi().sendToMainChat(msg); } catch (Exception ignored) {}
     }
 }
