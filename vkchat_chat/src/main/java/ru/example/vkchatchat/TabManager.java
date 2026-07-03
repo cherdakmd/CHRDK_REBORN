@@ -20,6 +20,8 @@ import java.util.concurrent.ConcurrentHashMap;
 public class TabManager implements Listener {
     private final VKChatChatPlugin plugin;
     private final Map<UUID, String> playerTeams = new ConcurrentHashMap<>();
+    private int statsIndex = 0;
+    private final String[] statsLines = new String[4];
 
     public TabManager(VKChatChatPlugin plugin) {
         this.plugin = plugin;
@@ -28,6 +30,8 @@ public class TabManager implements Listener {
         plugin.getServer().getScheduler().runTaskTimer(plugin, () -> {
             for (Player p : Bukkit.getOnlinePlayers()) sendTab(p);
         }, 20L, 20L);
+        // Ротация статистики каждые 5 секунд
+        plugin.getServer().getScheduler().runTaskTimerAsynchronously(plugin, this::updateStats, 60L, 100L);
     }
 
     @EventHandler
@@ -94,7 +98,8 @@ public class TabManager implements Listener {
                 .replace("%online%", String.valueOf(Bukkit.getOnlinePlayers().size()));
         footer = footer.replace("%online%", String.valueOf(Bukkit.getOnlinePlayers().size()))
                 .replace("%vkchat_reputation%", getReputation(p))
-                .replace("%luckperms-prefix%", getPrefix(p));
+                .replace("%luckperms-prefix%", getPrefix(p))
+                .replace("%stats%", getStats());
 
         sendTabPacket(p, header, footer);
     }
@@ -160,5 +165,58 @@ public class TabManager implements Listener {
 
     private String getVersion() {
         return Bukkit.getServer().getClass().getPackage().getName().replace(".", ",").split(",")[3];
+    }
+
+    private void updateStats() {
+        statsLines[0] = "&c❤ " + getTopRep();
+        statsLines[1] = "&e💰 " + getTopDonator();
+        statsLines[2] = "&a⏱ " + getUptime();
+        statsLines[3] = "&b🌍 " + Bukkit.getOfflinePlayers().length + " игроков всего";
+        statsIndex = (statsIndex + 1) % statsLines.length;
+    }
+
+    private String getStats() {
+        if (statsLines[statsIndex] == null) updateStats();
+        return statsLines[statsIndex] + "   &8|   " + statsLines[(statsIndex + 1) % statsLines.length];
+    }
+
+    private String getTopRep() {
+        try {
+            java.lang.reflect.Method m = ru.example.vkchat.VKChatPlugin.getInstance()
+                    .getReputationManager().getClass().getMethod("getTopReputation");
+            String top = (String) m.invoke(ru.example.vkchat.VKChatPlugin.getInstance().getReputationManager());
+            if (top != null && top.contains("\n")) {
+                return "Топ реп: " + top.split("\n")[0].replaceAll("\\d+\\.\\s*", "");
+            }
+        } catch (Exception ignored) {}
+        return "Топ репутации";
+    }
+
+    private String getTopDonator() {
+        try {
+            org.bukkit.plugin.Plugin dp = Bukkit.getPluginManager().getPlugin("VKChatDonate");
+            if (dp != null && dp.isEnabled()) {
+                Object mgr = dp.getClass().getMethod("getDonateManager").invoke(dp);
+                java.util.List<?> top = (java.util.List<?>) mgr.getClass().getMethod("getTopDonors", int.class).invoke(mgr, 1);
+                if (top != null && !top.isEmpty()) {
+                    Object entry = top.get(0);
+                    String name = (String) ((java.util.Map.Entry<?,?>) entry).getKey();
+                    double amount = (Double) ((java.util.Map.Entry<?,?>) entry).getValue();
+                    return "Топ донат: " + name + " (" + (int)amount + "₽)";
+                }
+            }
+        } catch (Exception ignored) {}
+        return "Топ донатов";
+    }
+
+    private String getUptime() {
+        long uptime = System.currentTimeMillis() - plugin.getServer().getWorlds().get(0).getFullTime();
+        // Actually use real uptime
+        long millis = System.currentTimeMillis() - java.lang.management.ManagementFactory.getRuntimeMXBean().getStartTime();
+        long days = millis / 86400000;
+        long hours = (millis % 86400000) / 3600000;
+        long mins = (millis % 3600000) / 60000;
+        if (days > 0) return "Аптайм: " + days + "д " + hours + "ч";
+        return "Аптайм: " + hours + "ч " + mins + "м";
     }
 }
