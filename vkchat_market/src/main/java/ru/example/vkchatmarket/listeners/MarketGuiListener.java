@@ -15,6 +15,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
 import ru.example.vkchat.VKChatPlugin;
+import ru.example.vkchat.util.VKChatBridge;
 import ru.example.vkchatmarket.VKChatMarketPlugin;
 
 import java.util.ArrayList;
@@ -61,8 +62,8 @@ public class MarketGuiListener implements Listener {
         for (int i = 0; i < 54; i++) inv.setItem(i, glass);
 
         // Верхняя информация
-        int vkId = VKChatPlugin.getInstance().getApi().getLinkedVkId(p);
-        int rep = vkId != -1 ? VKChatPlugin.getInstance().getApi().getReputation(vkId) : 0;
+        int vkId = VKChatBridge.getLinkedVkId(p);
+        int rep = vkId != -1 ? VKChatBridge.getReputation(vkId) : 0;
         inv.setItem(4, item(Material.NETHER_STAR,
                 "§6§lБИРЖА §e§lЧРДК REBORN",
                 "§7Живая экономика с реальным спросом",
@@ -192,8 +193,8 @@ public class MarketGuiListener implements Listener {
         if (page < pages - 1) inv.setItem(53, navItem(plugin, Material.ARROW, "§eСледующая →", page + 1, category));
 
         // Инфо
-        int vkId = VKChatPlugin.getInstance().getApi().getLinkedVkId(p);
-        int rep = vkId != -1 ? VKChatPlugin.getInstance().getApi().getReputation(vkId) : 0;
+        int vkId = VKChatBridge.getLinkedVkId(p);
+        int rep = vkId != -1 ? VKChatBridge.getReputation(vkId) : 0;
         inv.setItem(4, item(Material.BOOK,
                 "§6§l" + catName + " §7[" + (page + 1) + "/" + pages + "]",
                 "§7Товаров: §f" + ids.size(),
@@ -458,7 +459,7 @@ public class MarketGuiListener implements Listener {
     // ═══════════════════════════════════════════════════════════════
     private void sellItems(Player p, String itemId, int limit) {
         Material m; try { m = Material.valueOf(itemId); } catch (Exception e) { return; }
-        int vkId = VKChatPlugin.getInstance().getApi().getLinkedVkId(p);
+        int vkId = VKChatBridge.getLinkedVkId(p);
         if (vkId == -1) { p.sendMessage("§cПривяжи ВК (/vklink) для торговли!"); return; }
 
         int count = 0;
@@ -488,7 +489,7 @@ public class MarketGuiListener implements Listener {
             }
         }
 
-        VKChatPlugin.getInstance().getApi().addReputation(vkId, rep);
+        VKChatBridge.addPoints(vkId, rep);
         p.sendMessage("§a§l💰 Продано §f" + count + " шт. §a→ §e" + rep + " реп.");
         p.playSound(p.getLocation(), org.bukkit.Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1f, 1f);
         p.sendTitle("§a§l+ " + rep + " реп.", "§fПродано " + count + " шт. " + itemId, 5, 20, 5);
@@ -498,7 +499,7 @@ public class MarketGuiListener implements Listener {
 
     private void buyItems(Player p, String itemId, int amount) {
         Material m; try { m = Material.valueOf(itemId); } catch (Exception e) { return; }
-        int vkId = VKChatPlugin.getInstance().getApi().getLinkedVkId(p);
+        int vkId = VKChatBridge.getLinkedVkId(p);
         if (vkId == -1) { p.sendMessage("§cПривяжи ВК (/vklink) для торговли!"); return; }
 
         if (!plugin.getMarketManager().canTrade(itemId, p)) { p.sendMessage("§cПодождите..."); return; }
@@ -509,16 +510,26 @@ public class MarketGuiListener implements Listener {
         if (canBuy <= 0) { p.sendMessage("§cТовар закончился! Дефицит!"); return; }
         int actual = Math.min(amount, canBuy);
 
+        // Проверяем что все влезет в инвентарь ДО списания
+        ItemStack toBuy = new ItemStack(m, actual);
+        int free = 0;
+        for (int i = 0; i < 36; i++) {
+            ItemStack slot = p.getInventory().getItem(i);
+            if (slot == null || slot.getType() == Material.AIR) free += toBuy.getMaxStackSize();
+            else if (slot.isSimilar(toBuy)) free += toBuy.getMaxStackSize() - slot.getAmount();
+        }
+        if (free < actual) { p.sendMessage("§cИнвентарь полон!"); return; }
+
         double donorMult = donorBuyMultiplier(p);
         int cost = plugin.getMarketManager().buyItems(itemId, actual, donorMult);
         if (cost <= 0) { p.sendMessage("§cОшибка цены!"); return; }
 
-        int rep = VKChatPlugin.getInstance().getApi().getReputation(vkId);
+        int rep = VKChatBridge.getReputation(vkId);
         if (rep < cost) { p.sendMessage("§cНужно " + cost + " реп. (у тебя " + rep + ")"); return; }
 
-        if (!p.getInventory().addItem(new ItemStack(m, actual)).isEmpty()) { p.sendMessage("§cИнвентарь полон!"); return; }
+        p.getInventory().addItem(toBuy);
 
-        VKChatPlugin.getInstance().getApi().takeReputation(vkId, cost);
+        VKChatBridge.takeReputation(vkId, cost);
         p.sendMessage("§6§l💰 Куплено §f" + actual + " шт. §6→ §e" + cost + " реп.");
         p.playSound(p.getLocation(), org.bukkit.Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1f, 1.2f);
         p.sendTitle("§6§l- " + cost + " реп.", "§fКуплено " + actual + " шт. " + itemId, 5, 20, 5);
@@ -528,7 +539,7 @@ public class MarketGuiListener implements Listener {
 
     private void buyLimitedItem(Player p, String itemId) {
         Material m; try { m = Material.valueOf(itemId); } catch (Exception e) { return; }
-        int vkId = VKChatPlugin.getInstance().getApi().getLinkedVkId(p);
+        int vkId = VKChatBridge.getLinkedVkId(p);
         if (vkId == -1) { p.sendMessage("§cПривяжи ВК (/vklink)!"); return; }
         int price = (int) Math.max(1, Math.round(plugin.getConfig().getInt("limited-items." + itemId + ".price", 1000) * donorBuyMultiplier(p)));
         int limit = plugin.getConfig().getInt("limited-items." + itemId + ".daily-limit", 1);
@@ -536,11 +547,11 @@ public class MarketGuiListener implements Listener {
         NamespacedKey limitKey = new NamespacedKey(plugin, "limited_" + today + "_" + itemId.toLowerCase());
         int boughtToday = p.getPersistentDataContainer().getOrDefault(limitKey, PersistentDataType.INTEGER, 0);
         if (boughtToday >= limit) { p.sendMessage("§cЛимит на сегодня: " + boughtToday + "/" + limit); return; }
-        int currentRep = VKChatPlugin.getInstance().getApi().getReputation(vkId);
+        int currentRep = VKChatBridge.getReputation(vkId);
         if (currentRep < price) { p.sendMessage("§cНужно " + price + " реп. (у тебя " + currentRep + ")"); return; }
         if (!p.getInventory().addItem(new ItemStack(m, 1)).isEmpty()) { p.sendMessage("§cИнвентарь полон!"); return; }
         p.getPersistentDataContainer().set(limitKey, PersistentDataType.INTEGER, boughtToday + 1);
-        VKChatPlugin.getInstance().getApi().takeReputation(vkId, price);
+        VKChatBridge.takeReputation(vkId, price);
         p.sendMessage("§d§l💎 Куплено: §f" + itemId + " §dза §e" + price + " реп. §7(" + (boughtToday + 1) + "/" + limit + ")");
         p.playSound(p.getLocation(), org.bukkit.Sound.UI_TOAST_CHALLENGE_COMPLETE, 1f, 1f);
     }
@@ -553,7 +564,7 @@ public class MarketGuiListener implements Listener {
      * Продать всё из команды (без GUI)
      */
     public static void sellAllFromCommand(VKChatMarketPlugin plugin, Player p) {
-        int vkId = VKChatPlugin.getInstance().getApi().getLinkedVkId(p);
+        int vkId = VKChatBridge.getLinkedVkId(p);
         if (vkId == -1) { p.sendMessage("§cПривяжи ВК (/vklink)!"); return; }
 
         java.util.Map<String, Integer> toSell = new java.util.HashMap<>();
@@ -592,7 +603,7 @@ public class MarketGuiListener implements Listener {
             totalCount += count;
             plugin.getMarketManager().sellItems(itemId, count, 1.0);
         }
-        VKChatPlugin.getInstance().getApi().addReputation(vkId, totalRep);
+        VKChatBridge.addPoints(vkId, totalRep);
         p.sendMessage("§a§l💰 Продано: §f" + totalCount + " шт. §a→ §e" + totalRep + " реп.");
         p.playSound(p.getLocation(), org.bukkit.Sound.ENTITY_PLAYER_LEVELUP, 1f, 1.2f);
     }
@@ -647,7 +658,18 @@ public class MarketGuiListener implements Listener {
     }
 
     private void sellAllSellable(Player p) {
-        int vkId = VKChatPlugin.getInstance().getApi().getLinkedVkId(p);
+        // Проверка кулдауна для первого предмета
+        String firstItem = null;
+        for (java.util.Map.Entry<String, Integer> entry : collectSellable(p).entrySet()) {
+            firstItem = entry.getKey();
+            break;
+        }
+        if (firstItem != null && !plugin.getMarketManager().canTrade(firstItem, p)) {
+            p.sendMessage("§cПодождите между продажами!");
+            return;
+        }
+
+        int vkId = VKChatBridge.getLinkedVkId(p);
         if (vkId == -1) { p.sendMessage("§cПривяжи ВК (/vklink)!"); return; }
         int totalCount = 0;
         int totalRep = 0;
@@ -671,7 +693,7 @@ public class MarketGuiListener implements Listener {
             totalCount += count;
             plugin.getMarketManager().sellItems(itemId, count, 1.0);
         }
-        VKChatPlugin.getInstance().getApi().addReputation(vkId, totalRep);
+        VKChatBridge.addPoints(vkId, totalRep);
         p.sendMessage("§a§l💰 Продано: §f" + totalCount + " шт. §a→ §e" + totalRep + " реп.");
         p.playSound(p.getLocation(), org.bukkit.Sound.ENTITY_PLAYER_LEVELUP, 1f, 1.2f);
     }

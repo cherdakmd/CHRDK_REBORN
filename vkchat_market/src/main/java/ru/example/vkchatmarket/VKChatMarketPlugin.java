@@ -40,12 +40,19 @@ public class VKChatMarketPlugin extends JavaPlugin {
         marketFun = new MarketFun(this);
         
         MarketCommand marketCmd = new MarketCommand(this);
-        getCommand("market").setExecutor(marketCmd);
-        getCommand("market").setTabCompleter(marketCmd);
+        if (getCommand("market") != null) {
+            getCommand("market").setExecutor(marketCmd);
+            getCommand("market").setTabCompleter(marketCmd);
+        } else {
+            getLogger().warning("Команда 'market' не найдена в plugin.yml");
+        }
         getServer().getPluginManager().registerEvents(new MarketGuiListener(this), this);
 
         long interval = getConfig().getLong("settings.recovery-interval", 1200) * 20L;
-        getServer().getScheduler().runTaskTimerAsynchronously(this, () -> marketManager.recoverMarket(), interval, interval);
+        getServer().getScheduler().runTaskTimer(this, () -> {
+            marketManager.recoverMarket();
+            marketManager.cleanupCooldowns();
+        }, interval, interval);
         
         // Каждые 30 минут запускаем проверку случайных событий на бирже
         getServer().getScheduler().runTaskTimer(this, () -> marketManager.checkForRandomEvent(), 1200L, 36000L);

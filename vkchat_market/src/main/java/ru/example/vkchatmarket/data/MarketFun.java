@@ -5,6 +5,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import ru.example.vkchat.VKChatPlugin;
+import ru.example.vkchat.util.VKChatBridge;
 import ru.example.vkchatmarket.VKChatMarketPlugin;
 
 import java.text.SimpleDateFormat;
@@ -110,10 +111,10 @@ public class MarketFun {
 
         if (current >= questTarget) {
             questCompleted.add(p.getName());
-            int vkId = VKChatPlugin.getInstance().getApi().getLinkedVkId(p);
+            int vkId = VKChatBridge.getLinkedVkId(p);
             if (vkId != -1) {
                 int reward = plugin.getConfig().getInt("market2.quest.reward", 1000);
-                VKChatPlugin.getInstance().getApi().addReputation(vkId, reward);
+                VKChatBridge.addPoints(vkId, reward);
                 p.sendMessage(ChatColor.GREEN + "📋 Квест выполнен! +" + reward + " репутации!");
                 p.playSound(p.getLocation(), Sound.UI_TOAST_CHALLENGE_COMPLETE, 1f, 1f);
                 Bukkit.broadcastMessage(ChatColor.AQUA + "📋 " + p.getName() + " выполнил квест дня!");

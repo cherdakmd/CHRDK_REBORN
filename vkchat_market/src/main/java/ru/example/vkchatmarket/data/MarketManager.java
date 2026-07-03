@@ -303,7 +303,17 @@ public class MarketManager {
             total += price * (1.0 + spread);
         }
 
+        total = applyFlashSale(itemId, total);
+
         return Math.round(total * 100.0) / 100.0;
+    }
+
+    /** Применить Flash Sale скидку к цене. */
+    private double applyFlashSale(String itemId, double price) {
+        if (plugin.getMarketFun() != null && plugin.getMarketFun().isFlashSaleActive(itemId)) {
+            price *= (1.0 - plugin.getMarketFun().getFlashSaleDiscount());
+        }
+        return price;
     }
 
     /**
@@ -785,7 +795,9 @@ public class MarketManager {
              java.io.BufferedWriter bw = new java.io.BufferedWriter(fw);
              java.io.PrintWriter out = new java.io.PrintWriter(bw)) {
             out.println(line);
-        } catch (java.io.IOException ignored) {}
+        } catch (java.io.IOException e) {
+            plugin.getLogger().warning("Не удалось записать в transactions.log: " + e.getMessage());
+        }
     }
 
     public java.util.List<Double> getPriceHistory(String itemId) {
@@ -794,5 +806,10 @@ public class MarketManager {
 
     private String today() {
         return new java.text.SimpleDateFormat("yyyyMMdd").format(new java.util.Date());
+    }
+
+    public void cleanupCooldowns() {
+        long cutoff = System.currentTimeMillis() - 60000;
+        lastTradeTime.entrySet().removeIf(e -> e.getValue() < cutoff);
     }
 }
