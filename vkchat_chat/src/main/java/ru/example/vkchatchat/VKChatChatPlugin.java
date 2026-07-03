@@ -24,8 +24,12 @@ public class VKChatChatPlugin extends JavaPlugin {
 
         tabManager = new TabManager(this);
 
-        getCommand("channel").setExecutor(new ChatCommand(this));
-        getCommand("mute").setExecutor(new ChatCommand(this));
+        ChatCommand chatCmd = new ChatCommand(this);
+        getCommand("channel").setExecutor(chatCmd);
+        getCommand("mute").setExecutor(chatCmd);
+        getCommand("msg").setExecutor(chatCmd);
+        getCommand("ignore").setExecutor(chatCmd);
+        getCommand("cc").setExecutor(chatCmd);
 
         getLogger().info("VKChatChat запущен! Каналы: " +
                 getConfig().getConfigurationSection("channels").getKeys(false).size());

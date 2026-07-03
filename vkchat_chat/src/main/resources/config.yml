@@ -41,6 +41,16 @@ vk:
   format-to-vk: "{player}: {message}"
   format-to-mc: "&b[ВК] {player}&7: &f{message}"
 
+# 🔇 Фильтр чата (замена запрещённых слов на ***)
+chat-filter:
+  enabled: true
+  words:
+    - "дурак"
+    - "идиот"
+
+# 🕐 Временные метки в сообщениях
+timestamps: false
+
 # 🖥 Встроенный TAB (header/footer, префиксы над головой)
 tab:
   header: "&4&l⚔ &c&lCHRDK REBORN &4&l⚔\n&7Добро пожаловать, &f%player%"
