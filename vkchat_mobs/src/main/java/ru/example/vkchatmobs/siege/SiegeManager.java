@@ -213,6 +213,7 @@ public class SiegeManager {
                     double mult = isWaveBoss ? 4.0 : 2.5;
                     hp.setBaseValue(hp.getBaseValue() * mult);
                     mob.setHealth(hp.getBaseValue());
+                    mob.getPersistentDataContainer().set(new NamespacedKey(plugin, "mobs_scaled"), PersistentDataType.INTEGER, 1);
                 }
 
                 siege.aliveMonsters.add(mob.getUniqueId());

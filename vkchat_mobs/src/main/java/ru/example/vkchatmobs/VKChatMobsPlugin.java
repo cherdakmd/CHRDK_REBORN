@@ -79,19 +79,31 @@ public class VKChatMobsPlugin extends JavaPlugin {
 
         // Регистрация команд
         MobCommand cmd = new MobCommand(this, contractManager);
-        getCommand("mobs").setExecutor(cmd);
-        getCommand("mobs").setTabCompleter(cmd);
-        getCommand("contract").setExecutor(cmd);
-        getCommand("contract").setTabCompleter(cmd);
+        if (getCommand("mobs") != null) {
+            getCommand("mobs").setExecutor(cmd);
+            getCommand("mobs").setTabCompleter(cmd);
+        }
+        if (getCommand("contract") != null) {
+            getCommand("contract").setExecutor(cmd);
+            getCommand("contract").setTabCompleter(cmd);
+        }
         getServer().getPluginManager().registerEvents(cmd, this);
 
-        getServer().getPluginManager().registerEvents(new MobListener(this), this);
+        MobListener listener = new MobListener(this);
+        getServer().getPluginManager().registerEvents(listener, this);
         hardcoreMobManager = new HardcoreMobManager(this);
         getServer().getPluginManager().registerEvents(hardcoreMobManager, this);
         events2Manager = new MobsEvents2Manager(this);
         getServer().getPluginManager().registerEvents(events2Manager, this);
         mobStormManager = new MobStormManager(this);
         getServer().getPluginManager().registerEvents(mobStormManager, this);
+
+        // Чистка карт памяти каждые 5 минут
+        getServer().getScheduler().runTaskTimer(this, () -> {
+            long now = System.currentTimeMillis();
+            listener.cleanupMaps(now);
+        }, 6000L, 6000L);
+
         getLogger().info("VKChatMobs (Hardcore RPG Mobs + Осады + Контракты + Шторм) успешно запущен!");
     }
 

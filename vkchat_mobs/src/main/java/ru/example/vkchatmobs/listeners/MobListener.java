@@ -352,7 +352,10 @@ public class MobListener implements Listener {
         if (!(e.getEntity() instanceof Monster)) return;
 
         LivingEntity mob = e.getEntity();
-        
+
+        // Если моб уже отмасштабирован (шторм, элита, осада) — пропускаем
+        if (mob.getPersistentDataContainer().has(new NamespacedKey(plugin, "mobs_scaled"), PersistentDataType.INTEGER)) return;
+
         // Маркируем спавнер-мобов во избежание фарма
         if (e.getSpawnReason() == CreatureSpawnEvent.SpawnReason.SPAWNER) {
             mob.getPersistentDataContainer().set(new NamespacedKey(plugin, "from_spawner"), PersistentDataType.INTEGER, 1);
@@ -382,7 +385,7 @@ public class MobListener implements Listener {
                 }
 
                 // Если в зоне было >15 спавнов за 10 сек — это мобофабрика, не спавним босса
-                if (count < 15) {
+                if (recentSpawnCounts.getOrDefault(areaKey, 0) < 15) {
                     lastSuperBossSpawnTime = now;
                     spawnSuperBoss(mob);
                     return;
@@ -423,7 +426,7 @@ public class MobListener implements Listener {
             }
         } catch (Exception ignored) {}
 
-        double divider = plugin.getConfig().getDouble("difficulty.rank-divider", 25.0);
+        double divider = Math.max(1.0, plugin.getConfig().getDouble("difficulty.rank-divider", 25.0));
         int rank = (int) (totalJobLevels / divider) + 1;
         
         double maxMult = plugin.getConfig().getDouble("difficulty.max-multiplier", 10.0);
@@ -923,11 +926,11 @@ public class MobListener implements Listener {
                         
                         if (currentHourlyRep >= maxHourRep) {
                             killer.sendMessage(org.bukkit.ChatColor.RED + "⚠️ Лимит фарма! На основе ваших профессий лимит составляет " + maxHourRep + " реп/час. Вы набили максимум. Отдохните!");
-                            return;
+                            // Не даём репу, но лут и остальное продолжается
+                        } else {
+                            ru.example.vkchat.VKChatPlugin.getInstance().getReputationManager().addPoints(vkId, finalRep);
+                            farmedRepToday.put(pUuid, currentHourlyRep + finalRep);
                         }
-                        
-                        ru.example.vkchat.VKChatPlugin.getInstance().getReputationManager().addPoints(vkId, finalRep);
-                        farmedRepToday.put(pUuid, currentHourlyRep + finalRep);
                         
                         String message = org.bukkit.ChatColor.GOLD + "🔺 +" + finalRep + " репутации ВК за убийство " + 
                                 (isSuperBoss ? "Мирового Босса" : (isMiniBoss ? "Мини-Босса" : "монстра")) + " (" + mob.getType().name() + " [Ранг " + rank + "])!";
@@ -1307,5 +1310,11 @@ public class MobListener implements Listener {
                 (ru.example.vkchatartifacts.VKChatArtifactsPlugin) artifactsPlugin
             );
         }
+    }
+
+    public void cleanupMaps(long now) {
+        farmedRepToday.entrySet().removeIf(e -> now - farmResetTimes.getOrDefault(e.getKey(), 0L) > 7200000);
+        lastSpellTime.entrySet().removeIf(e -> now - e.getValue() > 600000);
+        vkMessageCooldowns.entrySet().removeIf(e -> now - e.getValue() > 60000);
     }
 }

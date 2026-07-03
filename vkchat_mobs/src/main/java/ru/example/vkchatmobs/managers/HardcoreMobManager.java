@@ -118,6 +118,7 @@ public class HardcoreMobManager implements Listener {
         mob.getPersistentDataContainer().set(elementKey, PersistentDataType.STRING, element);
         mob.getPersistentDataContainer().set(tierKey, PersistentDataType.STRING, tier);
         mob.setGlowing(true);
+        mob.getPersistentDataContainer().set(new NamespacedKey(plugin, "mobs_scaled"), PersistentDataType.INTEGER, 1);
 
         double scale = calculateScale(mob, tier);
         AttributeInstance hp = mob.getAttribute(Attribute.GENERIC_MAX_HEALTH);
@@ -202,7 +203,10 @@ public class HardcoreMobManager implements Listener {
         if (archetype.equals("hunter")) dmg += 2;
         if (archetype.equals("tank")) p.setVelocity(p.getLocation().toVector().subtract(mob.getLocation().toVector()).normalize().multiply(1.0).setY(0.35));
         if (archetype.equals("necromancer")) spawnMinion(mob);
-        if (archetype.equals("shaman")) mob.setHealth(Math.min(mob.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue(), mob.getHealth() + 8));
+        if (archetype.equals("shaman")) {
+            org.bukkit.attribute.AttributeInstance hpAttr = mob.getAttribute(Attribute.GENERIC_MAX_HEALTH);
+            if (hpAttr != null) mob.setHealth(Math.min(hpAttr.getValue(), mob.getHealth() + 8));
+        }
         if (archetype.equals("hunter")) {
             p.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, 60, 2));
             p.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 40, 0));
@@ -214,16 +218,19 @@ public class HardcoreMobManager implements Listener {
             dmg += 2;
         }
         if (archetype.equals("berserker")) {
-            double healthPercent = mob.getHealth() / mob.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue();
-            double bonus = (1.0 - healthPercent) * 10;
-            dmg += bonus;
+            org.bukkit.attribute.AttributeInstance hpAttr = mob.getAttribute(Attribute.GENERIC_MAX_HEALTH);
+            if (hpAttr != null) {
+                double healthPercent = mob.getHealth() / hpAttr.getValue();
+                double bonus = (1.0 - healthPercent) * 10;
+                dmg += bonus;
+            }
             p.getWorld().spawnParticle(Particle.REDSTONE, p.getLocation().add(0, 1, 0), 20, 0.5, 0.5, 0.5, 0.02, new Particle.DustOptions(org.bukkit.Color.RED, 1.0f));
         }
         if (archetype.equals("paladin")) {
             for (LivingEntity near : mob.getWorld().getNearbyEntities(mob.getLocation(), 10, 10, 10, e -> e instanceof Monster).stream().map(e -> (LivingEntity) e).collect(java.util.stream.Collectors.toList())) {
                 if (!near.equals(mob)) {
-                    double maxHp = near.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue();
-                    near.setHealth(Math.min(maxHp, near.getHealth() + 5));
+                    org.bukkit.attribute.AttributeInstance nearHp = near.getAttribute(Attribute.GENERIC_MAX_HEALTH);
+                    if (nearHp != null) near.setHealth(Math.min(nearHp.getValue(), near.getHealth() + 5));
                 }
             }
             p.getWorld().spawnParticle(Particle.HEART, mob.getLocation().add(0, 2, 0), 6, 1.0, 0.5, 1.0, 0);

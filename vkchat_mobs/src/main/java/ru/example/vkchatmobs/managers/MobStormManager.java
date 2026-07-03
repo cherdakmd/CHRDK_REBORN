@@ -16,6 +16,7 @@ import ru.example.vkchatmobs.VKChatMobsPlugin;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Шторм мобов — мировое событие.
@@ -30,7 +31,7 @@ public class MobStormManager implements Listener {
     private final NamespacedKey stormMobKey;
 
     private final Set<UUID> activeStormMobs = ConcurrentHashMap.newKeySet();
-    private boolean stormActive = false;
+    private final AtomicBoolean stormActive = new AtomicBoolean(false);
 
     public MobStormManager(VKChatMobsPlugin plugin) {
         this.plugin = plugin;
@@ -50,13 +51,13 @@ public class MobStormManager implements Listener {
 
         int chance = plugin.getConfig().getInt("mob-storm.trigger-chance-percent", 10);
         if (ThreadLocalRandom.current().nextInt(100) >= chance) return;
-        if (stormActive) return;
+        if (stormActive.get()) return;
 
         startStorm(killer.getLocation());
     }
 
     public void startStorm(Location center) {
-        stormActive = true;
+        stormActive.set(true);
         World world = center.getWorld();
         int totalMobs = plugin.getConfig().getInt("mob-storm.total-mobs", 50);
         int mobRank = plugin.getConfig().getInt("mob-storm.mob-rank", 5);
@@ -69,12 +70,12 @@ public class MobStormManager implements Listener {
         }
 
         Bukkit.getScheduler().runTaskLater(plugin, () -> {
-            if (stormActive) Bukkit.broadcastMessage(ChatColor.YELLOW + "⚡ [ШТОРМ] Приготовьтесь! До конца 20 секунд!");
-        }, 600L);
+            if (stormActive.get()) Bukkit.broadcastMessage(ChatColor.YELLOW + "⚡ [ШТОРМ] Приготовьтесь! До конца 20 секунд!");
+        }, 200L);
 
         Bukkit.getScheduler().runTaskLater(plugin, () -> {
-            if (stormActive) Bukkit.broadcastMessage(ChatColor.RED + "⚡ [ШТОРМ] 10 секунд до окончания!");
-        }, 800L);
+            if (stormActive.get()) Bukkit.broadcastMessage(ChatColor.RED + "⚡ [ШТОРМ] 10 секунд до окончания!");
+        }, 400L);
 
         List<Map<?, ?>> waves = plugin.getConfig().getMapList("mob-storm.waves");
         if (waves.isEmpty()) {
@@ -101,7 +102,7 @@ public class MobStormManager implements Listener {
 
         long duration = plugin.getConfig().getLong("mob-storm.duration-seconds", 30) * 20L;
         Bukkit.getScheduler().runTaskLater(plugin, () -> {
-            stormActive = false;
+            stormActive.set(false);
             clearStormMobs();
             Bukkit.broadcastMessage(ChatColor.GREEN + "⚡ Шторм мобов окончен!");
         }, duration);
@@ -120,6 +121,7 @@ public class MobStormManager implements Listener {
         mob.getPersistentDataContainer().set(rankKey, PersistentDataType.INTEGER, rank);
         mob.getPersistentDataContainer().set(diffKey, PersistentDataType.DOUBLE, multiplier);
         mob.getPersistentDataContainer().set(stormMobKey, PersistentDataType.INTEGER, 1);
+        mob.getPersistentDataContainer().set(new NamespacedKey(plugin, "mobs_scaled"), PersistentDataType.INTEGER, 1);
         mob.setCustomName(ChatColor.DARK_RED + "⚡ Штормовой " + mob.getName());
         mob.setCustomNameVisible(true);
         mob.setGlowing(true);
@@ -152,6 +154,6 @@ public class MobStormManager implements Listener {
     }
 
     public boolean isStormActive() {
-        return stormActive;
+        return stormActive.get();
     }
 }
