@@ -6,6 +6,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 public class VKChatChatPlugin extends JavaPlugin {
     private static VKChatChatPlugin instance;
     private ChatListener chatListener;
+    private TabManager tabManager;
 
     @Override
     public void onEnable() {
@@ -20,6 +21,8 @@ public class VKChatChatPlugin extends JavaPlugin {
 
         chatListener = new ChatListener(this);
         getServer().getPluginManager().registerEvents(chatListener, this);
+
+        tabManager = new TabManager(this);
 
         getCommand("channel").setExecutor(new ChatCommand(this));
         getCommand("mute").setExecutor(new ChatCommand(this));
