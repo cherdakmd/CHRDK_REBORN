@@ -119,14 +119,20 @@ public class SalvageCommand implements CommandExecutor, Listener, TabCompleter {
     public void onInventoryClick(InventoryClickEvent e) {
         if (!e.getView().getTitle().equals(GUI_TITLE)) return;
         
-        e.setCancelled(true); // Всегда отменяем — защита от двойного клика
         int slot = e.getRawSlot();
         
-        // Разрешаем перемещение в средний ряд (слоты для предметов) и инвентарь игрока
-        if ((slot >= 9 && slot <= 17) || slot >= 27) {
-            e.setCancelled(false);
+        // Разрешаем кликать в средний ряд (слоты для предметов)
+        if (slot >= 9 && slot <= 17) return;
+        
+        // Разрешаем клики в инвентарь игрока, если это НЕ стеклянная панель (защита от double-click)
+        if (slot >= 27) {
+            if (e.getCurrentItem() != null && e.getCurrentItem().getType() == Material.GRAY_STAINED_GLASS_PANE) {
+                e.setCancelled(true);
+            }
             return;
         }
+        
+        e.setCancelled(true);
         
         if (slot == 22) {
             Player p = (Player) e.getWhoClicked();
