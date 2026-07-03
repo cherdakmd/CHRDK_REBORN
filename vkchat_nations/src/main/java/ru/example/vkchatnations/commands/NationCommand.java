@@ -11,6 +11,7 @@ import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 import org.bukkit.persistence.PersistentDataType;
 import ru.example.vkchatnations.VKChatNationsPlugin;
+import ru.example.vkchatnations.data.ChunkClaim;
 import ru.example.vkchat.VKChatPlugin;
 
 import java.util.ArrayList;
@@ -48,6 +49,59 @@ public class NationCommand implements CommandExecutor, TabCompleter {
         }
 
         String action = args[0].toLowerCase();
+
+        // ═══ ADMIN COMMANDS ═══
+        if (action.equals("admin") && args.length >= 2) {
+            if (!p.hasPermission("vkchat.nations.admin") && !p.isOp()) {
+                p.sendMessage(ChatColor.RED + "Нет прав.");
+                return true;
+            }
+            String sub = args[1].toLowerCase();
+            if (sub.equals("setnation") && args.length >= 4) {
+                Player target = Bukkit.getPlayer(args[2]);
+                if (target == null) { p.sendMessage(ChatColor.RED + "Игрок не найден."); return true; }
+                String newNation = args[3];
+                plugin.getNationManager().setPlayerNation(target, newNation);
+                p.sendMessage(ChatColor.GREEN + "✓ " + target.getName() + " → нация " + newNation);
+                target.sendMessage(ChatColor.GREEN + "✓ Админ сменил вашу нацию на " + newNation);
+                return true;
+            }
+            if (sub.equals("list")) {
+                p.sendMessage(ChatColor.GOLD + "=== Приваты ===");
+                for (java.util.Map.Entry<String, ChunkClaim> e : plugin.getNationManager().getNationClaims().entrySet()) {
+                    ChunkClaim c = e.getValue();
+                    p.sendMessage(ChatColor.GRAY + "  " + c.getName() + " — " + Bukkit.getOfflinePlayer(c.getOwner()).getName()
+                            + " | " + c.getWorldName() + " " + c.getX() + "," + c.getZ() + " | lvl " + c.getLevel() + " dur " + c.getDurability());
+                }
+                return true;
+            }
+            if (sub.equals("removeclaim") && args.length >= 3) {
+                Player target = Bukkit.getPlayer(args[2]);
+                if (target == null) { p.sendMessage(ChatColor.RED + "Игрок не найден."); return true; }
+                String keyToRemove = null;
+                for (java.util.Map.Entry<String, ChunkClaim> e : plugin.getNationManager().getNationClaims().entrySet()) {
+                    if (e.getValue().getOwner().equals(target.getUniqueId())) {
+                        keyToRemove = e.getKey();
+                        break;
+                    }
+                }
+                if (keyToRemove != null) {
+                    plugin.getNationManager().getNationClaims().remove(keyToRemove);
+                    plugin.getNationManager().saveAll();
+                    p.sendMessage(ChatColor.GREEN + "✓ Приват " + target.getName() + " удалён.");
+                } else {
+                    p.sendMessage(ChatColor.RED + "У игрока нет приватов.");
+                }
+                return true;
+            }
+            if (sub.equals("reload")) {
+                plugin.reloadConfig();
+                p.sendMessage(ChatColor.GREEN + "✓ Конфиг перезагружен.");
+                return true;
+            }
+            p.sendMessage(ChatColor.RED + "Подкоманды: setnation <player> <nation>, list, removeclaim <player>, reload");
+            return true;
+        }
 
         if (action.equals("buyclaim") || action.equals("buy")) {
             plugin.getGuiListener().openClaimShop(p);
@@ -505,8 +559,29 @@ public class NationCommand implements CommandExecutor, TabCompleter {
             plugin.getNationManager().removePlayerNation(p.getUniqueId());
             p.sendMessage(ChatColor.YELLOW + "Вы покинули нацию! Теперь выберите новую через /nation");
             plugin.getGuiListener().openNationSelection(p);
+            return true;
         }
 
+        // Если ни одна команда не подошла — отправляем как nation-чат
+        String nation = plugin.getNationManager().getPlayerNation(p);
+        if (nation != null) {
+            String msg = String.join(" ", args);
+            String prefix = plugin.getNationManager().getNationPrefixPublic(nation);
+            String nationName = plugin.getNationManager().getNationNamePublic(nation);
+            String tag = ChatColor.translateAlternateColorCodes('&', prefix + nationName);
+            String formatted = ChatColor.DARK_GRAY + "[" + tag + ChatColor.DARK_GRAY + "] "
+                    + ChatColor.WHITE + p.getName() + ChatColor.GRAY + ": "
+                    + ChatColor.translateAlternateColorCodes('&', msg);
+            for (Player member : Bukkit.getOnlinePlayers()) {
+                if (nation.equals(plugin.getNationManager().getPlayerNation(member))) {
+                    member.sendMessage(formatted);
+                }
+            }
+            plugin.getLogger().info("[NationChat] " + p.getName() + " [" + nation + "]: " + msg);
+            return true;
+        }
+
+        p.sendMessage(ChatColor.RED + "Неизвестная команда. /n help");
         return true;
     }
 
@@ -520,7 +595,7 @@ public class NationCommand implements CommandExecutor, TabCompleter {
                 "buyclaim", "buy", "feed", "feedclaim", "claim", "unclaim", "autoclaim",
                 "sethome", "home", "claims", "list", "tp", "teleport", "change", "reset",
                 "festival", "party", "trust", "untrust", "charge",
-                "info", "top", "leave", "members", "donate"
+                "info", "top", "leave", "members", "donate", "admin"
             );
             completions.addAll(subs);
         } else if (args.length == 2) {

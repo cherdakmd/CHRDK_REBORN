@@ -1120,4 +1120,52 @@ public class NationListener implements Listener {
     public void onDonatorDiscount(org.bukkit.event.player.PlayerInteractEvent e) {
         // Скидка донатерам — встроена в GUI через проверку permission
     }
+
+    // ═══ PARTICLE BORDER — показать границы привата при ПКМ с блоком привата в руке ═══
+    @EventHandler
+    public void onClaimBorderParticles(org.bukkit.event.player.PlayerInteractEvent e) {
+        org.bukkit.entity.Player p = e.getPlayer();
+        org.bukkit.inventory.ItemStack item = e.getItem();
+        if (item == null || !item.hasItemMeta()) return;
+        NamespacedKey radiusKey = new NamespacedKey(plugin, "claim_block_radius");
+        if (!item.getItemMeta().getPersistentDataContainer().has(radiusKey, PersistentDataType.INTEGER)) return;
+        if (e.getAction() != org.bukkit.event.block.Action.RIGHT_CLICK_AIR && e.getAction() != org.bukkit.event.block.Action.RIGHT_CLICK_BLOCK) return;
+
+        int radius = item.getItemMeta().getPersistentDataContainer().get(radiusKey, PersistentDataType.INTEGER);
+        // Ищем приват игрока в этой локации
+        ChunkClaim claim = plugin.getNationManager().getClaimAt(p.getLocation());
+        if (claim == null || !claim.getOwner().equals(p.getUniqueId())) {
+            p.sendMessage(ChatColor.RED + "Вы должны быть внутри своего привата.");
+            return;
+        }
+        // Показываем границы
+        org.bukkit.World w = p.getWorld();
+        int cx = claim.getX();
+        int cz = claim.getZ();
+        int minX = cx - claim.getRadius();
+        int maxX = cx + claim.getRadius();
+        int minZ = cz - claim.getRadius();
+        int maxZ = cz + claim.getRadius();
+        int y = p.getLocation().getBlockY();
+        for (int x = minX; x <= maxX; x++) {
+            w.spawnParticle(org.bukkit.Particle.END_ROD, x + 0.5, y + 0.5, minZ + 0.5, 1, 0, 0, 0, 0);
+            w.spawnParticle(org.bukkit.Particle.END_ROD, x + 0.5, y + 0.5, maxZ + 0.5, 1, 0, 0, 0, 0);
+        }
+        for (int z = minZ; z <= maxZ; z++) {
+            w.spawnParticle(org.bukkit.Particle.END_ROD, minX + 0.5, y + 0.5, z + 0.5, 1, 0, 0, 0, 0);
+            w.spawnParticle(org.bukkit.Particle.END_ROD, maxX + 0.5, y + 0.5, z + 0.5, 1, 0, 0, 0, 0);
+        }
+        p.sendMessage(ChatColor.GREEN + "✦ Границы привата подсвечены.");
+    }
+
+    // ═══ ЛОГГИРОВАНИЕ ═══
+    public static void logClaim(String action, Player player, String details) {
+        String line = java.time.LocalDateTime.now() + " [" + action + "] " + player.getName() + " (" + player.getUniqueId() + "): " + details;
+        try {
+            java.nio.file.Files.write(
+                java.nio.file.Paths.get("plugins/VKChatNations/claim-log.txt"),
+                (line + System.lineSeparator()).getBytes(java.nio.charset.StandardCharsets.UTF_8),
+                java.nio.file.StandardOpenOption.CREATE, java.nio.file.StandardOpenOption.APPEND);
+        } catch (java.io.IOException ignored) {}
+    }
 }
