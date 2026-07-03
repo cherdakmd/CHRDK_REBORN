@@ -233,9 +233,9 @@ public class ContractManager {
             pdc.set(completedKey, PersistentDataType.INTEGER, getCompletedContracts(p) + 1);
 
             // Выдаем награды
-            int vkId = VKChatPlugin.getInstance().getAuthManager().getLinkedVkId(p);
+            int vkId = ru.example.vkchatmobs.util.VKChatBridge.getLinkedVkId(p);
             if (vkId != -1) {
-                VKChatPlugin.getInstance().getReputationManager().addPoints(vkId, contract.getRepReward());
+                ru.example.vkchatmobs.util.VKChatBridge.addPoints(vkId, contract.getRepReward());
             }
 
             p.sendMessage(" ");

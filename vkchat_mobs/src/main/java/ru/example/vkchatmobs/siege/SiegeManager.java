@@ -23,6 +23,7 @@ import ru.example.vkchatnations.VKChatNationsPlugin;
 import ru.example.vkchatnations.data.ChunkClaim;
 import ru.example.vkchatnations.data.NationManager;
 import ru.example.vkchat.VKChatPlugin;
+import ru.example.vkchatmobs.util.VKChatBridge;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -364,8 +365,8 @@ public class SiegeManager {
             if (killer != null) {
                 killer.sendMessage("§a☠ Вы повергли Осадного Разрушителя! §7[Осталось: " + siege.aliveMonsters.size() + "]");
                 try {
-                    int vkId = VKChatPlugin.getInstance().getAuthManager().getLinkedVkId(killer);
-                    if (vkId != -1) VKChatPlugin.getInstance().getReputationManager().addPoints(vkId, 12);
+                    int vkId = VKChatBridge.getLinkedVkId(killer);
+                    if (vkId != -1) VKChatBridge.addPoints(vkId, 12);
                     killer.sendMessage("§a🔺 +12 репутации ВК за убийство осадного монстра!");
                 } catch (Throwable ignored) {}
             }
@@ -409,9 +410,9 @@ public class SiegeManager {
                 p.sendMessage("§fВы удержали блок привата на X: " + siege.claim.getX() + " Z: " + siege.claim.getZ());
                 p.sendMessage("§fВаши личные награды:");
                 
-                int vkId = VKChatPlugin.getInstance().getAuthManager().getLinkedVkId(p);
+                int vkId = VKChatBridge.getLinkedVkId(p);
                 if (vkId != -1) {
-                    VKChatPlugin.getInstance().getReputationManager().addPoints(vkId, 500);
+                    VKChatBridge.addPoints(vkId, 500);
                     p.sendMessage("§a🔺 +500 Репутации ВК");
                 } else {
                     p.sendMessage("§c🔺 +500 Репутации утеряно (аккаунт ВК не привязан!)");

@@ -18,6 +18,7 @@ import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 import ru.example.vkchat.VKChatPlugin;
+import ru.example.vkchatmobs.util.VKChatBridge;
 import ru.example.vkchat.api.VKCommandEvent;
 import ru.example.vkchatmobs.VKChatMobsPlugin;
 import ru.example.vkchatmobs.listeners.MobListener;
@@ -337,10 +338,7 @@ public class HardcoreMobManager implements Listener {
 
         String tier = mob.getPersistentDataContainer().getOrDefault(tierKey, PersistentDataType.STRING, "elite");
         int rep = plugin.getConfig().getInt("hardcore-mobs.rewards.rep." + tier, 8);
-        try {
-            int vkId = VKChatPlugin.getInstance().getApi().getLinkedVkId(killer);
-            if (vkId != -1) VKChatPlugin.getInstance().getApi().addReputation(vkId, rep);
-        } catch (Throwable ignored) {}
+        VKChatBridge.addPoints(VKChatBridge.getLinkedVkId(killer), rep);
 
         if (ThreadLocalRandom.current().nextInt(100) < plugin.getConfig().getInt("hardcore-mobs.rewards.rune_token_chance." + tier, 10)) {
             e.getDrops().add(MobListener.getRuneToken());
@@ -373,7 +371,7 @@ public class HardcoreMobManager implements Listener {
                 "Награды: репутация ВК, жетоны рун, осколки артефактов, фрагменты сетов.\n" +
                 "Антифарм: спавнеры не дают редкий лут, есть лимиты и кулдауны.\n" +
                 "Активных элиток сейчас: " + getActiveEliteCount();
-        VKChatPlugin.getInstance().getApi().sendMessage(peer, sender > 0 && peer >= 2000000000 ? "@id" + sender + ", " + text : text);
+        VKChatBridge.sendMessage(peer, sender > 0 && peer >= 2000000000 ? "@id" + sender + ", " + text : text);
     }
 
     private void spawnMinion(LivingEntity owner) {
@@ -421,10 +419,8 @@ public class HardcoreMobManager implements Listener {
 
     private int approximateProgress(Player p) {
         int score = 0;
-        try {
-            int vk = VKChatPlugin.getInstance().getApi().getLinkedVkId(p);
-            if (vk != -1) score += VKChatPlugin.getInstance().getApi().getReputation(vk) / 500;
-        } catch (Throwable ignored) {}
+        int vk = VKChatBridge.getLinkedVkId(p);
+        if (vk != -1) score += VKChatBridge.getReputation(vk) / 500;
         for (ItemStack item : p.getInventory().getArmorContents()) score += getUpgrade(item);
         score += getUpgrade(p.getInventory().getItemInMainHand());
         try {
@@ -452,7 +448,7 @@ public class HardcoreMobManager implements Listener {
     }
 
     private boolean isBloodMoonLike() {
-        try { return VKChatPlugin.getInstance().getBloodMoonManager() != null && VKChatPlugin.getInstance().getBloodMoonManager().isActive(); } catch (Throwable ignored) { return false; }
+        try { return VKChatBridge.isBloodMoonActive(); } catch (Throwable ignored) { return false; }
     }
 
     private String normalizeTier(String tier) {

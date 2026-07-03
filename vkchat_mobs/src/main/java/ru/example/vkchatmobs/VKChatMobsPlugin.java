@@ -73,7 +73,7 @@ public class VKChatMobsPlugin extends JavaPlugin {
             return;
         }
 
-        // Инициализация менеджеров
+        ru.example.vkchatmobs.util.VKChatBridge.init();
         contractManager = new ContractManager(this);
         siegeManager = new SiegeManager(this);
 

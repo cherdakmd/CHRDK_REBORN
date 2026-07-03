@@ -17,6 +17,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 import ru.example.vkchat.VKChatPlugin;
 import ru.example.vkchatmobs.VKChatMobsPlugin;
 import ru.example.vkchatmobs.listeners.MobListener;
+import ru.example.vkchatmobs.util.VKChatBridge;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -311,7 +312,7 @@ public class MobsEvents2Manager implements Listener {
         return it;
     }
 
-    private void giveRep(Player p, int rep) { try { int vk = VKChatPlugin.getInstance().getApi().getLinkedVkId(p); if (vk != -1) VKChatPlugin.getInstance().getApi().addReputation(vk, rep); } catch (Throwable ignored) {} }
+    private void giveRep(Player p, int rep) { VKChatBridge.addPoints(VKChatBridge.getLinkedVkId(p), rep); }
     private void safeGive(Player p, ItemStack item) { if (item == null) return; p.getInventory().addItem(item).values().forEach(left -> p.getWorld().dropItemNaturally(p.getLocation(), left)); }
 
     private void announce(String msg) {

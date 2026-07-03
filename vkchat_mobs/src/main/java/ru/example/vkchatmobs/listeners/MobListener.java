@@ -876,7 +876,7 @@ public class MobListener implements Listener {
         if (killer != null) {
             try {
                 if (Bukkit.getPluginManager().isPluginEnabled("VKChat")) {
-                    int vkId = ru.example.vkchat.VKChatPlugin.getInstance().getAuthManager().getLinkedVkId(killer);
+                    int vkId = ru.example.vkchatmobs.util.VKChatBridge.getLinkedVkId(killer);
                     if (vkId != -1) {
                         int baseRep = 2; // Базовая репутация за обычного моба
                         int finalRep = baseRep + (rank - 1) * 2; // Ранг 10 даст 20 репутации!
@@ -928,7 +928,7 @@ public class MobListener implements Listener {
                             killer.sendMessage(org.bukkit.ChatColor.RED + "⚠️ Лимит фарма! На основе ваших профессий лимит составляет " + maxHourRep + " реп/час. Вы набили максимум. Отдохните!");
                             // Не даём репу, но лут и остальное продолжается
                         } else {
-                            ru.example.vkchat.VKChatPlugin.getInstance().getReputationManager().addPoints(vkId, finalRep);
+                            ru.example.vkchatmobs.util.VKChatBridge.addPoints(vkId, finalRep);
                             farmedRepToday.put(pUuid, currentHourlyRep + finalRep);
                         }
                         
@@ -1155,7 +1155,7 @@ public class MobListener implements Listener {
         e.setCancelled(true);
 
         // Проверяем привязку ВК
-        int vkId = ru.example.vkchat.VKChatPlugin.getInstance().getAuthManager().getLinkedVkId(p);
+        int vkId = ru.example.vkchatmobs.util.VKChatBridge.getLinkedVkId(p);
         if (vkId == -1) {
             p.sendMessage("§c❌ Для использования жетона ваш игровой аккаунт должен быть привязан к ВК! Введите: /vklink");
             p.playSound(p.getLocation(), Sound.ENTITY_VILLAGER_NO, 1.0f, 1.0f);
@@ -1168,7 +1168,7 @@ public class MobListener implements Listener {
 
         if (isRuneToken) {
             // Начисление +250 репутации ВК
-            ru.example.vkchat.VKChatPlugin.getInstance().getReputationManager().addPoints(vkId, 250);
+            ru.example.vkchatmobs.util.VKChatBridge.addPoints(vkId, 250);
             p.sendMessage("§a🔺 Вы использовали Древний Жетон Рун и получили §6+250 Репутации ВК§a!");
 
             // Выдаем случайную руну/кристалл из vkchat_gear
@@ -1178,7 +1178,7 @@ public class MobListener implements Listener {
             p.getWorld().spawnParticle(Particle.PORTAL, p.getLocation().add(0, 1, 0), 30, 0.5, 0.5, 0.5, 0.1);
         } else {
             // Начисление +300 репутации ВК
-            ru.example.vkchat.VKChatPlugin.getInstance().getReputationManager().addPoints(vkId, 300);
+            ru.example.vkchatmobs.util.VKChatBridge.addPoints(vkId, 300);
             p.sendMessage("§a🔺 Вы использовали Осколок Древнего Артефакта и получили §d+300 Репутации ВК§a!");
 
             // Выдаем случайный артефакт/свиток из vkchat_artifacts
