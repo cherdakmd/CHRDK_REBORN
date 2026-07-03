@@ -518,7 +518,8 @@ public class NationListener implements Listener {
                 p.playSound(p.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1f, 0.5f);
                 String pNation = plugin.getNationManager().getPlayerNation(p);
                 for (Player ally : Bukkit.getOnlinePlayers()) {
-                    if (pNation != null && pNation.equals(plugin.getNationManager().getPlayerNation(ally)) && p.getLocation().distance(ally.getLocation()) <= 8) {
+                    if (pNation != null && pNation.equals(plugin.getNationManager().getPlayerNation(ally))
+                            && ally.getWorld().equals(p.getWorld()) && p.getLocation().distance(ally.getLocation()) <= 8) {
                         ally.addPotionEffect(new PotionEffect(PotionEffectType.INCREASE_DAMAGE, 600, 0));
                         ally.sendMessage(ChatColor.GREEN + "✊ Вы вдохновлены Манифестом Труда соотечественника! Сила I на 30 секунд!");
                     }
@@ -658,7 +659,8 @@ public class NationListener implements Listener {
                 p.getWorld().spawnParticle(org.bukkit.Particle.TOTEM, p.getLocation(), 30, 1.0, 1.0, 1.0);
                 String pNation = plugin.getNationManager().getPlayerNation(p);
                 for (Player ally : Bukkit.getOnlinePlayers()) {
-                    if (pNation != null && pNation.equals(plugin.getNationManager().getPlayerNation(ally)) && p.getLocation().distance(ally.getLocation()) <= 8) {
+                    if (pNation != null && pNation.equals(plugin.getNationManager().getPlayerNation(ally))
+                            && ally.getWorld().equals(p.getWorld()) && p.getLocation().distance(ally.getLocation()) <= 8) {
                         ally.addPotionEffect(new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, 200, 1));
                         ally.sendMessage(ChatColor.GREEN + "🛡️ Вы защищены щитом Монарха соотечественника! Сопротивление II на 10 секунд!");
                     }

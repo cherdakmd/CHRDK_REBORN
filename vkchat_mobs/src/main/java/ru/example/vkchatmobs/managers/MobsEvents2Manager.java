@@ -262,7 +262,8 @@ public class MobsEvents2Manager implements Listener {
         UUID top = sorted.isEmpty() ? null : sorted.get(0).getKey();
         for (Map.Entry<UUID, Double> en : sorted) {
             Player p = Bukkit.getPlayer(en.getKey());
-            if (p == null || p.getLocation().distanceSquared(boss.getLocation()) > 80*80) continue;
+            if (p == null || !p.getWorld().equals(boss.getWorld())
+                    || p.getLocation().distanceSquared(boss.getLocation()) > 80*80) continue;
             int rep = plugin.getConfig().getInt("events2.raid.rewards.participant-rep", 120);
             if (en.getKey().equals(top)) rep += plugin.getConfig().getInt("events2.raid.rewards.top-damage-bonus-rep", 80);
             if (killer != null && en.getKey().equals(killer.getUniqueId())) rep += plugin.getConfig().getInt("events2.raid.rewards.killer-bonus-rep", 60);
