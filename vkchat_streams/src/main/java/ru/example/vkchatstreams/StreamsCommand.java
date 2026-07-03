@@ -4,6 +4,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
 
 public class StreamsCommand implements CommandExecutor {
     private final VKChatStreamsPlugin plugin;
@@ -16,9 +17,26 @@ public class StreamsCommand implements CommandExecutor {
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
         if (args.length == 0) {
             sender.sendMessage(ChatColor.GOLD + "Команды:");
-            sender.sendMessage(ChatColor.GRAY + "/streams check " + ChatColor.WHITE + "— проверить стримы сейчас");
-            sender.sendMessage(ChatColor.GRAY + "/streams reset " + ChatColor.WHITE + "— сбросить уже объявленные");
-            sender.sendMessage(ChatColor.GRAY + "/streams reload " + ChatColor.WHITE + "— перезагрузить конфиг");
+            sender.sendMessage(ChatColor.GRAY + "/stream reward " + ChatColor.WHITE + "— получить награду за просмотр стрима");
+            if (sender.hasPermission("vkchat.streams.admin")) {
+                sender.sendMessage(ChatColor.GRAY + "/streams check " + ChatColor.WHITE + "— проверить стримы сейчас");
+                sender.sendMessage(ChatColor.GRAY + "/streams reset " + ChatColor.WHITE + "— сбросить уже объявленные");
+                sender.sendMessage(ChatColor.GRAY + "/streams reload " + ChatColor.WHITE + "— перезагрузить конфиг");
+            }
+            return true;
+        }
+
+        if (args[0].equalsIgnoreCase("reward")) {
+            if (!(sender instanceof Player p)) {
+                sender.sendMessage(ChatColor.RED + "Только для игроков.");
+                return true;
+            }
+            plugin.getStreamChecker().claimReward(p);
+            return true;
+        }
+
+        if (!sender.hasPermission("vkchat.streams.admin")) {
+            sender.sendMessage(ChatColor.RED + "Нет прав.");
             return true;
         }
 

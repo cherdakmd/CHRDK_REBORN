@@ -25,6 +25,8 @@ public class VKChatStreamsPlugin extends JavaPlugin {
 
         if (getCommand("streams") != null)
             getCommand("streams").setExecutor(new StreamsCommand(this));
+        if (getCommand("stream") != null)
+            getCommand("stream").setExecutor(new StreamsCommand(this));
 
         getLogger().info("VKChatStreams запущен!");
     }

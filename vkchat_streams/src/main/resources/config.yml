@@ -41,6 +41,7 @@ announcement:
     - "&7Канал: &f{channel}"
     - "&7Название: &f{title}"
     - "&7Ссылка: &b{url}"
+    - "&e/stream reward &7— получить награду за просмотр!"
     - ""
   vk:
     - "⚡ СТРИМ ⚡"
@@ -48,3 +49,9 @@ announcement:
     - "Канал: {channel}"
     - "Название: {title}"
     - "Ссылка: {url}"
+
+# ═══ НАГРАДЫ ЗА ПРОСМОТР ═══
+rewards:
+  reputation: 50             # Репутации ВК за просмотр
+  commands:                  # Команды от консоли (можно несколько)
+    - "give {player} diamond 1"
