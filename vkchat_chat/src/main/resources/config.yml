@@ -1,30 +1,15 @@
 # ═══════════════════════════════════════
-# VKChatChat — чат с каналами и ВК интеграцией
+# VKChatChat — чат + встроенный TAB
 # ═══════════════════════════════════════
 
-# Формат чата (поддерживает {prefix}, {player}, {suffix}, {message})
-format: "{prefix}&r &7%player%&7: &f{message}"
+format: "{prefix}&r &7{player}&7: &f{message}"
 
 # Каналы
 channels:
-  global:
-    symbol: "&7[&6Г&7]"
-    radius: 0           # 0 = без радиуса
-    permission: ""
   local:
-    symbol: "&7[&cЛ&7]"
     radius: 100
-    permission: ""
-  trade:
-    symbol: "&7[&eТ&7]"
-    radius: 0
-    permission: "vkchat.chat.trade"
-  nation:
-    symbol: "&7[&5Н&7]"
-    radius: 0
-    permission: ""
 
-channel-default: "global"
+channel-default: "local"
 
 # Антиспам
 anti-spam:
@@ -36,22 +21,36 @@ anti-spam:
 # ↕ ВК интеграция
 vk:
   enabled: true
-  mc-to-vk: true       # Minecraft → ВК
-  vk-to-mc: true       # ВК → Minecraft
+  mc-to-vk: true
+  vk-to-mc: true
   format-to-vk: "{player}: {message}"
   format-to-mc: "&b[ВК] {player}&7: &f{message}"
 
-# 🔇 Фильтр чата (замена запрещённых слов на ***)
-chat-filter:
-  enabled: true
-  words:
-    - "дурак"
-    - "идиот"
-
-# 🕐 Временные метки в сообщениях
+# ⏱ Время в сообщениях
 timestamps: false
 
-# 🖥 Встроенный TAB (header/footer, префиксы над головой)
+# 🔇 Фильтр чата
+chat-filter:
+  enabled: false
+  words:
+    - "badword1"
+    - "badword2"
+
+# 🖥 TAB (header/footer + префиксы)
 tab:
-  header: "&4&l⚔ &c&lCHRDK REBORN &4&l⚔\n&7Добро пожаловать, &f%player%"
-  footer: "&7Онлайн &c%online% &8| &7Репутация &c%vkchat_reputation%\n&7Статус: %luckperms-prefix%\n&7%stats%\n\n&4⚔ &c/donate info &4⚔"
+  header:
+    - "&4&l⚔ &c&lCHRDK REBORN &4&l⚔"
+    - "&7Добро пожаловать, &f%player%"
+    - ""
+  footer:
+    - ""
+    - "&7Онлайн &c%online% &8| &7Репутация &c%vkchat_reputation%"
+    - "&7Статус: %luckperms-prefix%"
+    - "&7%stats%"
+    - ""
+    - "&4⚔ &c/donate info &4⚔"
+  update-ticks: 20
+
+# 🏷 Форматы join/quit
+join-format: "&8[&a+&8] {prefix} &7{player}"
+quit-format: "&8[&c-&8] {prefix} &7{player}"

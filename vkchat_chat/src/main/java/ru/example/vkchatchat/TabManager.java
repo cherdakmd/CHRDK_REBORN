@@ -6,6 +6,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
 
@@ -13,9 +14,6 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-/**
- * Встроенная таб-система: header/footer, nametags, префиксы групп
- */
 public class TabManager implements Listener {
     private final VKChatChatPlugin plugin;
     private final Map<UUID, String> playerTeams = new ConcurrentHashMap<>();
@@ -26,10 +24,10 @@ public class TabManager implements Listener {
         this.plugin = plugin;
         setupTeams();
         Bukkit.getPluginManager().registerEvents(this, plugin);
+        int ticks = plugin.getConfig().getInt("tab.update-ticks", 20);
         plugin.getServer().getScheduler().runTaskTimer(plugin, () -> {
             for (Player p : Bukkit.getOnlinePlayers()) sendTab(p);
-        }, 20L, 20L);
-        // Ротация статистики каждые 5 секунд
+        }, 20L, ticks);
         plugin.getServer().getScheduler().runTaskTimerAsynchronously(plugin, this::updateStats, 60L, 100L);
     }
 
@@ -40,6 +38,16 @@ public class TabManager implements Listener {
             assignTeam(p);
             sendTab(p);
         }, 10L);
+        String fmt = plugin.getConfig().getString("join-format", "&8[&a+&8] {prefix} &7{player}");
+        e.setJoinMessage(ChatColor.translateAlternateColorCodes('&',
+                fmt.replace("{prefix}", getPrefix(p)).replace("{player}", p.getName())));
+    }
+
+    @EventHandler
+    public void onQuit(PlayerQuitEvent e) {
+        String fmt = plugin.getConfig().getString("quit-format", "&8[&c-&8] {prefix} &7{player}");
+        e.setQuitMessage(ChatColor.translateAlternateColorCodes('&',
+                fmt.replace("{prefix}", getPrefix(e.getPlayer())).replace("{player}", e.getPlayer().getName())));
     }
 
     private void setupTeams() {
@@ -74,33 +82,23 @@ public class TabManager implements Listener {
     }
 
     private int getGroupIndex(Player p) {
-        String g = getGroup(p);
-        return switch (g) {
-            case "overlord" -> 0;
-            case "legend" -> 1;
-            case "star" -> 2;
-            case "flame" -> 3;
-            case "spark" -> 4;
-            default -> 5;
+        return switch (getGroup(p)) {
+            case "overlord" -> 0; case "legend" -> 1; case "star" -> 2;
+            case "flame" -> 3; case "spark" -> 4; default -> 5;
         };
     }
 
     private void sendTab(Player p) {
-        String header = ChatColor.translateAlternateColorCodes('&',
-                plugin.getConfig().getString("tab.header",
-                        "&4&l⚔ &c&lCHRDK REBORN &4&l⚔\n&7Добро пожаловать, &f%player%"));
-        String footer = ChatColor.translateAlternateColorCodes('&',
-                plugin.getConfig().getString("tab.footer",
-                        "&7Онлайн &c%online% &8| &7Репутация &c%vkchat_reputation%\n&7Статус: %luckperms-prefix%\n\n&4⚔ &c/donate info &4⚔"));
-
-        header = header.replace("%player%", p.getName())
-                .replace("%online%", String.valueOf(Bukkit.getOnlinePlayers().size()));
-        footer = footer.replace("%online%", String.valueOf(Bukkit.getOnlinePlayers().size()))
+        String header = String.join("\n", plugin.getConfig().getStringList("tab.header"))
+                .replace("%player%", p.getName()).replace("%online%", String.valueOf(Bukkit.getOnlinePlayers().size()));
+        String footer = String.join("\n", plugin.getConfig().getStringList("tab.footer"))
+                .replace("%online%", String.valueOf(Bukkit.getOnlinePlayers().size()))
                 .replace("%vkchat_reputation%", getReputation(p))
                 .replace("%luckperms-prefix%", getPrefix(p))
                 .replace("%stats%", getStats());
-
-        sendTabPacket(p, header, footer);
+        header = ChatColor.translateAlternateColorCodes('&', header);
+        footer = ChatColor.translateAlternateColorCodes('&', footer);
+        p.setPlayerListHeaderFooter(header, footer);
     }
 
     private String getReputation(Player p) {
@@ -121,15 +119,11 @@ public class TabManager implements Listener {
         return "&7Игрок";
     }
 
-    private void sendTabPacket(Player p, String header, String footer) {
-        p.setPlayerListHeaderFooter(header, footer);
-    }
-
     private void updateStats() {
         statsLines[0] = "&c❤ " + getTopRep();
         statsLines[1] = "&e💰 " + getTopDonator();
         statsLines[2] = "&a⏱ " + getUptime();
-        statsLines[3] = "&b🌍 " + Bukkit.getOfflinePlayers().length + " игроков всего";
+        statsLines[3] = "&b🌍 " + Bukkit.getOfflinePlayers().length + " игроков";
         statsIndex = (statsIndex + 1) % statsLines.length;
     }
 
@@ -143,9 +137,8 @@ public class TabManager implements Listener {
             java.lang.reflect.Method m = ru.example.vkchat.VKChatPlugin.getInstance()
                     .getReputationManager().getClass().getMethod("getTopReputation");
             String top = (String) m.invoke(ru.example.vkchat.VKChatPlugin.getInstance().getReputationManager());
-            if (top != null && top.contains("\n")) {
+            if (top != null && top.contains("\n"))
                 return "Топ реп: " + top.split("\n")[0].replaceAll("\\d+\\.\\s*", "");
-            }
         } catch (Exception ignored) {}
         return "Топ репутации";
     }
@@ -168,8 +161,6 @@ public class TabManager implements Listener {
     }
 
     private String getUptime() {
-        long uptime = System.currentTimeMillis() - plugin.getServer().getWorlds().get(0).getFullTime();
-        // Actually use real uptime
         long millis = System.currentTimeMillis() - java.lang.management.ManagementFactory.getRuntimeMXBean().getStartTime();
         long days = millis / 86400000;
         long hours = (millis % 86400000) / 3600000;

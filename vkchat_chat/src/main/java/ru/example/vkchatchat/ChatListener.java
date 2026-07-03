@@ -8,8 +8,6 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
-import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.event.player.PlayerQuitEvent;
 import ru.example.vkchat.VKChatPlugin;
 
 import java.text.SimpleDateFormat;
@@ -42,7 +40,6 @@ public class ChatListener implements Listener {
 
         String prefix = getPrefix(p);
         String name = p.getName();
-        String tag = getDonorTag(p);
         String color = getDonorColor(p);
 
         msg = applyMentions(msg, p, color);
@@ -55,18 +52,18 @@ public class ChatListener implements Listener {
             msg = msg.substring(1).trim();
             if (msg.isEmpty()) return;
             String formatted = ChatColor.translateAlternateColorCodes('&',
-                    ts + "&7[&6Г&7] " + prefix + "&r &7" + name + " " + tag + "&7: " + color + msg);
+                    ts + "&7[&6Г&7] " + prefix + "&r &7" + name + "&7: " + color + msg);
             broadcastFiltered(formatted, p);
             sendToVk(name, msg);
         } else if (msg.startsWith("$")) {
             msg = msg.substring(1).trim();
             if (msg.isEmpty()) return;
             String formatted = ChatColor.translateAlternateColorCodes('&',
-                    ts + "&7[&eТ&7] " + prefix + "&r &7" + name + " " + tag + "&7: " + color + msg);
+                    ts + "&7[&eТ&7] " + prefix + "&r &7" + name + "&7: " + color + msg);
             broadcastFiltered(formatted, p);
         } else {
             String formatted = ChatColor.translateAlternateColorCodes('&',
-                    ts + prefix + "&r &7" + name + " " + tag + "&7: " + color + msg);
+                    ts + prefix + "&r &7" + name + "&7: " + color + msg);
             int radius = plugin.getConfig().getInt("channels.local.radius", 100);
             for (Player r : Bukkit.getOnlinePlayers()) {
                 if (r.getWorld().equals(p.getWorld())
@@ -97,15 +94,6 @@ public class ChatListener implements Listener {
         if (p.hasPermission("vkchat.donate.flame")) return "&6";
         if (p.hasPermission("vkchat.donate.spark")) return "&b";
         return "&f";
-    }
-
-    private String getDonorTag(Player p) {
-        if (p.hasPermission("vkchat.donate.overlord")) return "&d&l⚜";
-        if (p.hasPermission("vkchat.donate.legend")) return "&5&l★";
-        if (p.hasPermission("vkchat.donate.star")) return "&e&l✦";
-        if (p.hasPermission("vkchat.donate.flame")) return "&6&l◆";
-        if (p.hasPermission("vkchat.donate.spark")) return "&b&l●";
-        return "";
     }
 
     private String applyFilter(String msg) {
@@ -145,22 +133,6 @@ public class ChatListener implements Listener {
     private boolean isIgnoredBy(Player viewer, Player sender) {
         Set<UUID> set = ignored.get(viewer.getUniqueId());
         return set != null && set.contains(sender.getUniqueId());
-    }
-
-    @EventHandler
-    public void onJoin(PlayerJoinEvent e) {
-        Player p = e.getPlayer();
-        String prefix = getPrefix(p);
-        e.setJoinMessage(ChatColor.translateAlternateColorCodes('&',
-                "&8[&a+&8] " + prefix + " &7" + p.getName()));
-    }
-
-    @EventHandler
-    public void onQuit(PlayerQuitEvent e) {
-        Player p = e.getPlayer();
-        String prefix = getPrefix(p);
-        e.setQuitMessage(ChatColor.translateAlternateColorCodes('&',
-                "&8[&c-&8] " + prefix + " &7" + p.getName()));
     }
 
     private void sendToVk(String player, String msg) {
