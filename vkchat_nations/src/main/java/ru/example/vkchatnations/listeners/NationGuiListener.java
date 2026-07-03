@@ -430,7 +430,40 @@ public class NationGuiListener implements Listener {
         back.setItemMeta(backMeta);
         inv.setItem(22, back);
 
+        // Тумблеры защит
+        addToggle(inv, 20, claim, claim.getLevel() >= 2, claim.isExplosionProtectionEnabled(),
+                "&a&lАнтивзрыв", "&c&lАнтивзрыв", "Защита блоков от TNT, криперов и взрывов", "2");
+        addToggle(inv, 21, claim, claim.getLevel() >= 3, claim.isNoSpawnProtectionEnabled(),
+                "&b&lПокой", "&c&lПокой", "Запрет спавна мобов (спавнеры работают)", "3");
+        addToggle(inv, 23, claim, claim.getLevel() >= 4, claim.isFireProtectionEnabled(),
+                "&a&lОгнеупорность", "&c&lОгнеупорность", "Защита от поджога, огня и лавы", "4");
+        addToggle(inv, 24, claim, claim.getLevel() >= 5, claim.isPvpProtectionEnabled(),
+                "&a&lЦитадель", "&c&lЦитадель", "Запрет PvP на территории", "5");
+
         p.openInventory(inv);
+    }
+
+    private void addToggle(Inventory inv, int slot, ChunkClaim claim, boolean unlocked, boolean enabled,
+                           String onName, String offName, String desc, String reqLevel) {
+        ItemStack item = new ItemStack(unlocked ? (enabled ? Material.MAGMA_BLOCK : Material.COBBLESTONE) : Material.BARRIER);
+        ItemMeta meta = item.getItemMeta();
+        if (unlocked) {
+            meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', enabled ? onName + " &7[ВКЛ]" : offName + " &7[ВЫКЛ]"));
+        } else {
+            meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&7" + desc.split(" ")[0] + " &8(ур. " + reqLevel + ")"));
+        }
+        List<String> lore = new ArrayList<>();
+        lore.add(ChatColor.GRAY + desc);
+        if (unlocked) {
+            lore.add(enabled ? ChatColor.GREEN + "✓ Включена" : ChatColor.RED + "✗ Выключена");
+            lore.add("");
+            lore.add(ChatColor.YELLOW + "Клик — переключить");
+        } else {
+            lore.add(ChatColor.RED + "Требуется " + reqLevel + " уровень привата");
+        }
+        meta.setLore(lore);
+        item.setItemMeta(meta);
+        inv.setItem(slot, item);
     }
 
     public void openClaimUpgradeGui(Player p, ChunkClaim claim) {
@@ -872,6 +905,24 @@ public class NationGuiListener implements Listener {
 
                 p.sendMessage(ChatColor.GREEN + "✓ Прочность привата увеличена на +100 за 15 репутации ВК!");
                 p.playSound(p.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1f, 1.5f);
+                openClaimFeedGui(p, claim);
+            }
+            // Тумблеры защит (слоты 20,21,23,24)
+            else if (e.getRawSlot() >= 20 && e.getRawSlot() <= 24 && e.getRawSlot() != 22) {
+                int slot = e.getRawSlot();
+                int reqLevel = slot == 20 ? 2 : slot == 21 ? 3 : slot == 23 ? 4 : slot == 24 ? 5 : 99;
+                if (claim.getLevel() < reqLevel) {
+                    p.sendMessage(ChatColor.RED + "Нужен " + reqLevel + " уровень привата!");
+                    return;
+                }
+                switch (slot) {
+                    case 20 -> claim.setExplosionProtection(!claim.isExplosionProtectionEnabled());
+                    case 21 -> claim.setNoSpawnProtection(!claim.isNoSpawnProtectionEnabled());
+                    case 23 -> claim.setFireProtection(!claim.isFireProtectionEnabled());
+                    case 24 -> claim.setPvpProtection(!claim.isPvpProtectionEnabled());
+                }
+                plugin.getNationManager().saveAll();
+                p.playSound(p.getLocation(), org.bukkit.Sound.UI_BUTTON_CLICK, 1f, 1f);
                 openClaimFeedGui(p, claim);
             }
         }
