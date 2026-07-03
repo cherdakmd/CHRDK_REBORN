@@ -104,7 +104,7 @@ placeholder-refresh-intervals:
   "%vault_prefix%": 1000
   "%vault_balance%": 5000
 
-assign-groups-by-permissions: false
+assign-groups-by-permissions: true
 
 primary-group-finding-list:
   - overlord
