@@ -8,6 +8,8 @@ config-version: 1
 check-interval-minutes: 5
 
 streams:
+  admin-vk-ids:              # Кому в ЛС приходит код (стример увидит на телефоне)
+    - 123456789
   twitch:
     enabled: true
     client-id: "YOUR_TWITCH_CLIENT_ID"

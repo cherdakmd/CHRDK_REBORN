@@ -19,6 +19,8 @@ public class StreamChecker {
     private final Map<String, Set<UUID>> claimedRewards = new ConcurrentHashMap<>();
     private volatile String currentCode = "";
     private int taskId = -1;
+    private int rotationTaskId = -1;
+    private final java.util.Random rnd = new java.util.Random();
 
     public StreamChecker(VKChatStreamsPlugin plugin) {
         this.plugin = plugin;
@@ -27,10 +29,17 @@ public class StreamChecker {
     public void start() {
         int interval = plugin.getConfig().getInt("check-interval-minutes", 5) * 1200;
         taskId = Bukkit.getScheduler().runTaskTimerAsynchronously(plugin, this::checkAll, 200L, Math.max(200, interval)).getTaskId();
+        // Ротация кода каждые 10 минут, если стрим активен
+        rotationTaskId = Bukkit.getScheduler().runTaskTimerAsynchronously(plugin, () -> {
+            if (!announced.isEmpty()) {
+                currentCode = String.valueOf(1000 + rnd.nextInt(9000));
+            }
+        }, 6000L, 6000L).getTaskId();
     }
 
     public void stop() {
         if (taskId != -1) Bukkit.getScheduler().cancelTask(taskId);
+        if (rotationTaskId != -1) Bukkit.getScheduler().cancelTask(rotationTaskId);
     }
 
     public void checkAll() {
@@ -62,19 +71,27 @@ public class StreamChecker {
     }
 
     private void announce(StreamEvent e) {
-        // Генерируем код для этого стрима
-        currentCode = String.valueOf(1000 + new java.util.Random().nextInt(9000));
+        currentCode = String.valueOf(1000 + rnd.nextInt(9000));
 
         for (String line : plugin.getConfig().getStringList("announcement.game")) {
             String msg = ChatColor.translateAlternateColorCodes('&', format(line, e));
             Bukkit.broadcastMessage(msg);
         }
-        Bukkit.broadcastMessage(ChatColor.GOLD + "🎯 Код для награды: /stream reward " + currentCode
-                + ChatColor.GRAY + " (скажет стример в эфире)");
+        Bukkit.broadcastMessage(ChatColor.GOLD + "🎯 Код: /stream reward " + currentCode
+                + ChatColor.GRAY + " (скажет стример или смотри стрим!)");
+
+        // ВК: анонс в общий чат
         if (plugin.getConfig().getBoolean("announcement.vk-enabled", true)) {
             for (String line : plugin.getConfig().getStringList("announcement.vk")) {
                 VKChatBridge.sendToMainChat(format(line, e));
             }
+        }
+
+        // ВК: код в ЛС всем админам (стример увидит на телефоне)
+        for (int adminId : plugin.getConfig().getIntegerList("streams.admin-vk-ids")) {
+            VKChatBridge.sendMessage(adminId, "🎯 Код награды за просмотр стрима: " + currentCode
+                    + "\nИгроки вводят: /stream reward " + currentCode
+                    + "\nКод автоматически меняется каждые 10 минут.");
         }
     }
 
