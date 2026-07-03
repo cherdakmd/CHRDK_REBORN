@@ -3,6 +3,7 @@ package ru.example.vkchatnations.listeners;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -116,10 +117,7 @@ public class ClaimDefenseListener implements Listener {
     public void onIgnite(BlockIgniteEvent e) {
         ChunkClaim claim = plugin.getNationManager().getClaimAt(e.getBlock().getLocation());
         if (!isProtected(claim, fireLevel())) return;
-
-        Player p = e.getPlayer();
-        if (p != null && (claim.getOwner().equals(p.getUniqueId()) || claim.getTrusted().contains(p.getUniqueId()))) return;
-
+        if (e.getCause() == BlockIgniteEvent.IgniteCause.FLINT_AND_STEEL) return;
         e.setCancelled(true);
     }
 

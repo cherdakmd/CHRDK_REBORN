@@ -298,6 +298,13 @@ public class NationListener implements Listener {
     public void onPlace(BlockPlaceEvent e) {
         Player p = e.getPlayer();
         ItemStack item = e.getItemInHand();
+
+        // Разрешаем огонь от кремня владельцу привата (портал)
+        if (item != null && item.getType() == Material.FLINT_AND_STEEL) {
+            ChunkClaim fc = plugin.getNationManager().getClaimAt(e.getBlock().getLocation());
+            if (fc == null || fc.getOwner().equals(p.getUniqueId()) || fc.getTrusted().contains(p.getUniqueId())) return;
+        }
+
         if (item == null || !item.hasItemMeta()) {
             if (!canBuild(p, e.getBlock())) e.setCancelled(true);
             return;
