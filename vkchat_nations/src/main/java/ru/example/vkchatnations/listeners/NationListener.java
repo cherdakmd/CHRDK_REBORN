@@ -1002,7 +1002,7 @@ public class NationListener implements Listener {
             ChunkClaim claim = plugin.getNationManager().getClaimAt(e.getLocation());
             // Ур.3 «Покой»: запрет естественного спавна монстров (спавнеры работают).
             int noSpawnLevel = plugin.getConfig().getInt("claim.no-spawn-level", 3);
-            if (claim != null && claim.getDurability() > 0 && claim.getLevel() >= noSpawnLevel) {
+            if (claim != null && claim.getDurability() > 0 && claim.getLevel() >= noSpawnLevel && claim.isNoSpawnProtectionEnabled()) {
                 if (e.getSpawnReason() != org.bukkit.event.entity.CreatureSpawnEvent.SpawnReason.SPAWNER) {
                     e.setCancelled(true);
                 }

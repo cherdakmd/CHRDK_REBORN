@@ -23,8 +23,11 @@ public class ChunkClaim {
     private int durability;
     private int level;
 
-    // Защита от огня (вкл/выкл)
+    // Защита от взрыва (lvl 2), спавна (lvl 3), огня (lvl 4), PvP (lvl 5)
+    private boolean explosionProtection = true;
+    private boolean noSpawnProtection = true;
     private boolean fireProtection = true;
+    private boolean pvpProtection = true;
 
     // Точка возрождения (Home)
     private double homeX = 0;
@@ -45,7 +48,7 @@ public class ChunkClaim {
         this.level = 1;
     }
 
-    public ChunkClaim(String worldName, int x, int y, int z, int radius, UUID owner, String nation, List<UUID> trusted, int durability, int level, boolean fireProtection, double homeX, double homeY, double homeZ, boolean hasHome) {
+    public ChunkClaim(String worldName, int x, int y, int z, int radius, UUID owner, String nation, List<UUID> trusted, int durability, int level, boolean explosionProtection, boolean noSpawnProtection, boolean fireProtection, boolean pvpProtection, double homeX, double homeY, double homeZ, boolean hasHome) {
         this.worldName = worldName;
         this.x = x;
         this.y = y;
@@ -56,7 +59,10 @@ public class ChunkClaim {
         this.trusted = trusted;
         this.durability = durability;
         this.level = level;
+        this.explosionProtection = explosionProtection;
+        this.noSpawnProtection = noSpawnProtection;
         this.fireProtection = fireProtection;
+        this.pvpProtection = pvpProtection;
         this.homeX = homeX;
         this.homeY = homeY;
         this.homeZ = homeZ;
@@ -99,7 +105,16 @@ public class ChunkClaim {
     public void setLevel(int level) { this.level = Math.max(1, Math.min(MAX_LEVEL, level)); }
 
     public boolean isFireProtectionEnabled() { return fireProtection; }
-    public void setFireProtection(boolean fireProtection) { this.fireProtection = fireProtection; }
+    public void setFireProtection(boolean v) { this.fireProtection = v; }
+
+    public boolean isExplosionProtectionEnabled() { return explosionProtection; }
+    public void setExplosionProtection(boolean v) { this.explosionProtection = v; }
+
+    public boolean isNoSpawnProtectionEnabled() { return noSpawnProtection; }
+    public void setNoSpawnProtection(boolean v) { this.noSpawnProtection = v; }
+
+    public boolean isPvpProtectionEnabled() { return pvpProtection; }
+    public void setPvpProtection(boolean v) { this.pvpProtection = v; }
 
     /** Можно ли повысить уровень ещё. */
     public boolean canUpgrade() { return level < MAX_LEVEL; }

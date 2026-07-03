@@ -111,28 +111,50 @@ public class ClaimGui implements Listener {
         upgPay.setItemMeta(upgMeta);
         inv.setItem(22, upgPay);
 
-        // 🔥 Тумблер защиты от огня (только для 4+ уровня)
-        boolean fireOn = claim.isFireProtectionEnabled() && claim.getLevel() >= 4;
-        ItemStack fireToggle = new ItemStack(fireOn ? Material.MAGMA_BLOCK : Material.COBBLESTONE);
-        ItemMeta fireMeta = fireToggle.getItemMeta();
-        fireMeta.setDisplayName((claim.getLevel() >= 4
-                ? (fireOn ? "&a&lОгнеупорность &7[ВКЛ]" : "&c&lОгнеупорность &7[ВЫКЛ]")
-                : "&7Огнеупорность &8(требуется 4 ур.)"));
-        List<String> fireLore = new ArrayList<>();
-        if (claim.getLevel() >= 4) {
-            fireLore.add("&7Защита от поджога, огня и лавы");
-            fireLore.add(fireOn ? "&a✓ Включена" : "&c✗ Выключена");
-            fireLore.add("");
-            fireLore.add("&eКлик — переключить");
-        } else {
-            fireLore.add("&8Прокачайте приват до 4 уровня");
-            fireLore.add("&8чтобы открыть защиту от огня.");
-        }
-        fireMeta.setLore(fireLore.stream().map(l -> ChatColor.translateAlternateColorCodes('&', l)).toList());
-        fireToggle.setItemMeta(fireMeta);
-        inv.setItem(23, fireToggle);
+        // 💥 Защита от взрывов (уровень 2+)
+        addToggle(inv, 20, claim, claim.getLevel() >= 2, claim.isExplosionProtectionEnabled(),
+                "&a&lАнтивзрыв", "&c&lАнтивзрыв", "Защита блоков от TNT, криперов и взрывов",
+                "2");
+
+        // 🛏 Покой — защита от спавна мобов (уровень 3+)
+        addToggle(inv, 21, claim, claim.getLevel() >= 3, claim.isNoSpawnProtectionEnabled(),
+                "&b&lПокой", "&c&lПокой", "Запрет спавна враждебных мобов (спавнеры работают)",
+                "3");
+
+        // 🔥 Огнеупорность (уровень 4+)
+        addToggle(inv, 23, claim, claim.getLevel() >= 4, claim.isFireProtectionEnabled(),
+                "&a&lОгнеупорность", "&c&lОгнеупорность", "Защита от поджога, огня и лавы",
+                "4");
+
+        // ⚔ Цитадель — PvP (уровень 5+)
+        addToggle(inv, 24, claim, claim.getLevel() >= 5, claim.isPvpProtectionEnabled(),
+                "&a&lЦитадель", "&c&lЦитадель", "Запрет PvP на территории",
+                "5");
 
         p.openInventory(inv);
+    }
+
+    private void addToggle(Inventory inv, int slot, ChunkClaim claim, boolean unlocked, boolean enabled,
+                           String onName, String offName, String desc, String reqLevel) {
+        ItemStack item = new ItemStack(unlocked ? (enabled ? Material.MAGMA_BLOCK : Material.COBBLESTONE) : Material.BARRIER);
+        ItemMeta meta = item.getItemMeta();
+        if (unlocked) {
+            meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', enabled ? onName + " &7[ВКЛ]" : offName + " &7[ВЫКЛ]"));
+        } else {
+            meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&7" + desc.replace("Защита от ", "").replace("Запрет ", "").replace("Запрет спавна ", "").trim() + " &8(уровень " + reqLevel + ")"));
+        }
+        List<String> lore = new ArrayList<>();
+        lore.add(ChatColor.GRAY + desc);
+        if (unlocked) {
+            lore.add(enabled ? ChatColor.GREEN + "✓ Включена" : ChatColor.RED + "✗ Выключена");
+            lore.add("");
+            lore.add(ChatColor.YELLOW + "Клик — переключить");
+        } else {
+            lore.add(ChatColor.RED + "Требуется " + reqLevel + " уровень привата");
+        }
+        meta.setLore(lore);
+        item.setItemMeta(meta);
+        inv.setItem(slot, item);
     }
 
     @EventHandler
@@ -194,18 +216,22 @@ public class ClaimGui implements Listener {
         else if (slot == 22) { // Upgrade — открываем единое меню прокачки
             plugin.getGuiListener().openClaimUpgradeGui(p, claim);
         }
-        else if (slot == 23) { // Fire protection toggle
-            if (claim.getLevel() >= 4) {
-                claim.setFireProtection(!claim.isFireProtectionEnabled());
-                plugin.getNationManager().saveAll();
-                p.sendMessage(ChatColor.GREEN + (claim.isFireProtectionEnabled()
-                        ? "Защита от огня включена."
-                        : "Защита от огня выключена."));
-                p.playSound(p.getLocation(), org.bukkit.Sound.UI_BUTTON_CLICK, 1f, 1f);
-                openGui(p, chunk);
-            } else {
-                p.sendMessage(ChatColor.RED + "Нужен 4 уровень привата для защиты от огня.");
+        else if (slot == 20 || slot == 21 || slot == 23 || slot == 24) { // Toggle protections
+            int reqLevel = slot == 20 ? 2 : slot == 21 ? 3 : slot == 23 ? 4 : 5;
+            if (claim.getLevel() < reqLevel) {
+                p.sendMessage(ChatColor.RED + "Нужен " + reqLevel + " уровень привата для этой защиты.");
+                return;
             }
+            switch (slot) {
+                case 20 -> claim.setExplosionProtection(!claim.isExplosionProtectionEnabled());
+                case 21 -> claim.setNoSpawnProtection(!claim.isNoSpawnProtectionEnabled());
+                case 23 -> claim.setFireProtection(!claim.isFireProtectionEnabled());
+                case 24 -> claim.setPvpProtection(!claim.isPvpProtectionEnabled());
+            }
+            plugin.getNationManager().saveAll();
+            p.sendMessage(ChatColor.GREEN + "Настройка защиты изменена.");
+            p.playSound(p.getLocation(), org.bukkit.Sound.UI_BUTTON_CLICK, 1f, 1f);
+            openGui(p, chunk);
         }
     }
 }

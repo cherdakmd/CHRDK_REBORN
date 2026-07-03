@@ -68,8 +68,8 @@ public class ClaimDefenseListener implements Listener {
         Iterator<Block> it = e.blockList().iterator();
         while (it.hasNext()) {
             Block b = it.next();
-            if (isCentralClaimBlock(b)
-                    || isProtected(plugin.getNationManager().getClaimAt(b.getLocation()), explosionLevel())) {
+            ChunkClaim claim = plugin.getNationManager().getClaimAt(b.getLocation());
+            if (isCentralClaimBlock(b) || (isProtected(claim, explosionLevel()) && claim.isExplosionProtectionEnabled())) {
                 it.remove();
             }
         }
@@ -81,8 +81,8 @@ public class ClaimDefenseListener implements Listener {
         Iterator<Block> it = e.blockList().iterator();
         while (it.hasNext()) {
             Block b = it.next();
-            if (isCentralClaimBlock(b)
-                    || isProtected(plugin.getNationManager().getClaimAt(b.getLocation()), explosionLevel())) {
+            ChunkClaim claim = plugin.getNationManager().getClaimAt(b.getLocation());
+            if (isCentralClaimBlock(b) || (isProtected(claim, explosionLevel()) && claim.isExplosionProtectionEnabled())) {
                 it.remove();
             }
         }
@@ -93,8 +93,8 @@ public class ClaimDefenseListener implements Listener {
     public void onExplosionDamage(EntityDamageEvent e) {
         if (e.getCause() != EntityDamageEvent.DamageCause.ENTITY_EXPLOSION
                 && e.getCause() != EntityDamageEvent.DamageCause.BLOCK_EXPLOSION) return;
-        Location loc = e.getEntity().getLocation();
-        if (isProtected(plugin.getNationManager().getClaimAt(loc), explosionLevel())) {
+        ChunkClaim claim = plugin.getNationManager().getClaimAt(e.getEntity().getLocation());
+        if (isProtected(claim, explosionLevel()) && claim.isExplosionProtectionEnabled()) {
             e.setCancelled(true);
         }
     }
@@ -103,7 +103,8 @@ public class ClaimDefenseListener implements Listener {
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onHangingBreak(HangingBreakEvent e) {
         if (e.getCause() != HangingBreakEvent.RemoveCause.EXPLOSION) return;
-        if (isProtected(plugin.getNationManager().getClaimAt(e.getEntity().getLocation()), explosionLevel())) {
+        ChunkClaim claim = plugin.getNationManager().getClaimAt(e.getEntity().getLocation());
+        if (isProtected(claim, explosionLevel()) && claim.isExplosionProtectionEnabled()) {
             e.setCancelled(true);
         }
     }
@@ -155,8 +156,7 @@ public class ClaimDefenseListener implements Listener {
 
         Player victim = (Player) e.getEntity();
         ChunkClaim claim = plugin.getNationManager().getClaimAt(victim.getLocation());
-        if (isProtected(claim, pvpLevel())) {
-            // Кровавая Луна игнорирует мирный режим нации, но Цитадель всё равно держит оборону.
+        if (isProtected(claim, pvpLevel()) && claim.isPvpProtectionEnabled()) {
             e.setCancelled(true);
             e.getDamager().sendMessage(org.bukkit.ChatColor.RED + "Запрещено PvP на территории Цитадели (приват 5 уровня)!");
         }

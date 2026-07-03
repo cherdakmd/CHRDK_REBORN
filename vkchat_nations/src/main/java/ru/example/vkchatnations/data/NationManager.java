@@ -114,8 +114,11 @@ public class NationManager {
                         int z = Integer.parseInt(parts[3]);
                         
                         boolean fireProt = !data.contains("claims." + key + ".fire-protection") || data.getBoolean("claims." + key + ".fire-protection");
+                        boolean explosionProt = !data.contains("claims." + key + ".explosion-protection") || data.getBoolean("claims." + key + ".explosion-protection");
+                        boolean noSpawnProt = !data.contains("claims." + key + ".no-spawn-protection") || data.getBoolean("claims." + key + ".no-spawn-protection");
+                        boolean pvpProt = !data.contains("claims." + key + ".pvp-protection") || data.getBoolean("claims." + key + ".pvp-protection");
                         
-                        nationClaims.put(key, new ChunkClaim(world, x, y, z, radius, UUID.fromString(ownerStr), claimNation, trusted, durability, level, fireProt, hX, hY, hZ, hasH));
+                        nationClaims.put(key, new ChunkClaim(world, x, y, z, radius, UUID.fromString(ownerStr), claimNation, trusted, durability, level, explosionProt, noSpawnProt, fireProt, pvpProt, hX, hY, hZ, hasH));
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -169,6 +172,9 @@ public class NationManager {
                 out.set("claims." + key + ".home_z", c.getHomeZ());
                 out.set("claims." + key + ".has_home", c.hasHome());
                 out.set("claims." + key + ".fire-protection", c.isFireProtectionEnabled());
+                out.set("claims." + key + ".explosion-protection", c.isExplosionProtectionEnabled());
+                out.set("claims." + key + ".no-spawn-protection", c.isNoSpawnProtectionEnabled());
+                out.set("claims." + key + ".pvp-protection", c.isPvpProtectionEnabled());
 
                 List<String> tList = new ArrayList<>();
                 for (UUID t : c.getTrusted()) tList.add(t.toString());
