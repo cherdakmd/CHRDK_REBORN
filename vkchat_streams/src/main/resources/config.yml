@@ -34,7 +34,9 @@ streams:
     # Пост на стену группы ВК (требуются права wall, photos)
     wall-post:
       enabled: true
-      # attachment = photo-OWNERID_PHOTOID (загрузи картинку в альбом группы и скопируй ID)
+      # photo-url = ссылка на картинку (плагин сам скачает и загрузит в альбом группы)
+      photo-url: ""
+      # photo-attachment = ручной ID фото (photo-XXX_YYY). Если задан, photo-url игнорируется
       photo-attachment: ""
 
     # Шаблон поста в группу ВК (поддерживает \\n для переноса строк)

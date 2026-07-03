@@ -8,8 +8,10 @@ import ru.example.vkchat.util.VKChatBridge;
 import ru.example.vkchatstreams.VKChatStreamsPlugin;
 import ru.example.vkchatstreams.StreamEvent;
 
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
+import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URLEncoder;
@@ -26,6 +28,7 @@ public class StreamChecker {
     private final Set<String> announced = ConcurrentHashMap.newKeySet();
     private final Map<String, Set<UUID>> claimedRewards = new ConcurrentHashMap<>();
     private final Map<String, String[]> manualLinks = new LinkedHashMap<>();
+    private volatile String cachedPhotoAttachment;
     private int taskId = -1;
 
     public StreamChecker(VKChatStreamsPlugin plugin) {
@@ -97,7 +100,6 @@ public class StreamChecker {
         for (Map.Entry<String, String[]> entry : manualLinks.entrySet()) {
             String name = entry.getKey();
             String[] links = entry.getValue();
-            // Match by channel name (case-insensitive contains)
             if (e.getChannel().toLowerCase().contains(name)) {
                 if (!links[0].isEmpty()) vkUrl = links[0];
                 if (!links[1].isEmpty()) ytUrl = links[1];
@@ -117,22 +119,165 @@ public class StreamChecker {
         String linksVk = buildVkLinks(e);
         String linksGame = buildGameLinks(e);
 
-        // In-game announcement
         for (String line : plugin.getConfig().getStringList("announcement.game")) {
             String msg = ChatColor.translateAlternateColorCodes('&',
                     format(line, e, linksVk, linksGame));
             Bukkit.broadcastMessage(msg);
         }
 
-        // VK chat announcement
         if (plugin.getConfig().getBoolean("announcement.vk-enabled", true)) {
             for (String line : plugin.getConfig().getStringList("announcement.vk")) {
                 VKChatBridge.sendToMainChat(format(line, e, linksVk, linksGame));
             }
         }
 
-        // VK wall post
         postToVkWall(e, linksVk);
+    }
+
+    private String getPhotoAttachment() {
+        String manual = plugin.getConfig().getString("streams.vk.wall-post.photo-attachment", "");
+        if (!manual.isEmpty()) return manual;
+
+        if (cachedPhotoAttachment != null && !cachedPhotoAttachment.isEmpty())
+            return cachedPhotoAttachment;
+
+        String photoUrl = plugin.getConfig().getString("streams.vk.wall-post.photo-url", "");
+        if (photoUrl.isEmpty()) return "";
+
+        String token = plugin.getConfig().getString("streams.vk.token", "");
+        String groupId = plugin.getConfig().getString("streams.vk.group-id", "");
+        if (token.isEmpty() || groupId.isEmpty()) return "";
+
+        try {
+            // 1. Скачиваем картинку
+            byte[] imageBytes = downloadImage(photoUrl);
+            if (imageBytes == null || imageBytes.length == 0) return "";
+
+            // 2. Получаем upload URL
+            URI uploadServerUri = new URI("https://api.vk.com/method/photos.getWallUploadServer"
+                    + "?group_id=" + groupId
+                    + "&v=5.131&access_token=" + token);
+            String uploadUrl = getJsonField(requestGet(uploadServerUri), "upload_url");
+            if (uploadUrl.isEmpty()) return "";
+
+            // 3. Загружаем фото на upload сервер
+            String uploadResponse = uploadPhoto(uploadUrl, imageBytes);
+            if (uploadResponse.isEmpty()) return "";
+
+            String server = getJsonField(uploadResponse, "server");
+            String photo = getJsonField(uploadResponse, "photo");
+            String hash = getJsonField(uploadResponse, "hash");
+            if (server.isEmpty() || photo.isEmpty() || hash.isEmpty()) return "";
+
+            // 4. Сохраняем фото в альбоме
+            URI saveUri = new URI("https://api.vk.com/method/photos.saveWallPhoto"
+                    + "?group_id=" + groupId
+                    + "&server=" + server
+                    + "&photo=" + URLEncoder.encode(photo, StandardCharsets.UTF_8)
+                    + "&hash=" + URLEncoder.encode(hash, StandardCharsets.UTF_8)
+                    + "&v=5.131&access_token=" + token);
+            String saveResponse = requestGet(saveUri);
+
+            String ownerId = getJsonField(saveResponse, "\"owner_id\":");
+            String photoId = getJsonField(saveResponse, "\"id\":");
+            if (!ownerId.isEmpty() && !photoId.isEmpty()) {
+                cachedPhotoAttachment = "photo" + ownerId + "_" + photoId;
+                plugin.getLogger().info("Фото загружено в ВК: " + cachedPhotoAttachment);
+                return cachedPhotoAttachment;
+            }
+
+            // fallback: парсим как photo_xxx из ответа "aid"
+            String aid = getJsonField(saveResponse, "aid");
+            String pid = getJsonField(saveResponse, "pid");
+            if (!aid.isEmpty() && !pid.isEmpty()) {
+                cachedPhotoAttachment = "photo" + aid + "_" + pid;
+                return cachedPhotoAttachment;
+            }
+        } catch (Exception e) {
+            plugin.getLogger().warning("Ошибка загрузки фото в ВК: " + e.getMessage());
+        }
+        return "";
+    }
+
+    private byte[] downloadImage(String url) {
+        try {
+            HttpURLConnection conn = (HttpURLConnection) new URI(url).toURL().openConnection();
+            conn.setConnectTimeout(10000);
+            conn.setReadTimeout(10000);
+            conn.setRequestProperty("User-Agent", "VKChatStreams/1.0");
+            try (InputStream in = conn.getInputStream(); ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+                byte[] buf = new byte[8192];
+                int n;
+                while ((n = in.read(buf)) != -1) out.write(buf, 0, n);
+                return out.toByteArray();
+            }
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    private String uploadPhoto(String uploadUrl, byte[] imageBytes) {
+        try {
+            String boundary = "----VKChatStreams" + System.currentTimeMillis();
+            HttpURLConnection conn = (HttpURLConnection) new URI(uploadUrl).toURL().openConnection();
+            conn.setDoOutput(true);
+            conn.setRequestMethod("POST");
+            conn.setRequestProperty("Content-Type", "multipart/form-data; boundary=" + boundary);
+            conn.setConnectTimeout(15000);
+            conn.setReadTimeout(15000);
+
+            try (OutputStream os = conn.getOutputStream()) {
+                os.write(("--" + boundary + "\r\n").getBytes(StandardCharsets.UTF_8));
+                os.write(("Content-Disposition: form-data; name=\"photo\"; filename=\"banner.jpg\"\r\n").getBytes(StandardCharsets.UTF_8));
+                os.write("Content-Type: image/jpeg\r\n\r\n".getBytes(StandardCharsets.UTF_8));
+                os.write(imageBytes);
+                os.write(("\r\n--" + boundary + "--\r\n").getBytes(StandardCharsets.UTF_8));
+                os.flush();
+            }
+
+            StringBuilder sb = new StringBuilder();
+            try (InputStreamReader r = new InputStreamReader(conn.getInputStream(), StandardCharsets.UTF_8)) {
+                int c; while ((c = r.read()) != -1) sb.append((char) c);
+            }
+            return sb.toString();
+        } catch (Exception e) {
+            return "";
+        }
+    }
+
+    private String requestGet(URI uri) {
+        try {
+            HttpURLConnection conn = (HttpURLConnection) uri.toURL().openConnection();
+            conn.setConnectTimeout(5000);
+            conn.setReadTimeout(5000);
+            StringBuilder sb = new StringBuilder();
+            try (InputStreamReader r = new InputStreamReader(conn.getInputStream(), StandardCharsets.UTF_8)) {
+                int c; while ((c = r.read()) != -1) sb.append((char) c);
+            }
+            return sb.toString();
+        } catch (Exception e) {
+            return "";
+        }
+    }
+
+    private String getJsonField(String json, String field) {
+        int idx = json.indexOf(field);
+        if (idx == -1) return "";
+        int start = idx + field.length();
+        while (start < json.length() && (json.charAt(start) == '"' || json.charAt(start) == ':' || json.charAt(start) == ' '))
+            start++;
+        if (start >= json.length()) return "";
+        if (json.charAt(start) == '"') {
+            start++;
+            int end = json.indexOf('"', start);
+            if (end == -1) return "";
+            return json.substring(start, end);
+        } else {
+            int end = start;
+            while (end < json.length() && (Character.isDigit(json.charAt(end)) || json.charAt(end) == '-' || json.charAt(end) == '_'))
+                end++;
+            return json.substring(start, end);
+        }
     }
 
     private void postToVkWall(StreamEvent e, String linksVk) {
@@ -145,13 +290,13 @@ public class StreamChecker {
         String message = format(template, e, linksVk, "");
 
         try {
-            String photoAttachment = plugin.getConfig().getString("streams.vk.wall-post.photo-attachment", "");
-            String attachments = photoAttachment.isEmpty() ? "" : "&attachments=" + URLEncoder.encode(photoAttachment, StandardCharsets.UTF_8);
+            String photoAtt = getPhotoAttachment();
+            String attParam = photoAtt.isEmpty() ? "" : "&attachments=" + URLEncoder.encode(photoAtt, StandardCharsets.UTF_8);
 
             URI uri = new URI("https://api.vk.com/method/wall.post?owner_id=-" + groupId
                     + "&message=" + URLEncoder.encode(message, StandardCharsets.UTF_8)
                     + "&v=5.131&access_token=" + token
-                    + attachments);
+                    + attParam);
             HttpURLConnection conn = (HttpURLConnection) uri.toURL().openConnection();
             conn.setConnectTimeout(5000);
             conn.setReadTimeout(5000);
@@ -245,6 +390,6 @@ public class StreamChecker {
     }
 
     public Set<String> getAnnounced() { return announced; }
-    public void resetAnnounced() { announced.clear(); claimedRewards.clear(); }
-    public void reload() { loadManualLinks(); }
+    public void resetAnnounced() { announced.clear(); claimedRewards.clear(); cachedPhotoAttachment = null; }
+    public void reload() { loadManualLinks(); cachedPhotoAttachment = null; }
 }
