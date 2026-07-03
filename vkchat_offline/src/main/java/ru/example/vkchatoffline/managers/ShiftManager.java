@@ -1,8 +1,10 @@
 package ru.example.vkchatoffline.managers;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import ru.example.vkchat.VKChatPlugin;
 import ru.example.vkchatoffline.VKChatOfflinePlugin;
@@ -171,6 +173,10 @@ public class ShiftManager {
         }
         rep += bonusRep;
 
+        // Донат-множитель
+        double donateMult = getDonateShiftMultiplier(vkId);
+        if (donateMult > 1.0) rep = (int)(rep * donateMult);
+
         try {
             VKChatPlugin.getInstance().getApi().addReputation(vkId, rep);
         } catch (Exception ignored) {}
@@ -278,5 +284,18 @@ public class ShiftManager {
             shiftsCfg.set("lastend." + e.getKey(), e.getValue());
         }
         try { shiftsCfg.save(shiftsFile); } catch (IOException ignored) {}
+    }
+
+    private double getDonateShiftMultiplier(int vkId) {
+        java.util.UUID uuid = VKChatPlugin.getInstance().getApi().getUuidByVkId(vkId);
+        if (uuid == null) return 1.0;
+        Player p = Bukkit.getPlayer(uuid);
+        if (p == null) return 1.0; // Оффлайн — без множителя
+        if (p.hasPermission("vkchat.donate.overlord")) return 1.50;
+        if (p.hasPermission("vkchat.donate.legend")) return 1.35;
+        if (p.hasPermission("vkchat.donate.star")) return 1.20;
+        if (p.hasPermission("vkchat.donate.flame")) return 1.10;
+        if (p.hasPermission("vkchat.donate.spark")) return 1.05;
+        return 1.0;
     }
 }
