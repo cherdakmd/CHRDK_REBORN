@@ -2,25 +2,28 @@
 # TAB Groups — CHRDK REBORN
 # ═══════════════════════════════════════
 
-groups:
-  overlord:
-    tabprefix: "&d&l💎 Властелин &r"
-    tagprefix: "&d&l💎 Властелин &r"
-  legend:
-    tabprefix: "&5&l👑 Легенда &r"
-    tagprefix: "&5&l👑 Легенда &r"
-  star:
-    tabprefix: "&e&l⭐ Звезда &r"
-    tagprefix: "&e&l⭐ Звезда &r"
-  flame:
-    tabprefix: "&6&l🔥 Пламя &r"
-    tagprefix: "&6&l🔥 Пламя &r"
-  spark:
-    tabprefix: "&b&l⚡ Искра &r"
-    tagprefix: "&b&l⚡ Искра &r"
-  vip:
-    tabprefix: "&a&l✓ VIP &r"
-    tagprefix: "&a&l✓ VIP &r"
-  default:
-    tabprefix: "&7&l• &r"
-    tagprefix: "&7&l║ &r"
+overlord:
+  tabprefix: "&d&l💎 Властелин &r"
+  tagprefix: "&d&l💎 Властелин &r"
+legend:
+  tabprefix: "&5&l👑 Легенда &r"
+  tagprefix: "&5&l👑 Легенда &r"
+star:
+  tabprefix: "&e&l⭐ Звезда &r"
+  tagprefix: "&e&l⭐ Звезда &r"
+flame:
+  tabprefix: "&6&l🔥 Пламя &r"
+  tagprefix: "&6&l🔥 Пламя &r"
+spark:
+  tabprefix: "&b&l⚡ Искра &r"
+  tagprefix: "&b&l⚡ Искра &r"
+vip:
+  tabprefix: "&a&l✓ VIP &r"
+  tagprefix: "&a&l✓ VIP &r"
+default:
+  tabprefix: "&7&l• &r"
+  tagprefix: "&7&l║ &r"
+
+_OTHER_GROUPS_:
+  tabprefix: "%luckperms-prefix%"
+  tagprefix: "%luckperms-prefix%"
