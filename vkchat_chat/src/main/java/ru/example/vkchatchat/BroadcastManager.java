@@ -49,15 +49,17 @@ public class BroadcastManager implements Listener {
             if (msgs.isEmpty()) msgs = generateKillMsgs();
             String msg = msgs.get(rnd.nextInt(msgs.size()));
             msg = msg.replace("{killer}", kStatus + " &r" + killer.getName())
-                     .replace("{victim}", vkStatus + " &r" + victim.getName())
-                     .replace("{cause}", cause);
+                     .replace("{victim}", vkStatus + " &r" + victim.getName());
+            if (!msg.contains("{cause}")) msg += " &8[" + cause + "]";
+            else msg = msg.replace("{cause}", cause);
             broadcast(ChatColor.translateAlternateColorCodes('&', msg));
         } else {
             List<String> msgs = plugin.getConfig().getStringList("broadcasts.death-messages");
             if (msgs.isEmpty()) msgs = generateDeathMsgs();
             String msg = msgs.get(rnd.nextInt(msgs.size()));
-            msg = msg.replace("{player}", vkStatus + " &r" + victim.getName())
-                     .replace("{cause}", cause);
+            msg = msg.replace("{player}", vkStatus + " &r" + victim.getName());
+            if (!msg.contains("{cause}")) msg += " &8[" + cause + "]";
+            else msg = msg.replace("{cause}", cause);
             broadcast(ChatColor.translateAlternateColorCodes('&', msg));
         }
     }

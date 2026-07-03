@@ -1,5 +1,6 @@
 package ru.example.vkchat.listeners;
 
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -25,6 +26,7 @@ public class JoinNotificationListener implements Listener {
      */
     @EventHandler(priority = EventPriority.MONITOR)
     public void onPlayerJoin(PlayerJoinEvent e) {
+        if (Bukkit.getPluginManager().isPluginEnabled("VKChatChat")) return;
         if (!plugin.getConfig().getBoolean("notifications.join.enabled", true)) return;
 
         Player p = e.getPlayer();
@@ -51,6 +53,7 @@ public class JoinNotificationListener implements Listener {
      */
     @EventHandler(priority = EventPriority.MONITOR)
     public void onPlayerQuit(PlayerQuitEvent e) {
+        if (Bukkit.getPluginManager().isPluginEnabled("VKChatChat")) return;
         if (!plugin.getConfig().getBoolean("notifications.leave.enabled", true)) return;
 
         Player p = e.getPlayer();
