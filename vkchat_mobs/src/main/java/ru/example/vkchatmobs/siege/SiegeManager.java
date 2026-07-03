@@ -155,7 +155,9 @@ public class SiegeManager {
 
     private void spawnWave(ActiveSiege siege) {
         siege.state = 0; // Spawning
-        int count = 4 + (siege.currentWave * 3); // 7, 10, 13
+        int baseCount = plugin.getConfig().getInt("siege.wave-base-count", 4);
+        int countPerWave = plugin.getConfig().getInt("siege.wave-per-wave", 3);
+        int count = baseCount + (siege.currentWave * countPerWave);
         World world = siege.blockLoc.getWorld();
         if (world == null) return;
 
@@ -300,7 +302,7 @@ public class SiegeManager {
                         m.setVelocity(direction);
                     } else {
                         // Монстр у самого блока привата — атакует его!
-                        if (now - siege.lastBlockDamageTime >= 10000L) { // Урон раз в 10 секунд
+                        if (now - siege.lastBlockDamageTime >= plugin.getConfig().getInt("siege.damage-interval-ms", 10000)) {
                             damageApplied = true;
                         }
                     }
@@ -313,7 +315,7 @@ public class SiegeManager {
             if (damageApplied) {
                 siege.lastBlockDamageTime = now;
                 ChunkClaim claim = siege.claim;
-                claim.setDurability(Math.max(0, claim.getDurability() - 8)); // Минус 8 прочности за атаку
+                claim.setDurability(Math.max(0, claim.getDurability() - plugin.getConfig().getInt("siege.damage-per-tick", 8)));
 
                 // Звук и частицы поломки блока
                 world.playSound(siege.blockLoc, Sound.BLOCK_ANVIL_LAND, 1.0f, 0.8f);

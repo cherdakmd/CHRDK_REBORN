@@ -114,8 +114,15 @@ public class MobStormManager implements Listener {
         Location spawnLoc = center.clone().add(offsetX, 0, offsetZ);
         spawnLoc.setY(world.getHighestBlockYAt(spawnLoc) + 1);
 
-        EntityType[] types = {EntityType.ZOMBIE, EntityType.SKELETON, EntityType.SPIDER, EntityType.CREEPER, EntityType.CAVE_SPIDER};
-        EntityType type = types[ThreadLocalRandom.current().nextInt(types.length)];
+        List<String> typeNames = plugin.getConfig().getStringList("mob-storm.mob-types");
+        if (typeNames.isEmpty()) typeNames = java.util.Arrays.asList("ZOMBIE", "SKELETON", "SPIDER", "CREEPER", "CAVE_SPIDER");
+        String randomType = typeNames.get(ThreadLocalRandom.current().nextInt(typeNames.size()));
+        EntityType type;
+        try {
+            type = EntityType.valueOf(randomType.toUpperCase());
+        } catch (Exception e) {
+            type = EntityType.ZOMBIE;
+        }
 
         LivingEntity mob = (LivingEntity) world.spawnEntity(spawnLoc, type);
         mob.getPersistentDataContainer().set(rankKey, PersistentDataType.INTEGER, rank);

@@ -112,6 +112,10 @@ siege:
   enabled: true
   wave-interval-seconds: 300
   max-waves: 5
+  wave-base-count: 4        # База монстров в волне
+  wave-per-wave: 3          # +N монстров за каждую волну (4, 7, 10, 13...)
+  damage-per-tick: 8        # Прочности блока привата за атаку
+  damage-interval-ms: 10000 # Интервал между уроном (мс)
   difficulty-scaling: true
   wave-difficulty-bonus: 0.15
   rewards:
@@ -421,6 +425,12 @@ mob-storm:
   enabled: true
   trigger-chance-percent: 10
   total-mobs: 50
+  mob-types:                  # Типы мобов для шторма
+    - "ZOMBIE"
+    - "SKELETON"
+    - "SPIDER"
+    - "CREEPER"
+    - "CAVE_SPIDER"
   waves:
     - count: 10
       delay-ticks: 0
