@@ -28,7 +28,12 @@ streams:
 
   vk:
     enabled: true
-    token: "YOUR_VK_TOKEN"
+    token: ""                                # ручной токен (приоритет над авто)
+    # Авто-получение токена через VK Direct Auth:
+    client-id: ""                            # ID приложения VK
+    secure-key: ""                           # Защищённый ключ приложения VK
+    login: ""                                # Логин ВК (телефон или email)
+    password: ""                             # Пароль ВК
     group-id: "1"
     groups:
       - "example_group"

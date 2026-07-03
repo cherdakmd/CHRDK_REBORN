@@ -12,10 +12,9 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class VKChecker {
-    public static Set<StreamEvent> check(VKChatStreamsPlugin plugin) {
+    public static Set<StreamEvent> check(VKChatStreamsPlugin plugin, String token) {
         Set<StreamEvent> result = new HashSet<>();
-        String token = plugin.getConfig().getString("streams.vk.token", "");
-        if (token.isEmpty()) return result;
+        if (token == null || token.isEmpty()) return result;
 
         for (String group : plugin.getConfig().getStringList("streams.vk.groups")) {
             try {

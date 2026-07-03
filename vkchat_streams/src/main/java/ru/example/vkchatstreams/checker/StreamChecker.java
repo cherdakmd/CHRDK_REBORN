@@ -13,6 +13,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URLEncoder;
@@ -35,6 +36,8 @@ public class StreamChecker {
     private final Map<String, Long> lastAnnounceTime = new ConcurrentHashMap<>();
     private volatile String cachedPhotoAttachment;
     private volatile boolean photoUploading;
+    private volatile String cachedVkToken;
+    private volatile long vkTokenExpiresAt;
     private int taskId = -1;
 
     public StreamChecker(VKChatStreamsPlugin plugin) {
@@ -76,7 +79,7 @@ public class StreamChecker {
         if (plugin.getConfig().getBoolean("streams.youtube.enabled", true))
             events.addAll(YouTubeChecker.check(plugin));
         if (plugin.getConfig().getBoolean("streams.vk.enabled", true))
-            events.addAll(VKChecker.check(plugin));
+            events.addAll(VKChecker.check(plugin, getVkToken()));
 
         // Убираем стримы которые закончились
         for (String key : new HashSet<>(announced)) {
@@ -198,6 +201,75 @@ public class StreamChecker {
                 .replace("{title}", e.getTitle() != null ? e.getTitle() : ""));
     }
 
+    // ---- VK token auto-refresh ----
+
+    public String getVkToken() {
+        String manual = plugin.getConfig().getString("streams.vk.token", "");
+        if (!manual.isEmpty()) return manual;
+
+        synchronized (this) {
+            if (cachedVkToken != null && System.currentTimeMillis() < vkTokenExpiresAt - 60000)
+                return cachedVkToken;
+
+            String clientId = plugin.getConfig().getString("streams.vk.client-id", "");
+            String secureKey = plugin.getConfig().getString("streams.vk.secure-key", "");
+            String login = plugin.getConfig().getString("streams.vk.login", "");
+            String password = plugin.getConfig().getString("streams.vk.password", "");
+
+            if (clientId.isEmpty() || secureKey.isEmpty() || login.isEmpty() || password.isEmpty())
+                return "";
+
+            try {
+                String body = "grant_type=password"
+                        + "&client_id=" + URLEncoder.encode(clientId, StandardCharsets.UTF_8)
+                        + "&client_secret=" + URLEncoder.encode(secureKey, StandardCharsets.UTF_8)
+                        + "&username=" + URLEncoder.encode(login, StandardCharsets.UTF_8)
+                        + "&password=" + URLEncoder.encode(password, StandardCharsets.UTF_8)
+                        + "&scope=wall,photos,video,groups,offline"
+                        + "&v=5.131";
+
+                URI uri = new URI("https://oauth.vk.com/token");
+                HttpURLConnection conn = (HttpURLConnection) uri.toURL().openConnection();
+                conn.setRequestMethod("POST");
+                conn.setDoOutput(true);
+                conn.setConnectTimeout(8000);
+                conn.setReadTimeout(8000);
+                try (OutputStreamWriter w = new OutputStreamWriter(conn.getOutputStream(), StandardCharsets.UTF_8)) {
+                    w.write(body);
+                    w.flush();
+                }
+
+                StringBuilder json = new StringBuilder();
+                try (InputStreamReader r = new InputStreamReader(conn.getInputStream(), StandardCharsets.UTF_8)) {
+                    int c; while ((c = r.read()) != -1) json.append((char) c);
+                }
+                String data = json.toString();
+
+                int tIdx = data.indexOf("\"access_token\":\"");
+                int eIdx = data.indexOf("\"expires_in\":");
+                if (tIdx != -1) {
+                    int tEnd = data.indexOf("\"", tIdx + 16);
+                    cachedVkToken = data.substring(tIdx + 16, tEnd);
+                    if (eIdx != -1) {
+                        int start = eIdx + 13;
+                        int end = start;
+                        while (end < data.length() && Character.isDigit(data.charAt(end))) end++;
+                        long expiresIn = Long.parseLong(data.substring(start, end));
+                        vkTokenExpiresAt = System.currentTimeMillis() + expiresIn * 1000;
+                    } else {
+                        vkTokenExpiresAt = System.currentTimeMillis() + 86400000L;
+                    }
+                    plugin.getLogger().info("VK токен получен автоматически");
+                    return cachedVkToken;
+                }
+                plugin.getLogger().warning("VK Direct Auth ошибка: " + data);
+            } catch (Exception e) {
+                plugin.getLogger().warning("Ошибка получения VK токена: " + e.getMessage());
+            }
+        }
+        return "";
+    }
+
     // ---- Photo upload (async, cached) ----
 
     private String getPhotoAttachment() {
@@ -211,7 +283,7 @@ public class StreamChecker {
     private void ensurePhotoAttachmentAsync(Runnable onReady) {
         if (!getPhotoAttachment().isEmpty()) { onReady.run(); return; }
 
-        String token = plugin.getConfig().getString("streams.vk.token", "");
+        String token = getVkToken();
         String groupId = plugin.getConfig().getString("streams.vk.group-id", "");
         if (token.isEmpty() || groupId.isEmpty()) { onReady.run(); return; }
 
@@ -384,7 +456,7 @@ public class StreamChecker {
     }
 
     private void postToVkWall(StreamEvent e, String linksVk) {
-        String token = plugin.getConfig().getString("streams.vk.token", "");
+        String token = getVkToken();
         String groupId = plugin.getConfig().getString("streams.vk.group-id", "");
         if (!plugin.getConfig().getBoolean("streams.vk.wall-post.enabled", true)) return;
         if (token.isEmpty() || groupId.isEmpty()) return;
