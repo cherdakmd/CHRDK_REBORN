@@ -1,5 +1,6 @@
 package ru.example.vkchatnations.listeners;
 
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -17,6 +18,7 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.entity.EntityPickupItemEvent;
 import ru.example.vkchatnations.VKChatNationsPlugin;
+import ru.example.vkchatnations.data.ChunkClaim;
 import ru.example.vkchat.VKChatPlugin;
 
 public class PreventListener implements Listener {
@@ -54,6 +56,48 @@ public class PreventListener implements Listener {
         if (isAwaitingNationSelection(p)) {
             e.setCancelled(true);
             p.sendMessage(ChatColor.RED + "⚠️ Сначала выберите Нацию!");
+            return;
+        }
+        // Переименование привата
+        if (plugin.getNationManager().isAwaitingRename(p.getUniqueId())) {
+            e.setCancelled(true);
+            String msg = e.getMessage().trim();
+            if (msg.equalsIgnoreCase("отмена")) {
+                plugin.getNationManager().pollRenameClaim(p.getUniqueId());
+                p.sendMessage(ChatColor.GRAY + "Переименование отменено.");
+            } else {
+                if (msg.length() > 32) msg = msg.substring(0, 32);
+                ChunkClaim claim = plugin.getNationManager().pollRenameClaim(p.getUniqueId());
+                if (claim != null) {
+                    claim.setName(msg);
+                    plugin.getNationManager().saveAll();
+                    p.sendMessage(ChatColor.GREEN + "✓ Приват переименован в: " + ChatColor.WHITE + msg);
+                }
+            }
+            return;
+        }
+        // Добавление доверенного
+        if (plugin.getNationManager().isAwaitingTrustedAdd(p.getUniqueId())) {
+            e.setCancelled(true);
+            String msg = e.getMessage().trim();
+            if (msg.equalsIgnoreCase("отмена")) {
+                plugin.getNationManager().pollAddingTrusted(p.getUniqueId());
+                p.sendMessage(ChatColor.GRAY + "Добавление отменено.");
+            } else {
+                Player target = Bukkit.getPlayer(msg);
+                if (target == null) {
+                    p.sendMessage(ChatColor.RED + "❌ Игрок '" + msg + "' не найден.");
+                } else if (target.equals(p)) {
+                    p.sendMessage(ChatColor.RED + "❌ Нельзя добавить себя.");
+                } else {
+                    ChunkClaim claim = plugin.getNationManager().pollAddingTrusted(p.getUniqueId());
+                    if (claim != null) {
+                        claim.addTrusted(target.getUniqueId());
+                        plugin.getNationManager().saveAll();
+                        p.sendMessage(ChatColor.GREEN + "✓ " + target.getName() + " добавлен в доверенные!");
+                    }
+                }
+            }
         }
     }
 

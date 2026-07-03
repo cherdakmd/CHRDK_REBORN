@@ -112,3 +112,10 @@ nations:
     bonuses:
       - "JUMP;2"
 
+# ═══ Флаги защит привата по умолчанию (для НОВЫХ приватов) ═══
+claim-defaults:
+  explosion: true
+  no-spawn: true
+  fire: true
+  pvp: true
+

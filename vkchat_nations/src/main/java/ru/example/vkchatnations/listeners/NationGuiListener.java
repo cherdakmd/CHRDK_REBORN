@@ -424,6 +424,68 @@ public class NationGuiListener implements Listener {
         inv.setItem(15, infoItem);
         inv.setItem(4, upgItem);
 
+        // Название привата (слот 0)
+        ItemStack nameItem = new ItemStack(Material.NAME_TAG);
+        ItemMeta nameMeta = nameItem.getItemMeta();
+        nameMeta.setDisplayName(ChatColor.AQUA + "✎ " + claim.getName());
+        List<String> nameLore = new ArrayList<>();
+        nameLore.add(ChatColor.GRAY + "Клик — переименовать в чате");
+        nameMeta.setLore(nameLore);
+        nameItem.setItemMeta(nameMeta);
+        inv.setItem(0, nameItem);
+
+        // Точка дома (слот 1)
+        boolean hasHome = claim.hasHome();
+        ItemStack homeItem = new ItemStack(hasHome ? Material.RED_BED : Material.WHITE_BED);
+        ItemMeta homeMeta = homeItem.getItemMeta();
+        homeMeta.setDisplayName(hasHome
+                ? ChatColor.GREEN + "♲ Точка дома установлена"
+                : ChatColor.GRAY + "♲ Точка дома не задана");
+        List<String> homeLore = new ArrayList<>();
+        if (hasHome) {
+            homeLore.add(ChatColor.GRAY + "ЛКМ — телепортироваться");
+            homeLore.add(ChatColor.GRAY + "ПКМ — удалить точку");
+        } else {
+            homeLore.add(ChatColor.GRAY + "Кликните, чтобы установить точку дома");
+            homeLore.add(ChatColor.GRAY + "на месте, где вы стоите");
+        }
+        homeMeta.setLore(homeLore);
+        homeItem.setItemMeta(homeMeta);
+        inv.setItem(1, homeItem);
+
+        // Авто-продление (слот 2)
+        addToggle(inv, 2, claim, true, claim.isAutoPayEnabled(),
+                "&a&lАвто-продление", "&c&lАвто-продление", "Авто-оплата прочности за репутацию (< 20%)", "");
+
+        // Добавить доверенного (слот 7)
+        ItemStack trustItem = new ItemStack(Material.PLAYER_HEAD);
+        ItemMeta trustMeta = trustItem.getItemMeta();
+        trustMeta.setDisplayName(ChatColor.GREEN + "✓ Доверенные: " + claim.getTrusted().size());
+        List<String> trustLore = new ArrayList<>();
+        trustLore.add(ChatColor.GRAY + "Клик — добавить игрока (напиши ник в чат)");
+        for (UUID tid : claim.getTrusted()) {
+            String tName = Bukkit.getOfflinePlayer(tid).getName();
+            trustLore.add(ChatColor.GRAY + "  • " + ChatColor.GREEN + (tName != null ? tName : tid.toString().substring(0, 8)));
+        }
+        trustMeta.setLore(trustLore);
+        trustItem.setItemMeta(trustMeta);
+        inv.setItem(7, trustItem);
+
+        // Расширение радиуса (слот 8)
+        int expansions = claim.getExtraRadius();
+        int baseR = claim.getBaseRadius();
+        int cost = ChunkClaim.getRadiusExpandCost(expansions);
+        ItemStack radiusItem = new ItemStack(expansions > 0 ? Material.WRITTEN_BOOK : Material.BOOK);
+        ItemMeta radiusMeta = radiusItem.getItemMeta();
+        radiusMeta.setDisplayName(ChatColor.LIGHT_PURPLE + "⬡ Расширить зону");
+        List<String> radiusLore = new ArrayList<>();
+        radiusLore.add(ChatColor.GRAY + "Радиус: " + ChatColor.YELLOW + (baseR + expansions*3) + " блоков");
+        radiusLore.add(ChatColor.GRAY + "Цена расширения: " + ChatColor.GOLD + cost + " реп. ВК");
+        radiusLore.add(ChatColor.GRAY + "+3 блока к радиусу");
+        radiusMeta.setLore(radiusLore);
+        radiusItem.setItemMeta(radiusMeta);
+        inv.setItem(8, radiusItem);
+
         ItemStack back = new ItemStack(Material.BARRIER);
         ItemMeta backMeta = back.getItemMeta();
         backMeta.setDisplayName(ChatColor.RED + "« Закрыть");
@@ -853,6 +915,85 @@ public class NationGuiListener implements Listener {
             // Кнопка «Прокачать приват» (слот 4)
             if (e.getRawSlot() == 4) {
                 openClaimUpgradeGui(p, claim);
+                return;
+            }
+
+            // Слот 0 — переименовать приват
+            if (e.getRawSlot() == 0) {
+                p.closeInventory();
+                p.sendMessage(ChatColor.YELLOW + "✎ Напишите в чат новое название для привата:");
+                p.sendMessage(ChatColor.GRAY + "(или напишите 'отмена' чтобы отменить)");
+                plugin.getNationManager().setRenameClaim(p.getUniqueId(), claim);
+                return;
+            }
+
+            // Слот 1 — точка дома
+            if (e.getRawSlot() == 1) {
+                if (claim.hasHome()) {
+                    // ЛКМ = телепорт, ПКМ = удалить
+                    if (e.isLeftClick()) {
+                        p.closeInventory();
+                        p.teleport(new org.bukkit.Location(
+                                Bukkit.getWorld(claim.getWorldName()),
+                                claim.getHomeX(), claim.getHomeY(), claim.getHomeZ()));
+                        p.sendMessage(ChatColor.GREEN + "♲ Телепорт к дому привата.");
+                    } else {
+                        claim.removeHome();
+                        plugin.getNationManager().saveAll();
+                        p.sendMessage(ChatColor.RED + "♲ Точка дома удалена.");
+                        openClaimFeedGui(p, claim);
+                    }
+                } else {
+                    claim.setHome(p.getLocation().getX(), p.getLocation().getY(), p.getLocation().getZ());
+                    plugin.getNationManager().saveAll();
+                    p.sendMessage(ChatColor.GREEN + "♲ Точка дома установлена!");
+                    openClaimFeedGui(p, claim);
+                }
+                return;
+            }
+
+            // Слот 2 — авто-продление
+            if (e.getRawSlot() == 2) {
+                claim.setAutoPay(!claim.isAutoPayEnabled());
+                plugin.getNationManager().saveAll();
+                p.sendMessage(ChatColor.GREEN + (claim.isAutoPayEnabled()
+                        ? "Авто-продление включено."
+                        : "Авто-продление выключено."));
+                p.playSound(p.getLocation(), org.bukkit.Sound.UI_BUTTON_CLICK, 1f, 1f);
+                openClaimFeedGui(p, claim);
+                return;
+            }
+
+            // Слот 7 — добавить доверенного
+            if (e.getRawSlot() == 7) {
+                p.closeInventory();
+                p.sendMessage(ChatColor.YELLOW + "✎ Напишите ник игрока, которого хотите добавить в доверенные:");
+                p.sendMessage(ChatColor.GRAY + "(или напишите 'отмена')");
+                p.sendMessage(ChatColor.GRAY + "Чтобы удалить — напиши /nation untrust <ник>");
+                plugin.getNationManager().setAddingTrusted(p.getUniqueId(), claim);
+                return;
+            }
+
+            // Слот 8 — расширение радиуса
+            if (e.getRawSlot() == 8) {
+                int expansions = claim.getExtraRadius();
+                int cost = ChunkClaim.getRadiusExpandCost(expansions);
+                int vkId = VKChatPlugin.getInstance().getApi().getLinkedVkId(p);
+                if (vkId == -1) {
+                    p.sendMessage(ChatColor.RED + "❌ Привяжите ВК! (/vklink)");
+                    return;
+                }
+                int rep = VKChatPlugin.getInstance().getApi().getReputation(vkId);
+                if (rep < cost) {
+                    p.sendMessage(ChatColor.RED + "❌ Недостаточно репутации! Нужно " + cost + ", у вас " + rep);
+                    return;
+                }
+                VKChatPlugin.getInstance().getApi().takeReputation(vkId, cost);
+                claim.addExtraRadius(1);
+                plugin.getNationManager().saveAll();
+                p.sendMessage(ChatColor.GREEN + "⬡ Радиус расширен! Теперь: " + claim.getRadius() + " блоков.");
+                p.playSound(p.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1f, 1f);
+                openClaimFeedGui(p, claim);
                 return;
             }
 

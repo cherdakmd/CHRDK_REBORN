@@ -30,12 +30,39 @@ public class NationManager {
     private final Map<String, Integer> nationBank = new ConcurrentHashMap<>();
     private final Set<UUID> autoClaimPlayers = ConcurrentHashMap.newKeySet();
     private final Map<UUID, Set<String>> unlockedMutations = new ConcurrentHashMap<>();
-    private final Map<String, Integer> nationLevels = new ConcurrentHashMap<>();
     private final Map<String, Integer> nationExp = new ConcurrentHashMap<>();
+    private final Map<String, Integer> nationLevels = new ConcurrentHashMap<>();
+
+    // Ожидание ввода от игрока: переименование / добавление доверенного
+    private final Map<UUID, ChunkClaim> renameQueue = new ConcurrentHashMap<>();
+    private final Map<UUID, ChunkClaim> addTrustedQueue = new ConcurrentHashMap<>();
 
     public NationManager(VKChatNationsPlugin plugin) {
         this.plugin = plugin;
         load();
+        // Авто-продление прочности каждые 10 минут
+        plugin.getServer().getScheduler().runTaskTimerAsynchronously(plugin, () -> {
+            for (ChunkClaim claim : nationClaims.values()) {
+                if (!claim.isAutoPayEnabled()) continue;
+                if (claim.getDurability() >= claim.getMaxDurability() * 0.2) continue;
+                int vkId = VKChatPlugin.getInstance().getApi().getLinkedVkId(claim.getOwner());
+                if (vkId == -1) continue;
+                int rep = VKChatPlugin.getInstance().getApi().getReputation(vkId);
+                int need = Math.min(claim.getMaxDurability() - claim.getDurability(), 50);
+                int cost = need / 2;
+                if (rep >= cost && cost > 0) {
+                    VKChatPlugin.getInstance().getApi().takeReputation(vkId, cost);
+                    claim.addDurability(need);
+                    int fNeed = need;
+                    int fCost = cost;
+                    Bukkit.getScheduler().runTask(plugin, () -> {
+                        Player owner = Bukkit.getPlayer(claim.getOwner());
+                        if (owner != null && owner.isOnline())
+                            owner.sendMessage(ChatColor.GREEN + "♻ Авто-продление: +" + fNeed + " прочности за " + fCost + " реп.");
+                    });
+                }
+            }
+        }, 12000L, 12000L); // Каждые 10 минут (6000 тиков = 5 мин, 12000 = 10 мин)
     }
 
     private NamespacedKey playerNationKey() {
@@ -117,8 +144,11 @@ public class NationManager {
                         boolean explosionProt = !data.contains("claims." + key + ".explosion-protection") || data.getBoolean("claims." + key + ".explosion-protection");
                         boolean noSpawnProt = !data.contains("claims." + key + ".no-spawn-protection") || data.getBoolean("claims." + key + ".no-spawn-protection");
                         boolean pvpProt = !data.contains("claims." + key + ".pvp-protection") || data.getBoolean("claims." + key + ".pvp-protection");
+                        boolean autoPay = data.getBoolean("claims." + key + ".auto-pay", false);
+                        int extraRadius = data.getInt("claims." + key + ".extra-radius", 0);
+                        String claimName = data.getString("claims." + key + ".name", "");
                         
-                        nationClaims.put(key, new ChunkClaim(world, x, y, z, radius, UUID.fromString(ownerStr), claimNation, trusted, durability, level, explosionProt, noSpawnProt, fireProt, pvpProt, hX, hY, hZ, hasH));
+                        nationClaims.put(key, new ChunkClaim(world, x, y, z, radius, UUID.fromString(ownerStr), claimNation, trusted, durability, level, explosionProt, noSpawnProt, fireProt, pvpProt, autoPay, extraRadius, claimName, hX, hY, hZ, hasH));
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -137,6 +167,15 @@ public class NationManager {
             }
         }
     }
+
+    // ═══ Ожидание ввода от игрока ═══
+    public void setRenameClaim(UUID uuid, ChunkClaim claim) { renameQueue.put(uuid, claim); }
+    public ChunkClaim pollRenameClaim(UUID uuid) { return renameQueue.remove(uuid); }
+    public boolean isAwaitingRename(UUID uuid) { return renameQueue.containsKey(uuid); }
+
+    public void setAddingTrusted(UUID uuid, ChunkClaim claim) { addTrustedQueue.put(uuid, claim); }
+    public ChunkClaim pollAddingTrusted(UUID uuid) { return addTrustedQueue.remove(uuid); }
+    public boolean isAwaitingTrustedAdd(UUID uuid) { return addTrustedQueue.containsKey(uuid); }
 
     public synchronized void saveAll() {
         try {
@@ -175,6 +214,9 @@ public class NationManager {
                 out.set("claims." + key + ".explosion-protection", c.isExplosionProtectionEnabled());
                 out.set("claims." + key + ".no-spawn-protection", c.isNoSpawnProtectionEnabled());
                 out.set("claims." + key + ".pvp-protection", c.isPvpProtectionEnabled());
+                out.set("claims." + key + ".auto-pay", c.isAutoPayEnabled());
+                out.set("claims." + key + ".extra-radius", c.getExtraRadius());
+                out.set("claims." + key + ".name", c.getName());
 
                 List<String> tList = new ArrayList<>();
                 for (UUID t : c.getTrusted()) tList.add(t.toString());
@@ -301,6 +343,14 @@ public class NationManager {
 
     public Map<String, ChunkClaim> getNationClaims() {
         return nationClaims;
+    }
+
+    public java.util.List<ChunkClaim> getClaimsByOwner(java.util.UUID owner) {
+        java.util.List<ChunkClaim> result = new java.util.ArrayList<>();
+        for (ChunkClaim c : nationClaims.values()) {
+            if (c.getOwner().equals(owner)) result.add(c);
+        }
+        return result;
     }
 
     public Map<UUID, String> getPlayerNations() {

@@ -1,5 +1,6 @@
 package ru.example.vkchatnations.data;
 
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 
@@ -23,6 +24,15 @@ public class ChunkClaim {
     private int durability;
     private int level;
 
+    // Расширение радиуса (количество купленных расширений по +3 блока)
+    private int extraRadius = 0;
+
+    // Название привата
+    private String name = "";
+
+    // Авто-продление прочности (репутация)
+    private boolean autoPay = false;
+
     // Защита от взрыва (lvl 2), спавна (lvl 3), огня (lvl 4), PvP (lvl 5)
     private boolean explosionProtection = true;
     private boolean noSpawnProtection = true;
@@ -44,11 +54,12 @@ public class ChunkClaim {
         this.owner = owner;
         this.nation = nation;
         this.trusted = new ArrayList<>();
-        this.durability = 100; // Стартовая прочность
+        this.durability = 100;
         this.level = 1;
+        this.name = "Приват " + Bukkit.getOfflinePlayer(owner).getName();
     }
 
-    public ChunkClaim(String worldName, int x, int y, int z, int radius, UUID owner, String nation, List<UUID> trusted, int durability, int level, boolean explosionProtection, boolean noSpawnProtection, boolean fireProtection, boolean pvpProtection, double homeX, double homeY, double homeZ, boolean hasHome) {
+    public ChunkClaim(String worldName, int x, int y, int z, int radius, UUID owner, String nation, List<UUID> trusted, int durability, int level, boolean explosionProtection, boolean noSpawnProtection, boolean fireProtection, boolean pvpProtection, boolean autoPay, int extraRadius, String name, double homeX, double homeY, double homeZ, boolean hasHome) {
         this.worldName = worldName;
         this.x = x;
         this.y = y;
@@ -63,6 +74,9 @@ public class ChunkClaim {
         this.noSpawnProtection = noSpawnProtection;
         this.fireProtection = fireProtection;
         this.pvpProtection = pvpProtection;
+        this.autoPay = autoPay;
+        this.extraRadius = extraRadius;
+        this.name = name == null || name.isEmpty() ? "Приват " + Bukkit.getOfflinePlayer(owner).getName() : name;
         this.homeX = homeX;
         this.homeY = homeY;
         this.homeZ = homeZ;
@@ -73,7 +87,17 @@ public class ChunkClaim {
     public int getX() { return x; }
     public int getY() { return y; }
     public int getZ() { return z; }
-    public int getRadius() { return radius; }
+    public int getRadius() { return radius + extraRadius; }
+    public int getBaseRadius() { return radius; }
+    public int getExtraRadius() { return extraRadius; }
+    public void addExtraRadius(int amount) { this.extraRadius += amount; }
+    public static int getRadiusExpandCost(int expansions) { return 200 + expansions * 100; }
+
+    public String getName() { return name == null || name.isEmpty() ? "Приват" : name; }
+    public void setName(String name) { this.name = name; }
+
+    public boolean isAutoPayEnabled() { return autoPay; }
+    public void setAutoPay(boolean v) { this.autoPay = v; }
 
     public boolean hasHome() { return hasHome; }
     public double getHomeX() { return homeX; }

@@ -1102,4 +1102,43 @@ public class NationListener implements Listener {
             e.setAmount(original + original / 4); // +25%
         }
     }
+
+    private final java.util.Map<java.util.UUID, String> lastClaimEnter = new java.util.concurrent.ConcurrentHashMap<>();
+
+    @EventHandler
+    public void onClaimEnter(org.bukkit.event.player.PlayerMoveEvent e) {
+        org.bukkit.entity.Player p = e.getPlayer();
+        if (e.getTo() == null || (e.getFrom().getBlockX() == e.getTo().getBlockX()
+                && e.getFrom().getBlockZ() == e.getTo().getBlockZ())) return;
+        ChunkClaim claim = plugin.getNationManager().getClaimAt(e.getTo());
+        String last = lastClaimEnter.get(p.getUniqueId());
+        String current = claim != null ? claim.getName() + " (" + Bukkit.getOfflinePlayer(claim.getOwner()).getName() + ")" : "";
+        if (!current.equals(last)) {
+            lastClaimEnter.put(p.getUniqueId(), current);
+            if (claim != null) {
+                if (claim.getOwner().equals(p.getUniqueId()))
+                    p.sendMessage("§a✦ " + claim.getName() + " ✦");
+                else
+                    p.sendMessage("§6⚠ " + claim.getName() + " — " + Bukkit.getOfflinePlayer(claim.getOwner()).getName());
+            }
+        }
+    }
+
+    @EventHandler
+    public void onJoinDurabilityWarning(org.bukkit.event.player.PlayerJoinEvent e) {
+        org.bukkit.entity.Player p = e.getPlayer();
+        Bukkit.getScheduler().runTaskLater(plugin, () -> {
+            for (ChunkClaim c : plugin.getNationManager().getNationClaims().values()) {
+                if (c.getOwner().equals(p.getUniqueId()) && c.getDurability() < c.getMaxDurability() * 0.2) {
+                    p.sendMessage(ChatColor.RED + "⚠ Внимание! Прочность привата '" + c.getName() + "' ниже 20% (" + c.getDurability() + "/" + c.getMaxDurability() + ")");
+                    p.sendMessage(ChatColor.GRAY + "Покорми приват через меню (клик по блоку привата)");
+                }
+            }
+        }, 60L);
+    }
+
+    @EventHandler
+    public void onDonatorDiscount(org.bukkit.event.player.PlayerInteractEvent e) {
+        // Скидка донатерам — встроена в GUI через проверку permission
+    }
 }
