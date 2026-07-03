@@ -41,19 +41,27 @@ public class DonateCommand implements CommandExecutor {
             plugin.reloadConfig();
 
             sender.sendMessage(ChatColor.GREEN + "✅ Токен сохранён!");
-            sender.sendMessage(ChatColor.YELLOW + "Создаю LuckPerms группы...");
+            sender.sendMessage(ChatColor.YELLOW + "Настраиваю LuckPerms...");
 
             String[] groups = {"spark", "flame", "star", "legend", "overlord"};
-            for (String group : groups) {
-                org.bukkit.Bukkit.dispatchCommand(org.bukkit.Bukkit.getConsoleSender(),
-                        "lp creategroup " + group);
-                org.bukkit.Bukkit.dispatchCommand(org.bukkit.Bukkit.getConsoleSender(),
-                        "lp group " + group + " permission set vkchat.donate." + group + " true");
-                sender.sendMessage(ChatColor.GRAY + "  lp creategroup " + group + " + права → OK");
+            // Вес: spark=1, flame=2, star=3, legend=4, overlord=5
+            for (int i = 0; i < groups.length; i++) {
+                String group = groups[i];
+                int weight = i + 1;
+                String prefix = plugin.getConfig().getString("statuses." + group + ".prefix", "&7");
+                String display = plugin.getConfig().getString("statuses." + group + ".display", group);
+
+                dispatch("lp creategroup " + group);
+                dispatch("lp group " + group + " setweight " + weight);
+                dispatch("lp group " + group + " setprefix \"" + prefix + " \"");
+                dispatch("lp group " + group + " permission set vkchat.donate." + group + " true");
+                dispatch("lp group " + group + " meta setprefix " + weight + " \"" + prefix + " \"");
+
+                sender.sendMessage(ChatColor.GRAY + "  " + display + " — вес " + weight + " — OK");
             }
 
             sender.sendMessage("");
-            sender.sendMessage(ChatColor.GREEN + "✅ Готово! Донат-система настроена.");
+            sender.sendMessage(ChatColor.GREEN + "✅ Готово! Группы, префиксы, вес и права настроены.");
             sender.sendMessage(ChatColor.GRAY + "Перезапусти сервер для старта опроса API.");
             return true;
         }
@@ -117,5 +125,9 @@ public class DonateCommand implements CommandExecutor {
 
         sender.sendMessage(plugin.getDonateManager().getSetupInfo());
         return true;
+    }
+
+    private void dispatch(String cmd) {
+        org.bukkit.Bukkit.dispatchCommand(org.bukkit.Bukkit.getConsoleSender(), cmd);
     }
 }
