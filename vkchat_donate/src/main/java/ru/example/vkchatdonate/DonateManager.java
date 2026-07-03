@@ -236,21 +236,23 @@ public class DonateManager {
     }
 
     private void grantStatus(OfflinePlayer player, StatusDef status) {
-        // Удалить предыдущие донат-права
+        // Удалить из старых LP групп и прав
         for (String id : statuses.keySet()) {
+            runLuckPermsCommand("lp user " + player.getName() + " parent remove " + id);
             runLuckPermsCommand("lp user " + player.getName() + " permission unset vkchat.donate." + id);
         }
-        // Выдать на 30 дней
+        // Добавить в LP группу (для TAB) и выдать право на 30 дней
+        runLuckPermsCommand("lp user " + player.getName() + " parent add " + status.id);
         runLuckPermsCommand("lp user " + player.getName()
                 + " permission settemp vkchat.donate." + status.id + " true " + MONTH_SECONDS + "s");
-        plugin.getLogger().info("LuckPerms: " + player.getName() + " → vkchat.donate." + status.id + " (30д)");
+        plugin.getLogger().info("LuckPerms: " + player.getName() + " → группа " + status.id + " (30д)");
     }
 
     private void extendStatus(OfflinePlayer player, StatusDef status) {
-        // Продлить на 30 дней
+        // Продлить право на 30 дней (группа уже есть)
         runLuckPermsCommand("lp user " + player.getName()
                 + " permission settemp vkchat.donate." + status.id + " true " + MONTH_SECONDS + "s accumulate");
-        plugin.getLogger().info("LuckPerms: " + player.getName() + " → продление vkchat.donate." + status.id + " +30д");
+        plugin.getLogger().info("LuckPerms: " + player.getName() + " → продление " + status.id + " +30д");
     }
 
     private void runLuckPermsCommand(String cmd) {
