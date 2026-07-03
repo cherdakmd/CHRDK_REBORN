@@ -247,9 +247,14 @@ public class AuthListener implements Listener {
     private void sendJoinInstructions(Player p) {
         // Проверяем, ожидает ли 2FA
         if (plugin.getTwoFactorManager() != null && plugin.getTwoFactorManager().isWaiting2fa(p.getUniqueId())) {
-            // Код уже отправлен через TwoFactorManager — не дублируем, просто напоминаем
             p.sendMessage("");
-            p.sendMessage(ChatColor.translateAlternateColorCodes('&', "&7⌛ Ожидание кода из ВК... Введи &e/2fa <код>&7."));
+            p.sendMessage(ChatColor.translateAlternateColorCodes('&', "&7⌛ Код отправлен в &bЛС ВК&7. Введи &e/2fa <код>&7."));
+            p.sendMessage(ChatColor.translateAlternateColorCodes('&', "&7Нет кода? Открой &bЛС группы&7:"));
+            TextComponent link = new TextComponent(ChatColor.translateAlternateColorCodes('&',
+                    " &a&l▶ НАЖМИ ЧТОБЫ ОТКРЫТЬ ЛС ГРУППЫ ◀"));
+            link.setClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL,
+                    plugin.getConfig().getString("vk.group-link", "https://vk.com/chrdk_reborn")));
+            p.spigot().sendMessage(link);
             p.sendMessage("");
             return;
         }

@@ -62,8 +62,16 @@ public class TwoFactorManager {
         }
 
         // Уведомляем игрока
-        p.sendMessage("§b📱 Код отправлен в ЛС ВК! Проверь сообщения.");
+        p.sendMessage("§b📱 Код отправлен в ЛС ВК! Проверь личные сообщения.");
         p.sendMessage("§7Введи в чате: /2fa <код>");
+        String groupLink = plugin.getConfig().getString("vk.group-link", "https://vk.com/chrdk_reborn");
+        p.sendMessage("§7Нет кода? Открой §bЛС группы§7: " + groupLink);
+
+        net.md_5.bungee.api.chat.TextComponent link = new net.md_5.bungee.api.chat.TextComponent(
+                org.bukkit.ChatColor.translateAlternateColorCodes('&', " &a&l▶ НАЖМИ ЧТОБЫ ОТКРЫТЬ ЛС ГРУППЫ ◀"));
+        link.setClickEvent(new net.md_5.bungee.api.chat.ClickEvent(
+                net.md_5.bungee.api.chat.ClickEvent.Action.OPEN_URL, groupLink));
+        p.spigot().sendMessage(link);
 
         return true;
     }
