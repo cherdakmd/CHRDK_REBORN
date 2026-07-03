@@ -2,6 +2,7 @@ package ru.example.vkchatstreams.checker;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Sound;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import ru.example.vkchat.util.VKChatBridge;
@@ -16,8 +17,10 @@ import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -26,6 +29,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class StreamChecker {
     private final VKChatStreamsPlugin plugin;
     private final Set<String> announced = ConcurrentHashMap.newKeySet();
+    private final Map<String, StreamEvent> activeStreams = new ConcurrentHashMap<>();
     private final Map<String, Set<UUID>> claimedRewards = new ConcurrentHashMap<>();
     private final Map<String, String[]> manualLinks = new LinkedHashMap<>();
     private volatile String cachedPhotoAttachment;
@@ -68,13 +72,19 @@ public class StreamChecker {
         if (plugin.getConfig().getBoolean("streams.vk.enabled", true))
             events.addAll(VKChecker.check(plugin));
 
+        // Убираем стримы которые закончились
         for (String key : new HashSet<>(announced)) {
             if (events.stream().noneMatch(e -> key.equals(e.getPlatform() + ":" + e.getChannel()))) {
+                StreamEvent old = activeStreams.remove(key);
                 announced.remove(key);
                 claimedRewards.remove(key);
+                if (old != null) {
+                    Bukkit.getScheduler().runTask(plugin, () -> notifyOffline(old));
+                }
             }
         }
 
+        // Новые стримы
         for (StreamEvent e : events) {
             String key = e.getPlatform() + ":" + e.getChannel();
             if (!e.isLive() || announced.contains(key)) continue;
@@ -82,6 +92,7 @@ public class StreamChecker {
             announced.add(key);
             claimedRewards.putIfAbsent(key, ConcurrentHashMap.newKeySet());
             StreamEvent enriched = enrichWithManualLinks(e);
+            activeStreams.put(key, enriched);
             Bukkit.getScheduler().runTask(plugin, () -> announce(enriched));
         }
     }
@@ -93,7 +104,12 @@ public class StreamChecker {
         announced.add(key);
         claimedRewards.putIfAbsent(key, ConcurrentHashMap.newKeySet());
         StreamEvent enriched = enrichWithManualLinks(e);
+        activeStreams.put(key, enriched);
         Bukkit.getScheduler().runTask(plugin, () -> announce(enriched));
+    }
+
+    public List<StreamEvent> getLiveStreams() {
+        return new ArrayList<>(activeStreams.values());
     }
 
     private StreamEvent enrichWithManualLinks(StreamEvent e) {
@@ -121,19 +137,48 @@ public class StreamChecker {
         String linksVk = buildVkLinks(e);
         String linksGame = buildGameLinks(e);
 
+        // In-game
         for (String line : plugin.getConfig().getStringList("announcement.game")) {
             String msg = ChatColor.translateAlternateColorCodes('&',
                     format(line, e, linksVk, linksGame));
             Bukkit.broadcastMessage(msg);
         }
 
+        // Звук всем игрокам
+        String soundName = plugin.getConfig().getString("announcement.sound", "ENTITY_PLAYER_LEVELUP");
+        try {
+            Sound sound = Sound.valueOf(soundName);
+            for (Player p : Bukkit.getOnlinePlayers()) {
+                p.playSound(p.getLocation(), sound, 1.0f, 1.0f);
+            }
+        } catch (IllegalArgumentException ignored) {}
+
+        // VK чат
         if (plugin.getConfig().getBoolean("announcement.vk-enabled", true)) {
             for (String line : plugin.getConfig().getStringList("announcement.vk")) {
                 VKChatBridge.sendToMainChat(format(line, e, linksVk, linksGame));
             }
         }
 
+        // VK ЛС админам
+        for (int vkId : plugin.getConfig().getIntegerList("streams.admin-vk-ids")) {
+            String dmTemplate = plugin.getConfig().getString("announcement.admin-dm",
+                    "⚡ {channel} запустил стрим на {platform}!\n{title}\n{url}");
+            VKChatBridge.sendMessage(vkId, format(dmTemplate, e, linksVk, linksGame));
+        }
+
+        // Пост на стену
         postToVkWall(e, linksVk);
+    }
+
+    private void notifyOffline(StreamEvent e) {
+        if (!plugin.getConfig().getBoolean("announcement.vk-enabled", true)) return;
+        String template = plugin.getConfig().getString("announcement.offline",
+                "⭕ {channel} завершил стрим на {platform}.");
+        VKChatBridge.sendToMainChat(template
+                .replace("{platform}", e.getPlatform())
+                .replace("{channel}", e.getChannel())
+                .replace("{title}", e.getTitle() != null ? e.getTitle() : ""));
     }
 
     // ---- Photo upload (async, cached) ----
@@ -141,25 +186,17 @@ public class StreamChecker {
     private String getPhotoAttachment() {
         String manual = plugin.getConfig().getString("streams.vk.wall-post.photo-attachment", "");
         if (!manual.isEmpty()) return manual;
-
         if (cachedPhotoAttachment != null && !cachedPhotoAttachment.isEmpty())
             return cachedPhotoAttachment;
-
         return "";
     }
 
     private void ensurePhotoAttachmentAsync(Runnable onReady) {
-        if (!getPhotoAttachment().isEmpty()) {
-            onReady.run();
-            return;
-        }
+        if (!getPhotoAttachment().isEmpty()) { onReady.run(); return; }
 
         String token = plugin.getConfig().getString("streams.vk.token", "");
         String groupId = plugin.getConfig().getString("streams.vk.group-id", "");
-        if (token.isEmpty() || groupId.isEmpty()) {
-            onReady.run();
-            return;
-        }
+        if (token.isEmpty() || groupId.isEmpty()) { onReady.run(); return; }
 
         synchronized (this) {
             if (photoUploading) { onReady.run(); return; }
@@ -172,9 +209,7 @@ public class StreamChecker {
                 byte[] imageBytes = loadImageBytes();
                 if (imageBytes != null && imageBytes.length > 0) {
                     String result = uploadToVkAlbum(token, groupId, imageBytes);
-                    if (result != null && !result.isEmpty()) {
-                        cachedPhotoAttachment = result;
-                    }
+                    if (result != null && !result.isEmpty()) cachedPhotoAttachment = result;
                 }
             } catch (Exception ex) {
                 plugin.getLogger().warning("Ошибка загрузки фото в ВК: " + ex.getMessage());
@@ -210,23 +245,16 @@ public class StreamChecker {
                     + "?group_id=" + groupId + "&v=5.131&access_token=" + token);
             String resp = requestGet(uploadServerUri);
             String uploadUrl = getJsonField(resp, "upload_url");
-            if (uploadUrl.isEmpty()) {
-                plugin.getLogger().warning("VK: не получен upload_url для фото");
-                return null;
-            }
+            if (uploadUrl.isEmpty()) { plugin.getLogger().warning("VK: не получен upload_url"); return null; }
 
             String uploadResponse = uploadPhoto(uploadUrl, imageBytes);
-            if (uploadResponse.isEmpty()) {
-                plugin.getLogger().warning("VK: загрузка фото на сервер не удалась");
-                return null;
-            }
+            if (uploadResponse.isEmpty()) { plugin.getLogger().warning("VK: загрузка фото не удалась"); return null; }
 
             String server = getJsonField(uploadResponse, "server");
             String photo = getJsonField(uploadResponse, "photo");
             String hash = getJsonField(uploadResponse, "hash");
             if (server.isEmpty() || photo.isEmpty() || hash.isEmpty()) {
-                plugin.getLogger().warning("VK: неполный ответ от upload сервера");
-                return null;
+                plugin.getLogger().warning("VK: неполный ответ upload сервера"); return null;
             }
 
             URI saveUri = new URI("https://api.vk.com/method/photos.saveWallPhoto"
@@ -244,8 +272,7 @@ public class StreamChecker {
                 plugin.getLogger().info("Фото загружено в ВК: " + att);
                 return att;
             }
-
-            plugin.getLogger().warning("VK: не удалось распарсить saveWallPhoto ответ");
+            plugin.getLogger().warning("VK: не распарсить saveWallPhoto");
         } catch (Exception e) {
             plugin.getLogger().warning("Ошибка загрузки фото в ВК: " + e.getMessage());
         }
@@ -255,12 +282,10 @@ public class StreamChecker {
     private byte[] downloadImage(String url) {
         try {
             HttpURLConnection conn = (HttpURLConnection) new URI(url).toURL().openConnection();
-            conn.setConnectTimeout(10000);
-            conn.setReadTimeout(10000);
+            conn.setConnectTimeout(10000); conn.setReadTimeout(10000);
             conn.setRequestProperty("User-Agent", "VKChatStreams/1.0");
             try (InputStream in = conn.getInputStream(); ByteArrayOutputStream out = new ByteArrayOutputStream()) {
-                byte[] buf = new byte[8192];
-                int n;
+                byte[] buf = new byte[8192]; int n;
                 while ((n = in.read(buf)) != -1) out.write(buf, 0, n);
                 return out.toByteArray();
             }
@@ -274,11 +299,9 @@ public class StreamChecker {
         try {
             String boundary = "----VKChatStreams" + System.currentTimeMillis();
             HttpURLConnection conn = (HttpURLConnection) new URI(uploadUrl).toURL().openConnection();
-            conn.setDoOutput(true);
-            conn.setRequestMethod("POST");
+            conn.setDoOutput(true); conn.setRequestMethod("POST");
             conn.setRequestProperty("Content-Type", "multipart/form-data; boundary=" + boundary);
-            conn.setConnectTimeout(15000);
-            conn.setReadTimeout(15000);
+            conn.setConnectTimeout(15000); conn.setReadTimeout(15000);
 
             try (OutputStream os = conn.getOutputStream()) {
                 os.write(("--" + boundary + "\r\n").getBytes(StandardCharsets.UTF_8));
@@ -286,7 +309,6 @@ public class StreamChecker {
                 os.write("Content-Type: image/jpeg\r\n\r\n".getBytes(StandardCharsets.UTF_8));
                 os.write(imageBytes);
                 os.write(("\r\n--" + boundary + "--\r\n").getBytes(StandardCharsets.UTF_8));
-                os.flush();
             }
 
             StringBuilder sb = new StringBuilder();
@@ -295,18 +317,15 @@ public class StreamChecker {
             }
             return sb.toString();
         } catch (Exception e) {
-            plugin.getLogger().warning("Ошибка загрузки фото на VK сервер: " + e.getMessage());
+            plugin.getLogger().warning("Ошибка загрузки фото: " + e.getMessage());
             return "";
         }
     }
 
-    // ---- HTTP helpers ----
-
     private String requestGet(URI uri) {
         try {
             HttpURLConnection conn = (HttpURLConnection) uri.toURL().openConnection();
-            conn.setConnectTimeout(8000);
-            conn.setReadTimeout(8000);
+            conn.setConnectTimeout(8000); conn.setReadTimeout(8000);
             int code = conn.getResponseCode();
             if (code != 200) {
                 StringBuilder err = new StringBuilder();
@@ -321,19 +340,15 @@ public class StreamChecker {
                 int c; while ((c = r.read()) != -1) sb.append((char) c);
             }
             return sb.toString();
-        } catch (Exception e) {
-            return "";
-        }
+        } catch (Exception e) { return ""; }
     }
 
-    // FIXED: proper JSON field parsing — searches for "field": and reads quoted or numeric value
     private String getJsonField(String json, String field) {
         String search = "\"" + field + "\":";
         int idx = json.indexOf(search);
         if (idx == -1) return "";
         int start = idx + search.length();
-        while (start < json.length() && json.charAt(start) == ' ')
-            start++;
+        while (start < json.length() && json.charAt(start) == ' ') start++;
         if (start >= json.length()) return "";
         if (json.charAt(start) == '"') {
             start++;
@@ -346,38 +361,32 @@ public class StreamChecker {
             return json.substring(start, end).replace("\\\"", "\"").replace("\\\\", "\\");
         } else {
             int end = start;
-            while (end < json.length() && (Character.isDigit(json.charAt(end)) || json.charAt(end) == '-'))
-                end++;
+            while (end < json.length() && (Character.isDigit(json.charAt(end)) || json.charAt(end) == '-')) end++;
             return json.substring(start, end);
         }
     }
 
-    // ---- VK wall post ----
-
     private void postToVkWall(StreamEvent e, String linksVk) {
         String token = plugin.getConfig().getString("streams.vk.token", "");
         String groupId = plugin.getConfig().getString("streams.vk.group-id", "");
-        boolean wallEnabled = plugin.getConfig().getBoolean("streams.vk.wall-post.enabled", true);
-        if (!wallEnabled || token.isEmpty() || groupId.isEmpty()) return;
+        if (!plugin.getConfig().getBoolean("streams.vk.wall-post.enabled", true)) return;
+        if (token.isEmpty() || groupId.isEmpty()) return;
 
         String template = plugin.getConfig().getString("streams.vk.post-template",
                 "⚡ {channel} запустил стрим!\n{title}\n{url}\n{links}");
         String message = escapeNewlines(format(template, e, linksVk, ""));
-
         String finalMsg = message;
+
         Runnable doPost = () -> {
             try {
-                String photoAtt = getPhotoAttachment();
-                String attParam = photoAtt.isEmpty() ? ""
-                        : "&attachments=" + URLEncoder.encode(photoAtt, StandardCharsets.UTF_8);
+                String att = getPhotoAttachment();
+                String attParam = att.isEmpty() ? "" : "&attachments=" + URLEncoder.encode(att, StandardCharsets.UTF_8);
 
                 URI uri = new URI("https://api.vk.com/method/wall.post?owner_id=-" + groupId
                         + "&message=" + URLEncoder.encode(finalMsg, StandardCharsets.UTF_8)
-                        + "&v=5.131&access_token=" + token
-                        + attParam);
+                        + "&v=5.131&access_token=" + token + attParam);
                 HttpURLConnection conn = (HttpURLConnection) uri.toURL().openConnection();
-                conn.setConnectTimeout(5000);
-                conn.setReadTimeout(5000);
+                conn.setConnectTimeout(5000); conn.setReadTimeout(5000);
 
                 StringBuilder resp = new StringBuilder();
                 try (InputStreamReader r = new InputStreamReader(conn.getInputStream(), StandardCharsets.UTF_8)) {
@@ -394,15 +403,13 @@ public class StreamChecker {
             }
         };
 
-        String photoAtt = getPhotoAttachment();
-        if (!photoAtt.isEmpty()) {
+        if (!getPhotoAttachment().isEmpty()) {
             doPost.run();
         } else {
             ensurePhotoAttachmentAsync(doPost);
         }
     }
 
-    // Конвертирует литерал \n в реальные переносы строк
     private String escapeNewlines(String text) {
         return text.replace("\\n", "\n");
     }
@@ -411,23 +418,17 @@ public class StreamChecker {
 
     private String buildVkLinks(StreamEvent e) {
         StringBuilder sb = new StringBuilder();
-        if (!e.getVkUrl().isEmpty())
-            sb.append("\n🔵 VK: ").append(e.getVkUrl());
-        if (!e.getYoutubeUrl().isEmpty())
-            sb.append("\n🔴 YouTube: ").append(e.getYoutubeUrl());
-        if (!e.getTwitchUrl().isEmpty())
-            sb.append("\n🟣 Twitch: ").append(e.getTwitchUrl());
+        if (!e.getVkUrl().isEmpty()) sb.append("\n🔵 VK: ").append(e.getVkUrl());
+        if (!e.getYoutubeUrl().isEmpty()) sb.append("\n🔴 YouTube: ").append(e.getYoutubeUrl());
+        if (!e.getTwitchUrl().isEmpty()) sb.append("\n🟣 Twitch: ").append(e.getTwitchUrl());
         return sb.toString();
     }
 
     private String buildGameLinks(StreamEvent e) {
         StringBuilder sb = new StringBuilder();
-        if (!e.getVkUrl().isEmpty())
-            sb.append("&7  &9VK: &b&n").append(e.getVkUrl());
-        if (!e.getYoutubeUrl().isEmpty())
-            sb.append("\n&7  &cYouTube: &b&n").append(e.getYoutubeUrl());
-        if (!e.getTwitchUrl().isEmpty())
-            sb.append("\n&7  &5Twitch: &b&n").append(e.getTwitchUrl());
+        if (!e.getVkUrl().isEmpty()) sb.append("&7  &9VK: &b&n").append(e.getVkUrl());
+        if (!e.getYoutubeUrl().isEmpty()) sb.append("\n&7  &cYouTube: &b&n").append(e.getYoutubeUrl());
+        if (!e.getTwitchUrl().isEmpty()) sb.append("\n&7  &5Twitch: &b&n").append(e.getTwitchUrl());
         return sb.toString();
     }
 
@@ -439,16 +440,22 @@ public class StreamChecker {
             return false;
         }
 
+        // Ищем первый стрим за который игрок ещё не получал награду
+        String keyToClaim = null;
         for (String key : announced) {
             Set<UUID> claimers = claimedRewards.get(key);
-            if (claimers != null && claimers.contains(p.getUniqueId())) {
-                p.sendMessage(ChatColor.RED + "Ты уже получил награду за этот стрим!");
-                return false;
+            if (claimers == null || !claimers.contains(p.getUniqueId())) {
+                keyToClaim = key;
+                break;
             }
         }
+        if (keyToClaim == null) {
+            p.sendMessage(ChatColor.RED + "Ты уже получил награду за все активные стримы!");
+            return false;
+        }
 
-        String firstKey = announced.iterator().next();
-        claimedRewards.get(firstKey).add(p.getUniqueId());
+        claimedRewards.get(keyToClaim).add(p.getUniqueId());
+        StreamEvent stream = activeStreams.get(keyToClaim);
 
         int rep = plugin.getConfig().getInt("rewards.reputation", 150);
         int vkId = VKChatBridge.getLinkedVkId(p);
@@ -458,7 +465,8 @@ public class StreamChecker {
             Bukkit.dispatchCommand(Bukkit.getConsoleSender(), cmd.replace("{player}", p.getName()));
         }
 
-        p.sendMessage(ChatColor.GREEN + "✓ Спасибо за подписку на канал! +" + rep + " репутации ВК.");
+        String streamInfo = stream != null ? " (" + stream.getPlatform() + ": " + stream.getChannel() + ")" : "";
+        p.sendMessage(ChatColor.GREEN + "✓ Награда получена" + streamInfo + "! +" + rep + " репутации ВК.");
         return true;
     }
 
@@ -498,9 +506,7 @@ public class StreamChecker {
         };
     }
 
-    // ---- Public state ----
-
     public Set<String> getAnnounced() { return announced; }
-    public void resetAnnounced() { announced.clear(); claimedRewards.clear(); cachedPhotoAttachment = null; }
+    public void resetAnnounced() { announced.clear(); activeStreams.clear(); claimedRewards.clear(); cachedPhotoAttachment = null; }
     public void reload() { loadManualLinks(); cachedPhotoAttachment = null; }
 }

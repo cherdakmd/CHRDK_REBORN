@@ -69,6 +69,8 @@ streams:
 
 announcement:
   vk-enabled: true
+  # Звук при анонсе всем игрокам онлайн (ENTITY_PLAYER_LEVELUP, BLOCK_NOTE_BLOCK_PLING, ...)
+  sound: "ENTITY_PLAYER_LEVELUP"
 
   # Анонс в игре (цветовые коды &)
   game:
@@ -92,6 +94,12 @@ announcement:
     - "{links_vk}"
     - ""
     - "💎 Заходи на сервер! /stream reward"
+
+  # Анонс в ЛС админам ВК (admin-vk-ids)
+  admin-dm: "⚡ {channel} запустил стрим на {platform}!\n{title}\n{url}"
+
+  # Завершение стрима (в беседу ВК)
+  offline: "⭕ {channel} завершил стрим на {platform}."
 
 # ═══ НАГРАДЫ ЗА ПРОСМОТР ═══
 rewards:

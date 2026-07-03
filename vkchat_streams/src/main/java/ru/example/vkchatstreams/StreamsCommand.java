@@ -18,6 +18,7 @@ public class StreamsCommand implements CommandExecutor {
         if (args.length == 0) {
             sender.sendMessage(ChatColor.GOLD + "Команды:");
             sender.sendMessage(ChatColor.GRAY + "/stream reward " + ChatColor.WHITE + "— награда за подписку на канал");
+            sender.sendMessage(ChatColor.GRAY + "/stream list " + ChatColor.WHITE + "— список активных стримов");
             if (sender.hasPermission("vkchat.streams.admin")) {
                 sender.sendMessage(ChatColor.GRAY + "/stream start <platform> <channel> <title> <url> " + ChatColor.WHITE + "— ручной анонс стрима");
                 sender.sendMessage(ChatColor.GRAY + "/streams check " + ChatColor.WHITE + "— проверить стримы сейчас");
@@ -33,6 +34,21 @@ public class StreamsCommand implements CommandExecutor {
                 return true;
             }
             plugin.getStreamChecker().claimReward(p);
+            return true;
+        }
+
+        if (args[0].equalsIgnoreCase("list")) {
+            var streams = plugin.getStreamChecker().getLiveStreams();
+            if (streams.isEmpty()) {
+                sender.sendMessage(ChatColor.RED + "Сейчас нет активных стримов.");
+                return true;
+            }
+            sender.sendMessage(ChatColor.GOLD + "=== Активные стримы ===");
+            for (var s : streams) {
+                sender.sendMessage(ChatColor.WHITE + "  " + platformEmoji(s.getPlatform()) + " " + s.getPlatform() + ChatColor.GRAY + " | " + ChatColor.WHITE + s.getChannel());
+                sender.sendMessage(ChatColor.GRAY + "    " + (s.getTitle() != null ? s.getTitle() : "Без названия"));
+                sender.sendMessage(ChatColor.AQUA + "    " + s.getUrl());
+            }
             return true;
         }
 
@@ -74,5 +90,14 @@ public class StreamsCommand implements CommandExecutor {
                 sender.sendMessage(ChatColor.RED + "Неизвестная команда.");
         }
         return true;
+    }
+
+    private String platformEmoji(String platform) {
+        return switch (platform.toLowerCase()) {
+            case "twitch" -> "\uD83D\uDFE3";
+            case "youtube" -> "\uD83D\uDD34";
+            case "vk", "vkvideo" -> "\uD83D\uDD35";
+            default -> "\u26A1";
+        };
     }
 }
