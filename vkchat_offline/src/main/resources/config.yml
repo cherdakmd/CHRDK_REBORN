@@ -9,6 +9,7 @@ shifts:
     name: "Короткая смена"
     icon: "⛏"
     duration-minutes: 60
+    rare-chance: 5           # Шанс редкого лута, %
     rep-min: 50
     rep-max: 100
     resources:
@@ -19,6 +20,7 @@ shifts:
     name: "Стандартная смена"
     icon: "⛏⛏"
     duration-minutes: 180
+    rare-chance: 8
     rep-min: 200
     rep-max: 400
     resources:
@@ -32,6 +34,7 @@ shifts:
     name: "Ночная смена"
     icon: "⛏⛏⛏"
     duration-minutes: 480
+    rare-chance: 12
     rep-min: 600
     rep-max: 1000
     resources:
@@ -45,6 +48,7 @@ shifts:
     name: "Полный рабочий день"
     icon: "⛏⛏⛏⛏"
     duration-minutes: 720
+    rare-chance: 15
     rep-min: 1200
     rep-max: 2000
     resources:

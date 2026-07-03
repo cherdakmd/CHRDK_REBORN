@@ -216,12 +216,23 @@ public class ShiftManager {
             }
         }
 
+        // Редкий лут
+        String rareMsg = "";
+        int rareChance = getRareLootChance(key);
+        if (rnd.nextInt(100) < rareChance) {
+            ItemStack rareItem = rollRareLoot(rnd);
+            if (rareItem != null) {
+                items.add(rareItem);
+                rareMsg = "\n💎 Повезло! Найден редкий лут: " + rareItem.getType().name() + " ×" + rareItem.getAmount();
+            }
+        }
+
         String bonusMsg = consecutive >= 5 ? " 🔥 ОГНЕННАЯ СЕРИЯ ×" + consecutive + "!" + " +" + bonusRep + " бонус!"
                 : consecutive >= 3 ? " ⚡ УДАРНАЯ СЕРИЯ ×" + consecutive + "!" + " +" + bonusRep + " бонус!"
                 : "";
         try {
             VKChatPlugin.getInstance().getApi().sendMessage(vkId,
-                    "⛏ Награда за смену '" + getShiftName(key) + "': +" + rep + " репутации." + bonusMsg + " Ресурсы в /stash.");
+                    "⛏ Награда за смену '" + getShiftName(key) + "': +" + rep + " репутации." + bonusMsg + rareMsg + " Ресурсы в /stash.");
         } catch (Exception ignored) {}
 
         saveShifts();
@@ -310,12 +321,32 @@ public class ShiftManager {
         java.util.UUID uuid = VKChatPlugin.getInstance().getApi().getUuidByVkId(vkId);
         if (uuid == null) return 1.0;
         Player p = Bukkit.getPlayer(uuid);
-        if (p == null) return 1.0; // Оффлайн — без множителя
+        if (p == null) return 1.0;
         if (p.hasPermission("vkchat.donate.overlord")) return 1.50;
         if (p.hasPermission("vkchat.donate.legend")) return 1.35;
         if (p.hasPermission("vkchat.donate.star")) return 1.20;
         if (p.hasPermission("vkchat.donate.flame")) return 1.10;
         if (p.hasPermission("vkchat.donate.spark")) return 1.05;
         return 1.0;
+    }
+
+    private int getRareLootChance(String key) {
+        // Базовый шанс из конфига + бонус за длительность
+        int base = plugin.getConfig().getInt("shifts." + key + ".rare-chance", 5);
+        int minutes = plugin.getConfig().getInt("shifts." + key + ".duration-minutes", 60);
+        return base + (minutes / 60); // +1% за каждый час
+    }
+
+    private ItemStack rollRareLoot(Random rnd) {
+        int roll = rnd.nextInt(100);
+        if (roll < 35) return new ItemStack(Material.DIAMOND, 1 + rnd.nextInt(2));
+        if (roll < 55) return new ItemStack(Material.EMERALD, 1 + rnd.nextInt(2));
+        if (roll < 70) return new ItemStack(Material.ANCIENT_DEBRIS, 1);
+        if (roll < 80) return new ItemStack(Material.NETHERITE_SCRAP, 1 + rnd.nextInt(2));
+        if (roll < 88) return new ItemStack(Material.GOLDEN_APPLE, 1 + rnd.nextInt(2));
+        if (roll < 94) return new ItemStack(Material.ENCHANTED_GOLDEN_APPLE, 1);
+        if (roll < 97) return new ItemStack(Material.ENDER_PEARL, 2 + rnd.nextInt(4));
+        if (roll < 99) return new ItemStack(Material.SHULKER_SHELL, 1 + rnd.nextInt(2));
+        return new ItemStack(Material.NETHER_STAR, 1); // 1%
     }
 }
