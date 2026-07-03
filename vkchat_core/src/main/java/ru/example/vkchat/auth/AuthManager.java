@@ -197,8 +197,6 @@ public class AuthManager {
                                 loggedIn.put(player.getUniqueId(), true);
                                 plugin.getServer().getScheduler().runTask(plugin, () -> {
                                     player.sendMessage(plugin.getConfigManager().formatColor(plugin.getConfigManager().getMessage("auth_auto_login")));
-                                    String msg = plugin.getConfigManager().getMessage("vk_player_join").replace("{player}", player.getName());
-                                    plugin.getVkManager().sendToMainChat(msg);
                                 });
                             }
                         }
@@ -211,14 +209,6 @@ public class AuthManager {
     }
 
     public void onQuit(Player player) {
-        if (isFullyAuthorized(player)) {
-            int vkId = getLinkedVkId(player);
-            if (vkId != -1) {
-                String msg = plugin.getConfigManager().getMessage("vk_player_quit").replace("{player}", player.getName());
-                plugin.getVkManager().sendToMainChat(msg);
-            }
-        }
-        
         joinTimes.remove(player.getUniqueId());
         loggedIn.remove(player.getUniqueId());
         linkCodes.remove(player.getUniqueId());
