@@ -58,9 +58,11 @@ public class CombatManager implements Listener {
     private void checkPvPAchievement(UUID uuid) {
         int kills = pvpKills.getOrDefault(uuid, 0);
         if (kills >= 100) {
-            VKChatPlugin.getInstance().getApi().addReputation(
-                    VKChatPlugin.getInstance().getApi().getLinkedVkId(
-                            org.bukkit.Bukkit.getPlayer(uuid)), 1000);
+            Player p = org.bukkit.Bukkit.getPlayer(uuid);
+            if (p != null) {
+                VKChatPlugin.getInstance().getApi().addReputation(
+                        VKChatPlugin.getInstance().getApi().getLinkedVkId(p), 1000);
+            }
         }
     }
 

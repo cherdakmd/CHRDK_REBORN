@@ -286,12 +286,14 @@ public class AuthManager {
                 net.md_5.bungee.api.chat.TextComponent vkLink = new net.md_5.bungee.api.chat.TextComponent(
                         org.bukkit.ChatColor.translateAlternateColorCodes('&', " &a&l[ПЕРЕЙТИ В ГРУППУ] ")
                 );
-                vkLink.setClickEvent(new net.md_5.bungee.api.chat.ClickEvent(net.md_5.bungee.api.chat.ClickEvent.Action.OPEN_URL, plugin.getConfig().getString("vk.group-link")));
+                vkLink.setClickEvent(new net.md_5.bungee.api.chat.ClickEvent(net.md_5.bungee.api.chat.ClickEvent.Action.OPEN_URL,
+                        plugin.getConfig().getString("vk.group-link", "https://vk.com/")));
                 
                 net.md_5.bungee.api.chat.TextComponent chatLink = new net.md_5.bungee.api.chat.TextComponent(
                         org.bukkit.ChatColor.translateAlternateColorCodes('&', "&e&l[ПЕРЕЙТИ В БЕСЕДУ]\n")
                 );
-                chatLink.setClickEvent(new net.md_5.bungee.api.chat.ClickEvent(net.md_5.bungee.api.chat.ClickEvent.Action.OPEN_URL, plugin.getConfig().getString("vk.chat-invite-link")));
+                chatLink.setClickEvent(new net.md_5.bungee.api.chat.ClickEvent(net.md_5.bungee.api.chat.ClickEvent.Action.OPEN_URL,
+                        plugin.getConfig().getString("vk.chat-invite-link", "https://vk.com/")));
                 
                 vkLink.addExtra(chatLink);
                 p.spigot().sendMessage(vkLink);

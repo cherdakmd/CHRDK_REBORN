@@ -240,7 +240,8 @@ public class BossManager extends BukkitRunnable implements Listener {
                     Player killer = e.getEntity().getKiller();
                     String pName = killer != null ? killer.getName() : "Неизвестный Герой";
                     
-                    String mcMsg = plugin.getConfig().getString("artifacts.messages.mythic-announce-mc").replace("{player}", pName);
+                    String mcMsg = plugin.getConfig().getString("artifacts.messages.mythic-announce-mc", "&6⚡ {player} получил мифический артефакт!")
+                            .replace("{player}", pName);
                     Bukkit.broadcastMessage(ChatColor.translateAlternateColorCodes('&', mcMsg));
                 }
             }

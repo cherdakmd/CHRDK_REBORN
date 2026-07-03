@@ -155,7 +155,7 @@ public class VKChatPlugin extends JavaPlugin {
         int playTimeInterval = getConfig().getInt("reputation.play-time-interval", 60) * 20 * 60;
         if (playTimeInterval > 0) {
             getServer().getScheduler().runTaskTimerAsynchronously(this, () -> {
-                for (Player p : Bukkit.getOnlinePlayers()) {
+                for (Player p : new java.util.ArrayList<>(Bukkit.getOnlinePlayers())) {
                     if (coreManagers.getAuthManager().isFullyAuthorized(p)) {
                         int vkId = coreManagers.getAuthManager().getLinkedVkId(p);
                         if (vkId != -1) {

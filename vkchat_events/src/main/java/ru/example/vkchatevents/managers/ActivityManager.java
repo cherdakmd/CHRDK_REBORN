@@ -71,9 +71,11 @@ public class ActivityManager implements Listener {
     private void checkTradeAchievement(UUID uuid) {
         int count = tradeCount.getOrDefault(uuid, 0);
         if (count >= 100) {
-            VKChatPlugin.getInstance().getApi().addReputation(
-                    VKChatPlugin.getInstance().getApi().getLinkedVkId(
-                            org.bukkit.Bukkit.getPlayer(uuid)), 500);
+            Player p = org.bukkit.Bukkit.getPlayer(uuid);
+            if (p != null) {
+                VKChatPlugin.getInstance().getApi().addReputation(
+                        VKChatPlugin.getInstance().getApi().getLinkedVkId(p), 500);
+            }
         }
     }
 

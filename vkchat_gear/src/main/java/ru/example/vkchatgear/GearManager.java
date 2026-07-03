@@ -163,8 +163,9 @@ public class GearManager {
         ItemMeta meta = item.getItemMeta();
         if (meta.getPersistentDataContainer().has(new NamespacedKey(plugin, "defect_" + key), PersistentDataType.INTEGER)) return;
         List<String> lore = meta.hasLore() ? meta.getLore() : new ArrayList<>();
-        String line = ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("hardcore-forging.defects.list." + key));
-        lore.add(1, line);
+        String line = ChatColor.translateAlternateColorCodes('&',
+                plugin.getConfig().getString("hardcore-forging.defects.list." + key, "&7Дефект: " + key));
+        if (line != null) lore.add(1, line);
         meta.setLore(lore);
         meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "defect_" + key), PersistentDataType.INTEGER, 1);
         item.setItemMeta(meta);

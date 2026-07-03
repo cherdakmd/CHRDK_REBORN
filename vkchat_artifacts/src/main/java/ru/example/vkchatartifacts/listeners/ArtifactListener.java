@@ -502,7 +502,8 @@ public class ArtifactListener implements Listener {
                 plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
                     try {
                         ru.example.vkchat.VKChatPlugin.getInstance().getReputationManager().addPoints(vkId, finalExtra);
-                        finalPlayer.sendMessage(org.bukkit.ChatColor.GOLD + "✨ Бонус к репутации ВК +" + finalExtra + " (Артефакт REP_BOOST)");
+                        Bukkit.getScheduler().runTask(plugin, () ->
+                            finalPlayer.sendMessage(org.bukkit.ChatColor.GOLD + "✨ Бонус к репутации ВК +" + finalExtra + " (Артефакт REP_BOOST)"));
                     } finally {
                         boostingIds.remove(vkId);
                     }

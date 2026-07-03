@@ -43,9 +43,11 @@ public class EvolutionManager implements Listener {
     // Трансцендентность
     public void transcend(UUID uuid) {
         transcendence.merge(uuid, 1, Integer::sum);
-        VKChatPlugin.getInstance().getApi().addReputation(
-                VKChatPlugin.getInstance().getApi().getLinkedVkId(
-                        org.bukkit.Bukkit.getPlayer(uuid)), 500);
+        Player p = org.bukkit.Bukkit.getPlayer(uuid);
+        if (p != null) {
+            VKChatPlugin.getInstance().getApi().addReputation(
+                    VKChatPlugin.getInstance().getApi().getLinkedVkId(p), 500);
+        }
     }
 
     // Апокалипсис
@@ -56,9 +58,11 @@ public class EvolutionManager implements Listener {
     // Перерождение
     public void rebirth(UUID uuid) {
         rebirthCount.merge(uuid, 1, Integer::sum);
-        VKChatPlugin.getInstance().getApi().addReputation(
-                VKChatPlugin.getInstance().getApi().getLinkedVkId(
-                        org.bukkit.Bukkit.getPlayer(uuid)), 1000);
+        Player p = org.bukkit.Bukkit.getPlayer(uuid);
+        if (p != null) {
+            VKChatPlugin.getInstance().getApi().addReputation(
+                    VKChatPlugin.getInstance().getApi().getLinkedVkId(p), 1000);
+        }
     }
 
     // Просветление

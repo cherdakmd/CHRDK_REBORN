@@ -3,6 +3,7 @@ package ru.example.vkchatnations.commands;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
+import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -66,7 +67,10 @@ public class ClaimCommand implements CommandExecutor {
             }
             VKChatPlugin.getInstance().getApi().takeReputation(vkId, cost);
             homeCooldown.put(p.getUniqueId(), System.currentTimeMillis());
-            p.teleport(new Location(Bukkit.getWorld(claim.getWorldName()), claim.getHomeX(), claim.getHomeY(), claim.getHomeZ()));
+            World w = Bukkit.getWorld(claim.getWorldName());
+            if (w != null) {
+                p.teleport(new Location(w, claim.getHomeX(), claim.getHomeY(), claim.getHomeZ()));
+            }
             p.sendMessage(ChatColor.GREEN + "♲ Телепорт к дому привата. Списано " + cost + " реп.");
             return true;
         }

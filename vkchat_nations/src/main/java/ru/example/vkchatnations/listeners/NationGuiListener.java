@@ -943,10 +943,13 @@ public class NationGuiListener implements Listener {
                     // ЛКМ = телепорт, ПКМ = удалить
                     if (e.isLeftClick()) {
                         p.closeInventory();
-                        p.teleport(new org.bukkit.Location(
-                                Bukkit.getWorld(claim.getWorldName()),
-                                claim.getHomeX(), claim.getHomeY(), claim.getHomeZ()));
-                        p.sendMessage(ChatColor.GREEN + "♲ Телепорт к дому привата.");
+                        org.bukkit.World w = Bukkit.getWorld(claim.getWorldName());
+                        if (w != null) {
+                            p.teleport(new org.bukkit.Location(w, claim.getHomeX(), claim.getHomeY(), claim.getHomeZ()));
+                            p.sendMessage(ChatColor.GREEN + "♲ Телепорт к дому привата.");
+                        } else {
+                            p.sendMessage(ChatColor.RED + "Мир привата не найден.");
+                        }
                     } else {
                         claim.removeHome();
                         plugin.getNationManager().saveAll();
