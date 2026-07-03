@@ -113,7 +113,9 @@ public class NationManager {
                         int y = Integer.parseInt(parts[2]);
                         int z = Integer.parseInt(parts[3]);
                         
-                        nationClaims.put(key, new ChunkClaim(world, x, y, z, radius, UUID.fromString(ownerStr), claimNation, trusted, durability, level, hX, hY, hZ, hasH));
+                        boolean fireProt = !data.contains("claims." + key + ".fire-protection") || data.getBoolean("claims." + key + ".fire-protection");
+                        
+                        nationClaims.put(key, new ChunkClaim(world, x, y, z, radius, UUID.fromString(ownerStr), claimNation, trusted, durability, level, fireProt, hX, hY, hZ, hasH));
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -166,6 +168,7 @@ public class NationManager {
                 out.set("claims." + key + ".home_y", c.getHomeY());
                 out.set("claims." + key + ".home_z", c.getHomeZ());
                 out.set("claims." + key + ".has_home", c.hasHome());
+                out.set("claims." + key + ".fire-protection", c.isFireProtectionEnabled());
 
                 List<String> tList = new ArrayList<>();
                 for (UUID t : c.getTrusted()) tList.add(t.toString());

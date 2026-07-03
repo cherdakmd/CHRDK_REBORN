@@ -116,7 +116,7 @@ public class ClaimDefenseListener implements Listener {
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onIgnite(BlockIgniteEvent e) {
         ChunkClaim claim = plugin.getNationManager().getClaimAt(e.getBlock().getLocation());
-        if (!isProtected(claim, fireLevel())) return;
+        if (!isProtected(claim, fireLevel()) || !claim.isFireProtectionEnabled()) return;
         if (e.getCause() == BlockIgniteEvent.IgniteCause.FLINT_AND_STEEL) return;
         e.setCancelled(true);
     }
@@ -125,7 +125,8 @@ public class ClaimDefenseListener implements Listener {
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onSpread(BlockSpreadEvent e) {
         if (e.getNewState().getType() == Material.FIRE) {
-            if (isProtected(plugin.getNationManager().getClaimAt(e.getBlock().getLocation()), fireLevel())) {
+            ChunkClaim claim = plugin.getNationManager().getClaimAt(e.getBlock().getLocation());
+            if (isProtected(claim, fireLevel()) && claim.isFireProtectionEnabled()) {
                 e.setCancelled(true);
             }
         }
@@ -136,7 +137,8 @@ public class ClaimDefenseListener implements Listener {
     public void onFlow(BlockFromToEvent e) {
         Material src = e.getBlock().getType();
         if (src == Material.LAVA || src == Material.FIRE) {
-            if (isProtected(plugin.getNationManager().getClaimAt(e.getToBlock().getLocation()), fireLevel())) {
+            ChunkClaim claim = plugin.getNationManager().getClaimAt(e.getToBlock().getLocation());
+            if (isProtected(claim, fireLevel()) && claim.isFireProtectionEnabled()) {
                 e.setCancelled(true);
             }
         }

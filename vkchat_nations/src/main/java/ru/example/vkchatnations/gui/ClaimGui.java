@@ -111,6 +111,27 @@ public class ClaimGui implements Listener {
         upgPay.setItemMeta(upgMeta);
         inv.setItem(22, upgPay);
 
+        // 🔥 Тумблер защиты от огня (только для 4+ уровня)
+        boolean fireOn = claim.isFireProtectionEnabled() && claim.getLevel() >= 4;
+        ItemStack fireToggle = new ItemStack(fireOn ? Material.MAGMA_BLOCK : Material.COBBLESTONE);
+        ItemMeta fireMeta = fireToggle.getItemMeta();
+        fireMeta.setDisplayName((claim.getLevel() >= 4
+                ? (fireOn ? "&a&lОгнеупорность &7[ВКЛ]" : "&c&lОгнеупорность &7[ВЫКЛ]")
+                : "&7Огнеупорность &8(требуется 4 ур.)"));
+        List<String> fireLore = new ArrayList<>();
+        if (claim.getLevel() >= 4) {
+            fireLore.add("&7Защита от поджога, огня и лавы");
+            fireLore.add(fireOn ? "&a✓ Включена" : "&c✗ Выключена");
+            fireLore.add("");
+            fireLore.add("&eКлик — переключить");
+        } else {
+            fireLore.add("&8Прокачайте приват до 4 уровня");
+            fireLore.add("&8чтобы открыть защиту от огня.");
+        }
+        fireMeta.setLore(fireLore.stream().map(l -> ChatColor.translateAlternateColorCodes('&', l)).toList());
+        fireToggle.setItemMeta(fireMeta);
+        inv.setItem(23, fireToggle);
+
         p.openInventory(inv);
     }
 
@@ -172,6 +193,19 @@ public class ClaimGui implements Listener {
         }
         else if (slot == 22) { // Upgrade — открываем единое меню прокачки
             plugin.getGuiListener().openClaimUpgradeGui(p, claim);
+        }
+        else if (slot == 23) { // Fire protection toggle
+            if (claim.getLevel() >= 4) {
+                claim.setFireProtection(!claim.isFireProtectionEnabled());
+                plugin.getNationManager().saveAll();
+                p.sendMessage(ChatColor.GREEN + (claim.isFireProtectionEnabled()
+                        ? "Защита от огня включена."
+                        : "Защита от огня выключена."));
+                p.playSound(p.getLocation(), org.bukkit.Sound.UI_BUTTON_CLICK, 1f, 1f);
+                openGui(p, chunk);
+            } else {
+                p.sendMessage(ChatColor.RED + "Нужен 4 уровень привата для защиты от огня.");
+            }
         }
     }
 }
