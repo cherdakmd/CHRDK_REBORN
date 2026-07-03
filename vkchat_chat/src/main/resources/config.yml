@@ -54,3 +54,22 @@ tab:
 # 🏷 Форматы join/quit
 join-format: "&8[&a+&8] {prefix} &7{player}"
 quit-format: "&8[&c-&8] {prefix} &7{player}"
+
+# 📢 Анонсы (смерти, убийства, ранги)
+broadcasts:
+  kill-messages:
+    - "&c☠ {killer} &7отправил &c{victim} &7на респаун"
+    - "&c⚔ {killer} &7расправился с &c{victim}"
+    - "&c💀 {killer} &7убил &c{victim}"
+    - "&c🗡 {killer} &7победил &c{victim} &7в бою"
+    - "&c🔥 {killer} &7уничтожил &c{victim}"
+  death-messages:
+    - "&7☠ {player} &7погиб"
+    - "&7💀 {player} &7ушёл в мир иной"
+    - "&7🪦 {player} &7отправился на тот свет"
+    - "&7⚰ {player} &7встретил смерть"
+    - "&7🕯 {player} &7пал в бою"
+  job-level-messages:
+    - "&e⭐ {player} &7достиг &e{level} &7уровня профессий!"
+    - "&e📈 {player} &7прокачал профессии до &e{level}"
+    - "&e🏆 {player} &7— &e{level} &7уровень Jobs!"

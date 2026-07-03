@@ -7,6 +7,7 @@ public class VKChatChatPlugin extends JavaPlugin {
     private static VKChatChatPlugin instance;
     private ChatListener chatListener;
     private TabManager tabManager;
+    private BroadcastManager broadcastManager;
 
     @Override
     public void onEnable() {
@@ -23,6 +24,7 @@ public class VKChatChatPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(chatListener, this);
 
         tabManager = new TabManager(this);
+        broadcastManager = new BroadcastManager(this);
 
         ChatCommand chatCmd = new ChatCommand(this);
         getCommand("channel").setExecutor(chatCmd);
@@ -37,4 +39,5 @@ public class VKChatChatPlugin extends JavaPlugin {
 
     public static VKChatChatPlugin getInstance() { return instance; }
     public ChatListener getChatListener() { return chatListener; }
+    public BroadcastManager getBroadcastManager() { return broadcastManager; }
 }
