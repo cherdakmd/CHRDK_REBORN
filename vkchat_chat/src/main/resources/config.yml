@@ -2,6 +2,8 @@
 # VKChatChat — чат + встроенный TAB
 # ═══════════════════════════════════════
 
+config-version: 1
+
 format: "{prefix}&r &7{player}&7: &f{message}"
 
 # Каналы
@@ -54,7 +56,7 @@ tab:
 # 🏷 Форматы join/quit (вариативные)
 broadcasts:
   send-to-vk: true           # Слать kill/death/jobs в ВК
-  vk-join-quit: false        # Join/quit в ВК (false — их уже шлёт JoinNotificationListener)
+  vk-join-quit: true         # Join/quit в ВК
   join-messages:
     - "&8[&a+&8] {prefix} &7{player} &7зашёл на сервер"
     - "&8[&a+&8] {prefix} &7{player} &7появился в мире"

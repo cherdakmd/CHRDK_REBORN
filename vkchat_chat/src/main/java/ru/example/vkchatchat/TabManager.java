@@ -11,6 +11,7 @@ import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
 import ru.example.vkchat.VKChatPlugin;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -67,13 +68,17 @@ public class TabManager implements Listener {
         }
 
         if (pool.isEmpty()) {
-            pool = List.of("&8[&a+&8] {prefix} &7{player}");
+            pool = isNew && isDonator ? generateJoinNewDonator()
+                    : isDonator ? generateJoinDonator()
+                    : isNew ? generateJoinNew()
+                    : generateJoins();
         }
 
         String msg = pool.get(rnd.nextInt(pool.size()));
         msg = ChatColor.translateAlternateColorCodes('&',
                 msg.replace("{prefix}", prefix).replace("{player}", p.getName()));
-        sendToVk(ChatColor.stripColor(msg).replace("  ", " ").trim());
+        if (plugin.getConfig().getBoolean("broadcasts.vk-join-quit", true))
+            sendToVk(ChatColor.stripColor(msg).replace("  ", " ").trim());
         return msg;
     }
 
@@ -86,13 +91,14 @@ public class TabManager implements Listener {
                 : plugin.getConfig().getStringList("broadcasts.quit-messages");
 
         if (pool.isEmpty()) {
-            pool = List.of("&8[&c-&8] {prefix} &7{player}");
+            pool = isDonator ? generateQuitDonator() : generateQuits();
         }
 
         String msg = pool.get(rnd.nextInt(pool.size()));
         msg = ChatColor.translateAlternateColorCodes('&',
                 msg.replace("{prefix}", prefix).replace("{player}", p.getName()));
-        sendToVk(ChatColor.stripColor(msg).replace("  ", " ").trim());
+        if (plugin.getConfig().getBoolean("broadcasts.vk-join-quit", true))
+            sendToVk(ChatColor.stripColor(msg).replace("  ", " ").trim());
         return msg;
     }
 
@@ -216,7 +222,43 @@ public class TabManager implements Listener {
     }
 
     private void sendToVk(String msg) {
-        if (!plugin.getConfig().getBoolean("broadcasts.vk-join-quit", false)) return;
+        if (!plugin.getConfig().getBoolean("broadcasts.vk-join-quit", true)) return;
         try { VKChatPlugin.getInstance().getApi().sendToMainChat(msg); } catch (Exception ignored) {}
+    }
+
+    // ═══ ГЕНЕРАТОРЫ ВАРИАНТОВ ═══
+    private static final String[] JOIN_VERBS = {"зашёл","появился","присоединился","подключился","вошёл","прибыл","залетел","ворвался","материализовался","загрузился","пришёл","активировался","приземлился","телепортировался","добрался","заглянул","влетел","ворвался в чат","нырнул","включился"};
+    private static final String[] JOIN_NOUNS = {"на сервер","в мир","в игру","в чат","на огонёк","в матрицу","на тусовку","домой","в систему","в реальность","на радар","в сеть","на сервак","в битву","на локацию","к нам","в квадрат","на базу","в сборку","в дурку"};
+    private static final String[] QUIT_VERBS = {"вышел","покинул сервер","ушёл","отключился","пропал","испарился","растворился","свалил","улетел","отчалил","выпал","отбыл","сделал ручкой","пошёл спать","ушёл есть","закрыл лавочку","взял паузу","ушёл в закат","отключил комп","скрылся"};
+
+    private List<String> generateJoins() {
+        List<String> list = new ArrayList<>();
+        for (String verb : JOIN_VERBS) for (String noun : JOIN_NOUNS)
+            list.add("&8[&a+&8] {prefix} &7{player} &7" + verb + " " + noun);
+        return list;
+    }
+    private List<String> generateJoinNew() {
+        List<String> list = new ArrayList<>();
+        for (String e : new String[]{"&eвпервые здесь! &6🌟","&eновый игрок! &6🎉","&eсвежая кровь! &6🩸","&eновичок! &6🍼","&eновобранец! &6⚔","&eпервый раз! &6🎂","&eначало пути! &6🗺","&eдебют! &6🎬","&eпервый заход! &6🎯","&eсвежее мясо! &6🥩"})
+            list.add("&8[&a+&8] {prefix} &7{player} " + e);
+        return list;
+    }
+    private List<String> generateJoinDonator() {
+        List<String> list = new ArrayList<>();
+        for (String e : new String[]{"&6зашёл с сиянием","&6почтил присутствием","&6прибыл величественно","&6спустился с небес","&6озарил светом","&6открыл портал","&6прошёл сквозь врата","&6пришёл с дарами","&6вошёл как король","&6появился в ореоле"})
+            list.add("&8[&a+&8] {prefix} &7{player} " + e);
+        return list;
+    }
+    private List<String> generateJoinNewDonator() {
+        return List.of("&8[&a+&8] {prefix} &7{player} &eвпервые и уже донатер! &6👑","&8[&a+&8] {prefix} &7{player} &eновый донатер! &6💎","&8[&a+&8] {prefix} &7{player} &eс порога с поддержкой! &6🔥");
+    }
+    private List<String> generateQuits() {
+        List<String> list = new ArrayList<>();
+        for (String verb : QUIT_VERBS)
+            list.add("&8[&c-&8] {prefix} &7{player} &7" + verb);
+        return list;
+    }
+    private List<String> generateQuitDonator() {
+        return List.of("&8[&c-&8] {prefix} &7{player} &6ушёл по делам","&8[&c-&8] {prefix} &7{player} &6покинул нас","&8[&c-&8] {prefix} &7{player} &6ушёл в закат","&8[&c-&8] {prefix} &7{player} &6скрылся во тьме","&8[&c-&8] {prefix} &7{player} &6отбыл по-королевски","&8[&c-&8] {prefix} &7{player} &6ушёл с почестями","&8[&c-&8] {prefix} &7{player} &6покинул трон","&8[&c-&8] {prefix} &7{player} &6исчез в сиянии");
     }
 }

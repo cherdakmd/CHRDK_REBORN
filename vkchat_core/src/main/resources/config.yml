@@ -1,4 +1,7 @@
 
+# config-version: 1 (авто-обновление при изменении)
+config-version: 1
+
 chat:
   # Радиус локального чата (используется только для сторонних плагинов, если нужно)
   local-radius: 100
@@ -118,6 +121,7 @@ bonus:
     - "give {player} diamond 1"
 
 stats:
+  death-messages-to-vk: false   # Смерти в ВК шлёт vkchat_chat
   money-weight: 0.1             # Вес 1 монеты для топа (0.1 = 10$ дают 1 очко)
   top-broadcast-interval: 3600  # Как часто выводить топ (в сек)
 
@@ -224,10 +228,10 @@ auth:
 # ==========================================
 notifications:
   join:
-    enabled: true
-    show-vk-status: true       # Показывать статус ВК (привязан/проходка/нет)
+    enabled: false             # Вход — шлёт vkchat_chat
+    show-vk-status: true
   leave:
-    enabled: true
+    enabled: false             # Выход — шлёт vkchat_chat
     show-vk-status: true
   auth:
     enabled: true

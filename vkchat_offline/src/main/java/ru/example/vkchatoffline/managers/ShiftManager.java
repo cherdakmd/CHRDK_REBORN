@@ -186,9 +186,9 @@ public class ShiftManager {
 
         int bonusRep = 0;
         if (consecutive >= 5) {
-            bonusRep = rep / 2;
+            bonusRep = rep + rep / 2; // +150%
         } else if (consecutive >= 3) {
-            bonusRep = rep / 4;
+            bonusRep = rep * 3 / 4;  // +75%
         }
         rep += bonusRep;
 
@@ -228,8 +228,8 @@ public class ShiftManager {
             }
         }
 
-        String bonusMsg = consecutive >= 5 ? " 🔥 ОГНЕННАЯ СЕРИЯ ×" + consecutive + "!" + " +" + bonusRep + " бонус!"
-                : consecutive >= 3 ? " ⚡ УДАРНАЯ СЕРИЯ ×" + consecutive + "!" + " +" + bonusRep + " бонус!"
+        String bonusMsg = consecutive >= 5 ? " 🔥 ОГНЕННАЯ СЕРИЯ ×" + consecutive + "! +" + bonusRep + " бонус (+150%)!"
+                : consecutive >= 3 ? " ⚡ УДАРНАЯ СЕРИЯ ×" + consecutive + "!" + " +" + bonusRep + " бонус (+75%)!"
                 : "";
         try {
             VKChatPlugin.getInstance().getApi().sendMessage(vkId,
@@ -341,21 +341,21 @@ public class ShiftManager {
 
     private ItemStack rollRareLoot(Random rnd) {
         int roll = rnd.nextInt(100);
-        if (roll < 18) return new ItemStack(Material.DIAMOND, 2 + rnd.nextInt(3));
-        if (roll < 33) return new ItemStack(Material.EMERALD, 2 + rnd.nextInt(3));
-        if (roll < 45) return new ItemStack(Material.NETHERITE_SCRAP, 1 + rnd.nextInt(3));
-        if (roll < 55) return new ItemStack(Material.ANCIENT_DEBRIS, 1 + rnd.nextInt(2));
-        if (roll < 64) return new ItemStack(Material.GOLDEN_APPLE, 2 + rnd.nextInt(3));
-        if (roll < 71) return new ItemStack(Material.ENCHANTED_GOLDEN_APPLE, 1);
-        if (roll < 77) return new ItemStack(Material.ENDER_PEARL, 4 + rnd.nextInt(4));
-        if (roll < 82) return new ItemStack(Material.SHULKER_SHELL, 1 + rnd.nextInt(2));
-        if (roll < 86) return createPluginItem("rune_token");
-        if (roll < 89) return createPluginItem("artifact_shard");
-        if (roll < 92) return new ItemStack(Material.EXPERIENCE_BOTTLE, 8 + rnd.nextInt(16));
-        if (roll < 95) return createPluginItem("rep_boost");
-        if (roll < 97) return createPluginItem("speed_boost");
-        if (roll < 99) return createPluginItem("random_artifact");
-        return new ItemStack(Material.NETHER_STAR, 1); // 1%
+        if (roll < 16) return new ItemStack(Material.DIAMOND, 8 + rnd.nextInt(16));          // 8-23
+        if (roll < 30) return new ItemStack(Material.EMERALD, 8 + rnd.nextInt(16));          // 8-23
+        if (roll < 42) return new ItemStack(Material.NETHERITE_SCRAP, 3 + rnd.nextInt(7));   // 3-9
+        if (roll < 52) return new ItemStack(Material.ANCIENT_DEBRIS, 3 + rnd.nextInt(7));    // 3-9
+        if (roll < 62) return new ItemStack(Material.GOLDEN_APPLE, 8 + rnd.nextInt(9));      // 8-16
+        if (roll < 69) return new ItemStack(Material.ENCHANTED_GOLDEN_APPLE, 3 + rnd.nextInt(4)); // 3-6
+        if (roll < 76) return new ItemStack(Material.ENDER_PEARL, 16 + rnd.nextInt(16));     // 16-31
+        if (roll < 81) return new ItemStack(Material.SHULKER_SHELL, 3 + rnd.nextInt(5));     // 3-7
+        if (roll < 86) { ItemStack i = createPluginItem("rune_token"); i.setAmount(1+rnd.nextInt(2)); return i; }
+        if (roll < 90) { ItemStack i = createPluginItem("artifact_shard"); i.setAmount(1+rnd.nextInt(2)); return i; }
+        if (roll < 93) return new ItemStack(Material.EXPERIENCE_BOTTLE, 32 + rnd.nextInt(48)); // 32-79
+        if (roll < 96) return createPluginItem("rep_boost");
+        if (roll < 98) return createPluginItem("speed_boost");
+        if (roll < 100) return createPluginItem("random_artifact");
+        return new ItemStack(Material.NETHER_STAR, 1 + rnd.nextInt(3)); // 1-3
     }
 
     private ItemStack createPluginItem(String type) {

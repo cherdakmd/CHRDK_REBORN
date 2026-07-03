@@ -266,6 +266,8 @@ public class StatsListener implements Listener {
         cleanMsg = cleanMsg.replaceAll("§[0-9a-fk-or]", "");
 
         String msg = " " + cleanMsg + repMsg;
-        plugin.getVkManager().sendToMainChat(msg);
+        if (plugin.getConfig().getBoolean("stats.death-messages-to-vk", false)) {
+            plugin.getVkManager().sendToMainChat(msg);
+        }
     }
 }

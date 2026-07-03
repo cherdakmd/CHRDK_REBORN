@@ -24,6 +24,9 @@ public class ChatListener implements Listener {
     public void onChatMonitor(AsyncPlayerChatEvent e) {
         if (e.isCancelled()) return;
 
+        // Если модуль чата загружен — он сам отправляет в VK, не дублируем
+        if (Bukkit.getPluginManager().isPluginEnabled("VKChatChat")) return;
+
         Player p = e.getPlayer();
         String message = e.getMessage();
 
