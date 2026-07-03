@@ -1,6 +1,7 @@
 package ru.example.vkchatmarket;
 
 import org.bukkit.Bukkit;
+import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.java.JavaPlugin;
 import ru.example.vkchat.config.ConfigMigrationUtil;
 import ru.example.vkchatmarket.commands.MarketCommand;
@@ -68,6 +69,8 @@ public class VKChatMarketPlugin extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        HandlerList.unregisterAll(this);
+        Bukkit.getScheduler().cancelTasks(this);
         if (marketManager != null) {
             marketManager.saveAll();
         }

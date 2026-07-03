@@ -1,6 +1,7 @@
 package ru.example.vkchatoffline;
 
 import org.bukkit.Bukkit;
+import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
 import ru.example.vkchatoffline.data.StashManager;
@@ -40,6 +41,8 @@ public class VKChatOfflinePlugin extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        HandlerList.unregisterAll(this);
+        Bukkit.getScheduler().cancelTasks(this);
         if (shiftManager != null) shiftManager.saveShifts();
         if (stashManager != null) stashManager.save();
     }

@@ -5,6 +5,7 @@ import org.bukkit.block.Block;
 import org.bukkit.block.Container;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
+import org.bukkit.event.HandlerList;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 import ru.example.vkchatartifacts.commands.ArtifactCommand;
@@ -63,6 +64,8 @@ public class VKChatArtifactsPlugin extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        HandlerList.unregisterAll(this);
+        Bukkit.getScheduler().cancelTasks(this);
         if (bossManager != null) {
             bossManager.clearBosses();
         }

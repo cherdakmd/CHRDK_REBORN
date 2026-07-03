@@ -1,6 +1,7 @@
 package ru.example.vkchatannouncer;
 
 import org.bukkit.Bukkit;
+import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class VKChatAnnouncerPlugin extends JavaPlugin {
@@ -55,6 +56,8 @@ public class VKChatAnnouncerPlugin extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        HandlerList.unregisterAll(this);
+        Bukkit.getScheduler().cancelTasks(this);
         if (task != null) task.cancel();
     }
 

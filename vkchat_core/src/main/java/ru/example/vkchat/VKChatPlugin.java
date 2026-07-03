@@ -2,6 +2,7 @@ package ru.example.vkchat;
 
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import ru.example.vkchat.config.ConfigManager;
@@ -173,6 +174,9 @@ public class VKChatPlugin extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        HandlerList.unregisterAll(this);
+        Bukkit.getScheduler().cancelTasks(this);
+
         getLogger().info("=========================================");
         getLogger().info("VKChat 2.0.7 остановлен!");
         getLogger().info("СОЗДАНО ДЛЯ https://vk.com/chrdk_reborn и https://t.me/cherdakmd");

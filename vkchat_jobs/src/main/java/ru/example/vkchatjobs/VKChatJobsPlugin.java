@@ -8,6 +8,7 @@ import org.bukkit.block.Biome;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
+import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
@@ -152,6 +153,8 @@ public class VKChatJobsPlugin extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        HandlerList.unregisterAll(this);
+        Bukkit.getScheduler().cancelTasks(this);
         if (jobsDataManager != null) jobsDataManager.saveAll();
         if (placedBlockTracker != null) placedBlockTracker.save();
         if (weeklyTaskManager != null) weeklyTaskManager.save();

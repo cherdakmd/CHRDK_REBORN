@@ -1,6 +1,7 @@
 package ru.example.vkchatchat;
 
 import org.bukkit.Bukkit;
+import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class VKChatChatPlugin extends JavaPlugin {
@@ -36,6 +37,12 @@ public class VKChatChatPlugin extends JavaPlugin {
 
         getLogger().info("VKChatChat запущен! Каналы: " +
                 getConfig().getConfigurationSection("channels").getKeys(false).size());
+    }
+
+    @Override
+    public void onDisable() {
+        HandlerList.unregisterAll(this);
+        Bukkit.getScheduler().cancelTasks(this);
     }
 
     public static VKChatChatPlugin getInstance() { return instance; }

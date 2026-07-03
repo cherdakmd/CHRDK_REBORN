@@ -1,6 +1,7 @@
 package ru.example.vkchatstreams;
 
 import org.bukkit.Bukkit;
+import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.java.JavaPlugin;
 import ru.example.vkchatstreams.checker.StreamChecker;
 
@@ -72,6 +73,8 @@ public class VKChatStreamsPlugin extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        HandlerList.unregisterAll(this);
+        Bukkit.getScheduler().cancelTasks(this);
         if (streamChecker != null) streamChecker.stop();
     }
 

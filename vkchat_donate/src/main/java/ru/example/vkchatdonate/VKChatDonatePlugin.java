@@ -1,6 +1,7 @@
 package ru.example.vkchatdonate;
 
 import org.bukkit.Bukkit;
+import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class VKChatDonatePlugin extends JavaPlugin {
@@ -28,6 +29,8 @@ public class VKChatDonatePlugin extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        HandlerList.unregisterAll(this);
+        Bukkit.getScheduler().cancelTasks(this);
         if (donateManager != null) donateManager.shutdown();
     }
 

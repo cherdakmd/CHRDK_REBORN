@@ -1,5 +1,6 @@
 package ru.example.vkchatnations;
 
+import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.java.JavaPlugin;
 import ru.example.vkchatnations.data.NationManager;
 import ru.example.vkchatnations.listeners.NationGuiListener;
@@ -107,6 +108,8 @@ public class VKChatNationsPlugin extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        HandlerList.unregisterAll(this);
+        getServer().getScheduler().cancelTasks(this);
         if (nationManager != null) nationManager.saveAll();
     }
 

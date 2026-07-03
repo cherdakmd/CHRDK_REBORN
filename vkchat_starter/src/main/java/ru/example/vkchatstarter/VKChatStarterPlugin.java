@@ -1,6 +1,7 @@
 package ru.example.vkchatstarter;
 
 import org.bukkit.Bukkit;
+import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.java.JavaPlugin;
 import ru.example.vkchatstarter.listeners.JoinListener;
 import ru.example.vkchatstarter.commands.QuestCommand;
@@ -28,6 +29,12 @@ public class VKChatStarterPlugin extends JavaPlugin {
         getCommand("quest").setTabCompleter(questCmd);
 
         getLogger().info("VKChatStarter успешно запущен!");
+    }
+
+    @Override
+    public void onDisable() {
+        HandlerList.unregisterAll(this);
+        Bukkit.getScheduler().cancelTasks(this);
     }
 
     public static VKChatStarterPlugin getInstance() {

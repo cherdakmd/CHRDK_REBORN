@@ -1,6 +1,7 @@
 package ru.example.vkchatevents;
 
 import org.bukkit.Bukkit;
+import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.java.JavaPlugin;
 import ru.example.vkchatevents.managers.*;
 import ru.example.vkchatevents.tasks.*;
@@ -113,6 +114,7 @@ public class VKChatEventsPlugin extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        HandlerList.unregisterAll(this);
         getServer().getScheduler().cancelTasks(this);
         if (statisticsManager != null) statisticsManager.save();
     }

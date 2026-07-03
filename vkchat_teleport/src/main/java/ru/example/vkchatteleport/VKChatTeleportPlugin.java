@@ -1,6 +1,7 @@
 package ru.example.vkchatteleport;
 
 import org.bukkit.Bukkit;
+import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.java.JavaPlugin;
 import ru.example.vkchatteleport.commands.TeleportCommand;
 import ru.example.vkchatteleport.features.TeleportFeatures;
@@ -57,6 +58,12 @@ public class VKChatTeleportPlugin extends JavaPlugin {
 
         getServer().getPluginManager().registerEvents(new TeleportListener(this), this);
         getLogger().info("VKChatTeleport успешно запущен!");
+    }
+
+    @Override
+    public void onDisable() {
+        HandlerList.unregisterAll(this);
+        Bukkit.getScheduler().cancelTasks(this);
     }
 
     private void migrateConfig() {
