@@ -9,7 +9,6 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
 
-import java.lang.reflect.Field;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -123,48 +122,7 @@ public class TabManager implements Listener {
     }
 
     private void sendTabPacket(Player p, String header, String footer) {
-        try {
-            Object headerComponent = getChatComponent(header);
-            Object footerComponent = getChatComponent(footer);
-
-            Object packet = getNMSClass("PacketPlayOutPlayerListHeaderFooter")
-                    .getDeclaredConstructor().newInstance();
-            Field hf = packet.getClass().getDeclaredField("header");
-            hf.setAccessible(true); hf.set(packet, headerComponent);
-            Field ff = packet.getClass().getDeclaredField("footer");
-            ff.setAccessible(true); ff.set(packet, footerComponent);
-
-            Object connection = getConnection(p);
-            connection.getClass().getMethod("sendPacket", getNMSClass("Packet")).invoke(connection, packet);
-        } catch (Exception ignored) {}
-    }
-
-    private Object getChatComponent(String text) {
-        try {
-            return getNMSClass("ChatComponentText").getConstructor(String.class).newInstance(
-                    ChatColor.translateAlternateColorCodes('&', text));
-        } catch (Exception e) {
-            return null;
-        }
-    }
-
-    private Object getConnection(Player p) throws Exception {
-        Object handle = p.getClass().getMethod("getHandle").invoke(p);
-        Field f = handle.getClass().getDeclaredField("playerConnection");
-        f.setAccessible(true);
-        return f.get(handle);
-    }
-
-    private Class<?> getNMSClass(String name) {
-        try {
-            return Class.forName("net.minecraft.server." + getVersion() + "." + name);
-        } catch (Exception e) {
-            return null;
-        }
-    }
-
-    private String getVersion() {
-        return Bukkit.getServer().getClass().getPackage().getName().replace(".", ",").split(",")[3];
+        p.setPlayerListHeaderFooter(header, footer);
     }
 
     private void updateStats() {
