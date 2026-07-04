@@ -35,6 +35,7 @@ public class DonateManager {
     private boolean vkAnnounceWarningLogged = false;
     private BossBar fundraiserBar;
     private double fundraiserCollected = 0;
+    private final Set<UUID> fundraiserHidden = new HashSet<>();
     private static final long MONTH_SECONDS = 2592000L; // 30 дней
 
     public static class StatusDef {
@@ -266,15 +267,18 @@ public class DonateManager {
                 formatFundraiserTitle(goal), barColor, BarStyle.SOLID);
         fundraiserBar.setVisible(true);
         fundraiserBar.setProgress(Math.min(1.0, fundraiserCollected / goal));
-        for (Player p : Bukkit.getOnlinePlayers()) fundraiserBar.addPlayer(p);
+        for (Player p : Bukkit.getOnlinePlayers()) {
+            if (!fundraiserHidden.contains(p.getUniqueId())) fundraiserBar.addPlayer(p);
+        }
     }
 
     private String formatFundraiserTitle(double goal) {
+        String template = plugin.getConfig().getString("fundraiser.bar-text", "&d💰 Сбор: &f{collected}₽ &7/ &f{goal}₽ &a({percent}%)");
         double pct = goal > 0 ? Math.min(100, (fundraiserCollected / goal) * 100) : 0;
-        return ChatColor.LIGHT_PURPLE + "💰 Сбор средств: " +
-                ChatColor.WHITE + String.format("%.0f", fundraiserCollected) + "₽" +
-                ChatColor.GRAY + " / " + ChatColor.WHITE + String.format("%.0f", goal) + "₽" +
-                ChatColor.GREEN + " (" + String.format("%.0f", pct) + "%)";
+        return ChatColor.translateAlternateColorCodes('&', template
+                .replace("{collected}", String.format("%.0f", fundraiserCollected))
+                .replace("{goal}", String.format("%.0f", goal))
+                .replace("{percent}", String.format("%.0f", pct)));
     }
 
     private void updateFundraiser(double amount) {
@@ -464,7 +468,21 @@ public class DonateManager {
     }
 
     public void addPlayerToFundraiser(Player p) {
-        if (fundraiserBar != null) fundraiserBar.addPlayer(p);
+        if (fundraiserBar != null && !fundraiserHidden.contains(p.getUniqueId()))
+            fundraiserBar.addPlayer(p);
+    }
+
+    public boolean toggleFundraiserBar(Player p) {
+        if (fundraiserBar == null) return false;
+        if (fundraiserHidden.contains(p.getUniqueId())) {
+            fundraiserHidden.remove(p.getUniqueId());
+            fundraiserBar.addPlayer(p);
+            return true; // показана
+        } else {
+            fundraiserHidden.add(p.getUniqueId());
+            fundraiserBar.removePlayer(p);
+            return false; // скрыта
+        }
     }
 
     public double getRepDiscount(Player player) {

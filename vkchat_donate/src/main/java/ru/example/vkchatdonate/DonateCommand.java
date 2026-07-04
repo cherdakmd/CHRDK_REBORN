@@ -148,6 +148,9 @@ public class DonateCommand implements CommandExecutor {
                 }
             } else if (args[1].equalsIgnoreCase("stop")) {
                 plugin.getDonateManager().stopFundraiser();
+            } else if (args[1].equalsIgnoreCase("toggle") && sender instanceof Player) {
+                boolean visible = plugin.getDonateManager().toggleFundraiserBar((Player) sender);
+                sender.sendMessage(ChatColor.GREEN + (visible ? "✅ BossBar сбора показан!" : "❌ BossBar сбора скрыт."));
             } else {
                 sender.sendMessage(ChatColor.RED + "/donate fundraiser start <цель> | stop");
             }
