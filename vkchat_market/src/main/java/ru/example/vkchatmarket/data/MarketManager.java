@@ -366,9 +366,12 @@ public class MarketManager {
         long now = System.currentTimeMillis();
         String key = itemId + ":" + player.getUniqueId();
         Long last = lastTradeTime.get(key);
-        if (last != null && now - last < cooldownMs) return false;
-        lastTradeTime.put(key, now);
-        return true;
+        return last == null || now - last >= cooldownMs;
+    }
+
+    public void markTrade(String itemId, Player player) {
+        String key = itemId + ":" + player.getUniqueId();
+        lastTradeTime.put(key, System.currentTimeMillis());
     }
 
     /**

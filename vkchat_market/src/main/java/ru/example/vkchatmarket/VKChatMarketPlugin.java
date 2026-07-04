@@ -39,7 +39,7 @@ public class VKChatMarketPlugin extends JavaPlugin {
 
         marketManager = new MarketManager(this);
         marketFun = new MarketFun(this);
-        
+        marketFun.load();
         MarketCommand marketCmd = new MarketCommand(this);
         if (getCommand("market") != null) {
             getCommand("market").setExecutor(marketCmd);
@@ -71,9 +71,8 @@ public class VKChatMarketPlugin extends JavaPlugin {
     public void onDisable() {
         HandlerList.unregisterAll(this);
         Bukkit.getScheduler().cancelTasks(this);
-        if (marketManager != null) {
-            marketManager.saveAll();
-        }
+        if (marketManager != null) marketManager.saveAll();
+        if (marketFun != null) marketFun.save();
     }
 
     public static VKChatMarketPlugin getInstance() {

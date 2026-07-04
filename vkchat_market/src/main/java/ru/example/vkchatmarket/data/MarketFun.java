@@ -135,4 +135,50 @@ public class MarketFun {
     public int getQuestTarget() { return questTarget; }
     public int getPlayerQuestProgress(String playerName) { return questProgress.getOrDefault(playerName, 0); }
     public boolean isQuestCompleted(String playerName) { return questCompleted.contains(playerName); }
+
+    public void save() {
+        try {
+            java.io.File file = new java.io.File(plugin.getDataFolder(), "marketfun_data.yml");
+            org.bukkit.configuration.file.YamlConfiguration yml = new org.bukkit.configuration.file.YamlConfiguration();
+            if (flashSaleItemId != null) {
+                yml.set("flash-sale.item", flashSaleItemId);
+                yml.set("flash-sale.discount", flashSaleDiscount);
+                yml.set("flash-sale.end", flashSaleEndTime);
+            }
+            yml.set("quest.date", questDate);
+            yml.set("quest.item", questItemId);
+            yml.set("quest.target", questTarget);
+            yml.set("quest.type", questType);
+            for (java.util.Map.Entry<String, Integer> en : questProgress.entrySet())
+                yml.set("quest.progress." + en.getKey(), en.getValue());
+            for (String name : questCompleted)
+                yml.set("quest.completed." + name, true);
+            yml.save(file);
+        } catch (Exception e) {
+            plugin.getLogger().warning("Ошибка сохранения MarketFun: " + e.getMessage());
+        }
+    }
+
+    public void load() {
+        try {
+            java.io.File file = new java.io.File(plugin.getDataFolder(), "marketfun_data.yml");
+            if (!file.exists()) return;
+            org.bukkit.configuration.file.YamlConfiguration yml = org.bukkit.configuration.file.YamlConfiguration.loadConfiguration(file);
+            flashSaleItemId = yml.getString("flash-sale.item");
+            flashSaleDiscount = yml.getDouble("flash-sale.discount");
+            flashSaleEndTime = yml.getLong("flash-sale.end");
+            questDate = yml.getString("quest.date", "");
+            questItemId = yml.getString("quest.item");
+            questTarget = yml.getInt("quest.target");
+            questType = yml.getString("quest.type", "sell");
+            if (yml.contains("quest.progress"))
+                for (String key : yml.getConfigurationSection("quest.progress").getKeys(false))
+                    questProgress.put(key, yml.getInt("quest.progress." + key));
+            if (yml.contains("quest.completed"))
+                for (String key : yml.getConfigurationSection("quest.completed").getKeys(false))
+                    questCompleted.add(key);
+        } catch (Exception e) {
+            plugin.getLogger().warning("Ошибка загрузки MarketFun: " + e.getMessage());
+        }
+    }
 }

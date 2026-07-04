@@ -382,8 +382,8 @@ public class MarketGuiListener implements Listener {
     public void onClick(InventoryClickEvent e) {
         String title = e.getView().getTitle();
         if (!title.contains("БИРЖА")) return;
-        e.setCancelled(true);
         if (!(e.getWhoClicked() instanceof Player)) return;
+        e.setCancelled(true);
         Player p = (Player) e.getWhoClicked();
         if (e.getCurrentItem() == null || !e.getCurrentItem().hasItemMeta()) return;
         ItemMeta meta = e.getCurrentItem().getItemMeta();
@@ -478,6 +478,7 @@ public class MarketGuiListener implements Listener {
         double donorMult = donorSellMultiplier(p);
         int rep = plugin.getMarketManager().sellItems(itemId, count, donorMult);
         if (rep <= 0) { p.sendMessage("§cРынок переполнен!"); return; }
+        plugin.getMarketManager().markTrade(itemId, p);
 
         int toRemove = count;
         for (int i = 0; i < p.getInventory().getSize(); i++) {
@@ -530,6 +531,7 @@ public class MarketGuiListener implements Listener {
         p.getInventory().addItem(toBuy);
 
         VKChatBridge.takeReputation(vkId, cost);
+        plugin.getMarketManager().markTrade(itemId, p);
         p.sendMessage("§6§l💰 Куплено §f" + actual + " шт. §6→ §e" + cost + " реп.");
         p.playSound(p.getLocation(), org.bukkit.Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1f, 1.2f);
         p.sendTitle("§6§l- " + cost + " реп.", "§fКуплено " + actual + " шт. " + itemId, 5, 20, 5);
@@ -601,7 +603,7 @@ public class MarketGuiListener implements Listener {
             int rep = Math.max(1, (int) Math.round(plugin.getMarketManager().calculateBulkSellPrice(itemId, count) * donorMult));
             totalRep += rep;
             totalCount += count;
-            plugin.getMarketManager().sellItems(itemId, count, 1.0);
+            plugin.getMarketManager().sellItems(itemId, count, donorMult);
         }
         VKChatBridge.addPoints(vkId, totalRep);
         p.sendMessage("§a§l💰 Продано: §f" + totalCount + " шт. §a→ §e" + totalRep + " реп.");
@@ -688,10 +690,12 @@ public class MarketGuiListener implements Listener {
                     if (toRemove == 0) break;
                 }
             }
-            int rep = Math.max(1, (int) Math.round(plugin.getMarketManager().calculateBulkSellPrice(itemId, count) * donorSellMultiplier(p)));
+            double donorMult = donorSellMultiplier(p);
+            int rep = Math.max(1, (int) Math.round(plugin.getMarketManager().calculateBulkSellPrice(itemId, count) * donorMult));
             totalRep += rep;
             totalCount += count;
-            plugin.getMarketManager().sellItems(itemId, count, 1.0);
+            plugin.getMarketManager().sellItems(itemId, count, donorMult);
+            plugin.getMarketManager().markTrade(itemId, p);
         }
         VKChatBridge.addPoints(vkId, totalRep);
         p.sendMessage("§a§l💰 Продано: §f" + totalCount + " шт. §a→ §e" + totalRep + " реп.");
