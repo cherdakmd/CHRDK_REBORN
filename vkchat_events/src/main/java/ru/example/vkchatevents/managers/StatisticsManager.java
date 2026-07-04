@@ -10,9 +10,6 @@ import ru.example.vkchatevents.VKChatEventsPlugin;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
-/**
- * [12] Статистика событий
- */
 public class StatisticsManager implements Listener {
     private final VKChatEventsPlugin plugin;
     private final Map<UUID, Map<String, Integer>> stats = new ConcurrentHashMap<>();
@@ -46,6 +43,38 @@ public class StatisticsManager implements Listener {
     }
 
     public void save() {
-        // TODO: сохранение в файл/БД
+        try {
+            java.io.File file = new java.io.File(plugin.getDataFolder(), "statistics.yml");
+            org.bukkit.configuration.file.YamlConfiguration yml = new org.bukkit.configuration.file.YamlConfiguration();
+            for (Map.Entry<UUID, Map<String, Integer>> entry : stats.entrySet()) {
+                String key = entry.getKey().toString();
+                for (Map.Entry<String, Integer> stat : entry.getValue().entrySet()) {
+                    yml.set(key + "." + stat.getKey(), stat.getValue());
+                }
+            }
+            yml.save(file);
+        } catch (Exception e) {
+            plugin.getLogger().warning("Ошибка сохранения статистики: " + e.getMessage());
+        }
+    }
+
+    public void load() {
+        try {
+            java.io.File file = new java.io.File(plugin.getDataFolder(), "statistics.yml");
+            if (!file.exists()) return;
+            org.bukkit.configuration.file.YamlConfiguration yml = org.bukkit.configuration.file.YamlConfiguration.loadConfiguration(file);
+            for (String uuidKey : yml.getKeys(false)) {
+                try {
+                    UUID uuid = UUID.fromString(uuidKey);
+                    Map<String, Integer> map = new ConcurrentHashMap<>();
+                    for (String statKey : yml.getConfigurationSection(uuidKey).getKeys(false)) {
+                        map.put(statKey, yml.getInt(uuidKey + "." + statKey));
+                    }
+                    stats.put(uuid, map);
+                } catch (IllegalArgumentException ignored) {}
+            }
+        } catch (Exception e) {
+            plugin.getLogger().warning("Ошибка загрузки статистики: " + e.getMessage());
+        }
     }
 }

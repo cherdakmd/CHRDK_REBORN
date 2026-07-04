@@ -98,8 +98,10 @@ public class VKChatEventsPlugin extends JavaPlugin {
 
         // Регистрация команд
         EventsCommand eventsCommand = new EventsCommand(this);
-        getCommand("events").setExecutor(eventsCommand);
-        getCommand("events").setTabCompleter(eventsCommand);
+        if (getCommand("events") != null) {
+            getCommand("events").setExecutor(eventsCommand);
+            getCommand("events").setTabCompleter(eventsCommand);
+        }
 
         // Запуск задач
         int reminderSec = getConfig().getInt("reminders.interval", 600);
@@ -116,7 +118,12 @@ public class VKChatEventsPlugin extends JavaPlugin {
     public void onDisable() {
         HandlerList.unregisterAll(this);
         getServer().getScheduler().cancelTasks(this);
+
+        if (bountyManager != null) bountyManager.saveBounties();
+        if (questManager != null) questManager.saveProgress();
         if (statisticsManager != null) statisticsManager.save();
+
+        getLogger().info("VKChatEvents выключен, все данные сохранены.");
     }
 
     private void migrateConfigDefaults() {

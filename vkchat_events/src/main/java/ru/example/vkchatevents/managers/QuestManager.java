@@ -134,10 +134,11 @@ public class QuestManager implements Listener {
 
         for (String qKey : chains.getKeys(false)) {
             ConfigurationSection q = chains.getConfigurationSection(qKey);
-            if (q.getString("target").equalsIgnoreCase(target)) {
-                
-                // Проверка профессии с защитой от NPE и ClassNotFound
-                if (q.contains("req_job")) {
+            String qTarget = q.getString("target", "");
+            if (qTarget.isEmpty() || !qTarget.equalsIgnoreCase(target)) continue;
+
+            // Проверка профессии с защитой от NPE и ClassNotFound
+            if (q.contains("req_job")) {
                     String reqJob = q.getString("req_job");
                     int reqLvl = q.getInt("req_lvl", 1);
                     
@@ -175,7 +176,6 @@ public class QuestManager implements Listener {
                     playerProgress.get(p.getUniqueId()).put(qKey, current);
                     saveProgress();
                 }
-            }
         }
     }
 }
