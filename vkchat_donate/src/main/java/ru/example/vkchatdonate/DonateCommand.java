@@ -56,6 +56,7 @@ public class DonateCommand implements CommandExecutor {
                 dispatch("lp group " + group + " setprefix " + prefix + " ");
                 dispatch("lp group " + group + " meta addprefix " + weight + " " + prefix + " ");
                 dispatch("lp group " + group + " permission set vkchat.donate." + group + " true");
+                dispatch("lp group " + group + " permission set vkchat.donate.fundraiser.toggle true");
                 dispatch("lp group " + group + " meta setprefix " + weight + " " + prefix + " ");
 
                 sender.sendMessage(ChatColor.GRAY + "  " + display + " — вес " + weight + " — OK");
@@ -149,7 +150,12 @@ public class DonateCommand implements CommandExecutor {
             } else if (args[1].equalsIgnoreCase("stop")) {
                 plugin.getDonateManager().stopFundraiser();
             } else if (args[1].equalsIgnoreCase("toggle") && sender instanceof Player) {
-                boolean visible = plugin.getDonateManager().toggleFundraiserBar((Player) sender);
+                Player p = (Player) sender;
+                if (plugin.getDonateManager().getPlayerStatus(p) == null) {
+                    p.sendMessage(ChatColor.RED + "Только донатеры могут скрывать BossBar сбора!");
+                    return true;
+                }
+                boolean visible = plugin.getDonateManager().toggleFundraiserBar(p);
                 sender.sendMessage(ChatColor.GREEN + (visible ? "✅ BossBar сбора показан!" : "❌ BossBar сбора скрыт."));
             } else {
                 sender.sendMessage(ChatColor.RED + "/donate fundraiser start <цель> | stop");

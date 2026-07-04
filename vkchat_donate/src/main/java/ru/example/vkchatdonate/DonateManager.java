@@ -474,14 +474,15 @@ public class DonateManager {
 
     public boolean toggleFundraiserBar(Player p) {
         if (fundraiserBar == null) return false;
+        if (getPlayerStatus(p) == null) return false; // только донатеры
         if (fundraiserHidden.contains(p.getUniqueId())) {
             fundraiserHidden.remove(p.getUniqueId());
             fundraiserBar.addPlayer(p);
-            return true; // показана
+            return true;
         } else {
             fundraiserHidden.add(p.getUniqueId());
             fundraiserBar.removePlayer(p);
-            return false; // скрыта
+            return false;
         }
     }
 
