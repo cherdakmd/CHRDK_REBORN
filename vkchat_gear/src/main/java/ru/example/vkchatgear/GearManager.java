@@ -4,6 +4,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemFlag;
@@ -157,7 +158,9 @@ public class GearManager {
 
     public void applyRandomDefect(ItemStack item) {
         if (item == null || !item.hasItemMeta()) return;
-        List<String> keys = new ArrayList<>(plugin.getConfig().getConfigurationSection("hardcore-forging.defects.list").getKeys(false));
+        ConfigurationSection defectSec = plugin.getConfig().getConfigurationSection("hardcore-forging.defects.list");
+        if (defectSec == null) return;
+        List<String> keys = new ArrayList<>(defectSec.getKeys(false));
         if (keys.isEmpty()) return;
         String key = keys.get(ThreadLocalRandom.current().nextInt(keys.size()));
         ItemMeta meta = item.getItemMeta();

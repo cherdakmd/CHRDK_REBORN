@@ -401,9 +401,11 @@ public class CombatListener implements Listener {
                                 plugin.getGearManager().updateGearUpgradeLevel(armor, newLvl);
                                 
                                 // Ломаем прочность в 1 единицу
-                                org.bukkit.inventory.meta.Damageable dmgMeta = (org.bukkit.inventory.meta.Damageable) armor.getItemMeta();
-                                dmgMeta.setDamage(armor.getType().getMaxDurability() - 1);
-                                armor.setItemMeta((ItemMeta) dmgMeta);
+                                ItemMeta armorMeta = armor.getItemMeta();
+                                if (armorMeta instanceof org.bukkit.inventory.meta.Damageable dmgMeta) {
+                                    dmgMeta.setDamage(armor.getType().getMaxDurability() - 1);
+                                    armor.setItemMeta((ItemMeta) dmgMeta);
+                                }
                                 
                                 victim.sendMessage(org.bukkit.ChatColor.YELLOW + "🛡️ [Второе Дыхание] Сработало спасение! Твой ценный сет брони " + armor.getItemMeta().getDisplayName() + " не пропал, но потерял -5 уровней заточки и сломан до 1 прочности!");
                             } else {

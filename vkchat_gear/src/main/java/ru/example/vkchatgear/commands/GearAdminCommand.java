@@ -8,6 +8,7 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -219,7 +220,9 @@ public class GearAdminCommand implements CommandExecutor, TabCompleter {
     }
 
     private List<String> getSetNames() {
-        return new ArrayList<>(plugin.getConfig().getConfigurationSection("sets").getKeys(false));
+        ConfigurationSection sets = plugin.getConfig().getConfigurationSection("sets");
+        if (sets == null) return new ArrayList<>();
+        return new ArrayList<>(sets.getKeys(false));
     }
 
     private List<String> filterPartial(String input, List<String> options) {
