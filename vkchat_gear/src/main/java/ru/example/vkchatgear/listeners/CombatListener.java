@@ -35,7 +35,8 @@ public class CombatListener implements Listener {
     private static final long METEOR_SHOWER_COOLDOWN_MS = 10000; // 10 сек
     private static final long MESSAGE_COOLDOWN_MS = 2000; // 2 сек
     private static final long ENCHANT_COOLDOWN_MS = 1500; // 1.5 сек между прооками зачарований
-    private static final int MAX_PROCS_PER_HIT = 3; // макс 3 зачарования за удар
+    private static final int MAX_PROCS_PER_HIT = 3;
+    private boolean vkApiWarningLogged = false; // макс 3 зачарования за удар
 
     private boolean checkCooldown(Map<UUID, Long> map, UUID uuid, long cooldownMs) {
         long now = System.currentTimeMillis();
@@ -141,9 +142,13 @@ public class CombatListener implements Listener {
                         }
                     }
                 }
-            } catch (Exception ignored) {}
+            } catch (Exception ex) {
+                if (!vkApiWarningLogged) {
+                    plugin.getLogger().warning("Ошибка VKChat API в боевой системе: " + ex.getMessage());
+                    vkApiWarningLogged = true;
+                }
+            }
         }
-
 
         if (e.getEntity() instanceof Player) {
             Player victim = (Player) e.getEntity();

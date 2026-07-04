@@ -93,7 +93,7 @@ public class MechanicsListener implements Listener {
                 // Timber
                 boolean timber = false;
                 for (String l : lore) { if (org.bukkit.ChatColor.stripColor(l).contains("Дровосек")) timber = true; }
-                if (timber && e.getBlock().getType().name().endsWith("_LOG")) {
+                if (timber && (e.getBlock().getType().name().endsWith("_LOG") || e.getBlock().getType().name().endsWith("_STEM"))) {
                     org.bukkit.block.Block b = e.getBlock();
                     for (int i = 1; i < 6; i++) {
                         org.bukkit.block.Block up = b.getRelative(0, i, 0);

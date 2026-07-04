@@ -38,7 +38,9 @@ public class GearManager {
                 Object dataManager = jobsPlugin.getClass().getMethod("getJobsDataManager").invoke(jobsPlugin);
                 return (int) dataManager.getClass().getMethod("getLevel", java.util.UUID.class, String.class).invoke(dataManager, p.getUniqueId(), "blacksmith");
             }
-        } catch (Exception ignored) {}
+        } catch (Exception e) {
+            plugin.getLogger().warning("Ошибка получения уровня кузнеца из VKChatJobs: " + e.getMessage());
+        }
         return 0;
     }
 
