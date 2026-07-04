@@ -356,7 +356,6 @@ public class NationGuiListener implements Listener {
     }
 
     public void openClaimFeedGui(Player p, ChunkClaim claim) {
-        activeFeedingClaims.put(p.getUniqueId(), claim);
         Inventory inv = Bukkit.createInventory(null, 27, CLAIM_FEED_TITLE);
 
         ItemStack glass = new ItemStack(Material.GRAY_STAINED_GLASS_PANE);
@@ -513,6 +512,7 @@ public class NationGuiListener implements Listener {
                 "&a&lЦитадель", "&c&lЦитадель", "Запрет PvP на территории", "5");
 
         p.openInventory(inv);
+        activeFeedingClaims.put(p.getUniqueId(), claim); // ПОСЛЕ openInventory, иначе onClose удалит
     }
 
     private void addToggle(Inventory inv, int slot, ChunkClaim claim, boolean unlocked, boolean enabled,
@@ -539,7 +539,6 @@ public class NationGuiListener implements Listener {
     }
 
     public void openClaimUpgradeGui(Player p, ChunkClaim claim) {
-        activeFeedingClaims.put(p.getUniqueId(), claim);
         Inventory inv = Bukkit.createInventory(null, 27, CLAIM_UPGRADE_TITLE);
 
         ItemStack glass = new ItemStack(Material.GRAY_STAINED_GLASS_PANE);
@@ -612,6 +611,7 @@ public class NationGuiListener implements Listener {
         inv.setItem(22, back);
 
         p.openInventory(inv);
+        activeFeedingClaims.put(p.getUniqueId(), claim);
     }
 
     public void openNationShop(Player p) {
