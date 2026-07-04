@@ -3,6 +3,9 @@ package ru.example.vkchatdonate;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.OfflinePlayer;
+import org.bukkit.boss.BarColor;
+import org.bukkit.boss.BarStyle;
+import org.bukkit.boss.BossBar;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -30,6 +33,8 @@ public class DonateManager {
     private final Map<String, Double> totalDonated = new LinkedHashMap<>();
     private int lastProcessedId = 0;
     private boolean vkAnnounceWarningLogged = false;
+    private BossBar fundraiserBar;
+    private double fundraiserCollected = 0;
     private static final long MONTH_SECONDS = 2592000L; // 30 дней
 
     public static class StatusDef {
@@ -60,6 +65,7 @@ public class DonateManager {
         this.dataFile = new File(plugin.getDataFolder(), "donations.yml");
         loadStatuses();
         loadData();
+        loadFundraiser();
         startPolling();
     }
 
@@ -152,7 +158,16 @@ public class DonateManager {
         for (StatusDef s : statuses.values()) {
             if (amountRub >= s.price) bestStatus = s;
         }
+
+        // Нет статуса → репутация
         if (bestStatus == null) {
+            if (plugin.getConfig().getBoolean("rep-purchase.enabled", true)) {
+                int maxWithoutStatus = plugin.getConfig().getInt("rep-purchase.max-without-status", 0);
+                if (maxWithoutStatus == 0 || amountRub <= maxWithoutStatus) {
+                    processRepPurchase(txId, amountRub, nick);
+                    return;
+                }
+            }
             plugin.getLogger().info("Донат #" + txId + " от " + nick + " (" + amountRub + "₽) — сумма меньше минимального статуса");
             return;
         }
@@ -196,7 +211,121 @@ public class DonateManager {
         String key = offPlayer.getName().toLowerCase();
         totalDonated.put(key, totalDonated.getOrDefault(key, 0.0) + amountRub);
 
+        updateFundraiser(amountRub);
+
         plugin.getLogger().info("ДОНАТ: " + nick + " → " + bestStatus.display + " (" + amountRub + "₽) #" + txId);
+    }
+
+    private void processRepPurchase(int txId, double amountRub, String nick) {
+        OfflinePlayer offPlayer = Bukkit.getOfflinePlayer(nick);
+        if (!offPlayer.hasPlayedBefore()) {
+            plugin.getLogger().info("Донат #" + txId + " — игрок " + nick + " не найден");
+            return;
+        }
+
+        int rate = plugin.getConfig().getInt("rep-purchase.rate", 100);
+        int rep = (int) (amountRub * rate);
+
+        Player p = offPlayer.getPlayer();
+        int vkId = p != null ? VKChatPlugin.getInstance().getApi().getLinkedVkId(p) : -1;
+        if (vkId == -1 && p != null) {
+            p.sendMessage(ChatColor.RED + "Привяжи ВК (/vklink) чтобы получить репутацию за донат!");
+        } else if (vkId != -1) {
+            VKChatPlugin.getInstance().getApi().addReputation(vkId, rep);
+        }
+
+        String key = offPlayer.getName().toLowerCase();
+        totalDonated.put(key, totalDonated.getOrDefault(key, 0.0) + amountRub);
+
+        updateFundraiser(amountRub);
+
+        // Broadcast
+        if (plugin.getConfig().getBoolean("broadcasts.enabled", true)) {
+            Bukkit.broadcastMessage(ChatColor.translateAlternateColorCodes('&',
+                    "&6💰 &e" + nick + " &6пополнил баланс на &e" + rep + " реп. &6за &e" + (int)amountRub + "₽"));
+        }
+
+        plugin.getLogger().info("РЕП-ДОНАТ: " + nick + " → " + rep + " реп (" + amountRub + "₽) #" + txId);
+    }
+
+    // ═══════════════════════════════
+    // FUNDRAISER BOSS BAR
+    // ═══════════════════════════════
+
+    private void loadFundraiser() {
+        if (!plugin.getConfig().getBoolean("fundraiser.enabled", false)) return;
+        fundraiserCollected = dataCfg.getDouble("fundraiser_collected", 0);
+        double goal = plugin.getConfig().getDouble("fundraiser.goal", 10000);
+        if (goal <= 0) return;
+
+        String color = plugin.getConfig().getString("fundraiser.bar-color", "PURPLE");
+        BarColor barColor;
+        try { barColor = BarColor.valueOf(color); } catch (IllegalArgumentException e) { barColor = BarColor.PURPLE; }
+
+        fundraiserBar = Bukkit.createBossBar(
+                formatFundraiserTitle(goal), barColor, BarStyle.SOLID);
+        fundraiserBar.setVisible(true);
+        fundraiserBar.setProgress(Math.min(1.0, fundraiserCollected / goal));
+        for (Player p : Bukkit.getOnlinePlayers()) fundraiserBar.addPlayer(p);
+    }
+
+    private String formatFundraiserTitle(double goal) {
+        double pct = goal > 0 ? Math.min(100, (fundraiserCollected / goal) * 100) : 0;
+        return ChatColor.LIGHT_PURPLE + "💰 Сбор средств: " +
+                ChatColor.WHITE + String.format("%.0f", fundraiserCollected) + "₽" +
+                ChatColor.GRAY + " / " + ChatColor.WHITE + String.format("%.0f", goal) + "₽" +
+                ChatColor.GREEN + " (" + String.format("%.0f", pct) + "%)";
+    }
+
+    private void updateFundraiser(double amount) {
+        if (fundraiserBar == null) return;
+        fundraiserCollected += amount;
+        dataCfg.set("fundraiser_collected", fundraiserCollected);
+        double goal = plugin.getConfig().getDouble("fundraiser.goal", 10000);
+        fundraiserBar.setTitle(formatFundraiserTitle(goal));
+        fundraiserBar.setProgress(Math.min(1.0, fundraiserCollected / goal));
+        try { dataCfg.save(dataFile); } catch (IOException ignored) {}
+    }
+
+    public void startFundraiser(double goal) {
+        plugin.getConfig().set("fundraiser.enabled", true);
+        plugin.getConfig().set("fundraiser.goal", goal);
+        plugin.saveConfig();
+        fundraiserCollected = 0;
+        dataCfg.set("fundraiser_collected", 0.0);
+        try { dataCfg.save(dataFile); } catch (IOException ignored) {}
+
+        String color = plugin.getConfig().getString("fundraiser.bar-color", "PURPLE");
+        BarColor barColor;
+        try { barColor = BarColor.valueOf(color); } catch (IllegalArgumentException e) { barColor = BarColor.PURPLE; }
+
+        if (fundraiserBar != null) fundraiserBar.removeAll();
+        fundraiserBar = Bukkit.createBossBar(formatFundraiserTitle(goal), barColor, BarStyle.SOLID);
+        fundraiserBar.setVisible(true);
+        for (Player p : Bukkit.getOnlinePlayers()) fundraiserBar.addPlayer(p);
+        Bukkit.broadcastMessage(ChatColor.LIGHT_PURPLE + "💰 Старт сбора средств! Цель: " + (int)goal + "₽");
+    }
+
+    public void stopFundraiser() {
+        plugin.getConfig().set("fundraiser.enabled", false);
+        plugin.saveConfig();
+        if (fundraiserBar != null) {
+            fundraiserBar.removeAll();
+            fundraiserBar = null;
+        }
+        fundraiserCollected = 0;
+        dataCfg.set("fundraiser_collected", 0.0);
+        try { dataCfg.save(dataFile); } catch (IOException ignored) {}
+        Bukkit.broadcastMessage(ChatColor.LIGHT_PURPLE + "💰 Сбор средств завершён!");
+    }
+
+    public String getFundraiserInfo() {
+        if (fundraiserBar == null) return ChatColor.RED + "Сбор средств не активен.";
+        double goal = plugin.getConfig().getDouble("fundraiser.goal", 10000);
+        return ChatColor.LIGHT_PURPLE + "💰 Сбор средств: " +
+                ChatColor.WHITE + String.format("%.0f", fundraiserCollected) + "₽" +
+                ChatColor.GRAY + " / " + ChatColor.WHITE + String.format("%.0f", goal) + "₽" +
+                ChatColor.GREEN + " (" + String.format("%.0f", (goal > 0 ? fundraiserCollected / goal * 100 : 0)) + "%)";
     }
 
     private String extractNickFromSender(String sender) {
@@ -331,6 +460,11 @@ public class DonateManager {
 
     public void shutdown() {
         saveData();
+        if (fundraiserBar != null) fundraiserBar.removeAll();
+    }
+
+    public void addPlayerToFundraiser(Player p) {
+        if (fundraiserBar != null) fundraiserBar.addPlayer(p);
     }
 
     public double getRepDiscount(Player player) {

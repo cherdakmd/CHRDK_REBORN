@@ -1,7 +1,10 @@
 package ru.example.vkchatdonate;
 
 import org.bukkit.Bukkit;
+import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
+import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class VKChatDonatePlugin extends JavaPlugin {
@@ -27,11 +30,18 @@ public class VKChatDonatePlugin extends JavaPlugin {
         var statusSec = getConfig().getConfigurationSection("statuses");
         getLogger().info("VKChatDonate запущен! Статусов: " +
                 (statusSec != null ? statusSec.getKeys(false).size() : 0));
+
+        getServer().getPluginManager().registerEvents(new Listener() {
+            @EventHandler
+            public void onJoin(PlayerJoinEvent e) {
+                if (donateManager != null) donateManager.addPlayerToFundraiser(e.getPlayer());
+            }
+        }, this);
     }
 
     @Override
     public void onDisable() {
-        HandlerList.unregisterAll(this);
+        HandlerList.unregisterAll((Listener) this);
         Bukkit.getScheduler().cancelTasks(this);
         if (donateManager != null) donateManager.shutdown();
     }

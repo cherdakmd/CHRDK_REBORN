@@ -124,6 +124,36 @@ public class DonateCommand implements CommandExecutor {
             return true;
         }
 
+        if (args[0].equalsIgnoreCase("fundraiser")) {
+            if (!sender.hasPermission("vkchat.donate.admin")) {
+                sender.sendMessage(ChatColor.RED + "Нет прав.");
+                return true;
+            }
+            if (args.length < 2) {
+                sender.sendMessage(plugin.getDonateManager().getFundraiserInfo());
+                sender.sendMessage(ChatColor.GRAY + "/donate fundraiser start <цель_в_рублях>");
+                sender.sendMessage(ChatColor.GRAY + "/donate fundraiser stop");
+                return true;
+            }
+            if (args[1].equalsIgnoreCase("start")) {
+                if (args.length < 3) {
+                    sender.sendMessage(ChatColor.RED + "Укажи цель: /donate fundraiser start 10000");
+                    return true;
+                }
+                try {
+                    double goal = Double.parseDouble(args[2]);
+                    plugin.getDonateManager().startFundraiser(goal);
+                } catch (NumberFormatException e) {
+                    sender.sendMessage(ChatColor.RED + "Цель должна быть числом!");
+                }
+            } else if (args[1].equalsIgnoreCase("stop")) {
+                plugin.getDonateManager().stopFundraiser();
+            } else {
+                sender.sendMessage(ChatColor.RED + "/donate fundraiser start <цель> | stop");
+            }
+            return true;
+        }
+
         sender.sendMessage(plugin.getDonateManager().getSetupInfo());
         return true;
     }
