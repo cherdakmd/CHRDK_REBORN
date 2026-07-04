@@ -48,7 +48,7 @@ public class NationGuiListener implements Listener {
                             }
                         }
                     }
-                } catch (Throwable ignored) {}
+                } catch (Exception ignored) {}
             }
         }, 40L, 40L);
     }

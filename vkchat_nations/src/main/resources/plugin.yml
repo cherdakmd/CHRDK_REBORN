@@ -20,3 +20,6 @@ permissions:
   vkchat.nations.bypass:
     description: Обход защиты приватов (строительство везде)
     default: op
+  vkchat.nations.admin:
+    description: Админские команды наций (reset, reload, info)
+    default: op

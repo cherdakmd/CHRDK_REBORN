@@ -21,6 +21,8 @@ import ru.example.vkchatnations.VKChatNationsPlugin;
 import ru.example.vkchatnations.data.ChunkClaim;
 import ru.example.vkchat.VKChatPlugin;
 
+import java.util.UUID;
+
 public class PreventListener implements Listener {
     private final VKChatNationsPlugin plugin;
 
@@ -67,11 +69,14 @@ public class PreventListener implements Listener {
                 p.sendMessage(ChatColor.GRAY + "Переименование отменено.");
             } else {
                 if (msg.length() > 32) msg = msg.substring(0, 32);
+                String finalMsg = msg;
                 ChunkClaim claim = plugin.getNationManager().pollRenameClaim(p.getUniqueId());
                 if (claim != null) {
-                    claim.setName(msg);
-                    plugin.getNationManager().saveAll();
-                    p.sendMessage(ChatColor.GREEN + "✓ Приват переименован в: " + ChatColor.WHITE + msg);
+                    Bukkit.getScheduler().runTask(plugin, () -> {
+                        claim.setName(finalMsg);
+                        plugin.getNationManager().saveAll();
+                        p.sendMessage(ChatColor.GREEN + "✓ Приват переименован в: " + ChatColor.WHITE + finalMsg);
+                    });
                 }
             }
             return;
@@ -92,9 +97,13 @@ public class PreventListener implements Listener {
                 } else {
                     ChunkClaim claim = plugin.getNationManager().pollAddingTrusted(p.getUniqueId());
                     if (claim != null) {
-                        claim.addTrusted(target.getUniqueId());
-                        plugin.getNationManager().saveAll();
-                        p.sendMessage(ChatColor.GREEN + "✓ " + target.getName() + " добавлен в доверенные!");
+                        UUID targetId = target.getUniqueId();
+                        String targetName = target.getName();
+                        Bukkit.getScheduler().runTask(plugin, () -> {
+                            claim.addTrusted(targetId);
+                            plugin.getNationManager().saveAll();
+                            p.sendMessage(ChatColor.GREEN + "✓ " + targetName + " добавлен в доверенные!");
+                        });
                     }
                 }
             }
