@@ -21,10 +21,12 @@ public class VKChatDonatePlugin extends JavaPlugin {
         }
 
         donateManager = new DonateManager(this);
-        getCommand("donate").setExecutor(new DonateCommand(this));
+        if (getCommand("donate") != null)
+            getCommand("donate").setExecutor(new DonateCommand(this));
 
+        var statusSec = getConfig().getConfigurationSection("statuses");
         getLogger().info("VKChatDonate запущен! Статусов: " +
-                getConfig().getConfigurationSection("statuses").getKeys(false).size());
+                (statusSec != null ? statusSec.getKeys(false).size() : 0));
     }
 
     @Override

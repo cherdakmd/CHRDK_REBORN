@@ -29,6 +29,7 @@ public class DonateManager {
     private final Map<String, StatusDef> statuses = new LinkedHashMap<>();
     private final Map<String, Double> totalDonated = new LinkedHashMap<>();
     private int lastProcessedId = 0;
+    private boolean vkAnnounceWarningLogged = false;
     private static final long MONTH_SECONDS = 2592000L; // 30 дней
 
     public static class StatusDef {
@@ -84,7 +85,9 @@ public class DonateManager {
         for (Map.Entry<String, Double> e : totalDonated.entrySet()) {
             dataCfg.set("donated." + e.getKey(), e.getValue());
         }
-        try { dataCfg.save(dataFile); } catch (IOException ignored) {}
+        try { dataCfg.save(dataFile); } catch (IOException e) {
+            plugin.getLogger().warning("Ошибка сохранения donations.yml: " + e.getMessage());
+        }
     }
 
     private void startPolling() {
@@ -276,7 +279,12 @@ public class DonateManager {
             String vkMsg = "💰 " + nick + " " + action + " статус " + status.display + " за донат!";
             try {
                 VKChatPlugin.getInstance().getApi().sendToMainChat(vkMsg);
-            } catch (Exception ignored) {}
+            } catch (Exception e) {
+                if (!vkAnnounceWarningLogged) {
+                    plugin.getLogger().warning("Ошибка отправки анонса доната в ВК: " + e.getMessage());
+                    vkAnnounceWarningLogged = true;
+                }
+            }
         }
 
         // Игроку лично
