@@ -24,12 +24,13 @@ import java.util.HashMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 public class MapGui implements Listener {
     private final VKChatNationsPlugin plugin;
     private final NamespacedKey chunkKeyX;
     private final NamespacedKey chunkKeyZ;
-    private final Map<Player, Long> tpCooldowns = new ConcurrentHashMap<>();
+    private final Map<UUID, Long> tpCooldowns = new ConcurrentHashMap<>();
 
     public MapGui(VKChatNationsPlugin plugin) {
         this.plugin = plugin;
@@ -161,7 +162,7 @@ public class MapGui implements Listener {
 
 
     private void teleportToClaim(Player p, Chunk c) {
-        long last = tpCooldowns.getOrDefault(p, 0L);
+        long last = tpCooldowns.getOrDefault(p.getUniqueId(), 0L);
         if (System.currentTimeMillis() - last < 300000) { // 5 mins
             long left = (300000 - (System.currentTimeMillis() - last)) / 1000;
             p.sendMessage(ChatColor.RED + "Телепорт на кулдауне! Осталось: " + left + " сек.");
@@ -181,7 +182,7 @@ public class MapGui implements Listener {
         }
 
         VKChatPlugin.getInstance().getApi().takeReputation(vkId, cost);
-        tpCooldowns.put(p, System.currentTimeMillis());
+        tpCooldowns.put(p.getUniqueId(), System.currentTimeMillis());
         
         Location target = new Location(c.getWorld(), (c.getX() << 4) + 8, c.getWorld().getHighestBlockYAt((c.getX() << 4) + 8, (c.getZ() << 4) + 8) + 1, (c.getZ() << 4) + 8);
         p.teleport(target);

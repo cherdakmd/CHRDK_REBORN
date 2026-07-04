@@ -948,6 +948,7 @@ public class NationListener implements Listener {
                 String kNation = plugin.getNationManager().getPlayerNation(killer);
                 if (vNation != null && !vNation.equals(kNation)) {
                     claim.addDurability(50);
+                    plugin.getNationManager().saveAll();
                     killer.sendMessage(ChatColor.GREEN + "Вы защитили свой приват от чужака! Прочность привата +50.");
                 }
             }
@@ -1086,9 +1087,11 @@ public class NationListener implements Listener {
         Player p = e.getPlayer();
         ChunkClaim claim = plugin.getNationManager().getPlayerHomeClaim(p.getUniqueId());
         if (claim != null && claim.hasHome()) {
-            org.bukkit.Location target = new org.bukkit.Location(p.getWorld(), claim.getHomeX(), claim.getHomeY(), claim.getHomeZ());
-            e.setRespawnLocation(target);
-            p.sendMessage(ChatColor.GREEN + "🌟 [Оберег Нации] Вы успешно возродились в безопасности на точке вашего привата!");
+            org.bukkit.World w = org.bukkit.Bukkit.getWorld(claim.getWorldName());
+            if (w != null) {
+                e.setRespawnLocation(new org.bukkit.Location(w, claim.getHomeX(), claim.getHomeY(), claim.getHomeZ()));
+                p.sendMessage(ChatColor.GREEN + "🌟 [Оберег Нации] Вы успешно возродились в безопасности на точке вашего привата!");
+            }
         }
     }
 

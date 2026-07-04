@@ -162,7 +162,7 @@ public class NationCommand implements CommandExecutor, TabCompleter {
                 return true;
             }
 
-            int cost = 20;
+            int cost = plugin.getConfig().getInt("claim.teleport-cost", 20);
             if (VKChatPlugin.getInstance().getApi().getReputation(vkId) < cost) {
                 p.sendMessage(ChatColor.RED + "Недостаточно репутации ВК! Требуется: " + cost);
                 return true;
@@ -171,9 +171,11 @@ public class NationCommand implements CommandExecutor, TabCompleter {
             VKChatPlugin.getInstance().getApi().takeReputation(vkId, cost);
             tpCooldowns.put(p.getUniqueId(), System.currentTimeMillis());
             
-            org.bukkit.Location target = new org.bukkit.Location(p.getWorld(), claim.getHomeX(), claim.getHomeY(), claim.getHomeZ(), p.getLocation().getYaw(), p.getLocation().getPitch());
+            org.bukkit.World w = org.bukkit.Bukkit.getWorld(claim.getWorldName());
+            if (w == null) { p.sendMessage(ChatColor.RED + "Мир привата не найден!"); return true; }
+            org.bukkit.Location target = new org.bukkit.Location(w, claim.getHomeX(), claim.getHomeY(), claim.getHomeZ(), p.getLocation().getYaw(), p.getLocation().getPitch());
             p.teleport(target);
-            p.sendMessage(ChatColor.GREEN + "✓ Вы телепортировались на точку возрождения привата! Списано 20 репутации.");
+            p.sendMessage(ChatColor.GREEN + "✓ Вы телепортировались на точку возрождения привата! Списано " + cost + " репутации.");
         } 
 
         else if (action.equals("claims") || action.equals("list")) {
@@ -253,7 +255,7 @@ public class NationCommand implements CommandExecutor, TabCompleter {
                 return true;
             }
 
-            int cost = 20;
+            int cost = plugin.getConfig().getInt("claim.teleport-cost", 20);
             if (VKChatPlugin.getInstance().getApi().getReputation(vkId) < cost) {
                 p.sendMessage(ChatColor.RED + "❌ Недостаточно репутации ВК! Требуется: " + cost + " реп.");
                 return true;
@@ -264,7 +266,9 @@ public class NationCommand implements CommandExecutor, TabCompleter {
             tpCooldowns.put(p.getUniqueId(), System.currentTimeMillis());
 
             // Вычисляем безопасную точку приземления над блоком привата
-            org.bukkit.Location target = new org.bukkit.Location(p.getWorld(), blockX + 0.5, blockY + 1.0, blockZ + 0.5, p.getLocation().getYaw(), p.getLocation().getPitch());
+            org.bukkit.World tw = org.bukkit.Bukkit.getWorld(claim.getWorldName());
+            if (tw == null) { p.sendMessage(ChatColor.RED + "Мир привата не найден!"); return true; }
+            org.bukkit.Location target = new org.bukkit.Location(tw, blockX + 0.5, blockY + 1.0, blockZ + 0.5, p.getLocation().getYaw(), p.getLocation().getPitch());
 
             p.teleport(target);
             p.sendMessage(ChatColor.GREEN + "✨ Вы успешно телепортировались к своему блоку привата [" + blockX + ", " + blockY + ", " + blockZ + "] за " + cost + " репутации ВК!");

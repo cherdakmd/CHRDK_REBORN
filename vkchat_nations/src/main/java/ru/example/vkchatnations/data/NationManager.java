@@ -53,6 +53,7 @@ public class NationManager {
                 if (rep >= cost && cost > 0) {
                     VKChatPlugin.getInstance().getApi().takeReputation(vkId, cost);
                     claim.addDurability(need);
+                    saveAll();
                     int fNeed = need;
                     int fCost = cost;
                     Bukkit.getScheduler().runTask(plugin, () -> {
@@ -272,8 +273,9 @@ public class NationManager {
     }
 
     public String getPlayerNation(Player p) {
+        if (p == null) return null;
         String nation = playerNations.get(p.getUniqueId());
-        if (nation == null && p != null) {
+        if (nation == null) {
             try {
                 nation = p.getPersistentDataContainer().get(playerNationKey(), PersistentDataType.STRING);
                 if (nation != null && !nation.trim().isEmpty()) {
