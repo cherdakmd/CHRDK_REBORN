@@ -34,11 +34,11 @@ public class BroadcastManager implements Listener {
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onDeath(PlayerDeathEvent e) {
+        String originalDeathMsg = e.getDeathMessage();
         e.setDeathMessage(null); // убираем ванильное, показываем своё
         Player victim = e.getEntity();
         Player killer = victim.getKiller();
         String vkStatus = getStatus(victim);
-        String originalDeathMsg = e.getDeathMessage();
         String cause = originalDeathMsg != null
                 ? ChatColor.stripColor(originalDeathMsg).replace(victim.getName(), "").trim()
                 : "погиб при загадочных обстоятельствах";

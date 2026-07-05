@@ -35,8 +35,8 @@ public class VKChatChatPlugin extends JavaPlugin {
         getCommand("ignore").setExecutor(chatCmd);
         getCommand("cc").setExecutor(chatCmd);
 
-        getLogger().info("VKChatChat запущен! Каналы: " +
-                getConfig().getConfigurationSection("channels").getKeys(false).size());
+        var chanSec = getConfig().getConfigurationSection("channels");
+        getLogger().info("VKChatChat запущен! Каналов: " + (chanSec != null ? chanSec.getKeys(false).size() : 0));
     }
 
     @Override

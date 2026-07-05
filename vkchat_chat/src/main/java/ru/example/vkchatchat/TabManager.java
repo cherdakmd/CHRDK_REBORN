@@ -21,7 +21,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class TabManager implements Listener {
     private final VKChatChatPlugin plugin;
     private final Map<UUID, String> playerTeams = new ConcurrentHashMap<>();
-    private int statsIndex = 0;
+    private volatile int statsIndex = 0;
     private final String[] statsLines = new String[4];
     private final Random rnd = new Random();
 
