@@ -4,9 +4,14 @@ import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 
-public class StreamsCommand implements CommandExecutor {
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+public class StreamsCommand implements CommandExecutor, TabCompleter {
     private final VKChatStreamsPlugin plugin;
 
     public StreamsCommand(VKChatStreamsPlugin plugin) { this.plugin = plugin; }
@@ -91,5 +96,17 @@ public class StreamsCommand implements CommandExecutor {
                 sender.sendMessage(ChatColor.RED + "Неизвестная команда.");
         }
         return true;
+    }
+
+    @Override
+    public List<String> onTabComplete(CommandSender sender, Command cmd, String alias, String[] args) {
+        if (args.length == 1) {
+            List<String> subs = new ArrayList<>(Arrays.asList("reward", "list"));
+            if (sender.hasPermission("vkchat.streams.admin")) subs.add("start");
+            String prefix = args[0].toLowerCase();
+            subs.removeIf(s -> !s.startsWith(prefix));
+            return subs;
+        }
+        return new ArrayList<>();
     }
 }

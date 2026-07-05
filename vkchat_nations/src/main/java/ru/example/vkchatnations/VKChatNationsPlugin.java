@@ -11,6 +11,7 @@ import ru.example.vkchatnations.gui.ClaimGui;
 import ru.example.vkchatnations.tasks.TaxTask;
 import ru.example.vkchatnations.listeners.PreventListener;
 import ru.example.vkchatnations.commands.NationCommand;
+import ru.example.vkchatnations.commands.ClaimCommand;
 
 public class VKChatNationsPlugin extends JavaPlugin {
     private static VKChatNationsPlugin instance;
@@ -94,7 +95,9 @@ public class VKChatNationsPlugin extends JavaPlugin {
         NationCommand nationCmd = new NationCommand(this);
         getCommand("nation").setExecutor(nationCmd);
         getCommand("nation").setTabCompleter(nationCmd);
-        getCommand("claim").setExecutor(new ru.example.vkchatnations.commands.ClaimCommand(this));
+        ClaimCommand cc = new ClaimCommand(this);
+        getCommand("claim").setExecutor(cc);
+        getCommand("claim").setTabCompleter(cc);
 
         // TaxTask уже запускает processDailyTaxes синхронно. Не запускаем второй async tax-task,
         // чтобы не было гонок сохранения YAML и Bukkit API из async-потока.

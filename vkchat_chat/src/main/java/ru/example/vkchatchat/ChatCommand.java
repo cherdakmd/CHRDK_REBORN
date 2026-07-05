@@ -5,9 +5,13 @@ import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 
-public class ChatCommand implements CommandExecutor {
+import java.util.ArrayList;
+import java.util.List;
+
+public class ChatCommand implements CommandExecutor, TabCompleter {
     private final VKChatChatPlugin plugin;
 
     public ChatCommand(VKChatChatPlugin plugin) {
@@ -118,5 +122,19 @@ public class ChatCommand implements CommandExecutor {
         }
 
         return false;
+    }
+
+    @Override
+    public List<String> onTabComplete(CommandSender sender, Command cmd, String alias, String[] args) {
+        String cmdName = cmd.getName().toLowerCase();
+        if (args.length == 1 && (cmdName.equals("mute") || cmdName.equals("ignore") || cmdName.equals("msg"))) {
+            String prefix = args[0].toLowerCase();
+            List<String> names = new ArrayList<>();
+            for (Player p : Bukkit.getOnlinePlayers()) {
+                if (p.getName().toLowerCase().startsWith(prefix)) names.add(p.getName());
+            }
+            return names;
+        }
+        return new ArrayList<>();
     }
 }

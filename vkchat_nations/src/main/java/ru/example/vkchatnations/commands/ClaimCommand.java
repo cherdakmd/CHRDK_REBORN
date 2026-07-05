@@ -8,15 +8,19 @@ import org.bukkit.entity.Player;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.TabCompleter;
 import ru.example.vkchatnations.VKChatNationsPlugin;
 import ru.example.vkchatnations.data.ChunkClaim;
 import ru.example.vkchat.VKChatPlugin;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class ClaimCommand implements CommandExecutor {
+public class ClaimCommand implements CommandExecutor, TabCompleter {
     private final VKChatNationsPlugin plugin;
     private final Map<UUID, Long> homeCooldown = new ConcurrentHashMap<>();
 
@@ -47,14 +51,12 @@ public class ClaimCommand implements CommandExecutor {
                 p.sendMessage(ChatColor.RED + "Точка дома не установлена. Установи в меню привата.");
                 return true;
             }
-            // Кулдаун
             long last = homeCooldown.getOrDefault(p.getUniqueId(), 0L);
             if (System.currentTimeMillis() - last < 300000) {
                 long left = 300000 - (System.currentTimeMillis() - last);
                 p.sendMessage(ChatColor.RED + "⏳ Кулдаун: " + (left / 60000) + " мин " + ((left % 60000) / 1000) + " сек");
                 return true;
             }
-            // Плата репутацией
             int vkId = VKChatPlugin.getInstance().getApi().getLinkedVkId(p);
             if (vkId == -1) {
                 p.sendMessage(ChatColor.RED + "❌ Привяжите ВК! (/vklink)");
@@ -76,5 +78,16 @@ public class ClaimCommand implements CommandExecutor {
         }
         p.sendMessage(ChatColor.RED + "Неизвестная команда. /claim home");
         return true;
+    }
+
+    @Override
+    public List<String> onTabComplete(CommandSender sender, Command cmd, String alias, String[] args) {
+        if (args.length == 1) {
+            String prefix = args[0].toLowerCase();
+            List<String> subs = new ArrayList<>(Arrays.asList("home"));
+            subs.removeIf(s -> !s.startsWith(prefix));
+            return subs;
+        }
+        return new ArrayList<>();
     }
 }

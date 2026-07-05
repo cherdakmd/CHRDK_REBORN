@@ -4,13 +4,15 @@ import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 
-import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-public class DonateCommand implements CommandExecutor {
+public class DonateCommand implements CommandExecutor, TabCompleter {
     private final VKChatDonatePlugin plugin;
 
     public DonateCommand(VKChatDonatePlugin plugin) {
@@ -169,5 +171,25 @@ public class DonateCommand implements CommandExecutor {
 
     private void dispatch(String cmd) {
         org.bukkit.Bukkit.dispatchCommand(org.bukkit.Bukkit.getConsoleSender(), cmd);
+    }
+
+    @Override
+    public List<String> onTabComplete(CommandSender sender, Command cmd, String alias, String[] args) {
+        if (args.length == 1) {
+            List<String> subs = new ArrayList<>(Arrays.asList("info", "status", "days", "top"));
+            if (sender.hasPermission("vkchat.donate.admin")) {
+                subs.addAll(Arrays.asList("setup", "reload", "fundraiser"));
+            }
+            String prefix = args[0].toLowerCase();
+            subs.removeIf(s -> !s.startsWith(prefix));
+            return subs;
+        }
+        if (args.length == 2 && args[0].equalsIgnoreCase("fundraiser") && sender.hasPermission("vkchat.donate.admin")) {
+            String prefix = args[1].toLowerCase();
+            List<String> subs = new ArrayList<>(Arrays.asList("start", "stop", "toggle"));
+            subs.removeIf(s -> !s.startsWith(prefix));
+            return subs;
+        }
+        return new ArrayList<>();
     }
 }

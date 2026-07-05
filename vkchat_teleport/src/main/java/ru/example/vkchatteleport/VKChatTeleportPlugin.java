@@ -54,7 +54,9 @@ public class VKChatTeleportPlugin extends JavaPlugin {
         getCommand("tpahere").setExecutor(commandExecutor);
         getCommand("tpahere").setTabCompleter(commandExecutor);
         getCommand("back").setExecutor(commandExecutor);
+        getCommand("back").setTabCompleter(commandExecutor);
         getCommand("tphistory").setExecutor(commandExecutor);
+        getCommand("tphistory").setTabCompleter(commandExecutor);
 
         getServer().getPluginManager().registerEvents(new TeleportListener(this), this);
         getLogger().info("VKChatTeleport успешно запущен!");

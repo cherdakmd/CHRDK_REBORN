@@ -30,9 +30,9 @@ public class VKChatChatPlugin extends JavaPlugin {
 
         ChatCommand chatCmd = new ChatCommand(this);
         getCommand("channel").setExecutor(chatCmd);
-        getCommand("mute").setExecutor(chatCmd);
-        getCommand("msg").setExecutor(chatCmd);
-        getCommand("ignore").setExecutor(chatCmd);
+        getCommand("mute").setExecutor(chatCmd); getCommand("mute").setTabCompleter(chatCmd);
+        getCommand("msg").setExecutor(chatCmd); getCommand("msg").setTabCompleter(chatCmd);
+        getCommand("ignore").setExecutor(chatCmd); getCommand("ignore").setTabCompleter(chatCmd);
         getCommand("cc").setExecutor(chatCmd);
 
         var chanSec = getConfig().getConfigurationSection("channels");
