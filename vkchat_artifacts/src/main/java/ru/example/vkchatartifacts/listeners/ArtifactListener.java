@@ -28,6 +28,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.HashSet;
 import java.util.UUID;
 import java.util.Collections;
@@ -45,7 +46,7 @@ public class ArtifactListener implements Listener {
     private final NamespacedKey mythicKey;
     private final NamespacedKey expireKey;
     private final NamespacedKey curseGrowthKey;
-    private final Set<Integer> boostingIds = Collections.synchronizedSet(new HashSet<>());
+    private final Set<Integer> boostingIds = ConcurrentHashMap.newKeySet();
     private final Set<String> absorbedCurses = Collections.synchronizedSet(new HashSet<>());
     private final java.util.Map<java.util.UUID, Long> revivalCooldowns = new java.util.concurrent.ConcurrentHashMap<>();
     private final Set<UUID> processing = new HashSet<>(); // Защита от рекурсии
@@ -497,8 +498,7 @@ public class ArtifactListener implements Listener {
             double maxMult = plugin.getConfig().getDouble("curse-growth.greed-max-multiplier", 1.5);
             multiplier = Math.min(multiplier, maxMult);
             int extra = (int) Math.round(diff * multiplier);
-            if (extra > 0) {
-                boostingIds.add(vkId);
+            if (extra > 0 && boostingIds.add(vkId)) {
                 final Player finalPlayer = player;
                 final int finalExtra = extra;
                 plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {

@@ -352,9 +352,14 @@ public class JobsDataManager {
         double raw = Math.max(0.0, base * actionMult * amount * levelMult * donorMult);
         if (raw <= 0) return;
 
-        double accumulated = repFractions.getOrDefault(uuid, 0.0) + raw;
-        int payout = (int)Math.floor(accumulated);
-        repFractions.put(uuid, accumulated - payout);
+        final double[] result = {0};
+        repFractions.compute(uuid, (k, v) -> {
+            double accumulated = (v != null ? v : 0.0) + raw;
+            double floor = Math.floor(accumulated);
+            result[0] = floor;
+            return accumulated - floor;
+        });
+        int payout = (int) result[0];
         if (payout <= 0) return;
 
         rewardVkRepSilent(p, payout);

@@ -180,9 +180,16 @@ public class ShiftManager {
                 - plugin.getConfig().getInt("shifts." + key + ".rep-min", 50) + 1)
                 + plugin.getConfig().getInt("shifts." + key + ".rep-min", 50);
 
-        int consecutive = shiftHistory.getOrDefault(vkId, 0) + 1;
+        long now = System.currentTimeMillis();
+        long lastEnd = lastShiftEnd.getOrDefault(vkId, 0L);
+        long streakResetMs = plugin.getConfig().getLong("shifts.streak-reset-hours", 24) * 3600000L;
+        int consecutive = shiftHistory.getOrDefault(vkId, 0);
+        if (lastEnd > 0 && now - lastEnd > streakResetMs) {
+            consecutive = 0;
+        }
+        consecutive++;
         shiftHistory.put(vkId, consecutive);
-        lastShiftEnd.put(vkId, System.currentTimeMillis());
+        lastShiftEnd.put(vkId, now);
 
         int bonusRep = 0;
         if (consecutive >= 5) {

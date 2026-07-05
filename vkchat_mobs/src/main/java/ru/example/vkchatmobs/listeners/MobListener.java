@@ -921,15 +921,14 @@ public class MobListener implements Listener {
                             farmedRepToday.put(pUuid, 0);
                         }
                         
-                        int maxHourRep = 300 + totalJobLevels * 3; // Динамический часовой лимит!
-                        int currentHourlyRep = farmedRepToday.getOrDefault(pUuid, 0);
+                        int maxHourRep = 300 + totalJobLevels * 3;
+                        int current = farmedRepToday.getOrDefault(pUuid, 0);
                         
-                        if (currentHourlyRep >= maxHourRep) {
+                        if (current >= maxHourRep) {
                             killer.sendMessage(org.bukkit.ChatColor.RED + "⚠️ Лимит фарма! На основе ваших профессий лимит составляет " + maxHourRep + " реп/час. Вы набили максимум. Отдохните!");
-                            // Не даём репу, но лут и остальное продолжается
                         } else {
+                            farmedRepToday.merge(pUuid, finalRep, Integer::sum);
                             ru.example.vkchatmobs.util.VKChatBridge.addPoints(vkId, finalRep);
-                            farmedRepToday.put(pUuid, currentHourlyRep + finalRep);
                         }
                         
                         String message = org.bukkit.ChatColor.GOLD + "🔺 +" + finalRep + " репутации ВК за убийство " + 
