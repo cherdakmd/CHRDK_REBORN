@@ -104,7 +104,7 @@ public class ContractManager {
         PersistentDataContainer pdc = p.getPersistentDataContainer();
         long lastReset = pdc.getOrDefault(cooldownKey, PersistentDataType.LONG, 0L);
         long now = System.currentTimeMillis();
-        long nextAvailable = lastReset + 86400000L; // 24 часа
+        long nextAvailable = lastReset + plugin.getConfig().getLong("contracts.cooldown-hours", 24) * 3600000L;
         return Math.max(0, nextAvailable - now);
     }
 

@@ -112,6 +112,7 @@ public class VKChatMobsPlugin extends JavaPlugin {
     public void onDisable() {
         HandlerList.unregisterAll(this);
         Bukkit.getScheduler().cancelTasks(this);
+        if (siegeManager != null) siegeManager.shutdown();
         getLogger().info("VKChatMobs успешно выключен.");
     }
 

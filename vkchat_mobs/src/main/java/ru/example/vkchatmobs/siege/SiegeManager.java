@@ -89,8 +89,8 @@ public class SiegeManager {
                     return;
                 }
 
-                // Каждую минуту есть 25% шанс запустить осаду у случайного онлайн игрока с приватом
-                if (ThreadLocalRandom.current().nextInt(100) < 25) {
+                int triggerChance = plugin.getConfig().getInt("siege.trigger-chance-percent", 25);
+                if (ThreadLocalRandom.current().nextInt(100) < triggerChance) {
                     triggerRandomSiege();
                 }
 
@@ -442,6 +442,12 @@ public class SiegeManager {
             if (nationsPlugin != null) {
                 nationsPlugin.getNationManager().broadcastToNationWithPrefix(nation, "§c☠ Осада завершена неудачей. Причина: " + reason);
             }
+        }
+    }
+
+    public void shutdown() {
+        for (String key : new ArrayList<>(activeSieges.keySet())) {
+            stopSiege(key, false, "Перезагрузка сервера");
         }
     }
 }
