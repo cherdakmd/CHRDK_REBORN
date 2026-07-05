@@ -35,7 +35,38 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
             return true;
         }
         if (args.length == 0 || args[0].equalsIgnoreCase("help")) {
-            p.sendMessage(ChatColor.GOLD + "/claim home " + ChatColor.GRAY + "— телепорт к дому привата (20 реп, кулдаун 5 мин)");
+            int max = plugin.getNationManager().getMaxClaimsFor(p);
+            int cur = plugin.getNationManager().getClaimCount(p.getUniqueId());
+            p.sendMessage(ChatColor.GOLD + "/claim home " + ChatColor.GRAY + "— телепорт к дому привата (" + plugin.getConfig().getInt("claim.teleport-cost", 20) + " реп)");
+            p.sendMessage(ChatColor.GOLD + "/claim info " + ChatColor.GRAY + "— информация о привате на текущем месте");
+            p.sendMessage(ChatColor.GOLD + "/claim limits " + ChatColor.GRAY + "— твой лимит (" + cur + "/" + max + ")");
+            return true;
+        }
+        if (args[0].equalsIgnoreCase("info")) {
+            ChunkClaim claim = plugin.getNationManager().getClaimAt(p.getLocation());
+            if (claim == null) {
+                p.sendMessage(ChatColor.RED + "Вы не находитесь внутри привата.");
+                return true;
+            }
+            String ownerName = Bukkit.getOfflinePlayer(claim.getOwner()).getName();
+            p.sendMessage(ChatColor.GOLD + "=== Приват ===");
+            p.sendMessage(ChatColor.GRAY + "Владелец: " + ChatColor.WHITE + (ownerName != null ? ownerName : "???"));
+            p.sendMessage(ChatColor.GRAY + "Название: " + ChatColor.WHITE + claim.getName());
+            p.sendMessage(ChatColor.GRAY + "Уровень: " + ChunkClaim.getLevelColor(claim.getLevel()) + claim.getLevel());
+            p.sendMessage(ChatColor.GRAY + "Прочность: " + ChatColor.GREEN + claim.getDurability() + "/" + claim.getMaxDurability());
+            p.sendMessage(ChatColor.GRAY + "Радиус: " + ChatColor.YELLOW + claim.getRadius() + " блоков");
+            int expansions = claim.getExtraRadius() / 3;
+            if (expansions > 0) p.sendMessage(ChatColor.GRAY + "Расширений: " + ChatColor.YELLOW + expansions);
+            p.sendMessage(ChatColor.GRAY + "Автопродление: " + (claim.isAutoPayEnabled() ? ChatColor.GREEN + "ВКЛ" : ChatColor.RED + "ВЫКЛ"));
+            return true;
+        }
+        if (args[0].equalsIgnoreCase("limits")) {
+            int max = plugin.getNationManager().getMaxClaimsFor(p);
+            int cur = plugin.getNationManager().getClaimCount(p.getUniqueId());
+            p.sendMessage(ChatColor.GOLD + "=== Лимит приватов ===");
+            p.sendMessage(ChatColor.GRAY + "Установлено: " + ChatColor.WHITE + cur + ChatColor.GRAY + "/" + ChatColor.WHITE + max);
+            int nextCost = plugin.getNationManager().getClaimCostFor(p);
+            p.sendMessage(ChatColor.GRAY + "Цена следующего: " + ChatColor.GOLD + nextCost + " реп.");
             return true;
         }
         if (args[0].equalsIgnoreCase("home")) {
@@ -84,7 +115,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
     public List<String> onTabComplete(CommandSender sender, Command cmd, String alias, String[] args) {
         if (args.length == 1) {
             String prefix = args[0].toLowerCase();
-            List<String> subs = new ArrayList<>(Arrays.asList("home"));
+            List<String> subs = new ArrayList<>(Arrays.asList("home", "info", "limits"));
             subs.removeIf(s -> !s.startsWith(prefix));
             return subs;
         }

@@ -302,19 +302,22 @@ public class NationGuiListener implements Listener {
         ItemMeta glassMeta = glass.getItemMeta();
         glassMeta.setDisplayName(" ");
         glass.setItemMeta(glassMeta);
-        for (int i = 0; i < 27; i++) {
-            inv.setItem(i, glass);
-        }
+        for (int i = 0; i < 27; i++) inv.setItem(i, glass);
+
+        int curCount = plugin.getNationManager().getClaimCount(p.getUniqueId());
+        int maxCount = plugin.getNationManager().getMaxClaimsFor(p);
+        int nextCost = plugin.getNationManager().getClaimCostFor(p);
 
         // Small Block
         ItemStack small = plugin.getNationManager().getSmallClaimBlockItem();
         ItemMeta sMeta = small.getItemMeta();
         List<String> sLore = sMeta.getLore();
         sLore.add("");
-        sLore.add(ChatColor.RED + "Цена: " + ChatColor.GOLD + "100 реп. ВК");
+        sLore.add(ChatColor.RED + "Цена: " + ChatColor.GOLD + nextCost + " реп. ВК");
+        sLore.add(ChatColor.GRAY + "Твои приваты: " + curCount + "/" + maxCount);
         sLore.add(ChatColor.YELLOW + "▶ Кликните для покупки ◀");
         sMeta.setLore(sLore);
-        sMeta.getPersistentDataContainer().set(new NamespacedKey(plugin, "buy_block_cost"), PersistentDataType.INTEGER, 100);
+        sMeta.getPersistentDataContainer().set(new NamespacedKey(plugin, "buy_block_cost"), PersistentDataType.INTEGER, nextCost);
         sMeta.getPersistentDataContainer().set(new NamespacedKey(plugin, "buy_block_radius"), PersistentDataType.INTEGER, 8);
         small.setItemMeta(sMeta);
 
@@ -323,10 +326,11 @@ public class NationGuiListener implements Listener {
         ItemMeta mMeta = medium.getItemMeta();
         List<String> mLore = mMeta.getLore();
         mLore.add("");
-        mLore.add(ChatColor.RED + "Цена: " + ChatColor.GOLD + "250 реп. ВК");
+        mLore.add(ChatColor.RED + "Цена: " + ChatColor.GOLD + (nextCost * 2) + " реп. ВК");
+        mLore.add(ChatColor.GRAY + "Твои приваты: " + curCount + "/" + maxCount);
         mLore.add(ChatColor.YELLOW + "▶ Кликните для покупки ◀");
         mMeta.setLore(mLore);
-        mMeta.getPersistentDataContainer().set(new NamespacedKey(plugin, "buy_block_cost"), PersistentDataType.INTEGER, 250);
+        mMeta.getPersistentDataContainer().set(new NamespacedKey(plugin, "buy_block_cost"), PersistentDataType.INTEGER, nextCost * 2);
         mMeta.getPersistentDataContainer().set(new NamespacedKey(plugin, "buy_block_radius"), PersistentDataType.INTEGER, 16);
         medium.setItemMeta(mMeta);
 
@@ -335,10 +339,11 @@ public class NationGuiListener implements Listener {
         ItemMeta lMeta = large.getItemMeta();
         List<String> lLore = lMeta.getLore();
         lLore.add("");
-        lLore.add(ChatColor.RED + "Цена: " + ChatColor.GOLD + "600 реп. ВК");
+        lLore.add(ChatColor.RED + "Цена: " + ChatColor.GOLD + (nextCost * 5) + " реп. ВК");
+        lLore.add(ChatColor.GRAY + "Твои приваты: " + curCount + "/" + maxCount);
         lLore.add(ChatColor.YELLOW + "▶ Кликните для покупки ◀");
         lMeta.setLore(lLore);
-        lMeta.getPersistentDataContainer().set(new NamespacedKey(plugin, "buy_block_cost"), PersistentDataType.INTEGER, 600);
+        lMeta.getPersistentDataContainer().set(new NamespacedKey(plugin, "buy_block_cost"), PersistentDataType.INTEGER, nextCost * 5);
         lMeta.getPersistentDataContainer().set(new NamespacedKey(plugin, "buy_block_radius"), PersistentDataType.INTEGER, 32);
         large.setItemMeta(lMeta);
 

@@ -355,6 +355,37 @@ public class NationManager {
         return result;
     }
 
+    public int getClaimCount(java.util.UUID owner) {
+        int count = 0;
+        for (ChunkClaim c : nationClaims.values()) {
+            if (c.getOwner().equals(owner)) count++;
+        }
+        return count;
+    }
+
+    public int getMaxClaimsFor(Player p) {
+        int max = plugin.getConfig().getInt("claim.max-claims.default", 5);
+        try {
+            org.bukkit.plugin.Plugin donate = org.bukkit.Bukkit.getPluginManager().getPlugin("VKChatDonate");
+            if (donate != null && donate.isEnabled()) {
+                Object dm = donate.getClass().getMethod("getDonateManager").invoke(donate);
+                Object status = dm.getClass().getMethod("getPlayerStatus", Player.class).invoke(dm, p);
+                if (status != null) {
+                    String statusId = (String) status.getClass().getField("id").get(status);
+                    max = plugin.getConfig().getInt("claim.max-claims." + statusId, max);
+                }
+            }
+        } catch (Exception ignored) {}
+        return max;
+    }
+
+    public int getClaimCostFor(Player p) {
+        int base = plugin.getConfig().getInt("claim.base-cost", 100);
+        int increment = plugin.getConfig().getInt("claim.cost-increment", 50);
+        int count = getClaimCount(p.getUniqueId());
+        return base + count * increment;
+    }
+
     public Map<UUID, String> getPlayerNations() {
         return playerNations;
     }
