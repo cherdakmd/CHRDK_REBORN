@@ -57,8 +57,9 @@ public class MobStormManager implements Listener {
     }
 
     public void startStorm(Location center) {
-        stormActive.set(true);
         World world = center.getWorld();
+        if (world == null) return;
+        stormActive.set(true);
         int totalMobs = plugin.getConfig().getInt("mob-storm.total-mobs", 50);
         int mobRank = plugin.getConfig().getInt("mob-storm.mob-rank", 5);
         double mobMultiplier = plugin.getConfig().getDouble("mob-storm.mob-multiplier", 2.0);

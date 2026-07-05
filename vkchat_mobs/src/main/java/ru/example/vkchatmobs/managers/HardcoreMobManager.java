@@ -100,6 +100,7 @@ public class HardcoreMobManager implements Listener {
         EntityType type = tier.equalsIgnoreCase("world") ? EntityType.WITHER_SKELETON : EntityType.ZOMBIE;
         if (tier.equalsIgnoreCase("raid")) type = EntityType.ILLUSIONER;
         if (tier.equalsIgnoreCase("mini")) type = EntityType.VINDICATOR;
+        if (loc.getWorld() == null) return null;
         Entity e = loc.getWorld().spawnEntity(loc, type);
         if (e instanceof LivingEntity) {
             LivingEntity le = (LivingEntity) e;

@@ -49,7 +49,7 @@ public class SiegeManager {
         public final String claimKey;
         public final ChunkClaim claim;
         public final Location blockLoc;
-        public final List<UUID> aliveMonsters = new ArrayList<>();
+        public final List<UUID> aliveMonsters = new java.util.concurrent.CopyOnWriteArrayList<>();
         public int currentWave = 1;
         public int totalWaves = 3;
         public int state = 0; // 0 = spawning wave, 1 = fighting wave, 2 = wave transition, 3 = finished

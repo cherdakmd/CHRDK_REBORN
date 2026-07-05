@@ -1128,6 +1128,7 @@ public class MobListener implements Listener {
     // --- [НОВОЕ] ИСПОЛЬЗОВАНИЕ ТОКЕНОВ И ЖЕТОНОВ НА ПРАВЫЙ КЛИК ---
     @EventHandler
     public void onPlayerInteract(PlayerInteractEvent e) {
+        if (e.isCancelled()) return;
         if (e.getAction() != Action.RIGHT_CLICK_AIR && e.getAction() != Action.RIGHT_CLICK_BLOCK) return;
         Player p = e.getPlayer();
         ItemStack item = e.getItem();
