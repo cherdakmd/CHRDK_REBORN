@@ -157,7 +157,7 @@ public class QuestManager implements Listener {
                     }
                 }
 
-                playerProgress.putIfAbsent(p.getUniqueId(), new HashMap<>());
+                playerProgress.putIfAbsent(p.getUniqueId(), new ConcurrentHashMap<>());
                 int current = playerProgress.get(p.getUniqueId()).getOrDefault(qKey, 0) + amount;
                 int required = q.getInt("amount");
                 

@@ -154,10 +154,11 @@ public class DonateManager {
             return;
         }
 
-        // Найти подходящий статус по сумме
+        // Найти подходящий статус по сумме (максимальный по цене)
         StatusDef bestStatus = null;
         for (StatusDef s : statuses.values()) {
-            if (amountRub >= s.price) bestStatus = s;
+            if (amountRub >= s.price && (bestStatus == null || s.price > bestStatus.price))
+                bestStatus = s;
         }
 
         // Нет статуса → репутация
