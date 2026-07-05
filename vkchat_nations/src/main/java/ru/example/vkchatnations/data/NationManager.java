@@ -419,24 +419,8 @@ public class NationManager {
             return false;
         }
 
-        // Проверяем лимит блоков привата по донат-статусу
-        int currentCount = 0;
-        for (ChunkClaim c : nationClaims.values()) {
-            if (c.getOwner().equals(p.getUniqueId())) currentCount++;
-        }
-
-        int maxClaims = plugin.getConfig().getInt("claim.max-claims.default", 5);
-        try {
-            org.bukkit.plugin.Plugin donate = org.bukkit.Bukkit.getPluginManager().getPlugin("VKChatDonate");
-            if (donate != null && donate.isEnabled()) {
-                Object dm = donate.getClass().getMethod("getDonateManager").invoke(donate);
-                Object status = dm.getClass().getMethod("getPlayerStatus", Player.class).invoke(dm, p);
-                if (status != null) {
-                    String statusId = (String) status.getClass().getField("id").get(status);
-                    maxClaims = plugin.getConfig().getInt("claim.max-claims." + statusId, maxClaims);
-                }
-            }
-        } catch (Exception ignored) {}
+        int currentCount = getClaimCount(p.getUniqueId());
+        int maxClaims = getMaxClaimsFor(p);
 
         if (currentCount >= maxClaims) {
             p.sendMessage(ChatColor.RED + "❌ Лимит приватов! Вы не можете установить более " + maxClaims + " блоков привата (У вас: " + currentCount + "/" + maxClaims + ").");

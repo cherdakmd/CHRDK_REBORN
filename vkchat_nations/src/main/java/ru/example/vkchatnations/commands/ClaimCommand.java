@@ -57,6 +57,10 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
             p.sendMessage(ChatColor.GRAY + "Радиус: " + ChatColor.YELLOW + claim.getRadius() + " блоков");
             int expansions = claim.getExtraRadius() / 3;
             if (expansions > 0) p.sendMessage(ChatColor.GRAY + "Расширений: " + ChatColor.YELLOW + expansions);
+            int baseDecay = plugin.getConfig().getInt("claim.durability-decay.base", 2);
+            int perExp = plugin.getConfig().getInt("claim.durability-decay.per-expansion", 1);
+            int decay = baseDecay + expansions * perExp;
+            p.sendMessage(ChatColor.GRAY + "Износ в день: " + ChatColor.RED + "-" + decay);
             p.sendMessage(ChatColor.GRAY + "Автопродление: " + (claim.isAutoPayEnabled() ? ChatColor.GREEN + "ВКЛ" : ChatColor.RED + "ВЫКЛ"));
             return true;
         }
