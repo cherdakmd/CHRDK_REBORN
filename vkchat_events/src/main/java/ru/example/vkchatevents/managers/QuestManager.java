@@ -162,13 +162,13 @@ public class QuestManager implements Listener {
                 int required = q.getInt("amount");
                 
                 if (current >= required) {
-                    playerProgress.get(p.getUniqueId()).remove(qKey);
-                    saveProgress();
                     int rep = q.getInt("reward_rep");
                     
                     int vkId = VKChatPlugin.getInstance().getApi().getLinkedVkId(p);
                     if (vkId != -1) {
                         VKChatPlugin.getInstance().getApi().addReputation(vkId, rep);
+                        playerProgress.get(p.getUniqueId()).remove(qKey);
+                        saveProgress();
                         p.sendMessage(ChatColor.GREEN + " Вы завершили сюжетный квест: " + q.getString("desc") + "!");
                         p.sendMessage(ChatColor.YELLOW + "Награда: +" + rep + " ВК Репутации");
                     }

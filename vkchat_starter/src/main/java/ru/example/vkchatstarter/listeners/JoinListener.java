@@ -35,11 +35,8 @@ public class JoinListener implements Listener {
         if (!plugin.getConfig().getBoolean("settings.enabled", true)) return;
         Player p = e.getPlayer();
 
-        // Только для новых игроков (или тех кто не получил набор)
-        if (p.hasPlayedBefore() && p.getPersistentDataContainer().has(starterKey, PersistentDataType.INTEGER)) return;
-
-        // Помечаем что набор получен
-        p.getPersistentDataContainer().set(starterKey, PersistentDataType.INTEGER, 1);
+        // Только для новых игроков
+        if (p.hasPlayedBefore()) return;
 
         // === 1. ЗАЩИТА НОВОГО ИГРОКА ===
         int protectionSeconds = plugin.getConfig().getInt("settings.join-protection-seconds", 30);

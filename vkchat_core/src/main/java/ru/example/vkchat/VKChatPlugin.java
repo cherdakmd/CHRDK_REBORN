@@ -19,9 +19,14 @@ import ru.example.vkchat.database.DatabaseManager;
 import ru.example.vkchat.hardcore.BleedingTask;
 import ru.example.vkchat.auth.MembershipManager;
 
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
 public class VKChatPlugin extends JavaPlugin {
 
     private static VKChatPlugin instance;
+    private final Map<Integer, Integer> playTimeRepToday = new ConcurrentHashMap<>();
+    private final Map<Integer, Long> playTimeDayReset = new ConcurrentHashMap<>();
 
     private ConfigManager configManager;
     private VKLongPollManager vkLongPollManager;
@@ -156,14 +161,26 @@ public class VKChatPlugin extends JavaPlugin {
         int playTimeInterval = getConfig().getInt("reputation.play-time-interval", 60) * 20 * 60;
         if (playTimeInterval > 0) {
             getServer().getScheduler().runTaskTimerAsynchronously(this, () -> {
+                long now = System.currentTimeMillis();
                 for (Player p : new java.util.ArrayList<>(Bukkit.getOnlinePlayers())) {
-                    if (coreManagers.getAuthManager().isFullyAuthorized(p)) {
-                        int vkId = coreManagers.getAuthManager().getLinkedVkId(p);
-                        if (vkId != -1) {
-                            int reward = getConfig().getInt("reputation.play-time-reward", 1);
-                            coreManagers.getReputationManager().addPoints(vkId, reward);
-                        }
+                    if (!coreManagers.getAuthManager().isFullyAuthorized(p)) continue;
+                    int vkId = coreManagers.getAuthManager().getLinkedVkId(p);
+                    if (vkId == -1) continue;
+
+                    // Сброс дневного счётчика
+                    long dayMs = 86400000L;
+                    if (now - playTimeDayReset.getOrDefault(vkId, 0L) >= dayMs) {
+                        playTimeDayReset.put(vkId, now);
+                        playTimeRepToday.put(vkId, 0);
                     }
+
+                    int maxPerDay = getConfig().getInt("reputation.play-time-max-per-day", 100);
+                    int earned = playTimeRepToday.getOrDefault(vkId, 0);
+                    if (earned >= maxPerDay) continue;
+
+                    int reward = getConfig().getInt("reputation.play-time-reward", 1);
+                    coreManagers.getReputationManager().addPoints(vkId, reward);
+                    playTimeRepToday.merge(vkId, reward, Integer::sum);
                 }
             }, playTimeInterval, playTimeInterval);
         }
