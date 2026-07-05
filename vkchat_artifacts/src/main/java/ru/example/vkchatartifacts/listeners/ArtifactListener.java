@@ -494,6 +494,8 @@ public class ArtifactListener implements Listener {
         }
 
         if (multiplier > 0) {
+            double maxMult = plugin.getConfig().getDouble("curse-growth.greed-max-multiplier", 1.5);
+            multiplier = Math.min(multiplier, maxMult);
             int extra = (int) Math.round(diff * multiplier);
             if (extra > 0) {
                 boostingIds.add(vkId);
