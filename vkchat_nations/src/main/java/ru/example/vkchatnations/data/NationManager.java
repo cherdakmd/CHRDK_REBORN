@@ -388,14 +388,25 @@ public class NationManager {
             return false;
         }
 
-        // Проверяем лимит 5 блоков привата на игрока!
+        // Проверяем лимит блоков привата по донат-статусу
         int currentCount = 0;
         for (ChunkClaim c : nationClaims.values()) {
-            if (c.getOwner().equals(p.getUniqueId())) {
-                currentCount++;
-            }
+            if (c.getOwner().equals(p.getUniqueId())) currentCount++;
         }
-        int maxClaims = plugin.getConfig().getInt("claim.max-per-player", 5);
+
+        int maxClaims = plugin.getConfig().getInt("claim.max-claims.default", 5);
+        try {
+            org.bukkit.plugin.Plugin donate = org.bukkit.Bukkit.getPluginManager().getPlugin("VKChatDonate");
+            if (donate != null && donate.isEnabled()) {
+                Object dm = donate.getClass().getMethod("getDonateManager").invoke(donate);
+                Object status = dm.getClass().getMethod("getPlayerStatus", Player.class).invoke(dm, p);
+                if (status != null) {
+                    String statusId = (String) status.getClass().getField("id").get(status);
+                    maxClaims = plugin.getConfig().getInt("claim.max-claims." + statusId, maxClaims);
+                }
+            }
+        } catch (Exception ignored) {}
+
         if (currentCount >= maxClaims) {
             p.sendMessage(ChatColor.RED + "❌ Лимит приватов! Вы не можете установить более " + maxClaims + " блоков привата (У вас: " + currentCount + "/" + maxClaims + ").");
             return false;
@@ -614,8 +625,13 @@ public class NationManager {
             String key = entry.getKey();
             ChunkClaim claim = entry.getValue();
 
-            // Владелец платит налог прочностью привата ежедневно (-2 DUR)
-            claim.setDurability(claim.getDurability() - 2);
+            // Владелец платит налог прочностью привата ежедневно (зависит от размера)
+            int baseDecay = plugin.getConfig().getInt("claim.durability-decay.base", 2);
+            int perExpansion = plugin.getConfig().getInt("claim.durability-decay.per-expansion", 1);
+            int extraRadius = claim.getRadius() - claim.getBaseRadius();
+            int expansions = extraRadius / 3;
+            int decay = baseDecay + expansions * perExpansion;
+            claim.setDurability(claim.getDurability() - decay);
 
             String nation = claim.getNation();
 
