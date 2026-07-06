@@ -42,7 +42,7 @@ public class MapGui implements Listener {
     public void openMap(Player p) {
         // Исправлено: 81 слот -> 54 слота (6x9 максимум для createInventory)
         // Отображаем 5x5 чанков вокруг игрока (2 в каждую сторону от центра)
-        Inventory inv = Bukkit.createInventory(null, 54, ChatColor.DARK_GRAY + "Карта Территорий");
+        Inventory inv = Bukkit.createInventory(null, 54, "§8▸ §7§lКАРТА §8◂ §7Территории");
         Chunk centerChunk = p.getLocation().getChunk();
         int cx = centerChunk.getX();
         int cz = centerChunk.getZ();

@@ -40,7 +40,7 @@ public class ClaimGui implements Listener {
             return;
         }
 
-        Inventory inv = Bukkit.createInventory(null, 27, ChatColor.DARK_BLUE + "Управление Приватом");
+        Inventory inv = Bukkit.createInventory(null, 27, "§8▸ §9§lПРИВАТ §8◂ §7Управление");
 
         // Информация о привате
         ItemStack info = new ItemStack(Material.BEACON);

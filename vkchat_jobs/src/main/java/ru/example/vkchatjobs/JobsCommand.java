@@ -89,7 +89,7 @@ public class JobsCommand implements CommandExecutor, TabCompleter {
     }
 
     private void openMain(Player p) {
-        Inventory inv = Bukkit.createInventory(null, 54, ChatColor.GOLD + "=== Твои Профессии ===");
+        Inventory inv = Bukkit.createInventory(null, 54, "§8▸ §e§lПРОФЕССИИ §8◂ §7Меню");
         fill(inv);
 
         String[] jobsList = {"miner", "woodcutter", "farmer", "alchemist", "blacksmith", "hunter", "fisherman"};
