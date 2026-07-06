@@ -559,12 +559,12 @@ public class MarketGuiListener implements Listener {
         int actual = Math.min(amount, canBuy);
 
         // Проверяем что все влезет в инвентарь ДО списания
-        ItemStack toBuy = new ItemStack(m, actual);
+        ItemStack sample = createCustomItem(plugin, itemId);
         int free = 0;
         for (int i = 0; i < 36; i++) {
             ItemStack slot = p.getInventory().getItem(i);
-            if (slot == null || slot.getType() == Material.AIR) free += toBuy.getMaxStackSize();
-            else if (slot.isSimilar(toBuy)) free += toBuy.getMaxStackSize() - slot.getAmount();
+            if (slot == null || slot.getType() == Material.AIR) free += sample.getMaxStackSize();
+            else if (slot.isSimilar(sample)) free += sample.getMaxStackSize() - slot.getAmount();
         }
         if (free < actual) { p.sendMessage("§cИнвентарь полон!"); return; }
 
@@ -575,7 +575,10 @@ public class MarketGuiListener implements Listener {
         int rep = VKChatBridge.getReputation(vkId);
         if (rep < cost) { p.sendMessage("§cНужно " + cost + " реп. (у тебя " + rep + ")"); return; }
 
-        p.getInventory().addItem(toBuy);
+        for (int i = 0; i < actual; i++) {
+            ItemStack toGive = createCustomItem(plugin, itemId);
+            p.getInventory().addItem(toGive);
+        }
 
         VKChatBridge.takeReputation(vkId, cost);
         plugin.getMarketManager().markTrade(itemId, p);
@@ -587,7 +590,7 @@ public class MarketGuiListener implements Listener {
     }
 
     private void buyLimitedItem(Player p, String itemId) {
-        Material m; try { m = Material.valueOf(itemId); } catch (Exception e) { return; }
+        Material m = getMarketMaterial(plugin, itemId);
         int vkId = VKChatBridge.getLinkedVkId(p);
         if (vkId == -1) { p.sendMessage("§cПривяжи ВК (/vklink)!"); return; }
         int price = (int) Math.max(1, Math.round(plugin.getConfig().getInt("limited-items." + itemId + ".price", 1000) * donorBuyMultiplier(p)));
@@ -598,7 +601,7 @@ public class MarketGuiListener implements Listener {
         if (boughtToday >= limit) { p.sendMessage("§cЛимит на сегодня: " + boughtToday + "/" + limit); return; }
         int currentRep = VKChatBridge.getReputation(vkId);
         if (currentRep < price) { p.sendMessage("§cНужно " + price + " реп. (у тебя " + currentRep + ")"); return; }
-        if (!p.getInventory().addItem(new ItemStack(m, 1)).isEmpty()) { p.sendMessage("§cИнвентарь полон!"); return; }
+        if (!p.getInventory().addItem(createCustomItem(plugin, itemId)).isEmpty()) { p.sendMessage("§cИнвентарь полон!"); return; }
         p.getPersistentDataContainer().set(limitKey, PersistentDataType.INTEGER, boughtToday + 1);
         VKChatBridge.takeReputation(vkId, price);
         p.sendMessage("§d§l💎 Куплено: §f" + itemId + " §dза §e" + price + " реп. §7(" + (boughtToday + 1) + "/" + limit + ")");
