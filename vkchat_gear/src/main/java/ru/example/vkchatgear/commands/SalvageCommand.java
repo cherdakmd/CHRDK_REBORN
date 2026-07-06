@@ -415,7 +415,8 @@ public class SalvageCommand implements CommandExecutor, Listener, TabCompleter {
 
         for (int i = 9; i <= 17; i++) {
             ItemStack item = inv.getItem(i);
-            if (item != null && item.getType() != Material.AIR) {
+            if (item != null && item.getType() != Material.AIR
+                    && !(item.hasItemMeta() && item.getItemMeta().hasDisplayName() && " ".equals(item.getItemMeta().getDisplayName()))) {
                 toReturn.add(item);
             }
         }
