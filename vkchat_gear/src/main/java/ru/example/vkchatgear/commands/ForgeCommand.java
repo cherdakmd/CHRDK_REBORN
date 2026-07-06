@@ -32,13 +32,13 @@ public class ForgeCommand implements CommandExecutor, Listener, TabCompleter {
     private final VKChatGearPlugin plugin;
     private final Random random = new Random();
 
-    private final String HUB_TITLE = ChatColor.DARK_RED + "⚒ Реликтовая кузня";
-    private final String FUSION_TITLE = ChatColor.DARK_RED + "⚒ Кузня: Слияние";
-    private final String REFORGE_TITLE = ChatColor.DARK_RED + "⚒ Кузня: Перековка";
-    private final String CLEANSE_TITLE = ChatColor.DARK_RED + "⚒ Кузня: Очищение";
-    private final String REPAIR_TITLE = ChatColor.DARK_RED + "⚒ Кузня: Ремонт";
-    private final String SCROLLS_TITLE = ChatColor.DARK_RED + "⚒ Кузня: Свитки";
-    private final String RUNE_CLEANSING_TITLE = ChatColor.DARK_RED + "⚒ Кузня: Очищение рун";
+    private final String HUB_TITLE = "§8▸ §4§lКУЗНЯ §8◂ §7Меню";
+    private final String FUSION_TITLE = "§8▸ §4§lКУЗНЯ §8◂ §dСлияние";
+    private final String REFORGE_TITLE = "§8▸ §4§lКУЗНЯ §8◂ §cПерековка";
+    private final String CLEANSE_TITLE = "§8▸ §4§lКУЗНЯ §8◂ §bОчищение";
+    private final String REPAIR_TITLE = "§8▸ §4§lКУЗНЯ §8◂ §aРемонт";
+    private final String SCROLLS_TITLE = "§8▸ §4§lКУЗНЯ §8◂ §eСвитки";
+    private final String RUNE_CLEANSING_TITLE = "§8▸ §4§lКУЗНЯ §8◂ §5Руны";
 
     private static final int[] FUSION_SLOTS = {20, 22, 24};
     private static final int CENTER_SLOT = 22;
@@ -79,51 +79,49 @@ public class ForgeCommand implements CommandExecutor, Listener, TabCompleter {
     private void openHub(Player p) {
         pending.remove(p.getUniqueId());
         Inventory inv = Bukkit.createInventory(null, 54, HUB_TITLE);
-        fill(inv, Material.BLACK_STAINED_GLASS_PANE);
-        inv.setItem(4, item(Material.ANVIL, ChatColor.GOLD + "⚒ Мистическая MMO-кузня",
-                ChatColor.GRAY + "Древний горн работает с ресурсами",
-                ChatColor.GRAY + "и репутацией ВК. Любая опасная операция",
-                ChatColor.GRAY + "сначала показывает предпросмотр и требует подтверждения."));
 
-        inv.setItem(19, item(Material.NETHER_STAR, ChatColor.LIGHT_PURPLE + "⭐ Слияние редкости",
-                ChatColor.GRAY + "Любые 3 MMO-предмета одной редкости.",
-                ChatColor.GRAY + "Центральный предмет улучшается, боковые — катализаторы.",
-                ChatColor.YELLOW + "Клик: открыть раздел"));
-        inv.setItem(21, item(Material.NETHERITE_INGOT, ChatColor.RED + "🔥 Перековка",
-                ChatColor.GRAY + "Полная рискованная перековка предмета.",
-                ChatColor.GRAY + "Роллит свойства, может добавить дефект.",
-                ChatColor.YELLOW + "Клик: открыть раздел"));
-        inv.setItem(23, item(Material.GRINDSTONE, ChatColor.AQUA + "🕯 Очищение дефектов",
-                ChatColor.GRAY + "Снимает дефекты за репутацию и ресурсы.",
-                ChatColor.GRAY + "Глубокие дефекты требуют дорогую очистку.",
-                ChatColor.YELLOW + "Клик: открыть раздел"));
-        inv.setItem(25, item(Material.IRON_INGOT, ChatColor.GREEN + "🔧 Ремонт MMO-предмета",
-                ChatColor.GRAY + "Восстанавливает прочность предмета.",
-                ChatColor.GRAY + "Цена зависит от материала, редкости, заточки и поломки.",
-                ChatColor.YELLOW + "Клик: открыть раздел"));
-        inv.setItem(34, item(Material.PAPER, ChatColor.GOLD + "📜 Свитки кузни",
-                ChatColor.GRAY + "Свитки шанса, защиты, анти-дефекта и скидки.",
-                ChatColor.GRAY + "Используются автоматически из инвентаря.",
-                ChatColor.YELLOW + "Клик: открыть лавку"));
+        ItemStack border = item(Material.BLACK_STAINED_GLASS_PANE, " ");
+        ItemStack accent = item(Material.RED_STAINED_GLASS_PANE, " ");
+        for (int i = 0; i < 54; i++) inv.setItem(i, (i < 9 || i >= 45 || i % 9 == 0 || i % 9 == 8) ? border : accent);
 
-        inv.setItem(31, item(Material.PURPUR_BLOCK, ChatColor.DARK_PURPLE + "💀 Очищение рун",
-                ChatColor.GRAY + "Снимает все кастомные чары с предмета.",
-                ChatColor.YELLOW + "Стоимость: " + plugin.getConfig().getInt("rune-cleansing.cost", 500) + " реп. ВК + " +
+        inv.setItem(4, item(Material.ANVIL, "§4§l⚒ МИСТИЧЕСКАЯ КУЗНЯ",
+                "§7Древний горн работает с MMO-предметами",
+                "§7и репутацией ВК. Все операции требуют",
+                "§7предпросмотр и подтверждение."));
+
+        inv.setItem(20, item(Material.NETHER_STAR, "§d⭐ Слияние редкости",
+                "§7Три предмета одной редкости → один выше",
+                "§7Центр — улучшается, бока — катализаторы",
+                "", "§e▶ Открыть"));
+        inv.setItem(22, item(Material.NETHERITE_INGOT, "§c🔥 Перековка",
+                "§7Полный переброс свойств предмета",
+                "§7Может добавить дефект",
+                "", "§e▶ Открыть"));
+        inv.setItem(24, item(Material.GRINDSTONE, "§b🕯 Очищение",
+                "§7Снимает дефекты с предмета",
+                "§7Цена зависит от глубины дефекта",
+                "", "§e▶ Открыть"));
+
+        inv.setItem(29, item(Material.IRON_INGOT, "§a🔧 Ремонт",
+                "§7Восстановление прочности MMO-шмота",
+                "§7Цена: репутация + материал предмета",
+                "", "§e▶ Открыть"));
+        inv.setItem(31, item(Material.PAPER, "§e📜 Свитки кузни",
+                "§7Шанс, защита, анти-дефект, скидка",
+                "§7Используются автоматически из инвентаря",
+                "", "§e▶ Открыть"));
+        inv.setItem(33, item(Material.PURPUR_BLOCK, "§5💀 Очищение рун",
+                "§7Снимает все кастомные чары с предмета",
+                "§7Цена: " + plugin.getConfig().getInt("rune-cleansing.cost", 500) + " реп + " +
                         plugin.getConfig().getInt("rune-cleansing.material-amount", 1) + "x " +
                         plugin.getConfig().getString("rune-cleansing.material", "DIAMOND_BLOCK"),
-                ChatColor.YELLOW + "Клик: открыть раздел"));
+                "", "§e▶ Открыть"));
 
-        inv.setItem(37, item(Material.ENCHANTING_TABLE, ChatColor.LIGHT_PURPLE + "🔮 Руны",
-                ChatColor.GRAY + "Открыть /runes. Руны пока живут отдельно,",
-                ChatColor.GRAY + "но кузня учитывает силу рун в цене."));
-        inv.setItem(39, item(Material.CHEST, ChatColor.GREEN + "🗑 Утилизация",
-                ChatColor.GRAY + "Открыть /salvage."));
-        inv.setItem(41, item(Material.BOOK, ChatColor.YELLOW + "📖 Правила Кузни 2.0",
-                ChatColor.GRAY + "• Предпросмотр всегда обязателен.",
-                ChatColor.GRAY + "• Цена = редкость + сила предмета.",
-                ChatColor.GRAY + "• Jobs-Кузнец даёт ограниченные бонусы.",
-                ChatColor.GRAY + "• Все операции пишутся в forge-log.log."));
-        inv.setItem(CLOSE_SLOT, item(Material.BARRIER, ChatColor.RED + "Закрыть"));
+        inv.setItem(49, item(Material.BOOK, "§e📖 Правила",
+                "§7• Предпросмотр всегда обязателен",
+                "§7• Цена = редкость + сила предмета",
+                "§7• Кузнец (Jobs) даёт бонусы"));
+        inv.setItem(CLOSE_SLOT, item(Material.BARRIER, "§c✕ Закрыть"));
         p.openInventory(inv);
     }
 
