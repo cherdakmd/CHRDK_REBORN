@@ -28,8 +28,8 @@ public class MarketGuiListener implements Listener {
     private final VKChatMarketPlugin plugin;
 
     // Слоты для сетки товаров (4 ряда по 9)
-    private static final int[] ITEM_SLOTS = {0,1,2,3,4,5,6,7,8, 9,10,11,12,13,14,15,16,17,
-            18,19,20,21,22,23,24,25,26, 27,28,29,30,31,32,33,34,35};
+    private static final int[] ITEM_SLOTS = {10,11,12,13,14,15,16,17,18, 19,20,21,22,23,24,25,26,27,
+            28,29,30,31,32,33,34,35,36, 37,38,39,40,41,42,43,44}; // 4 ряда по 9, отцентрированы
     // Нижняя навигация (ряд 5+6)
     private static final int NAV_ROW = 45;
 
