@@ -14,6 +14,7 @@ import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
+import org.bukkit.enchantments.Enchantment;
 import ru.example.vkchat.VKChatPlugin;
 import ru.example.vkchat.util.VKChatBridge;
 import ru.example.vkchatmarket.VKChatMarketPlugin;
@@ -268,9 +269,49 @@ public class MarketGuiListener implements Listener {
     // ═══════════════════════════════════════════════════════════════
     // СОЗДАНИЕ ПРЕДМЕТОВ РЫНКА
     // ═══════════════════════════════════════════════════════════════
+    private static Material getMarketMaterial(VKChatMarketPlugin plugin, String itemId) {
+        String matName = plugin.getConfig().getString("items." + itemId + ".material", "");
+        if (!matName.isEmpty()) {
+            try { return Material.valueOf(matName); } catch (Exception e) {}
+        }
+        try { return Material.valueOf(itemId); } catch (Exception e) { return Material.BARRIER; }
+    }
+
+    private static ItemStack createCustomItem(VKChatMarketPlugin plugin, String itemId) {
+        Material mat = getMarketMaterial(plugin, itemId);
+        ItemStack item = new ItemStack(mat);
+        ItemMeta meta = item.getItemMeta();
+
+        String enchantStr = plugin.getConfig().getString("items." + itemId + ".enchant", "");
+        if (!enchantStr.isEmpty() && mat == Material.ENCHANTED_BOOK) {
+            try {
+                Enchantment ench = Enchantment.getByName(enchantStr);
+                int level = plugin.getConfig().getInt("items." + itemId + ".enchant-level", 1);
+                if (ench != null) meta.addEnchant(ench, level, true);
+            } catch (Exception ignored) {}
+        }
+        item.setItemMeta(meta);
+        return item;
+    }
+
+    private static boolean customItemMatches(VKChatMarketPlugin plugin, String itemId, ItemStack stack) {
+        if (stack == null || !stack.hasItemMeta()) return false;
+        Material mat = getMarketMaterial(plugin, itemId);
+        if (stack.getType() != mat) return false;
+
+        String enchantStr = plugin.getConfig().getString("items." + itemId + ".enchant", "");
+        if (!enchantStr.isEmpty() && mat == Material.ENCHANTED_BOOK && stack.getItemMeta().hasEnchants()) {
+            try {
+                Enchantment ench = Enchantment.getByName(enchantStr);
+                int level = plugin.getConfig().getInt("items." + itemId + ".enchant-level", 1);
+                return ench != null && stack.getItemMeta().getEnchantLevel(ench) == level;
+            } catch (Exception e) { return false; }
+        }
+        return true;
+    }
+
     private static ItemStack createMarketItem(VKChatMarketPlugin plugin, String itemId) {
-        Material m;
-        try { m = Material.valueOf(itemId); } catch (Exception e) { m = Material.BARRIER; }
+        Material m = getMarketMaterial(plugin, itemId);
         String name = plugin.getConfig().getString("items." + itemId + ".name", itemId);
         double sellPrice = plugin.getMarketManager().getCurrentPrice(itemId);
         double buyPrice = plugin.getMarketManager().getBuyPrice(itemId);
@@ -290,7 +331,7 @@ public class MarketGuiListener implements Listener {
         double delta = basePrice > 0 ? ((sellPrice - basePrice) / basePrice) * 100.0 : 0;
         String deltaStr = delta >= 0 ? "§a+" + String.format("%.0f", delta) + "%" : "§c" + String.format("%.0f", delta) + "%";
 
-        ItemStack item = new ItemStack(m);
+        ItemStack item = createCustomItem(plugin, itemId);
         ItemMeta meta = item.getItemMeta();
         meta.setDisplayName("§f" + ChatColor.translateAlternateColorCodes('&', name));
         List<String> lore = new ArrayList<>();
@@ -458,14 +499,20 @@ public class MarketGuiListener implements Listener {
     // ТОРГОВЫЕ ОПЕРАЦИИ
     // ═══════════════════════════════════════════════════════════════
     private void sellItems(Player p, String itemId, int limit) {
-        Material m; try { m = Material.valueOf(itemId); } catch (Exception e) { return; }
+        Material m = getMarketMaterial(plugin, itemId);
         int vkId = VKChatBridge.getLinkedVkId(p);
         if (vkId == -1) { p.sendMessage("§cПривяжи ВК (/vklink) для торговли!"); return; }
 
         int count = 0;
+        boolean isCustom = !plugin.getConfig().getString("items." + itemId + ".enchant", "").isEmpty();
         for (int i = 0; i < p.getInventory().getSize(); i++) {
             ItemStack item = p.getInventory().getItem(i);
-            if (item != null && item.getType() == m && (!item.hasItemMeta() || !item.getItemMeta().hasLore())) {
+            if (item != null && item.getType() == m) {
+                if (isCustom) {
+                    if (!customItemMatches(plugin, itemId, item)) continue;
+                } else {
+                    if (item.hasItemMeta() && item.getItemMeta().hasLore()) continue;
+                }
                 int can = limit < 0 ? item.getAmount() : Math.min(item.getAmount(), Math.max(0, limit - count));
                 count += can;
                 if (limit > 0 && count >= limit) break;
@@ -499,7 +546,7 @@ public class MarketGuiListener implements Listener {
     }
 
     private void buyItems(Player p, String itemId, int amount) {
-        Material m; try { m = Material.valueOf(itemId); } catch (Exception e) { return; }
+        Material m = getMarketMaterial(plugin, itemId);
         int vkId = VKChatBridge.getLinkedVkId(p);
         if (vkId == -1) { p.sendMessage("§cПривяжи ВК (/vklink) для торговли!"); return; }
 

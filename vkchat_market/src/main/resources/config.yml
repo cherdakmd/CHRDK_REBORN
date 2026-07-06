@@ -1054,6 +1054,112 @@ items:
     scarcity-threshold: 50
     max-multiplier: 4.0
 
+  # ═══ ЗАЧАРОВАННЫЕ КНИГИ ═══
+  ENCHANT_BOOK_PROT4:
+    name: "&dЗачарованная книга: Защита IV"
+    category: "Редкости"
+    material: "ENCHANTED_BOOK"
+    enchant: "PROTECTION_ENVIRONMENTAL"
+    enchant-level: 4
+    base-price: 350.0
+    min-price: 80.0
+    elasticity: 40.0
+    recovery-rate: 2
+    max-stock: 30
+    min-stock: -15
+    scarcity-threshold: 5
+    max-multiplier: 5.0
+
+  ENCHANT_BOOK_SHARP5:
+    name: "&dЗачарованная книга: Острота V"
+    category: "Редкости"
+    material: "ENCHANTED_BOOK"
+    enchant: "DAMAGE_ALL"
+    enchant-level: 5
+    base-price: 500.0
+    min-price: 120.0
+    elasticity: 35.0
+    recovery-rate: 1
+    max-stock: 25
+    min-stock: -10
+    scarcity-threshold: 5
+    max-multiplier: 6.0
+
+  ENCHANT_BOOK_EFF5:
+    name: "&dЗачарованная книга: Эффективность V"
+    category: "Редкости"
+    material: "ENCHANTED_BOOK"
+    enchant: "DIG_SPEED"
+    enchant-level: 5
+    base-price: 400.0
+    min-price: 100.0
+    elasticity: 35.0
+    recovery-rate: 1
+    max-stock: 25
+    min-stock: -10
+    scarcity-threshold: 5
+    max-multiplier: 5.5
+
+  ENCHANT_BOOK_UNB3:
+    name: "&dЗачарованная книга: Прочность III"
+    category: "Редкости"
+    material: "ENCHANTED_BOOK"
+    enchant: "DURABILITY"
+    enchant-level: 3
+    base-price: 300.0
+    min-price: 70.0
+    elasticity: 40.0
+    recovery-rate: 2
+    max-stock: 30
+    min-stock: -15
+    scarcity-threshold: 5
+    max-multiplier: 5.0
+
+  ENCHANT_BOOK_FORT3:
+    name: "&dЗачарованная книга: Удача III"
+    category: "Редкости"
+    material: "ENCHANTED_BOOK"
+    enchant: "LOOT_BONUS_BLOCKS"
+    enchant-level: 3
+    base-price: 450.0
+    min-price: 110.0
+    elasticity: 35.0
+    recovery-rate: 1
+    max-stock: 20
+    min-stock: -10
+    scarcity-threshold: 5
+    max-multiplier: 6.0
+
+  ENCHANT_BOOK_SILK:
+    name: "&dЗачарованная книга: Шёлковое касание"
+    category: "Редкости"
+    material: "ENCHANTED_BOOK"
+    enchant: "SILK_TOUCH"
+    enchant-level: 1
+    base-price: 600.0
+    min-price: 150.0
+    elasticity: 30.0
+    recovery-rate: 1
+    max-stock: 15
+    min-stock: -5
+    scarcity-threshold: 3
+    max-multiplier: 7.0
+
+  ENCHANT_BOOK_MEND:
+    name: "&dЗачарованная книга: Починка"
+    category: "Редкости"
+    material: "ENCHANTED_BOOK"
+    enchant: "MENDING"
+    enchant-level: 1
+    base-price: 800.0
+    min-price: 200.0
+    elasticity: 25.0
+    recovery-rate: 1
+    max-stock: 10
+    min-stock: -5
+    scarcity-threshold: 2
+    max-multiplier: 8.0
+
   ENCHANTED_BOOK:
     name: "&dЗачарованная книга"
     category: "Редкости"
