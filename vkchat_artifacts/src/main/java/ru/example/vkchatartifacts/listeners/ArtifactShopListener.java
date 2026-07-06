@@ -23,188 +23,157 @@ import java.util.List;
 
 public class ArtifactShopListener implements Listener {
     private final VKChatArtifactsPlugin plugin;
-    public static final String SHOP_TITLE = ChatColor.GOLD + "✨ Рынок Древних Артефактов";
+    public static final String SHOP_TITLE = "§8▸ §6§lАРТЕФАКТЫ §8◂ §7Магазин";
 
-    public ArtifactShopListener(VKChatArtifactsPlugin plugin) {
-        this.plugin = plugin;
-    }
+    public ArtifactShopListener(VKChatArtifactsPlugin plugin) { this.plugin = plugin; }
 
     public static void openShop(VKChatArtifactsPlugin plugin, Player p) {
         Inventory inv = Bukkit.createInventory(null, 54, SHOP_TITLE);
 
-        ItemStack glass = new ItemStack(Material.GRAY_STAINED_GLASS_PANE);
-        ItemMeta glassMeta = glass.getItemMeta();
-        glassMeta.setDisplayName(" ");
-        glass.setItemMeta(glassMeta);
-        for (int i = 0; i < 54; i++) {
-            inv.setItem(i, glass);
-        }
+        ItemStack border = item(Material.BLACK_STAINED_GLASS_PANE, " ");
+        ItemStack accent = item(Material.GRAY_STAINED_GLASS_PANE, " ");
+        for (int i = 0; i < 54; i++) inv.setItem(i, (i < 9 || i >= 45 || i % 9 == 0 || i % 9 == 8) ? border : accent);
 
-        // 1. Случайный древний артефакт
-        ItemStack art = new ItemStack(Material.HEART_OF_THE_SEA);
-        ItemMeta artMeta = art.getItemMeta();
-        artMeta.setDisplayName(ChatColor.YELLOW + "🏺 Случайный Древний Артефакт");
-        List<String> artLore = new ArrayList<>();
-        artLore.add(ChatColor.GRAY + "Загадочный артефакт с глубин океана.");
-        artLore.add(ChatColor.GRAY + "Содержит 1 случайный бафф до III уровня");
-        artLore.add(ChatColor.GRAY + "и одно случайное проклятие.");
-        artLore.add("");
-        artLore.add(ChatColor.RED + "Цена: " + ChatColor.GOLD + "2500 репутации ВК");
-        artLore.add(ChatColor.YELLOW + "▶ Нажмите для покупки ◀");
-        artMeta.setLore(artLore);
-        artMeta.getPersistentDataContainer().set(new NamespacedKey(plugin, "buy_artifact_type"), PersistentDataType.STRING, "normal");
-        artMeta.getPersistentDataContainer().set(new NamespacedKey(plugin, "buy_artifact_cost"), PersistentDataType.INTEGER, 2500);
-        art.setItemMeta(artMeta);
+        // ═══ ШАПКА ═══
+        int vkId = VKChatPlugin.getInstance().getApi().getLinkedVkId(p);
+        int rep = vkId != -1 ? VKChatPlugin.getInstance().getApi().getReputation(vkId) : 0;
+        inv.setItem(4, item(Material.GOLD_BLOCK,
+                "§6§l✨ Рынок Древних Артефактов",
+                "§7Магические предметы и свитки",
+                "",
+                "§e💰 Баланс: §f" + rep + " реп.",
+                "",
+                "§7§oАртефакты дают постоянные баффы",
+                "§7§oпока лежат в инвентаре"));
 
-        // 2. Случайная мифическая реликвия
-        ItemStack relic = new ItemStack(Material.NETHER_STAR);
-        ItemMeta relicMeta = relic.getItemMeta();
-        relicMeta.setDisplayName(ChatColor.LIGHT_PURPLE + "✨ Случайная Мифическая Реликвия");
-        List<String> relicLore = new ArrayList<>();
-        relicLore.add(ChatColor.GRAY + "Священная вещь, источающая чистый свет.");
-        relicLore.add(ChatColor.GRAY + "Содержит гарантированный бафф V уровня,");
-        relicLore.add(ChatColor.GRAY + "НЕ содержит проклятий и привязана к душе");
-        relicLore.add(ChatColor.GRAY + "(не выпадает при смерти!).");
-        relicLore.add("");
-        relicLore.add(ChatColor.RED + "Цена: " + ChatColor.GOLD + "7500 репутации ВК");
-        relicLore.add(ChatColor.YELLOW + "▶ Нажмите для покупки ◀");
-        relicMeta.setLore(relicLore);
-        relicMeta.getPersistentDataContainer().set(new NamespacedKey(plugin, "buy_artifact_type"), PersistentDataType.STRING, "relic");
-        relicMeta.getPersistentDataContainer().set(new NamespacedKey(plugin, "buy_artifact_cost"), PersistentDataType.INTEGER, 7500);
-        relic.setItemMeta(relicMeta);
+        // ═══ АРТЕФАКТЫ (верхний ряд) ═══
+        inv.setItem(10, shopItem(plugin, Material.HEART_OF_THE_SEA,
+                "§e🏺 Случайный Древний Артефакт",
+                "§7Случайный бафф до III уровня",
+                "§7+ одно случайное проклятие",
+                "§6Цена: §e2500 реп.",
+                "normal", 2500));
 
-        // 3. Свиток Очищения
-        ItemStack scroll1 = new ItemStack(Material.PAPER);
-        ItemMeta sMeta1 = scroll1.getItemMeta();
-        sMeta1.setDisplayName(ChatColor.GREEN + "📜 Свиток Очищения Артефактов");
-        List<String> sLore1 = new ArrayList<>();
-        sLore1.add(ChatColor.GRAY + "Позволяет попытаться снять проклятие");
-        sLore1.add(ChatColor.GRAY + "с артефакта, помещенного в левую руку.");
-        sLore1.add("");
-        sLore1.add(ChatColor.RED + "Цена: " + ChatColor.GOLD + "1000 репутации ВК");
-        sLore1.add(ChatColor.YELLOW + "▶ Нажмите для покупки ◀");
-        sMeta1.setLore(sLore1);
-        sMeta1.getPersistentDataContainer().set(new NamespacedKey(plugin, "buy_artifact_type"), PersistentDataType.STRING, "cleanse");
-        sMeta1.getPersistentDataContainer().set(new NamespacedKey(plugin, "buy_artifact_cost"), PersistentDataType.INTEGER, 1000);
-        scroll1.setItemMeta(sMeta1);
+        inv.setItem(13, shopItem(plugin, Material.NETHER_STAR,
+                "§d✨ Мифическая Реликвия",
+                "§7Гарантированный бафф V уровня",
+                "§7Без проклятий! Не выпадает при смерти!",
+                "§6Цена: §e7500 реп.",
+                "relic", 7500));
 
-        // 4. Сфера Побега
-        ItemStack scroll2 = new ItemStack(Material.ENDER_EYE);
-        ItemMeta sMeta2 = scroll2.getItemMeta();
-        sMeta2.setDisplayName(ChatColor.GREEN + "🔮 Сфера Срочного Побега");
-        List<String> sLore2 = new ArrayList<>();
-        sLore2.add(ChatColor.GRAY + "Позволяет экстренно телепортироваться");
-        sLore2.add(ChatColor.GRAY + "домой при активации в руках.");
-        sLore2.add("");
-        sLore2.add(ChatColor.RED + "Цена: " + ChatColor.GOLD + "800 репутации ВК");
-        sLore2.add(ChatColor.YELLOW + "▶ Нажмите для покупки ◀");
-        sMeta2.setLore(sLore2);
-        sMeta2.getPersistentDataContainer().set(new NamespacedKey(plugin, "buy_artifact_type"), PersistentDataType.STRING, "escape");
-        sMeta2.getPersistentDataContainer().set(new NamespacedKey(plugin, "buy_artifact_cost"), PersistentDataType.INTEGER, 800);
-        scroll2.setItemMeta(sMeta2);
+        // ═══ РАСХОДНИКИ (средний ряд) ═══
+        inv.setItem(21, shopItem(plugin, Material.PAPER,
+                "§a📜 Свиток Очищения",
+                "§7Попытка снять проклятие с артефакта",
+                "§6Цена: §e1000 реп.",
+                "cleanse", 1000));
 
-        // 5. Тотем Крови
-        ItemStack scroll3 = new ItemStack(Material.TOTEM_OF_UNDYING);
-        ItemMeta sMeta3 = scroll3.getItemMeta();
-        sMeta3.setDisplayName(ChatColor.RED + "🧛 Тотем Крови (Бессмертие)");
-        List<String> sLore3 = new ArrayList<>();
-        sLore3.add(ChatColor.GRAY + "Усиленный Тотем Бессмертия, полностью");
-        sLore3.add(ChatColor.GRAY + "восстанавливающий ХП при активации.");
-        sLore3.add("");
-        sLore3.add(ChatColor.RED + "Цена: " + ChatColor.GOLD + "2000 репутации ВК");
-        sLore3.add(ChatColor.YELLOW + "▶ Нажмите для покупки ◀");
-        sMeta3.setLore(sLore3);
-        sMeta3.getPersistentDataContainer().set(new NamespacedKey(plugin, "buy_artifact_type"), PersistentDataType.STRING, "revive");
-        sMeta3.getPersistentDataContainer().set(new NamespacedKey(plugin, "buy_artifact_cost"), PersistentDataType.INTEGER, 2000);
-        scroll3.setItemMeta(sMeta3);
+        inv.setItem(22, shopItem(plugin, Material.ENDER_EYE,
+                "§b🔮 Сфера Побега",
+                "§7Экстренный телепорт домой",
+                "§6Цена: §e800 реп.",
+                "escape", 800));
 
-        // 6. Свиток Чар Усиления
-        ItemStack scroll4 = new ItemStack(Material.BOOK);
-        ItemMeta sMeta4 = scroll4.getItemMeta();
-        sMeta4.setDisplayName(ChatColor.AQUA + "📖 Свиток Чар Усиления");
-        List<String> sLore4 = new ArrayList<>();
-        sLore4.add(ChatColor.GRAY + "Усиливает все баффы артефактов");
-        sLore4.add(ChatColor.GRAY + "на 50% в течение 10 минут.");
-        sLore4.add("");
-        sLore4.add(ChatColor.RED + "Цена: " + ChatColor.GOLD + "3000 репутации ВК");
-        sLore4.add(ChatColor.YELLOW + "▶ Нажмите для покупки ◀");
-        sMeta4.setLore(sLore4);
-        sMeta4.getPersistentDataContainer().set(new NamespacedKey(plugin, "buy_artifact_type"), PersistentDataType.STRING, "enchant_scroll");
-        sMeta4.getPersistentDataContainer().set(new NamespacedKey(plugin, "buy_artifact_cost"), PersistentDataType.INTEGER, 3000);
-        scroll4.setItemMeta(sMeta4);
+        inv.setItem(23, shopItem(plugin, Material.TOTEM_OF_UNDYING,
+                "§c🧛 Тотем Крови",
+                "§7Полное восстановление ХП при активации",
+                "§6Цена: §e2000 реп.",
+                "revive", 2000));
 
-        // 7. Ремонтный Набор
-        ItemStack scroll5 = new ItemStack(Material.ANVIL);
-        ItemMeta sMeta5 = scroll5.getItemMeta();
-        sMeta5.setDisplayName(ChatColor.GRAY + "🔨 Ремонтный Набор");
-        List<String> sLore5 = new ArrayList<>();
-        sLore5.add(ChatColor.GRAY + "Восстанавливает время жизни");
-        sLore5.add(ChatColor.GRAY + "хрупкого артефакта на 24 часа.");
-        sLore5.add("");
-        sLore5.add(ChatColor.RED + "Цена: " + ChatColor.GOLD + "1500 репутации ВК");
-        sLore5.add(ChatColor.YELLOW + "▶ Нажмите для покупки ◀");
-        sMeta5.setLore(sLore5);
-        sMeta5.getPersistentDataContainer().set(new NamespacedKey(plugin, "buy_artifact_type"), PersistentDataType.STRING, "repair_kit");
-        sMeta5.getPersistentDataContainer().set(new NamespacedKey(plugin, "buy_artifact_cost"), PersistentDataType.INTEGER, 1500);
-        scroll5.setItemMeta(sMeta5);
+        // ═══ СВИТКИ И ИНСТРУМЕНТЫ (нижний ряд) ═══
+        inv.setItem(29, shopItem(plugin, Material.BOOK,
+                "§3📖 Свиток Чар Усиления",
+                "§7+50% к баффам артефактов на 10 мин",
+                "§6Цена: §e3000 реп.",
+                "enchant_scroll", 3000));
 
-        // 8. Руна Обмена
-        ItemStack scroll6 = new ItemStack(Material.ENCHANTED_BOOK);
-        ItemMeta sMeta6 = scroll6.getItemMeta();
-        sMeta6.setDisplayName(ChatColor.DARK_PURPLE + "🔮 Руна Обмена");
-        List<String> sLore6 = new ArrayList<>();
-        sLore6.add(ChatColor.GRAY + "Перекатывает тип баффа артефакта");
-        sLore6.add(ChatColor.GRAY + "на случайный новый.");
-        sLore6.add("");
-        sLore6.add(ChatColor.RED + "Цена: " + ChatColor.GOLD + "2000 репутации ВК");
-        sLore6.add(ChatColor.YELLOW + "▶ Нажмите для покупки ◀");
-        sMeta6.setLore(sLore6);
-        sMeta6.getPersistentDataContainer().set(new NamespacedKey(plugin, "buy_artifact_type"), PersistentDataType.STRING, "exchange_rune");
-        sMeta6.getPersistentDataContainer().set(new NamespacedKey(plugin, "buy_artifact_cost"), PersistentDataType.INTEGER, 2000);
-        scroll6.setItemMeta(sMeta6);
+        inv.setItem(30, shopItem(plugin, Material.ANVIL,
+                "§7🔨 Ремонтный Набор",
+                "§7+24 часа жизни хрупкому артефакту",
+                "§6Цена: §e1500 реп.",
+                "repair_kit", 1500));
 
-        // 9. Тотем Укрепления
-        ItemStack scroll7 = new ItemStack(Material.BEACON);
-        ItemMeta sMeta7 = scroll7.getItemMeta();
-        sMeta7.setDisplayName(ChatColor.GOLD + "🛡 Тотем Укрепления");
-        List<String> sLore7 = new ArrayList<>();
-        sLore7.add(ChatColor.GRAY + "Делает артефакт привязанным к душе");
-        sLore7.add(ChatColor.GRAY + "(не выпадает при смерти).");
-        sLore7.add("");
-        sLore7.add(ChatColor.RED + "Цена: " + ChatColor.GOLD + "5000 репутации ВК");
-        sLore7.add(ChatColor.YELLOW + "▶ Нажмите для покупки ◀");
-        sMeta7.setLore(sLore7);
-        sMeta7.getPersistentDataContainer().set(new NamespacedKey(plugin, "buy_artifact_type"), PersistentDataType.STRING, "fort_totem");
-        sMeta7.getPersistentDataContainer().set(new NamespacedKey(plugin, "buy_artifact_cost"), PersistentDataType.INTEGER, 5000);
-        scroll7.setItemMeta(sMeta7);
+        inv.setItem(31, shopItem(plugin, Material.ENCHANTED_BOOK,
+                "§5🔮 Руна Обмена",
+                "§7Меняет тип баффа на случайный",
+                "§6Цена: §e2000 реп.",
+                "exchange_rune", 2000));
 
-        // 10. Антидот Разложения
-        ItemStack scroll8 = new ItemStack(Material.MILK_BUCKET);
-        ItemMeta sMeta8 = scroll8.getItemMeta();
-        sMeta8.setDisplayName(ChatColor.GREEN + "🧪 Антидот Разложения");
-        List<String> sLore8 = new ArrayList<>();
-        sLore8.add(ChatColor.GRAY + "Снимает любое проклятие");
-        sLore8.add(ChatColor.GRAY + "с артефакта со 100% успехом.");
-        sLore8.add("");
-        sLore8.add(ChatColor.RED + "Цена: " + ChatColor.GOLD + "2500 репутации ВК");
-        sLore8.add(ChatColor.YELLOW + "▶ Нажмите для покупки ◀");
-        sMeta8.setLore(sLore8);
-        sMeta8.getPersistentDataContainer().set(new NamespacedKey(plugin, "buy_artifact_type"), PersistentDataType.STRING, "decay_antipode");
-        sMeta8.getPersistentDataContainer().set(new NamespacedKey(plugin, "buy_artifact_cost"), PersistentDataType.INTEGER, 2500);
-        scroll8.setItemMeta(sMeta8);
+        inv.setItem(32, shopItem(plugin, Material.BEACON,
+                "§6🛡 Тотем Укрепления",
+                "§7Привязка к душе (не выпадает при смерти)",
+                "§6Цена: §e5000 реп.",
+                "fort_totem", 5000));
 
-        inv.setItem(10, art);
-        inv.setItem(12, relic);
-        inv.setItem(14, scroll1);
-        inv.setItem(15, scroll2);
-        inv.setItem(16, scroll3);
-        inv.setItem(28, scroll4);
-        inv.setItem(30, scroll5);
-        inv.setItem(31, scroll6);
-        inv.setItem(32, scroll7);
-        inv.setItem(34, scroll8);
+        inv.setItem(33, shopItem(plugin, Material.MILK_BUCKET,
+                "§a🧪 Антидот Разложения",
+                "§7Снимает ЛЮБОЕ проклятие со 100% шансом",
+                "§6Цена: §e2500 реп.",
+                "decay_antipode", 2500));
+
+        // ═══ НИЖНИЙ РЯД ═══
+        inv.setItem(45, infoItem(Material.BOOK,
+                "§7ℹ Как работают артефакты",
+                "§7Держи артефакт в ИНВЕНТАРЕ",
+                "§7(не в сундуке!) для активации баффов.",
+                "§7Проклятия накладывают дебаффы."));
+
+        inv.setItem(49, infoItem(Material.BARRIER, "§c✕ Закрыть"));
+
+        inv.setItem(53, infoItem(Material.KNOWLEDGE_BOOK,
+                "§e💡 Совет",
+                "§7Мифическая Реликвия не имеет",
+                "§7проклятий и не теряется при смерти."));
 
         p.openInventory(inv);
+    }
+
+    private static ItemStack shopItem(VKChatArtifactsPlugin plugin, Material mat, String name, String desc1, String price, String type, int cost) {
+        ItemStack item = new ItemStack(mat);
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName(name);
+        List<String> lore = new ArrayList<>();
+        lore.add(desc1);
+        lore.add("");
+        lore.add(price);
+        lore.add("");
+        lore.add("§e▶ Нажми для покупки");
+        meta.setLore(lore);
+        meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "buy_artifact_type"), PersistentDataType.STRING, type);
+        meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "buy_artifact_cost"), PersistentDataType.INTEGER, cost);
+        item.setItemMeta(meta);
+        return item;
+    }
+
+    private static ItemStack shopItem(VKChatArtifactsPlugin plugin, Material mat, String name, String desc1, String desc2, String price, String type, int cost) {
+        ItemStack item = new ItemStack(mat);
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName(name);
+        List<String> lore = new ArrayList<>();
+        lore.add(desc1);
+        lore.add(desc2);
+        lore.add("");
+        lore.add(price);
+        lore.add("");
+        lore.add("§e▶ Нажми для покупки");
+        meta.setLore(lore);
+        meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "buy_artifact_type"), PersistentDataType.STRING, type);
+        meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "buy_artifact_cost"), PersistentDataType.INTEGER, cost);
+        item.setItemMeta(meta);
+        return item;
+    }
+
+    private static ItemStack item(Material mat, String name, String... lore) {
+        ItemStack i = new ItemStack(mat);
+        ItemMeta m = i.getItemMeta();
+        m.setDisplayName(name);
+        m.setLore(java.util.Arrays.asList(lore));
+        i.setItemMeta(m);
+        return i;
+    }
+
+    private static ItemStack infoItem(Material mat, String name, String... lore) {
+        return item(mat, name, lore);
     }
 
     @EventHandler
@@ -224,47 +193,30 @@ public class ArtifactShopListener implements Listener {
             int cost = item.getItemMeta().getPersistentDataContainer().get(costKey, PersistentDataType.INTEGER);
 
             int vkId = VKChatPlugin.getInstance().getApi().getLinkedVkId(p);
-            if (vkId == -1) {
-                p.sendMessage(ChatColor.RED + "❌ Сначала привяжите ВКонтакте! (/vklink)");
-                return;
-            }
+            if (vkId == -1) { p.sendMessage(ChatColor.RED + "❌ Привяжи ВК! (/vklink)"); return; }
 
             int rep = VKChatPlugin.getInstance().getApi().getReputation(vkId);
-            if (rep < cost) {
-                p.sendMessage(ChatColor.RED + "❌ Недостаточно репутации ВК! Требуется: " + cost + " (Ваш баланс: " + rep + ").");
-                p.playSound(p.getLocation(), Sound.ENTITY_ITEM_BREAK, 1f, 1f);
-                return;
-            }
+            if (rep < cost) { p.sendMessage(ChatColor.RED + "❌ Нужно " + cost + " реп. (у тебя " + rep + ")"); return; }
 
-            // Списываем репутацию
             VKChatPlugin.getInstance().getApi().takeReputation(vkId, cost);
 
-            ItemStack itemToGive = null;
-            if (type.equals("normal")) {
-                itemToGive = ArtifactFactory.generateArtifact(plugin, false);
-            } else if (type.equals("relic")) {
-                itemToGive = ArtifactFactory.generateArtifact(plugin, true);
-            } else if (type.equals("cleanse")) {
-                itemToGive = ConsumableFactory.generateCleanseScroll(plugin);
-            } else if (type.equals("escape")) {
-                itemToGive = ConsumableFactory.generateEscapeScroll(plugin);
-            } else if (type.equals("revive")) {
-                itemToGive = ConsumableFactory.generateReviveScroll(plugin);
-            } else if (type.equals("enchant_scroll")) {
-                itemToGive = ConsumableFactory.generateEnchantmentScroll(plugin);
-            } else if (type.equals("repair_kit")) {
-                itemToGive = ConsumableFactory.generateRepairKit(plugin);
-            } else if (type.equals("exchange_rune")) {
-                itemToGive = ConsumableFactory.generateExchangeRune(plugin);
-            } else if (type.equals("fort_totem")) {
-                itemToGive = ConsumableFactory.generateFortificationTotem(plugin);
-            } else if (type.equals("decay_antipode")) {
-                itemToGive = ConsumableFactory.generateDecayAntipode(plugin);
-            }
+            ItemStack itemToGive = switch (type) {
+                case "normal" -> ArtifactFactory.generateArtifact(plugin, false);
+                case "relic" -> ArtifactFactory.generateArtifact(plugin, true);
+                case "cleanse" -> ConsumableFactory.generateCleanseScroll(plugin);
+                case "escape" -> ConsumableFactory.generateEscapeScroll(plugin);
+                case "revive" -> ConsumableFactory.generateReviveScroll(plugin);
+                case "enchant_scroll" -> ConsumableFactory.generateEnchantmentScroll(plugin);
+                case "repair_kit" -> ConsumableFactory.generateRepairKit(plugin);
+                case "exchange_rune" -> ConsumableFactory.generateExchangeRune(plugin);
+                case "fort_totem" -> ConsumableFactory.generateFortificationTotem(plugin);
+                case "decay_antipode" -> ConsumableFactory.generateDecayAntipode(plugin);
+                default -> null;
+            };
 
             if (itemToGive != null) {
-                p.getInventory().addItem(itemToGive).values().forEach(leftover -> p.getWorld().dropItemNaturally(p.getLocation(), leftover));
-                p.sendMessage(ChatColor.GREEN + "✓ Вы успешно приобрели " + item.getItemMeta().getDisplayName() + ChatColor.GREEN + " за " + ChatColor.GOLD + cost + " реп. ВК!");
+                p.getInventory().addItem(itemToGive).values().forEach(left -> p.getWorld().dropItemNaturally(p.getLocation(), left));
+                p.sendMessage(ChatColor.GREEN + "✓ Куплено за " + ChatColor.GOLD + cost + " реп. ВК!");
                 p.playSound(p.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1f, 1.2f);
             }
         }
