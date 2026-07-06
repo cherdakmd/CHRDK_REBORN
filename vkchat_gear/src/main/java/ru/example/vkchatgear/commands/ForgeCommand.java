@@ -893,6 +893,7 @@ public class ForgeCommand implements CommandExecutor, Listener, TabCompleter {
         for (int slot : FUSION_SLOTS) {
             ItemStack item = inv.getItem(slot);
             if (isEmpty(item)) continue;
+            if (item.hasItemMeta() && item.getItemMeta().hasDisplayName() && " ".equals(item.getItemMeta().getDisplayName())) continue;
             inv.setItem(slot, null);
             p.getInventory().addItem(item).values().forEach(left -> p.getWorld().dropItemNaturally(p.getLocation(), left));
         }
