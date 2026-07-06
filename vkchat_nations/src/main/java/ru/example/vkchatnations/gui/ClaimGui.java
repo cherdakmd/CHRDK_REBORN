@@ -159,7 +159,7 @@ public class ClaimGui implements Listener {
 
     @EventHandler
     public void onClick(InventoryClickEvent e) {
-        if (!e.getView().getTitle().equals(ChatColor.DARK_BLUE + "Управление Приватом")) return;
+        if (!e.getView().getTitle().equals("§8▸ §9§lПРИВАТ §8◂ §7Управление")) return;
         e.setCancelled(true);
 
         Player p = (Player) e.getWhoClicked();

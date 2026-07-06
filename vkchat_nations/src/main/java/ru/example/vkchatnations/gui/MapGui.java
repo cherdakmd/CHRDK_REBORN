@@ -119,7 +119,7 @@ public class MapGui implements Listener {
 
     @EventHandler
     public void onClick(InventoryClickEvent e) {
-        if (!e.getView().getTitle().equals(ChatColor.DARK_GRAY + "Карта Территорий")) return;
+        if (!e.getView().getTitle().equals("§8▸ §7§lКАРТА §8◂ §7Территории")) return;
         e.setCancelled(true);
 
         Player p = (Player) e.getWhoClicked();
