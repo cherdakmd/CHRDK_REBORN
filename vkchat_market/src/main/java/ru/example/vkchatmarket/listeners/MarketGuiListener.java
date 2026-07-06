@@ -65,8 +65,7 @@ public class MarketGuiListener implements Listener {
         Inventory inv = Bukkit.createInventory(null, 54, "§8▸ §6§lБИРЖА §8◂ §7Главное меню");
 
         ItemStack border = item(Material.BLACK_STAINED_GLASS_PANE, " ");
-        ItemStack accent = item(Material.GRAY_STAINED_GLASS_PANE, " ");
-        for (int i = 0; i < 54; i++) inv.setItem(i, (i < 9 || i >= 45 || i % 9 == 0 || i % 9 == 8) ? border : accent);
+        for (int i = 0; i < 54; i++) inv.setItem(i, border);
 
         // ═══ ШАПКА ═══
         int vkId = VKChatBridge.getLinkedVkId(p);
@@ -77,22 +76,16 @@ public class MarketGuiListener implements Listener {
                 "",
                 "§e💰 Баланс: §f" + rep + " реп.",
                 "§b📦 Товаров: §f" + getConfiguredItems(plugin, "all").size(),
-                "§d📈 Цикл: §f" + plugin.getMarketManager().getMarketCycleLabel(),
-                "",
-                "§7Клик на товар = детали и торговля"));
+                "§d📈 Цикл: §f" + plugin.getMarketManager().getMarketCycleLabel()));
 
-        // Донат-статус
         String donor = getDonorStatus(p);
         if (!donor.isEmpty()) {
-            inv.setItem(0, item(Material.NETHER_STAR,
-                    "§e§l⭐ " + donor,
-                    "§7Продажа: §a+" + getSellBonus(p),
-                    "§7Покупка: §a" + getBuyBonus(p),
-                    "§7Лимиты: §a" + getLimitBonus(p)));
+            inv.setItem(8, item(Material.NETHER_STAR, "§e⭐ " + donor,
+                    "§7Продажа: §a+" + getSellBonus(p), "§7Покупка: §a" + getBuyBonus(p)));
         }
 
-        // ═══ КАТЕГОРИИ — сетка 4×2 ═══
-        int[] catSlots = {10,11,12,13, 19,20,21,22};
+        // ═══ КАТЕГОРИИ — сетка 4×2, отцентрирована ═══
+        int[] catSlots = {20,21,22,23, 29,30,31,32};
         String[][] cats = {
             {"ores", "§c⛏ §fРуды/слитки", "§7Железо, золото, алмазы..."},
             {"food", "§6🍞 §fЕда и ферма", "§7Хлеб, мясо, урожай..."},
@@ -108,13 +101,11 @@ public class MarketGuiListener implements Listener {
         }
 
         // ═══ НИЖНИЙ РЯД ═══
-        inv.setItem(37, item(Material.CLOCK, "§b📈 Тренды дня", "§7Горячие товары и история", "", "§e▶ Нажми"));
-        inv.setItem(40, item(Material.DIAMOND, "§d💎 Редкости дня", "§7Лимитированные товары", "§7Ротация каждый день", "", "§e▶ Нажми"));
-        inv.setItem(43, item(Material.DIAMOND_SWORD, "§a📋 Квест дня", "§7" + plugin.getMarketFun().getQuestInfo(), "", "§aНаграда: 1000 реп. ВК"));
+        inv.setItem(45, categoryItem(plugin, Material.CLOCK, "trends", "§b📈 Тренды", "§7Горячие товары"));
+        inv.setItem(47, categoryItem(plugin, Material.DIAMOND, "limited", "§d💎 Редкости дня", "§7Лимит. товары"));
         inv.setItem(49, sellAllItem(plugin));
-
-        inv.setItem(45, item(Material.BARRIER, "§c✕ Закрыть"));
-        inv.setItem(53, item(Material.ARROW, "§e→ Далее", "§7Тренды и редкие товары"));
+        inv.setItem(51, item(Material.BOOK, "§e📋 Квест дня", "§7" + plugin.getMarketFun().getQuestInfo()));
+        inv.setItem(53, item(Material.BARRIER, "§c✕ Закрыть"));
 
         p.openInventory(inv);
     }
