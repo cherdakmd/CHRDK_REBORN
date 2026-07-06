@@ -111,7 +111,7 @@ public class MarketGuiListener implements Listener {
         inv.setItem(37, item(Material.CLOCK, "§b📈 Тренды дня", "§7Горячие товары и история", "", "§e▶ Нажми"));
         inv.setItem(40, item(Material.DIAMOND, "§d💎 Редкости дня", "§7Лимитированные товары", "§7Ротация каждый день", "", "§e▶ Нажми"));
         inv.setItem(43, item(Material.DIAMOND_SWORD, "§a📋 Квест дня", "§7" + plugin.getMarketFun().getQuestInfo(), "", "§aНаграда: 1000 реп. ВК"));
-        inv.setItem(49, item(Material.HOPPER, "§c📤 Продать всё", "§7Продажа всех ненужных", "§7предметов из инвентаря", "", "§e▶ Нажми для продажи"));
+        inv.setItem(49, sellAllItem(plugin));
 
         inv.setItem(45, item(Material.BARRIER, "§c✕ Закрыть"));
         inv.setItem(53, item(Material.ARROW, "§e→ Далее", "§7Тренды и редкие товары"));
@@ -168,7 +168,7 @@ public class MarketGuiListener implements Listener {
         if (page > 0) inv.setItem(45, navItem(plugin, Material.SPECTRAL_ARROW, "§e◀ Назад", page - 1, category));
         inv.setItem(47, categoryItem(plugin, Material.COMPASS, "menu", "§f🏠 Меню", "§7К категориям"));
         inv.setItem(49, item(Material.BOOK, "§6" + catName + " §8[" + (page+1) + "/" + pages + "]", "§7Товаров: §f" + ids.size(), "§e💰 Баланс: §f" + rep + " реп."));
-        inv.setItem(51, item(Material.HOPPER, "§c📤 Продать всё", "§7Все предметы из инвентаря", "§7подходящие под категорию"));
+        inv.setItem(51, sellAllItem(plugin));
         if (page < pages - 1) inv.setItem(53, navItem(plugin, Material.SPECTRAL_ARROW, "§eВперёд ▶", page + 1, category));
 
         // Быстрые категории
@@ -816,8 +816,13 @@ public class MarketGuiListener implements Listener {
     }
 
     private int getPageFromTitle(String title) {
-        try { int a = title.lastIndexOf('['); int b = title.lastIndexOf('/'); if (a >= 0 && b > a) return Math.max(0, Integer.parseInt(title.substring(a + 1, b)) - 1); } catch (Exception ignored) {}
-        return 0;
+        try {
+            int slash = title.lastIndexOf('/');
+            if (slash < 0) return 0;
+            int space = title.lastIndexOf(' ', slash);
+            if (space < 0) return 0;
+            return Math.max(0, Integer.parseInt(title.substring(space + 1, slash)) - 1);
+        } catch (Exception ignored) { return 0; }
     }
 
     private String getCategoryFromTitle(String title) {
