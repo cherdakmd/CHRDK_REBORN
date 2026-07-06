@@ -200,23 +200,21 @@ public class GuiListener implements Listener {
         if (e.getCurrentItem() == null) return;
         switch (e.getRawSlot()) {
             case 10: openRpgMenu(p); break;
-            case 12: openEconomyMenu(p); break;
-            case 14: openNewbieMenu(p); break;
-            case 16: openVkMenu(p); break;
-            case 19: run(p, "nation"); break;
-            case 20: run(p, "forge"); break;
-            case 21: run(p, "runes"); break;
-            case 22: run(p, "artifacts"); break;
-            case 23: run(p, "events"); break;
-            case 24: run(p, "mobs"); break;
-            case 25: p.closeInventory(); p.sendMessage(ChatColor.GOLD + "💰 Поддержать сервер: " + ChatColor.WHITE + "https://donatepay.ru/don/CHRDK"); p.sendMessage(ChatColor.GRAY + "5 статусов на 30 дней со скидками до -65%!"); p.sendMessage(ChatColor.YELLOW + "Подробнее: /donate info"); break;
-            case 28: run(p, "jobs"); break;
-            case 29: p.closeInventory(); p.sendMessage(ChatColor.AQUA + "Телепорты: /rtp, /sethome, /home, /tpa"); break;
-            case 30: run(p, "salvage"); break;
-            case 31: run(p, "market"); break;
-            case 32: p.closeInventory(); p.sendMessage(ChatColor.GOLD + "⛏ Смены в ЛС ВК: !шахта, !смена, !shift"); p.sendMessage(ChatColor.YELLOW + "Также доступны: !донат, !stash, !профиль, !рейтинг"); break;
-            case 33: openHelpMenu(p); break;
-            case 34: openHelpMenu(p); break;
+            case 11: run(p, "forge"); break;
+            case 12: run(p, "runes"); break;
+            case 13: run(p, "artifacts"); break;
+            case 14: run(p, "mobs"); break;
+            case 15: run(p, "events"); break;
+            case 16: run(p, "jobs"); break;
+            case 20: run(p, "nation"); break;
+            case 21: run(p, "market"); break;
+            case 22: p.closeInventory(); p.sendMessage(ChatColor.AQUA + "Телепорты: /rtp, /sethome, /home, /tpa"); break;
+            case 23: run(p, "salvage"); break;
+            case 24: p.closeInventory(); p.sendMessage(ChatColor.GOLD + "💰 Поддержать сервер: " + ChatColor.WHITE + "https://donatepay.ru/don/CHRDK"); p.sendMessage(ChatColor.GRAY + "5 статусов на 30 дней со скидками до -65%!"); p.sendMessage(ChatColor.YELLOW + "Подробнее: /donate info"); break;
+            case 31: openVkMenu(p); break;
+            case 32: openHelpMenu(p); break;
+            case 33: openNewbieMenu(p); break;
+            case 34: break;
             case 41: p.closeInventory(); p.sendMessage(ChatColor.GOLD + "⛏ Шахтёрские смены: !шахта, !смена, !shift — в ЛС бота ВК"); p.sendMessage(ChatColor.YELLOW + "Донат: !донат / !donate — в ЛС бота ВК"); break;
         }
     }
