@@ -30,7 +30,7 @@ import java.util.stream.Collectors;
 public class MobCommand implements CommandExecutor, Listener, TabCompleter {
     private final VKChatMobsPlugin plugin;
     private final ContractManager contractManager;
-    private final String TITLE = ChatColor.DARK_RED + "☠ Охота и угрозы";
+    private final String TITLE = "§8▸ §4§lОХОТА §8◂ §7Меню";
 
     public MobCommand(VKChatMobsPlugin plugin, ContractManager contractManager) {
         this.plugin = plugin;

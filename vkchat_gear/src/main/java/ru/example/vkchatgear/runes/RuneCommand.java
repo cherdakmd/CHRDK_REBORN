@@ -31,7 +31,7 @@ public class RuneCommand implements CommandExecutor, TabCompleter {
         if (!(sender instanceof Player)) return true;
         Player p = (Player) sender;
 
-        Inventory inv = Bukkit.createInventory(null, 54, ChatColor.DARK_PURPLE + "✨ Биржа Рун и Кристаллов");
+        Inventory inv = Bukkit.createInventory(null, 54, "§8▸ §d§lРУНЫ §8◂ §7Биржа");
 
         // Заполнение фиолетовым стеклом (рамка для красоты)
         ItemStack border = new ItemStack(Material.PURPLE_STAINED_GLASS_PANE);

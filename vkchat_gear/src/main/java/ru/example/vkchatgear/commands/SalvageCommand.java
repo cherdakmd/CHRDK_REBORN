@@ -31,7 +31,7 @@ import java.util.UUID;
 
 public class SalvageCommand implements CommandExecutor, Listener, TabCompleter {
     private final VKChatGearPlugin plugin;
-    public static final String GUI_TITLE = ChatColor.DARK_GREEN + "♻️ Утилизация снаряжения";
+    public static final String GUI_TITLE = "§8▸ §a§lУТИЛИЗАЦИЯ §8◂ §7Разбор шмота";
 
     public SalvageCommand(VKChatGearPlugin plugin) {
         this.plugin = plugin;

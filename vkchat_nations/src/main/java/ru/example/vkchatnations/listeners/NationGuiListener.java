@@ -25,12 +25,12 @@ import java.util.UUID;
 
 public class NationGuiListener implements Listener {
     private final VKChatNationsPlugin plugin;
-    private final String NATION_SELECT_TITLE = ChatColor.DARK_RED + "ВЫБЕРИТЕ НАЦИЮ";
-    private final String NATION_INFO_TITLE = ChatColor.GOLD + "Управление Нацией";
-    private final String NATION_SHOP_TITLE = ChatColor.GOLD + "🛒 Магазин Нации";
-    private final String BUY_CLAIM_TITLE = ChatColor.GOLD + "🛒 Покупка блоков привата";
-    private final String CLAIM_FEED_TITLE = ChatColor.GOLD + "⚡ Питание блока привата";
-    private final String CLAIM_UPGRADE_TITLE = ChatColor.DARK_PURPLE + "⬆ Прокачка привата";
+    private final String NATION_SELECT_TITLE = "§8▸ §4§lНАЦИИ §8◂ §7Выбор";
+    private final String NATION_INFO_TITLE = "§8▸ §6§lНАЦИЯ §8◂ §7Управление";
+    private final String NATION_SHOP_TITLE = "§8▸ §e§lНАЦИЯ §8◂ §7Магазин";
+    private final String BUY_CLAIM_TITLE = "§8▸ §e§lПРИВАТ §8◂ §7Покупка";
+    private final String CLAIM_FEED_TITLE = "§8▸ §6§lПРИВАТ §8◂ §7Питание";
+    private final String CLAIM_UPGRADE_TITLE = "§8▸ §5§lПРИВАТ §8◂ §7Прокачка";
     
     private final java.util.Map<UUID, ChunkClaim> activeFeedingClaims = new java.util.concurrent.ConcurrentHashMap<>();
 

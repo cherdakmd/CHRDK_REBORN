@@ -26,7 +26,7 @@ import java.util.stream.Collectors;
  */
 public class EventsCommand implements CommandExecutor, TabCompleter, Listener {
     private final VKChatEventsPlugin plugin;
-    private final String GUI_TITLE = ChatColor.GOLD + "📅 События и Активности";
+    private final String GUI_TITLE = "§8▸ §c§lСОБЫТИЯ §8◂ §7Меню";
 
     public EventsCommand(VKChatEventsPlugin plugin) {
         this.plugin = plugin;
