@@ -1,133 +1,40 @@
-<!-- Banner -->
-<p align="center">
-  <img src="https://raw.githubusercontent.com/cherdakmd/CHRDK_REBORN/master/.github/assets/banner.png" alt="CHRDK REBORN" width="100%">
-</p>
+# CHRDK REBORN — Minecraft Server Plugins
 
-<h1 align="center">🔥 CHRDK REBORN</h1>
+15 модулей для Paper 1.16.5. ВК-интеграция, РПГ-система, экономика, донат.
 
-<p align="center">
-  <b>RPG-экосистема Minecraft ↔ ВКонтакте</b><br>
-  Purpur 1.20.4 • 13 модулей • v2.1.0
-</p>
+## 📚 Гайды
 
-<p align="center">
-  <a href="https://www.youtube.com/channel/UCHo-PDiBZgHJwrSZWwbEFbg"><img src="https://img.shields.io/badge/YouTube-FF0000?style=flat-square&logo=youtube&logoColor=white" alt="YouTube"></a>
-  <a href="https://www.twitch.tv/dedworkshop"><img src="https://img.shields.io/badge/Twitch-9146FF?style=flat-square&logo=twitch&logoColor=white" alt="Twitch"></a>
-  <a href="https://vk.com/chrdk_reborn"><img src="https://img.shields.io/badge/VK-4C75A3?style=flat-square&logo=vk&logoColor=white" alt="VK"></a>
-  <a href="https://t.me/cherdakmd"><img src="https://img.shields.io/badge/Telegram-2CA5E0?style=flat-square&logo=telegram&logoColor=white" alt="Telegram"></a>
-  <a href="https://donatepay.ru/u/dedworkshop"><img src="https://img.shields.io/badge/DonatePay-F7931A?style=flat-square&logo=bitcoin&logoColor=white" alt="DonatePay"></a>
-</p>
+| Гайд | Для кого |
+|------|----------|
+| [Ультимативный гайд игрока](docs/player-guide.md) | Все игроки — 15 разделов, все команды |
+| [Донат-статусы](docs/donate-player-guide.md) | Игроки — бонусы, цены, как донатить |
+| [Настройка донат-плагина](docs/donate-setup-guide.md) | Админы — DonatePay, LuckPerms, BossBar |
+| [Настройка стримов](docs/streams-setup-guide.md) | Админы — Twitch, ВК-клавиатура, кросс-ссылки |
 
----
+## 🧩 Модули
 
-## ✨ Что это
+| Модуль | Описание |
+|--------|----------|
+| **vkchat_core** | Ядро: БД, VK LongPoll API, авторизация (bcrypt), репутация, модерация |
+| **vkchat_chat** | Чат: локальный/глобальный/торговый, TAB, join/quit сообщения |
+| **vkchat_announcer** | Авто-объявления, викторины |
+| **vkchat_artifacts** | Артефакты, эликсиры, мировые боссы |
+| **vkchat_donate** | DonatePay интеграция, 5 статусов, BossBar сбора, репа за донат |
+| **vkchat_events** | 18 катаклизмов, аирдропы, квесты, баунти, вторжения |
+| **vkchat_gear** | РПГ-шмот: кузня, заточка, руны, сеты, синтез, зачарования |
+| **vkchat_jobs** | 7 профессий, усталость, специализации, дейлики |
+| **vkchat_market** | Биржа: 60+ товаров, динамические цены, тренды, Flash Sale |
+| **vkchat_mobs** | Элитные мобы, контракты, осады, кровавая луна, шторм |
+| **vkchat_nations** | 6 наций, приваты с прокачкой, защиты |
+| **vkchat_offline** | Офлайн-шахты, смены, тайники |
+| **vkchat_starter** | Стартовый набор, 15 квестов, гайд-книга |
+| **vkchat_streams** | Twitch-анонсер: чат ВК + ЛС + клавиатура, /stream reward |
+| **vkchat_teleport** | TPA, home, RTP, back, gateway |
 
-**CHRDK REBORN** — сервер Minecraft с глубокой интеграцией ВКонтакте:
-- Репутация ВК как основная валюта
-- Управление персонажем через VK-бота
-- Нации, приваты, MMO-Gear, профессии, катаклизмы, рынок
+## 🔧 Сборка
 
-## 🚀 Быстрый старт
-
-```
-/register <пароль>
-/vklink
-/menu
-/nation
-/jobs
-```
-
-## 📦 Модули (13)
-
-| Модуль | Назначение |
-|---|---|
-| vkchat_core | Ядро + ВК + Авторизация + Репутация |
-| vkchat_nations | Нации + Приваты + защита территории |
-| vkchat_gear | Кузня 2.0 + 22 сета + 5 Mythical + Ancient кристалл |
-| vkchat_mobs | 6 стихий + 6 архетипов + MobStorm + контракты |
-| vkchat_events | 16 катаклизмов + автоспавн + ивенты |
-| vkchat_jobs | 7 профессий + навыки + ежедневки + еженедельки + рейтинг |
-| vkchat_artifacts | Артефакты + проклятия + Mythic шанс |
-| vkchat_market | Динамический рынок |
-| vkchat_donatepay | 4 статуса + умная выдача + `/donatepay lpsetup` |
-| vkchat_teleport | Телепортация за репутацию |
-| vkchat_announcer | Авто-анонсы |
-| vkchat_starter | Онбординг |
-
-## 📚 Документация
-
-- [📖 Полная вики](https://cherdakmd.github.io/CHRDK_REBORN/)
-- [📋 Changelog](CHANGELOG.md)
-- [📜 Команды](docs/COMMANDS.md)
-- [🗺️ Нации и приваты](docs/NATIONS.md)
-- [⚒️ Gear и Кузня](docs/GEAR_AND_RUNES.md)
-- [💼 Профессии](docs/JOBS_AND_SKILLS.md)
-## 🤝 Сообщество
-
-- **YouTube:** [UCHo-PDiBZgHJwrSZWwbEFbg](https://www.youtube.com/channel/UCHo-PDiBZgHJwrSZWwbEFbg)
-- **Twitch:** [dedworkshop](https://www.twitch.tv/dedworkshop)
-- **VK:** [chrdk_reborn](https://vk.com/chrdk_reborn)
-- **Telegram:** [cherdakmd](https://t.me/cherdakmd)
-- **DonatePay:** [dedworkshop](https://donatepay.ru/u/dedworkshop)
-
----
-
-<p align="center">Создано с ❤️ для CHRDK REBORN • Версия 2.1.0</p>
-
-## 📦 Модули
-
-| Модуль                | Назначение                          |
-|-----------------------|-------------------------------------|
-| `vkchat_core`         | Ядро + ВК + Авторизация + Репутация |
-| `vkchat_nations`      | Нации + Приваты + Мутации           |
-| `vkchat_gear`         | Кузня + Руны + Сеты                 |
-| `vkchat_jobs`         | Профессии + Ежедневки               |
-| `vkchat_market`       | Динамический рынок                  |
-| `vkchat_mobs`         | Элитные мобы + Контракты            |
-| `vkchat_events`       | События + Катаклизмы                |
-| `vkchat_artifacts`    | Артефакты + Эликсиры                |
-| `vkchat_teleport`     | Телепортация за репутацию           |
-| `vkchat_donatepay`    | Интеграция DonatePay                |
-| `vkchat_announcer`    | Авто-анонсы + Викторины             |
-| `vkchat_starter`      | Онбординг новых игроков             |
-
-## 🚀 Быстрый старт
-
-### Для игроков
 ```bash
-/register <пароль>
-/vklink
-/menu
-/nation
-/jobs
+./gradlew build copyJars
 ```
 
-### Для администраторов
-```bash
-1. Скопируйте jar-файлы в plugins/
-2. Настройте config.yml
-3. Перезапустите сервер
-```
-
-## 📚 Документация
-
-- [📖 Команды игрока](docs/COMMANDS.md)
-- [🔐 Права и разрешения](docs/PERMISSIONS.md)
-- [👑 Руководство администратора](docs/ADMIN_GUIDE.md)
-- [🗺️ Нации и приваты](docs/NATIONS.md)
-- [⚒️ Gear и Кузня](docs/GEAR_AND_RUNES.md)
-
-## 🤝 Вклад
-
-Мы рады любым вкладам! Пожалуйста, ознакомьтесь с [CONTRIBUTING.md](.github/CONTRIBUTING.md).
-
-## 📜 Лицензия
-
-Проект распространяется под лицензией MIT.
-
----
-
-<p align="center">
-  <b>Создано с ❤️ для CHRDK REBORN</b><br>
-  Версия 2.0.5 • 26 июня 2026
-</p>
+Плагины в `plugins_output/`.
