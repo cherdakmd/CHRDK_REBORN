@@ -30,13 +30,13 @@ public class GuiListener implements Listener {
 
     public GuiListener(VKChatPlugin plugin) {
         this.plugin = plugin;
-        this.GUI_TITLE = ChatColor.translateAlternateColorCodes('&', "&b&lИнтеграция ВКонтакте");
-        this.SERVER_TITLE = ChatColor.translateAlternateColorCodes('&', "&6&lМеню сервера CHRDK");
-        this.ECONOMY_TITLE = ChatColor.translateAlternateColorCodes('&', "&a&lЭкономика и цены");
-        this.RPG_TITLE = ChatColor.translateAlternateColorCodes('&', "&d&lRPG-прогресс");
-        this.VK_TITLE = ChatColor.translateAlternateColorCodes('&', "&b&lВК и социальные системы");
-        this.HELP_TITLE = ChatColor.translateAlternateColorCodes('&', "&f&lПомощь и подсказки");
-        this.NEWBIE_TITLE = ChatColor.translateAlternateColorCodes('&', "&e&lПуть новичка");
+        this.GUI_TITLE = ChatColor.translateAlternateColorCodes('&', "§8▸ §b§lМЕНЮ §8◂ §7Главная");
+        this.SERVER_TITLE = ChatColor.translateAlternateColorCodes('&', "§8▸ §6§lМЕНЮ CHRDK §8◂ §7Сервер");
+        this.ECONOMY_TITLE = ChatColor.translateAlternateColorCodes('&', "§8▸ §a§lМЕНЮ §8◂ §7Экономика");
+        this.RPG_TITLE = ChatColor.translateAlternateColorCodes('&', "§8▸ §d§lМЕНЮ §8◂ §7RPG");
+        this.VK_TITLE = ChatColor.translateAlternateColorCodes('&', "§8▸ §b§lМЕНЮ §8◂ §7Социалка");
+        this.HELP_TITLE = ChatColor.translateAlternateColorCodes('&', "§8▸ §f§lМЕНЮ §8◂ §7Помощь");
+        this.NEWBIE_TITLE = ChatColor.translateAlternateColorCodes('&', "§8▸ §e§lМЕНЮ §8◂ §7Новичок");
     }
 
     public void openMainMenu(Player p) {
@@ -44,39 +44,65 @@ public class GuiListener implements Listener {
         int vkId = plugin.getAuthManager().getLinkedVkId(p);
         boolean linked = vkId != -1;
         int rep = linked ? plugin.getReputationManager().getPoints(vkId) : 0;
+
+        ItemStack border = item(Material.BLACK_STAINED_GLASS_PANE, " ");
+        ItemStack accent = item(Material.LIGHT_BLUE_STAINED_GLASS_PANE, " ");
+        for (int i = 0; i < 27; i++) inv.setItem(i, (i < 9 || i >= 18 || i % 9 == 0 || i % 9 == 8) ? border : accent);
+
         inv.setItem(11, profile(p, rep, linked));
-        inv.setItem(13, item(Material.COMPASS, ChatColor.GOLD + "🏠 Главное меню сервера", ChatColor.GRAY + "Все основные механики в одном меню."));
-        inv.setItem(15, item(Material.BOOK, ChatColor.GOLD + "Наша группа ВК", ChatColor.GRAY + "Мини-игры, новости и поддержка.", ChatColor.YELLOW + "Группа: " + ChatColor.WHITE + plugin.getConfig().getString("vk.group-link", "https://vk.com")));
-        fill(inv, Material.LIGHT_BLUE_STAINED_GLASS_PANE);
+        inv.setItem(13, item(Material.COMPASS, "§6🏠 Серверное меню",
+                "§7Основные механики, экономика,",
+                "§7RPG-прогресс, помощь.",
+                "", "§e▶ Открыть"));
+        inv.setItem(15, item(Material.BOOK, "§b📱 Группа ВК",
+                "§7Новости, мини-игры, поддержка.",
+                "§7" + plugin.getConfig().getString("vk.group-link", "https://vk.com")));
         p.openInventory(inv);
     }
 
     public void openServerMenu(Player p) {
         Inventory inv = Bukkit.createInventory(null, 54, SERVER_TITLE);
-        fill(inv, Material.BLACK_STAINED_GLASS_PANE);
+
+        ItemStack border = item(Material.BLACK_STAINED_GLASS_PANE, " ");
+        ItemStack accent = item(Material.GRAY_STAINED_GLASS_PANE, " ");
+        for (int i = 0; i < 54; i++) inv.setItem(i, (i < 9 || i >= 45 || i % 9 == 0 || i % 9 == 8) ? border : accent);
+
         int vkId = plugin.getAuthManager().getLinkedVkId(p);
         int rep = vkId != -1 ? plugin.getReputationManager().getPoints(vkId) : 0;
-        inv.setItem(4, profile(p, rep, vkId != -1));
+        inv.setItem(4, item(Material.GOLD_BLOCK, "§6§l⚡ СЕРВЕР CHRDK",
+                "§7Все механики в одном меню",
+                "§e💰 Баланс: §f" + rep + " реп."));
 
-        inv.setItem(10, item(Material.NETHER_STAR, ChatColor.LIGHT_PURPLE + "⭐ RPG-прогресс", ChatColor.GRAY + "Gear, артефакты, мобы, профессии.", ChatColor.YELLOW + "Открыть подраздел"));
-        inv.setItem(12, item(Material.EMERALD, ChatColor.GREEN + "💰 Экономика и цены", ChatColor.GRAY + "Баланс, цены, лимиты и репутационные сливы.", ChatColor.YELLOW + "Открыть подраздел"));
-        inv.setItem(14, item(Material.WRITABLE_BOOK, ChatColor.YELLOW + "🌱 Путь новичка", ChatColor.GRAY + "Пошаговый старт, безопасные активности и первые награды.", ChatColor.YELLOW + "Открыть подраздел"));
-        inv.setItem(16, item(Material.PAPER, ChatColor.AQUA + "📱 ВК и социалка", ChatColor.GRAY + "Профиль ВК, охота, промокоды.", ChatColor.YELLOW + "Открыть подраздел"));
+        // Ряд 2: RPG
+        inv.setItem(10, menuItem(Material.NETHER_STAR, "§d⭐ RPG-прогресс", "§7Gear, артефакты, мобы, профессии"));
+        inv.setItem(11, menuItem(Material.ANVIL, "§c⚒ Кузня", "§7Перековка, слияние, очистка", "§7§o/forge"));
+        inv.setItem(12, menuItem(Material.ENCHANTING_TABLE, "§d🔮 Руны и заточка", "§7Кристаллы до +25", "§7§o/runes"));
+        inv.setItem(13, menuItem(Material.TOTEM_OF_UNDYING, "§d🏺 Артефакты", "§7Баффы, эликсиры, свитки", "§7§o/artifacts"));
+        inv.setItem(14, menuItem(Material.ZOMBIE_HEAD, "§4☠ Охота", "§7Элитки, контракты, осады", "§7§o/mobs"));
+        inv.setItem(15, menuItem(Material.GOLDEN_SWORD, "§c⚔ События", "§7Катаклизмы, боссы, квесты", "§7§o/events"));
+        inv.setItem(16, menuItem(Material.BOOK, "§e💼 Профессии", "§7Шахтёр, кузнец, охотник...", "§7§o/jobs"));
 
-        inv.setItem(19, item(Material.SHIELD, ChatColor.AQUA + "👥 Нации и приваты", ChatColor.GRAY + "Выбор нации, мутации, блоки привата.", ChatColor.YELLOW + "/nation"));
-        inv.setItem(20, item(Material.ANVIL, ChatColor.RED + "⚒ Кузня", ChatColor.GRAY + "GUI-перековка, дефекты, сетовые фрагменты.", ChatColor.YELLOW + "/forge"));
-        inv.setItem(21, item(Material.ENCHANTING_TABLE, ChatColor.LIGHT_PURPLE + "🔮 Руны", ChatColor.GRAY + "Кристаллы +20, руны, лимиты слотов.", ChatColor.YELLOW + "/runes"));
-        inv.setItem(22, item(Material.TOTEM_OF_UNDYING, ChatColor.LIGHT_PURPLE + "🏺 Артефакты", ChatColor.GRAY + "Артефакты, эликсиры, свитки.", ChatColor.YELLOW + "/artifacts"));
-        inv.setItem(23, item(Material.CLOCK, ChatColor.GOLD + "🌋 События", ChatColor.GRAY + "Аирдропы, боссы, катаклизмы.", ChatColor.YELLOW + "/events"));
-        inv.setItem(24, item(Material.ZOMBIE_HEAD, ChatColor.DARK_RED + "☠ Охота", ChatColor.GRAY + "Элитные мобы, контракты, осады.", ChatColor.YELLOW + "/mobs"));
-        inv.setItem(25, item(Material.GOLD_INGOT, ChatColor.GOLD + "💰 Донат", ChatColor.GRAY + "Поддержи сервер — получи бонусы!", ChatColor.GRAY + "5 статусов от 250₽ до 5000₽ на 30 дней.", ChatColor.YELLOW + "Нажми чтобы узнать ссылку"));
+        // Ряд 3: Сервисы
+        inv.setItem(20, menuItem(Material.SHIELD, "§b👥 Нации и приваты", "§76 наций, защита территории", "§7§o/nation"));
+        inv.setItem(21, menuItem(Material.EMERALD_BLOCK, "§a📈 Биржа", "§7Динамический рынок ресурсов", "§7§o/market"));
+        inv.setItem(22, menuItem(Material.ENDER_PEARL, "§b⏳ Телепорты", "§7RTP, home, TPA, back", "§7§o/rtp /home /tpa"));
+        inv.setItem(23, menuItem(Material.CHEST, "§a🗑 Утилизация", "§7Разбор MMO-шмота", "§7§o/salvage"));
+        inv.setItem(24, menuItem(Material.GOLD_INGOT, "§6💰 Донат", "§75 статусов от 250₽ до 5000₽", "§7Скидки, дома, ускорение"));
 
-        inv.setItem(28, item(Material.BOOK, ChatColor.YELLOW + "💼 Профессии", ChatColor.GRAY + "Jobs, навыки, blacksmith для ковки.", ChatColor.YELLOW + "/jobs"));
-        inv.setItem(29, item(Material.ENDER_PEARL, ChatColor.AQUA + "⏳ Телепорты", ChatColor.GRAY + "RTP, home, TPA.", ChatColor.YELLOW + "/rtp /home /tpa"));
-        inv.setItem(30, item(Material.CHEST, ChatColor.GREEN + "🗑 Разбор", ChatColor.GRAY + "Утилизация MMO-предметов.", ChatColor.YELLOW + "/salvage"));
-        inv.setItem(31, item(Material.EMERALD_BLOCK, ChatColor.GREEN + "📈 Рынок", ChatColor.GRAY + "Покупка и продажа ресурсов.", ChatColor.YELLOW + "/market"));
-        inv.setItem(32, item(Material.MAP, ChatColor.WHITE + "📖 Помощь", ChatColor.GRAY + "Wiki, команды, FAQ, подсказки.", ChatColor.YELLOW + "Открыть подраздел"));
+        // Ряд 4: Инфо
+        inv.setItem(31, menuItem(Material.PAPER, "§b📱 ВК и социалка", "§7Профиль, чат, охота"));
+        inv.setItem(32, menuItem(Material.MAP, "§f📖 Помощь", "§7Команды, FAQ, гайды"));
+        inv.setItem(49, item(Material.BARRIER, "§c✕ Закрыть"));
         p.openInventory(inv);
+    }
+
+    private ItemStack menuItem(Material mat, String name, String... lore) {
+        ItemStack i = new ItemStack(mat);
+        ItemMeta m = i.getItemMeta();
+        m.setDisplayName(name);
+        m.setLore(Arrays.asList(lore));
+        i.setItemMeta(m);
+        return i;
     }
 
     private void openEconomyMenu(Player p) {
