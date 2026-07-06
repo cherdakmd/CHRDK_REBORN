@@ -2,6 +2,7 @@ package ru.example.vkchatoffline.managers;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
@@ -205,7 +206,9 @@ public class ShiftManager {
 
         try {
             VKChatPlugin.getInstance().getApi().addReputation(vkId, rep);
-        } catch (Exception ignored) {}
+        } catch (Exception e) {
+            plugin.getLogger().warning("Ошибка начисления репутации за смену vkId=" + vkId + ": " + e.getMessage());
+        }
 
         List<ItemStack> items = new ArrayList<>();
         List<String> resList = plugin.getConfig().getStringList("shifts." + key + ".resources");
@@ -261,7 +264,9 @@ public class ShiftManager {
 
     public String getShiftsInfo() {
         StringBuilder sb = new StringBuilder("⛏ ШАХТЁРСКИЕ СМЕНЫ\n\n");
-        for (String key : plugin.getConfig().getConfigurationSection("shifts").getKeys(false)) {
+        ConfigurationSection shiftsSec = plugin.getConfig().getConfigurationSection("shifts");
+        if (shiftsSec == null) return sb.append("Нет доступных смен.").toString();
+        for (String key : shiftsSec.getKeys(false)) {
             sb.append(getShiftIcon(key)).append(" ").append(getShiftName(key))
                     .append(" — ").append(formatDuration(getShiftMinutes(key))).append("\n");
             sb.append("   ⭐ ").append(plugin.getConfig().getInt("shifts." + key + ".rep-min"))
@@ -281,7 +286,8 @@ public class ShiftManager {
         if (!shiftsFile.exists()) return;
         shiftsCfg = YamlConfiguration.loadConfiguration(shiftsFile);
         if (shiftsCfg.contains("shifts")) {
-            for (String key : shiftsCfg.getConfigurationSection("shifts").getKeys(false)) {
+            ConfigurationSection sec = shiftsCfg.getConfigurationSection("shifts");
+            if (sec != null) for (String key : sec.getKeys(false)) {
                 int vkId = Integer.parseInt(key);
                 ShiftData sd = new ShiftData();
                 sd.shiftKey = shiftsCfg.getString("shifts." + key + ".key");
@@ -322,7 +328,9 @@ public class ShiftManager {
         for (Map.Entry<Integer, Long> e : lastShiftEnd.entrySet()) {
             shiftsCfg.set("lastend." + e.getKey(), e.getValue());
         }
-        try { shiftsCfg.save(shiftsFile); } catch (IOException ignored) {}
+        try { shiftsCfg.save(shiftsFile); } catch (IOException e) {
+            plugin.getLogger().warning("Ошибка сохранения shifts.yml: " + e.getMessage());
+        }
     }
 
     private double getDonateShiftMultiplier(int vkId) {

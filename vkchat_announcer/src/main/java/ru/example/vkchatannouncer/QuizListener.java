@@ -15,8 +15,8 @@ public class QuizListener implements Listener {
     private final VKChatAnnouncerPlugin plugin;
     private final Random random = new Random();
 
-    private static String activeQuestion = null;
-    private static String activeAnswer = null;
+    private static volatile String activeQuestion = null;
+    private static volatile String activeAnswer = null;
 
     private static final String[][] QUESTIONS = {
         {"Сколько репутации стоит малый блок привата? (Назовите число)", "100"},

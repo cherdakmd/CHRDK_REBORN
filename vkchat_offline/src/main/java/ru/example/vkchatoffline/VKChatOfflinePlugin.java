@@ -31,10 +31,12 @@ public class VKChatOfflinePlugin extends JavaPlugin {
 
         getServer().getPluginManager().registerEvents(new OfflineListener(this), this);
         ru.example.vkchatoffline.commands.StashCommand stashCmd = new ru.example.vkchatoffline.commands.StashCommand(this);
-        getCommand("stash").setExecutor(stashCmd);
-        getCommand("stash").setTabCompleter(stashCmd);
-
-        getCommand("shift").setExecutor(new ru.example.vkchatoffline.commands.ShiftCommand(this));
+        if (getCommand("stash") != null) {
+            getCommand("stash").setExecutor(stashCmd);
+            getCommand("stash").setTabCompleter(stashCmd);
+        }
+        if (getCommand("shift") != null)
+            getCommand("shift").setExecutor(new ru.example.vkchatoffline.commands.ShiftCommand(this));
 
         getLogger().info("VKChatOffline v1.0 — шахтёрские смены запущены!");
     }
