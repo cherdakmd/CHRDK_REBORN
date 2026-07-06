@@ -1042,6 +1042,30 @@ items:
     scarcity-threshold: 30
     max-multiplier: 4.5
 
+  LAPIS_LAZULI:
+    name: "&9Лазурит"
+    category: "Руды/слитки"
+    base-price: 8.0
+    min-price: 2.0
+    elasticity: 120.0
+    recovery-rate: 30
+    max-stock: 300
+    min-stock: -150
+    scarcity-threshold: 50
+    max-multiplier: 4.0
+
+  ENCHANTED_BOOK:
+    name: "&dЗачарованная книга"
+    category: "Редкости"
+    base-price: 250.0
+    min-price: 50.0
+    elasticity: 40.0
+    recovery-rate: 2
+    max-stock: 50
+    min-stock: -25
+    scarcity-threshold: 10
+    max-multiplier: 5.0
+
 # Лимитированные редкие товары (сбалансированные цены)
 limited-items:
   TOTEM_OF_UNDYING:
