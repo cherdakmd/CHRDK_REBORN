@@ -25,7 +25,7 @@ public class RuneListener implements Listener {
 
     @EventHandler
     public void onGuiClick(InventoryClickEvent e) {
-        if (e.getView().getTitle().contains("Биржа Рун") || e.getView().getTitle().contains("Магазин Рун")) {
+        if (e.getView().getTitle().contains("РУНЫ") || e.getView().getTitle().contains("Биржа Рун")) {
             e.setCancelled(true);
             if (e.getCurrentItem() == null || !e.getCurrentItem().hasItemMeta()) return;
             
