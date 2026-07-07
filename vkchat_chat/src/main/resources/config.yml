@@ -41,16 +41,22 @@ chat-filter:
 # 🖥 TAB (header/footer + префиксы)
 tab:
   header:
-    - "&4&l⚔ &c&lCHRDK REBORN &4&l⚔"
-    - "&7Добро пожаловать, &f%player%"
-    - ""
+    - "&8▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬"
+    - "  &4&l⚔ &c&lCHRDK &4&lREBORN &4&l⚔"
+    - "&r"
+    - "  &7Привет, &f%player%&7!"
+    - "  &7Твой статус: %luckperms-prefix%"
+    - "&r"
+    - "&8▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬"
   footer:
-    - ""
-    - "&7Онлайн &c%online% &8| &7Репутация &c%vkchat_reputation%"
-    - "&7Статус: %luckperms-prefix%"
-    - "&7%stats%"
-    - ""
-    - "&4⚔ &c/donate info &4⚔"
+    - "&8▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬"
+    - "&r"
+    - "  &c👥 Онлайн: &f%online%  &8|  &e💰 Реп: &f%vkchat_reputation%"
+    - "  &7%stats%"
+    - "&r"
+    - "  &6/donate info &8| &b/vk.link &8| &a/market"
+    - "&r"
+    - "&8▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬"
   update-ticks: 20
 
 # 🏷 Форматы join/quit (вариативные)

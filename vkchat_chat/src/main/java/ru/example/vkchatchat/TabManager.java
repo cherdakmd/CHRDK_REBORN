@@ -172,16 +172,16 @@ public class TabManager implements Listener {
     }
 
     private void updateStats() {
-        statsLines[0] = "&c❤ " + getTopRep();
-        statsLines[1] = "&e💰 " + getTopDonator();
+        statsLines[0] = "&c⚔ " + getTopRep();
+        statsLines[1] = "&6💎 " + getTopDonator();
         statsLines[2] = "&a⏱ " + getUptime();
-        statsLines[3] = "&b🌍 " + Bukkit.getOfflinePlayers().length + " игроков";
+        statsLines[3] = "&b🌍 Всего игроков: " + Bukkit.getOfflinePlayers().length;
         statsIndex = (statsIndex + 1) % statsLines.length;
     }
 
     private String getStats() {
         if (statsLines[statsIndex] == null) updateStats();
-        return statsLines[statsIndex] + "   &8|   " + statsLines[(statsIndex + 1) % statsLines.length];
+        return statsLines[statsIndex] + "  &8│  " + statsLines[(statsIndex + 1) % statsLines.length];
     }
 
     private String getTopRep() {
