@@ -21,6 +21,7 @@ public class VKChatArtifactsPlugin extends JavaPlugin {
     private static VKChatArtifactsPlugin instance;
     private BossManager bossManager;
     private BuffEffectRegistry buffEffectRegistry;
+    private ArtifactListener artifactListener;
     private final Map<UUID, Long> airdropCooldowns = new ConcurrentHashMap<>();
     private final Map<Location, Long> activeChests = new ConcurrentHashMap<>();
     private final Random rng = new Random();
@@ -42,7 +43,8 @@ public class VKChatArtifactsPlugin extends JavaPlugin {
         bossManager = new BossManager(this);
         buffEffectRegistry = new BuffEffectRegistry(this);
 
-        getServer().getPluginManager().registerEvents(new ArtifactListener(this), this);
+        artifactListener = new ArtifactListener(this);
+        getServer().getPluginManager().registerEvents(artifactListener, this);
         getServer().getPluginManager().registerEvents(new ConsumablesListener(this), this);
         getServer().getPluginManager().registerEvents(new ru.example.vkchatartifacts.listeners.ArtifactShopListener(this), this);
         getServer().getPluginManager().registerEvents(bossManager, this);
@@ -80,6 +82,10 @@ public class VKChatArtifactsPlugin extends JavaPlugin {
     
     public BossManager getBossManager() {
         return bossManager;
+    }
+
+    public ArtifactListener getArtifactListener() {
+        return artifactListener;
     }
 
     /**

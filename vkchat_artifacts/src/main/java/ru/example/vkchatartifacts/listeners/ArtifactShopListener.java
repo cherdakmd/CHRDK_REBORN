@@ -198,6 +198,11 @@ public class ArtifactShopListener implements Listener {
             int rep = VKChatPlugin.getInstance().getApi().getReputation(vkId);
             if (rep < cost) { p.sendMessage(ChatColor.RED + "❌ Нужно " + cost + " реп. (у тебя " + rep + ")"); return; }
 
+            if (("normal".equals(type) || "relic".equals(type)) && plugin.getArtifactListener().countArtifacts(p) >= plugin.getConfig().getInt("artifacts.max-artifacts", 5)) {
+                p.sendMessage(ChatColor.RED + "☠ Лимит артефактов достигнут! Максимум: " + plugin.getConfig().getInt("artifacts.max-artifacts", 5) + ".");
+                return;
+            }
+
             VKChatPlugin.getInstance().getApi().takeReputation(vkId, cost);
 
             ItemStack itemToGive = switch (type) {

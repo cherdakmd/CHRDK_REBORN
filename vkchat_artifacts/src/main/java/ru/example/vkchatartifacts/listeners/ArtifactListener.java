@@ -35,6 +35,9 @@ import java.util.Collections;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.block.Action;
+import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryDragEvent;
+import org.bukkit.event.inventory.InventoryType;
 
 public class ArtifactListener implements Listener {
 
@@ -386,6 +389,16 @@ public class ArtifactListener implements Listener {
                 item.setItemMeta(meta);
             }
         }
+    }
+
+    public int countArtifacts(Player p) {
+        int count = 0;
+        for (ItemStack item : p.getInventory().getContents()) {
+            if (item != null && item.hasItemMeta() && item.getItemMeta().getPersistentDataContainer().has(isArtifactKey, PersistentDataType.INTEGER)) {
+                count++;
+            }
+        }
+        return count;
     }
 
     private boolean hasArtifactBuff(Player p, String buffName) {
@@ -815,5 +828,66 @@ public class ArtifactListener implements Listener {
                 return;
             }
         }
+    }
+
+    @EventHandler
+    public void onInventoryClick(InventoryClickEvent e) {
+        if (!(e.getWhoClicked() instanceof Player)) return;
+        Player p = (Player) e.getWhoClicked();
+        ItemStack current = e.getCurrentItem();
+        ItemStack cursor = e.getCursor();
+        int max = plugin.getConfig().getInt("artifacts.max-artifacts", 5);
+
+        if (e.getClickedInventory() == null) return;
+
+        boolean movingIntoPlayer;
+        if (e.getClickedInventory().getType() == InventoryType.PLAYER) {
+            if (e.getClick().isShiftClick() && current != null && isArtifact(current)) {
+                movingIntoPlayer = true;
+            } else if (e.getClick().isKeyboardClick() && cursor != null && isArtifact(cursor)) {
+                movingIntoPlayer = true;
+            } else {
+                return;
+            }
+        } else if (e.getClickedInventory().getType() != InventoryType.PLAYER) {
+            if (cursor != null && isArtifact(cursor)) {
+                movingIntoPlayer = true;
+            } else if (e.getClick().isShiftClick() && current != null && isArtifact(current)) {
+                movingIntoPlayer = true;
+            } else {
+                return;
+            }
+        } else {
+            return;
+        }
+
+        if (!movingIntoPlayer) return;
+
+        int currentCount = countArtifacts(p);
+        if (currentCount >= max) {
+            e.setCancelled(true);
+            p.sendMessage(org.bukkit.ChatColor.RED + "☠ Лимит артефактов достигнут! Максимум: " + max + ".");
+        }
+    }
+
+    @EventHandler
+    public void onInventoryDrag(InventoryDragEvent e) {
+        if (!(e.getWhoClicked() instanceof Player)) return;
+        if (e.getInventory().getType() != InventoryType.PLAYER) return;
+        Player p = (Player) e.getWhoClicked();
+        int max = plugin.getConfig().getInt("artifacts.max-artifacts", 5);
+        boolean hasArtifact = false;
+        for (ItemStack item : e.getNewItems().values()) {
+            if (isArtifact(item)) { hasArtifact = true; break; }
+        }
+        if (hasArtifact && countArtifacts(p) >= max) {
+            e.setCancelled(true);
+            p.sendMessage(org.bukkit.ChatColor.RED + "☠ Лимит артефактов достигнут! Максимум: " + max + ".");
+        }
+    }
+
+    private boolean isArtifact(ItemStack item) {
+        return item != null && item.hasItemMeta()
+            && item.getItemMeta().getPersistentDataContainer().has(isArtifactKey, PersistentDataType.INTEGER);
     }
 }
