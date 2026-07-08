@@ -92,6 +92,7 @@ public class GuiListener implements Listener {
         // Ряд 4: Инфо
         inv.setItem(31, menuItem(Material.PAPER, "§b📱 ВК и социалка", "§7Профиль, чат, охота"));
         inv.setItem(32, menuItem(Material.MAP, "§f📖 Помощь", "§7Команды, FAQ, гайды"));
+        inv.setItem(33, menuItem(Material.OAK_SAPLING, "§e🌱 Новичкам", "§7Быстрый старт и подсказки"));
         inv.setItem(49, item(Material.BARRIER, "§c✕ Закрыть"));
         p.openInventory(inv);
     }

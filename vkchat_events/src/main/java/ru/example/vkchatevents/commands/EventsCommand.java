@@ -166,40 +166,27 @@ public class EventsCommand implements CommandExecutor, TabCompleter, Listener {
         Player p = (Player) e.getWhoClicked();
 
         switch (e.getRawSlot()) {
-            case 10: // Разлом
-                p.sendMessage(ChatColor.DARK_PURPLE + "Разлом Бездны: " +
-                        (plugin.getInvasionManager().isActive() ? "Активен" : "Закрыт"));
+            case 10: p.sendMessage(ChatColor.DARK_PURPLE + "Разлом Бездны: " + (plugin.getInvasionManager().isActive() ? "Активен" : "Закрыт")); break;
+            case 11: p.sendMessage(ChatColor.DARK_RED + "Аватар Гнева: " + (plugin.getWrathManager().isActive() ? "Жив" : "Не призван")); break;
+            case 12: p.sendMessage(ChatColor.AQUA + "Катаклизм: " + (plugin.getWrathManager().getActiveCataclysm() != null ? plugin.getWrathManager().getActiveCataclysm() : "Тихо")); break;
+            case 13: p.sendMessage(ChatColor.YELLOW + "Квесты: выполняй сюжетные задания — /events info"); break;
+            case 14: p.sendMessage(ChatColor.RED + "Контракты: баунти на игроков — /events info"); break;
+            case 19: p.sendMessage(ChatColor.GOLD + "🎁 Ежедневная награда: заходи на сервер каждый день!"); break;
+            case 20: p.sendMessage(ChatColor.AQUA + "📋 Испытания: убивай мобов, добывай ресурсы, крафти!"); break;
+            case 21: p.sendMessage(ChatColor.GREEN + "🛒 Магазин событий: скоро открытие!"); break;
+            case 22: p.sendMessage(ChatColor.GOLD + "🏅 Достижения: 20+ достижений событий"); break;
+            case 23: p.sendMessage(ChatColor.YELLOW + "🏆 Лидерборд: лучшие игроки сервера"); break;
+            case 24: {
+                if (plugin.getStatisticsManager() != null) {
+                    p.sendMessage(ChatColor.AQUA + "📊 Статистика: убийств " + plugin.getStatisticsManager().getStat(p.getUniqueId(), "kills") + ", блоков " + plugin.getStatisticsManager().getStat(p.getUniqueId(), "blocks_mined"));
+                } else p.sendMessage(ChatColor.AQUA + "📊 Статистика недоступна");
                 break;
-            case 11: // Босс
-                p.sendMessage(ChatColor.DARK_RED + "Аватар Гнева: " +
-                        (plugin.getWrathManager().isActive() ? "Жив" : "Не призван"));
-                break;
-            case 19: // Ежедневная награда
-                p.sendMessage(ChatColor.GOLD + "🎁 Ежедневная награда: заходи на сервер каждый день!");
-                break;
-            case 20: // Испытания
-                p.sendMessage(ChatColor.AQUA + "📋 Испытания: убивай мобов, добывай ресурсы, крафти!");
-                break;
-            case 29: // Предсказание
-                if (plugin.getActivityManager() != null) {
-                    p.sendMessage(ChatColor.LIGHT_PURPLE + "🔮 " + plugin.getActivityManager().getPrediction(p.getUniqueId()));
-                }
-                break;
-            case 31: // Активность
-                if (plugin.getActivityManager() != null) {
-                    p.sendMessage(plugin.getActivityManager().getStats(p.getUniqueId()));
-                }
-                break;
-            case 32: // PvP
-                if (plugin.getCombatManager() != null) {
-                    p.sendMessage(plugin.getCombatManager().getPvPStats(p.getUniqueId()));
-                }
-                break;
-            case 33: // Эволюция
-                if (plugin.getEvolutionManager() != null) {
-                    p.sendMessage(plugin.getEvolutionManager().getEvolutionStats(p.getUniqueId()));
-                }
-                break;
+            }
+            case 29: if (plugin.getActivityManager() != null) p.sendMessage(ChatColor.LIGHT_PURPLE + "🔮 " + plugin.getActivityManager().getPrediction(p.getUniqueId())); break;
+            case 30: p.sendMessage(ChatColor.YELLOW + "🔥 Комбо: бонусы за серию действий!"); break;
+            case 31: if (plugin.getActivityManager() != null) p.sendMessage(plugin.getActivityManager().getStats(p.getUniqueId())); break;
+            case 32: if (plugin.getCombatManager() != null) p.sendMessage(plugin.getCombatManager().getPvPStats(p.getUniqueId())); break;
+            case 33: if (plugin.getEvolutionManager() != null) p.sendMessage(plugin.getEvolutionManager().getEvolutionStats(p.getUniqueId())); break;
         }
     }
 
