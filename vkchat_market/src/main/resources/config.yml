@@ -1148,16 +1148,124 @@ items:
     scarcity-threshold: 2
     max-multiplier: 8.0
 
-  ENCHANTED_BOOK:
-    name: "&dЗачарованная книга"
+  ENCHANT_BOOK_FEATHER4:
+    name: "&dЗачарованная книга: Невесомость IV"
     category: "Редкости"
+    material: "ENCHANTED_BOOK"
+    enchant: "PROTECTION_FALL"
+    enchant-level: 4
     base-price: 250.0
-    min-price: 50.0
+    min-price: 60.0
+    elasticity: 45.0
+    recovery-rate: 2
+    max-stock: 25
+    min-stock: -10
+    scarcity-threshold: 5
+    max-multiplier: 5.0
+
+  ENCHANT_BOOK_LOOT3:
+    name: "&dЗачарованная книга: Добыча III"
+    category: "Редкости"
+    material: "ENCHANTED_BOOK"
+    enchant: "LOOT_BONUS_MOBS"
+    enchant-level: 3
+    base-price: 400.0
+    min-price: 100.0
+    elasticity: 35.0
+    recovery-rate: 1
+    max-stock: 20
+    min-stock: -10
+    scarcity-threshold: 5
+    max-multiplier: 6.0
+
+  ENCHANT_BOOK_FIRE2:
+    name: "&dЗачарованная книга: Заговор огня II"
+    category: "Редкости"
+    material: "ENCHANTED_BOOK"
+    enchant: "FIRE_ASPECT"
+    enchant-level: 2
+    base-price: 350.0
+    min-price: 80.0
     elasticity: 40.0
     recovery-rate: 2
-    max-stock: 50
-    min-stock: -25
-    scarcity-threshold: 10
+    max-stock: 20
+    min-stock: -10
+    scarcity-threshold: 5
+    max-multiplier: 5.5
+
+  ENCHANT_BOOK_POWER5:
+    name: "&dЗачарованная книга: Сила V"
+    category: "Редкости"
+    material: "ENCHANTED_BOOK"
+    enchant: "ARROW_DAMAGE"
+    enchant-level: 5
+    base-price: 450.0
+    min-price: 110.0
+    elasticity: 35.0
+    recovery-rate: 1
+    max-stock: 20
+    min-stock: -10
+    scarcity-threshold: 5
+    max-multiplier: 6.0
+
+  ENCHANT_BOOK_FLAME1:
+    name: "&dЗачарованная книга: Пламя I"
+    category: "Редкости"
+    material: "ENCHANTED_BOOK"
+    enchant: "ARROW_FIRE"
+    enchant-level: 1
+    base-price: 300.0
+    min-price: 70.0
+    elasticity: 40.0
+    recovery-rate: 2
+    max-stock: 20
+    min-stock: -10
+    scarcity-threshold: 5
+    max-multiplier: 5.0
+
+  ENCHANT_BOOK_INFIN1:
+    name: "&dЗачарованная книга: Бесконечность I"
+    category: "Редкости"
+    material: "ENCHANTED_BOOK"
+    enchant: "ARROW_INFINITE"
+    enchant-level: 1
+    base-price: 600.0
+    min-price: 150.0
+    elasticity: 30.0
+    recovery-rate: 1
+    max-stock: 15
+    min-stock: -5
+    scarcity-threshold: 3
+    max-multiplier: 7.0
+
+  ENCHANT_BOOK_THORNS3:
+    name: "&dЗачарованная книга: Шипы III"
+    category: "Редкости"
+    material: "ENCHANTED_BOOK"
+    enchant: "THORNS"
+    enchant-level: 3
+    base-price: 350.0
+    min-price: 80.0
+    elasticity: 40.0
+    recovery-rate: 2
+    max-stock: 20
+    min-stock: -10
+    scarcity-threshold: 5
+    max-multiplier: 5.5
+
+  ENCHANT_BOOK_DEPTH3:
+    name: "&dЗачарованная книга: Подводник III"
+    category: "Редкости"
+    material: "ENCHANTED_BOOK"
+    enchant: "DEPTH_STRIDER"
+    enchant-level: 3
+    base-price: 300.0
+    min-price: 70.0
+    elasticity: 40.0
+    recovery-rate: 2
+    max-stock: 20
+    min-stock: -10
+    scarcity-threshold: 5
     max-multiplier: 5.0
 
 # Лимитированные редкие товары (сбалансированные цены)
