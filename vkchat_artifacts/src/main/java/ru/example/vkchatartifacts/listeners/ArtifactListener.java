@@ -107,7 +107,6 @@ public class ArtifactListener implements Listener {
 
             int maxArtifacts = plugin.getConfig().getInt("artifacts.max-artifacts", 5);
             int processedCount = 0;
-            boolean warnedThisTick = false;
 
             for (ItemStack item : p.getInventory().getContents()) {
                 if (item == null || !item.hasItemMeta()) continue;
@@ -126,11 +125,10 @@ public class ArtifactListener implements Listener {
 
                 // Если превышен лимит — артефакт не активен
                 if (processedCount >= maxArtifacts) {
-                    if (!warnedThisTick && !warnedOverLimit.contains(p.getUniqueId())) {
+                    if (!warnedOverLimit.contains(p.getUniqueId())) {
                         warnedOverLimit.add(p.getUniqueId());
-                        p.sendMessage(org.bukkit.ChatColor.YELLOW + "☠ У тебя больше " + maxArtifacts + " артефактов! Лишние неактивны. Выбрось или разбери лишние.");
+                        p.sendMessage(org.bukkit.ChatColor.YELLOW + "☠ У тебя " + countArtifacts(p) + " артефактов (лимит " + maxArtifacts + ")! Лишние неактивны. Выбрось или разбери лишние.");
                     }
-                    warnedThisTick = true;
                     continue;
                 }
                 processedCount++;
@@ -419,6 +417,10 @@ public class ArtifactListener implements Listener {
             if (item != null && item.hasItemMeta() && item.getItemMeta().getPersistentDataContainer().has(isArtifactKey, PersistentDataType.INTEGER)) {
                 count++;
             }
+        }
+        ItemStack offhand = p.getInventory().getItemInOffHand();
+        if (offhand.getType() != Material.AIR && offhand.hasItemMeta() && offhand.getItemMeta().getPersistentDataContainer().has(isArtifactKey, PersistentDataType.INTEGER)) {
+            count++;
         }
         return count;
     }
@@ -888,7 +890,7 @@ public class ArtifactListener implements Listener {
         int currentCount = countArtifacts(p);
         if (currentCount >= max) {
             e.setCancelled(true);
-            p.sendMessage(org.bukkit.ChatColor.RED + "☠ Лимит артефактов достигнут! Максимум: " + max + ".");
+            p.sendMessage(org.bukkit.ChatColor.RED + "☠ Лимит артефактов: " + currentCount + "/" + max + ". Выбрось лишние!");
         }
     }
 
@@ -902,9 +904,10 @@ public class ArtifactListener implements Listener {
         for (ItemStack item : e.getNewItems().values()) {
             if (isArtifact(item)) { hasArtifact = true; break; }
         }
-        if (hasArtifact && countArtifacts(p) >= max) {
+        int currentCount = countArtifacts(p);
+        if (hasArtifact && currentCount >= max) {
             e.setCancelled(true);
-            p.sendMessage(org.bukkit.ChatColor.RED + "☠ Лимит артефактов достигнут! Максимум: " + max + ".");
+            p.sendMessage(org.bukkit.ChatColor.RED + "☠ Лимит артефактов: " + currentCount + "/" + max + ". Выбрось лишние!");
         }
     }
 

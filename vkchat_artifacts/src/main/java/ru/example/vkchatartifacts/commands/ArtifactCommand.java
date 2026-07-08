@@ -64,6 +64,9 @@ public class ArtifactCommand implements CommandExecutor, TabCompleter {
             if (meta.getPersistentDataContainer().has(expireKey, PersistentDataType.LONG) || (curse != null && curse.equals("FRAGILE"))) fragile++;
         }
         p.sendMessage(ChatColor.GOLD + "✨ Активные артефакты в инвентаре: " + ChatColor.YELLOW + total);
+        int max = plugin.getConfig().getInt("artifacts.max-artifacts", 5);
+        String limitInfo = total > max ? ChatColor.RED + " (лимит " + max + " — лишние неактивны!)" : ChatColor.GRAY + " / " + max;
+        p.sendMessage(ChatColor.GRAY + "Лимит: " + ChatColor.YELLOW + total + limitInfo);
         if (total <= 0) {
             p.sendMessage(ChatColor.GRAY + "Артефакты работают, если просто лежат в инвентаре. Купить: /artifacts");
             return;

@@ -199,7 +199,9 @@ public class ArtifactShopListener implements Listener {
             if (rep < cost) { p.sendMessage(ChatColor.RED + "❌ Нужно " + cost + " реп. (у тебя " + rep + ")"); return; }
 
             if (("normal".equals(type) || "relic".equals(type)) && plugin.getArtifactListener().countArtifacts(p) >= plugin.getConfig().getInt("artifacts.max-artifacts", 5)) {
-                p.sendMessage(ChatColor.RED + "☠ Лимит артефактов достигнут! Максимум: " + plugin.getConfig().getInt("artifacts.max-artifacts", 5) + ".");
+                int cur = plugin.getArtifactListener().countArtifacts(p);
+                int max = plugin.getConfig().getInt("artifacts.max-artifacts", 5);
+                p.sendMessage(ChatColor.RED + "☠ Лимит артефактов: " + cur + "/" + max + ". Выбрось лишние!");
                 return;
             }
 
