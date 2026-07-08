@@ -45,8 +45,13 @@ public class PreventListener implements Listener {
 
             if (from.getX() != to.getX() || from.getY() != to.getY() || from.getZ() != to.getZ()) {
                 e.setTo(from);
-                if (System.currentTimeMillis() % 3000 < 100) {
-                    p.sendMessage(ChatColor.RED + "Выберите Нацию через /nation, чтобы начать движение!");
+                if (System.currentTimeMillis() % 5000 < 150) {
+                    boolean hasVk = VKChatPlugin.getInstance().getApi().getLinkedVkId(p) != -1;
+                    if (hasVk) {
+                        p.sendMessage(ChatColor.RED + "Выберите Нацию через /nation, чтобы начать движение!");
+                    } else {
+                        p.sendMessage(ChatColor.RED + "Нет ВК? Купи проходку за 500₽ — /donate info");
+                    }
                 }
             }
         }
@@ -57,7 +62,12 @@ public class PreventListener implements Listener {
         Player p = e.getPlayer();
         if (isAwaitingNationSelection(p)) {
             e.setCancelled(true);
-            p.sendMessage(ChatColor.RED + "⚠️ Сначала выберите Нацию!");
+            boolean hasVk = VKChatPlugin.getInstance().getApi().getLinkedVkId(p) != -1;
+            if (hasVk) {
+                p.sendMessage(ChatColor.RED + "⚠️ Сначала выберите Нацию! /nation");
+            } else {
+                p.sendMessage(ChatColor.RED + "⚠️ Привяжи ВК (/vklink) или купи проходку — /donate info");
+            }
             return;
         }
         // Переименование привата
