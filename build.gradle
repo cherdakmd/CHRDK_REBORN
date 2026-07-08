@@ -1,7 +1,11 @@
 allprojects {
     apply plugin: 'java'
     group = 'ru.example'
+<<<<<<< HEAD
     version = '3.2.0'
+=======
+    version = '2.2.0'
+>>>>>>> 68af1a03dc31ff8302ed5e0a6fc943c9242dd1e2
 
     sourceCompatibility = '17'
     targetCompatibility = '17'

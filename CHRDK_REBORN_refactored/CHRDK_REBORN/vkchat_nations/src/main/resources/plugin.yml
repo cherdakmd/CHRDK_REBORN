@@ -1,0 +1,25 @@
+name: VKChatNations
+version: "2.0.0"
+main: ru.example.vkchatnations.VKChatNationsPlugin
+api-version: "1.16"
+depend: [VKChat]
+commands:
+  nation:
+    description: Открыть меню наций, прокачку мутаций, управление приватами и репутационный магазин
+    aliases: [n, faction, нация]
+    permission: vkchat.nations.player
+  claim:
+    description: Управление приватом
+    aliases: [c, приват]
+    permission: vkchat.nations.player
+    usage: /claim home
+permissions:
+  vkchat.nations.player:
+    description: Доступ к выбору нации, приватам и фракционному меню
+    default: true
+  vkchat.nations.bypass:
+    description: Обход защиты приватов (строительство везде)
+    default: op
+  vkchat.nations.admin:
+    description: Админские команды наций (reset, reload, info)
+    default: op

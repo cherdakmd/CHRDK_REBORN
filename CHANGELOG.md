@@ -1,5 +1,6 @@
 # CHANGELOG — VKChat Ultimate / CHRDK REBORN
 
+<<<<<<< HEAD
 ## v3.2.0 — 8 Июля 2026 — Gear/Artifacts/Runes Full Refactor
 
 ### 🔴 10 ИСПРАВЛЕНИЙ GEAR/ARTIFACTS/RUNES (GEAR_FIX)
@@ -175,6 +176,8 @@
 
 ---
 
+=======
+>>>>>>> 68af1a03dc31ff8302ed5e0a6fc943c9242dd1e2
 ## v2.2.0 — 8 Июля 2026 — Market EE Integration
 
 ### 🧙 ExcellentEnchants Integration (Market v3.2.0)

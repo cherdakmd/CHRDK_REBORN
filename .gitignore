@@ -19,3 +19,5 @@ Thumbs.db
 plugins_output/
 temp_jar/
 temp_jar.zip
+build.gradle
+CHANGELOG.md

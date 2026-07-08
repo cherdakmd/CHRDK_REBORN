@@ -1,0 +1,15 @@
+name: VKChatEvents
+version: "2.0.0"
+main: ru.example.vkchatevents.VKChatEventsPlugin
+api-version: "1.16"
+depend: [VKChat]
+softdepend: [VKChatJobs]
+commands:
+  events:
+    description: Открыть интерактивный дашборд активных событий, квестов и заказов на сервере
+    aliases: [quests, bounties, события, квесты]
+    permission: vkchat.events.player
+permissions:
+  vkchat.events.player:
+    description: Доступ к просмотру игрового дашборда событий и квестов
+    default: true
