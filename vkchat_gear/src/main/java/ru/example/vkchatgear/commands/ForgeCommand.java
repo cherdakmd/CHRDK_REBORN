@@ -563,7 +563,7 @@ public class ForgeCommand implements CommandExecutor, Listener, TabCompleter {
         op.action = "rune_cleansing";
         op.repCost = plugin.getConfig().getInt("rune-cleansing.cost", 500);
         String matName = plugin.getConfig().getString("rune-cleansing.material", "DIAMOND_BLOCK");
-        op.materialCost = Material.valueOf(matName);
+        try { op.materialCost = Material.valueOf(matName); } catch (Exception e) { op.materialCost = Material.DIAMOND_BLOCK; }
         op.materialAmount = plugin.getConfig().getInt("rune-cleansing.material-amount", 1);
 
         List<String> enchantNames = new ArrayList<>();

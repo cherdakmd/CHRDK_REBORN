@@ -44,7 +44,7 @@ public class CombatListener implements Listener {
     private final CombatEffectRegistry effectRegistry;
 
     /** Защита от рекурсии (Meteor Shower и подобные создают взрывы) */
-    private final Set<UUID> processing = new HashSet<>();
+    private final Set<UUID> processing = ConcurrentHashMap.newKeySet();
 
     /** Кулдаун сообщений о смерти (для Печати Души) */
     private final Map<UUID, Long> deathMessageCooldowns = new ConcurrentHashMap<>();
