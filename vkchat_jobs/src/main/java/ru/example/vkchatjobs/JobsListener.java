@@ -475,7 +475,7 @@ public class JobsListener implements Listener {
     @EventHandler
     public void onInventoryClick(InventoryClickEvent e) {
         String title = e.getView().getTitle();
-        if (title.equals("§8▸ §e§lПРОФЕССИИ §8◂ §7Меню")) {
+        if (title.equals(JobsCommand.MAIN_TITLE)) {
             e.setCancelled(true);
             if (e.getCurrentItem() == null) return;
             Player p = (Player) e.getWhoClicked();

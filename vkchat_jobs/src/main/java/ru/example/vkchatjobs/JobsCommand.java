@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class JobsCommand implements CommandExecutor, TabCompleter {
+    public static final String MAIN_TITLE = "§8▸ §e§lПРОФЕССИИ §8◂ §7Меню";
     private final VKChatJobsPlugin plugin;
 
     public JobsCommand(VKChatJobsPlugin plugin) {
@@ -89,7 +90,7 @@ public class JobsCommand implements CommandExecutor, TabCompleter {
     }
 
     private void openMain(Player p) {
-        Inventory inv = Bukkit.createInventory(null, 54, "§8▸ §e§lПРОФЕССИИ §8◂ §7Меню");
+        Inventory inv = Bukkit.createInventory(null, 54, MAIN_TITLE);
         fill(inv);
 
         String[] jobsList = {"miner", "woodcutter", "farmer", "alchemist", "blacksmith", "hunter", "fisherman"};

@@ -164,6 +164,7 @@ public class EventsCommand implements CommandExecutor, TabCompleter, Listener {
         e.setCancelled(true);
         if (!(e.getWhoClicked() instanceof Player)) return;
         Player p = (Player) e.getWhoClicked();
+        if (e.getCurrentItem() == null) return;
 
         switch (e.getRawSlot()) {
             case 10: p.sendMessage(ChatColor.DARK_PURPLE + "Разлом Бездны: " + (plugin.getInvasionManager().isActive() ? "Активен" : "Закрыт")); break;

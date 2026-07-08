@@ -31,6 +31,7 @@ public class MapGui implements Listener {
     private final NamespacedKey chunkKeyX;
     private final NamespacedKey chunkKeyZ;
     private final Map<UUID, Long> tpCooldowns = new ConcurrentHashMap<>();
+    private static final String GUI_TITLE = "§8▸ §7§lКАРТА §8◂ §7Территории";
 
     public MapGui(VKChatNationsPlugin plugin) {
         this.plugin = plugin;
@@ -42,7 +43,7 @@ public class MapGui implements Listener {
     public void openMap(Player p) {
         // Исправлено: 81 слот -> 54 слота (6x9 максимум для createInventory)
         // Отображаем 5x5 чанков вокруг игрока (2 в каждую сторону от центра)
-        Inventory inv = Bukkit.createInventory(null, 54, "§8▸ §7§lКАРТА §8◂ §7Территории");
+        Inventory inv = Bukkit.createInventory(null, 54, GUI_TITLE);
         Chunk centerChunk = p.getLocation().getChunk();
         int cx = centerChunk.getX();
         int cz = centerChunk.getZ();
@@ -119,7 +120,7 @@ public class MapGui implements Listener {
 
     @EventHandler
     public void onClick(InventoryClickEvent e) {
-        if (!e.getView().getTitle().equals("§8▸ §7§lКАРТА §8◂ §7Территории")) return;
+        if (!e.getView().getTitle().equals(GUI_TITLE)) return;
         e.setCancelled(true);
 
         Player p = (Player) e.getWhoClicked();
