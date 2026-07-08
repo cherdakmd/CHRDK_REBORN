@@ -51,65 +51,65 @@ public class ArtifactShopListener implements Listener {
                 "§e🏺 Случайный Древний Артефакт",
                 "§7Случайный бафф до III уровня",
                 "§7+ одно случайное проклятие",
-                "§6Цена: §e2500 реп.",
-                "normal", 2500));
+                "§6Цена: §e3750 реп.",
+                "normal", 3750));
 
         inv.setItem(13, shopItem(plugin, Material.NETHER_STAR,
                 "§d✨ Мифическая Реликвия",
                 "§7Гарантированный бафф V уровня",
                 "§7Без проклятий! Не выпадает при смерти!",
-                "§6Цена: §e7500 реп.",
-                "relic", 7500));
+                "§6Цена: §e11250 реп.",
+                "relic", 11250));
 
         // ═══ РАСХОДНИКИ (средний ряд) ═══
         inv.setItem(21, shopItem(plugin, Material.PAPER,
                 "§a📜 Свиток Очищения",
                 "§7Попытка снять проклятие с артефакта",
-                "§6Цена: §e1000 реп.",
-                "cleanse", 1000));
+                "§6Цена: §e1500 реп.",
+                "cleanse", 1500));
 
         inv.setItem(22, shopItem(plugin, Material.ENDER_EYE,
                 "§b🔮 Сфера Побега",
                 "§7Экстренный телепорт домой",
-                "§6Цена: §e800 реп.",
-                "escape", 800));
+                "§6Цена: §e1200 реп.",
+                "escape", 1200));
 
         inv.setItem(23, shopItem(plugin, Material.TOTEM_OF_UNDYING,
                 "§c🧛 Тотем Крови",
                 "§7Полное восстановление ХП при активации",
-                "§6Цена: §e2000 реп.",
-                "revive", 2000));
+                "§6Цена: §e3000 реп.",
+                "revive", 3000));
 
         // ═══ СВИТКИ И ИНСТРУМЕНТЫ (нижний ряд) ═══
         inv.setItem(29, shopItem(plugin, Material.BOOK,
                 "§3📖 Свиток Чар Усиления",
                 "§7+50% к баффам артефактов на 10 мин",
-                "§6Цена: §e3000 реп.",
-                "enchant_scroll", 3000));
+                "§6Цена: §e4500 реп.",
+                "enchant_scroll", 4500));
 
         inv.setItem(30, shopItem(plugin, Material.ANVIL,
                 "§7🔨 Ремонтный Набор",
                 "§7+24 часа жизни хрупкому артефакту",
-                "§6Цена: §e1500 реп.",
-                "repair_kit", 1500));
+                "§6Цена: §e2250 реп.",
+                "repair_kit", 2250));
 
         inv.setItem(31, shopItem(plugin, Material.ENCHANTED_BOOK,
                 "§5🔮 Руна Обмена",
                 "§7Меняет тип баффа на случайный",
-                "§6Цена: §e2000 реп.",
-                "exchange_rune", 2000));
+                "§6Цена: §e3000 реп.",
+                "exchange_rune", 3000));
 
         inv.setItem(32, shopItem(plugin, Material.BEACON,
                 "§6🛡 Тотем Укрепления",
                 "§7Привязка к душе (не выпадает при смерти)",
-                "§6Цена: §e5000 реп.",
-                "fort_totem", 5000));
+                "§6Цена: §e7500 реп.",
+                "fort_totem", 7500));
 
         inv.setItem(33, shopItem(plugin, Material.MILK_BUCKET,
                 "§a🧪 Антидот Разложения",
                 "§7Снимает ЛЮБОЕ проклятие со 100% шансом",
-                "§6Цена: §e2500 реп.",
-                "decay_antipode", 2500));
+                "§6Цена: §e3750 реп.",
+                "decay_antipode", 3750));
 
         // ═══ НИЖНИЙ РЯД ═══
         inv.setItem(45, infoItem(Material.BOOK,

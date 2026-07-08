@@ -125,10 +125,10 @@ public class ArtifactListener implements Listener {
                         p.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, 100, level - 1, false, false));
                     } else if (buff.equals("HEALTH")) {
                         hasHealth = true;
-                        extraHealth += (level * 2);
+                        extraHealth += level;
                     } else if (buff.equals("SPEED")) {
                         hasSpeed = true;
-                        speedMult += (level * 0.1);
+                        speedMult += (level * 0.05);
                     } else if (buff.equals("FIRE_RESISTANCE")) {
                         p.addPotionEffect(new PotionEffect(PotionEffectType.FIRE_RESISTANCE, 100, 0, false, false));
                     } else if (buff.equals("ABSORPTION")) {
@@ -151,13 +151,13 @@ public class ArtifactListener implements Listener {
                         p.addPotionEffect(new PotionEffect(PotionEffectType.FIRE_RESISTANCE, 100, 0, false, false));
                     } else if (buff.equals("STEEL_SKIN")) {
                         hasArmor = true;
-                        extraArmor += level;
+                        extraArmor += Math.max(1, level / 2);
                     } else if (buff.equals("KNOCKBACK_RESIST")) {
                         hasKbResist = true;
-                        kbResist += (level * 0.3);
+                        kbResist += (level * 0.15);
                     } else if (buff.equals("MAX_HEALTH_BOOST")) {
                         hasHealth = true;
-                        extraHealth += (level * 10);
+                        extraHealth += (level * 5);
                     } else if (buff.equals("DOUBLE_JUMP")) {
                         hasDoubleJump = true;
                     } else if (buff.equals("HERO_OF_VILLAGE")) {
@@ -204,7 +204,7 @@ public class ArtifactListener implements Listener {
                         }
                     } else if (buff.equals("DRAGON_BLOOD")) {
                         hasDragonBlood = true;
-                        extraHealth += 10;
+                        extraHealth += 5;
                         hasHealth = true;
                         p.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, 100, 1, false, false));
                     }
@@ -446,9 +446,9 @@ public class ArtifactListener implements Listener {
                 String buff = meta.getPersistentDataContainer().get(buffKey, PersistentDataType.STRING);
                 int level = meta.getPersistentDataContainer().get(levelKey, PersistentDataType.INTEGER);
                 if ("XP_BOOST".equals(buff)) {
-                    multiplier += (level * 0.15);
+                    multiplier += (level * 0.08);
                 } else if ("XP_MAGNET".equals(buff)) {
-                    multiplier += (level * 0.5);
+                    multiplier += (level * 0.25);
                 }
             }
         }
@@ -540,15 +540,15 @@ public class ArtifactListener implements Listener {
                 int level = item.getItemMeta().getPersistentDataContainer().get(levelKey, PersistentDataType.INTEGER);
 
                 if ("DAMAGE".equals(buff)) {
-                    e.setDamage(e.getDamage() + level);
+                    e.setDamage(e.getDamage() + Math.max(1, level / 2));
                 } else if ("VAMPIRISM".equals(buff)) {
-                    double heal = e.getDamage() * (level * 0.1);
+                    double heal = e.getDamage() * (level * 0.05);
                     AttributeInstance maxHpAttr = p.getAttribute(Attribute.GENERIC_MAX_HEALTH);
                     double maxHp = maxHpAttr != null ? maxHpAttr.getValue() : 20.0;
                     p.setHealth(Math.min(maxHp, p.getHealth() + heal));
                 } else if ("CRITICAL".equals(buff)) {
-                    if (ThreadLocalRandom.current().nextInt(100) < (level * 5)) {
-                        e.setDamage(e.getDamage() * 2);
+                    if (ThreadLocalRandom.current().nextInt(100) < (level * 4)) {
+                        e.setDamage(e.getDamage() * 1.5);
                         p.getWorld().spawnParticle(org.bukkit.Particle.CRIT_MAGIC, e.getEntity().getLocation().add(0, 1, 0), 15);
                     }
                 } else if ("WITHER_TOUCH".equals(buff) && e.getEntity() instanceof org.bukkit.entity.LivingEntity) {
@@ -556,14 +556,14 @@ public class ArtifactListener implements Listener {
                 } else if ("POISON_STRIKE".equals(buff) && e.getEntity() instanceof org.bukkit.entity.LivingEntity) {
                     ((org.bukkit.entity.LivingEntity) e.getEntity()).addPotionEffect(new PotionEffect(PotionEffectType.POISON, 60, level - 1, false, false));
                 } else if ("LIGHTNING_STRIKE".equals(buff)) {
-                    if (ThreadLocalRandom.current().nextInt(100) < (level * 10)) {
+                    if (ThreadLocalRandom.current().nextInt(100) < (level * 5)) {
                         e.getEntity().getWorld().strikeLightningEffect(e.getEntity().getLocation());
                         if (e.getEntity() instanceof org.bukkit.entity.LivingEntity) {
-                            ((org.bukkit.entity.LivingEntity) e.getEntity()).damage(4.0 * level, p);
+                            ((org.bukkit.entity.LivingEntity) e.getEntity()).damage(2.0 * level, p);
                         }
                     }
                 } else if ("TRUE_STRIKE".equals(buff)) {
-                    e.setDamage(e.getDamage() + (level * 1.5));
+                    e.setDamage(e.getDamage() + (level * 1.0));
                     p.getWorld().spawnParticle(org.bukkit.Particle.CRIT, e.getEntity().getLocation().add(0, 1, 0), 10);
                 } else if ("FROST_BITE".equals(buff) && e.getEntity() instanceof org.bukkit.entity.LivingEntity) {
                     ((org.bukkit.entity.LivingEntity) e.getEntity()).addPotionEffect(new PotionEffect(PotionEffectType.SLOW, 60, level - 1, false, false));
@@ -572,12 +572,12 @@ public class ArtifactListener implements Listener {
                     double maxHpVal = maxHpAttr2 != null ? maxHpAttr2.getValue() : 20.0;
                     double missingHealth = maxHpVal - p.getHealth();
                     double healthPercent = missingHealth / maxHpVal;
-                    e.setDamage(e.getDamage() * (1.0 + healthPercent * level * 0.2));
+                    e.setDamage(e.getDamage() * (1.0 + healthPercent * level * 0.1));
                 } else if ("FLAME_TONGUE".equals(buff) && e.getEntity() instanceof org.bukkit.entity.LivingEntity) {
                     ((org.bukkit.entity.LivingEntity) e.getEntity()).setFireTicks(40 + level * 20);
                 } else if ("ECHO_STRIKE".equals(buff)) {
-                    if (ThreadLocalRandom.current().nextInt(100) < (level * 10)) {
-                        e.setDamage(e.getDamage() * 2);
+                    if (ThreadLocalRandom.current().nextInt(100) < (level * 5)) {
+                        e.setDamage(e.getDamage() * 1.5);
                         p.getWorld().spawnParticle(org.bukkit.Particle.CRIT_MAGIC, e.getEntity().getLocation().add(0, 1, 0), 20);
                         p.getWorld().playSound(p.getLocation(), org.bukkit.Sound.ENTITY_PLAYER_ATTACK_CRIT, 1.0f, 1.2f);
                     }
@@ -592,10 +592,10 @@ public class ArtifactListener implements Listener {
                         }
                     }
                 } else if ("ABYSSAL_POWER".equals(buff)) {
-                    e.setDamage(e.getDamage() + 10);
+                    e.setDamage(e.getDamage() + 5);
                 } else if ("DRAGON_BLOOD".equals(buff) && e.getEntity() instanceof org.bukkit.entity.LivingEntity) {
                     if (((org.bukkit.entity.LivingEntity) e.getEntity()).getFireTicks() > 0) {
-                        e.setDamage(e.getDamage() * 1.5);
+                        e.setDamage(e.getDamage() * 1.3);
                     }
                 }
             }
@@ -624,9 +624,9 @@ public class ArtifactListener implements Listener {
                     int level = item.getItemMeta().getPersistentDataContainer().get(levelKey, PersistentDataType.INTEGER);
                     
                     if ("THORNS".equals(buff) && e.getDamager() instanceof org.bukkit.entity.LivingEntity) {
-                        ((org.bukkit.entity.LivingEntity) e.getDamager()).damage(level * 1.5, p);
+                        ((org.bukkit.entity.LivingEntity) e.getDamager()).damage(level * 1.0, p);
                     } else if ("DODGE_CHANCE".equals(buff)) {
-                        if (ThreadLocalRandom.current().nextInt(100) < (level * 5)) {
+                        if (ThreadLocalRandom.current().nextInt(100) < (level * 3)) {
                             e.setCancelled(true);
                             p.sendMessage(org.bukkit.ChatColor.GREEN + "⚡ Уклонение! Вы увернулись от удара!");
                             p.getWorld().spawnParticle(org.bukkit.Particle.SWEEP_ATTACK, p.getLocation().add(0, 1, 0), 5);
@@ -638,7 +638,7 @@ public class ArtifactListener implements Listener {
                             return;
                         }
                     } else if ("MANA_SHIELD".equals(buff)) {
-                        double reduction = level * 0.1;
+                        double reduction = level * 0.05;
                         e.setDamage(e.getDamage() * (1.0 - reduction));
                     } else if ("IRON_WILL".equals(buff)) {
                         p.addPotionEffect(new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, 20, level - 1, false, false));
@@ -750,7 +750,7 @@ public class ArtifactListener implements Listener {
         Player p = e.getEntity().getKiller();
         if (hasArtifactBuff(p, "SOUL_DRAIN")) {
             int level = getArtifactBuffLevel(p, "SOUL_DRAIN");
-            double heal = level * 2;
+            double heal = level;
             AttributeInstance maxHpAttr4 = p.getAttribute(Attribute.GENERIC_MAX_HEALTH);
             double maxHp4 = maxHpAttr4 != null ? maxHpAttr4.getValue() : 20.0;
             p.setHealth(Math.min(maxHp4, p.getHealth() + heal));
@@ -759,7 +759,7 @@ public class ArtifactListener implements Listener {
         }
         if (hasArtifactBuff(p, "LOOT_FIND")) {
             int level = getArtifactBuffLevel(p, "LOOT_FIND");
-            if (ThreadLocalRandom.current().nextInt(100) < (level * 25)) {
+            if (ThreadLocalRandom.current().nextInt(100) < (level * 15)) {
                 for (ItemStack drop : e.getDrops()) {
                     if (drop != null && drop.getType() != Material.AIR) {
                         ItemStack bonus = drop.clone();

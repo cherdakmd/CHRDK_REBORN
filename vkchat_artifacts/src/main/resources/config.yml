@@ -21,7 +21,7 @@ bosses:
         - "MINIONS"      # Спавнит 5 обычных скелетов вокруг себя
         - "LIGHTNING"    # Бьет молнией в ближайшего игрока
       drop:
-        artifact-chance: 100
+        artifact-chance: 50
     
     blood_zombie:
       name: "&4&l КРОВАВЫЙ ПАЛАЧ (Зомби) "
@@ -34,7 +34,7 @@ bosses:
         - "PULL"         # Притягивает игроков к себе
         - "EARTHQUAKE"   # Подбрасывает игроков в воздух
       drop:
-        artifact-chance: 100
+        artifact-chance: 50
         
     spider_queen:
       name: "&5&l КОРОЛЕВА ТЬМЫ (Паук) "
@@ -47,7 +47,7 @@ bosses:
         - "POISON_CLOUD" # Облако отравления в радиусе 10 блоков
         - "WEB_TRAP"     # Спавнит паутину под ногами игроков
       drop:
-        artifact-chance: 100
+        artifact-chance: 50
         
     iron_titan:
       name: "&7&l⚙ ЖЕЛЕЗНЫЙ ТИТАН (Голем) ⚙"
@@ -59,7 +59,7 @@ bosses:
       skills:
         - "EARTHQUAKE"
       drop:
-        artifact-chance: 100
+        artifact-chance: 50
 
     mad_villager:
       name: "&6&l БЕЗУМНЫЙ ТОРГОВЕЦ "
@@ -72,7 +72,7 @@ bosses:
         - "TELEPORT"     # Случайно телепортируется при ударе
         - "BLINDNESS"    # Ослепляет обидчика
       drop:
-        artifact-chance: 100
+        artifact-chance: 50
         
     wither_mutant:
       name: "&8&l МУТАНТ ИССУШИТЕЛЬ "
@@ -84,7 +84,7 @@ bosses:
       skills:
         - "WITHER_SKULL" # Стреляет головами иссушителя
       drop:
-        artifact-chance: 100
+        artifact-chance: 50
         
     frost_stray:
       name: "&b&l❄ ЛЕДЯНОЙ БРОДЯГА ❄"
@@ -96,7 +96,7 @@ bosses:
       skills:
         - "FREEZE"       # Сильное замедление на 5 сек
       drop:
-        artifact-chance: 100
+        artifact-chance: 50
         
     fire_blaze:
       name: "&6&l ПОВЕЛИТЕЛЬ ПЛАМЕНИ "
@@ -108,7 +108,7 @@ bosses:
       skills:
         - "FIRE_RING"    # Кольцо огня вокруг босса
       drop:
-        artifact-chance: 100
+        artifact-chance: 50
         
     shadow_enderman:
       name: "&5&l ТЕНЕВОЙ СТРАННИК "
@@ -121,7 +121,7 @@ bosses:
         - "BLINDNESS"
         - "TELEPORT"
       drop:
-        artifact-chance: 100
+        artifact-chance: 50
 
 
     slime_king:
@@ -134,7 +134,7 @@ bosses:
       skills:
         - "MINIONS"      # Спавнит мелких слизней
       drop:
-        artifact-chance: 100
+        artifact-chance: 50
 
     swamp_witch:
       name: "&2&l БОЛОТНАЯ ВЕДЬМА "
@@ -147,7 +147,7 @@ bosses:
         - "POISON_CLOUD"
         - "BLINDNESS"
       drop:
-        artifact-chance: 100
+        artifact-chance: 50
 
     piglin_warlord:
       name: "&6&l⚔ ВОЕНАЧАЛЬНИК ПИГЛИНОВ ⚔"
@@ -159,7 +159,7 @@ bosses:
       skills:
         - "EARTHQUAKE"
       drop:
-        artifact-chance: 100
+        artifact-chance: 50
 
     drowned_sniper:
       name: "&b&l ГЛУБИННЫЙ СНАЙПЕР "
@@ -171,7 +171,7 @@ bosses:
       skills:
         - "PULL"
       drop:
-        artifact-chance: 100
+        artifact-chance: 50
 
     phantom_dragon:
       name: "&5&l ФАНТОМНЫЙ УЖАС "
@@ -184,14 +184,14 @@ bosses:
         - "TELEPORT"
         - "LIGHTNING"
       drop:
-        artifact-chance: 100
+        artifact-chance: 50
 
 # ==========================================
 #  СИСТЕМА АРТЕФАКТОВ
 # ==========================================
 artifacts:
   # Настройки Мифических (Легендарных) артефактов без проклятий
-  mythic-chance: 0.1 # Шанс в процентах (0.1% = 1 из 1000)
+  mythic-chance: 0.05 # Шанс в процентах (0.05% = 1 из 2000)
   
   # Настройка накопления проклятий (Износ)
   curse-growth:
@@ -213,19 +213,19 @@ new-artifacts:
     buff: "REVIVAL"
     level: 5
     description: "При смерти — возрождение с 50% HP (1 раз в 10 минут)"
-    drop-chance: 0.5
+    drop-chance: 0.25
   abyssal_crown:
     name: "&5👑 Корона Бездны"
     buff: "ABYSSAL_POWER"
     level: 4
-    description: "+10 к урону, невидимость 5 сек при HP < 30%"
-    drop-chance: 1.5
+    description: "+5 к урону, невидимость 5 сек при HP < 30%"
+    drop-chance: 0.75
   dragon_heart:
     name: "&c❤ Сердце Дракона"
     buff: "DRAGON_BLOOD"
     level: 5
-    description: "+10 HP, регенерация II, +50% урон от огня"
-    drop-chance: 0.3
+    description: "+5 HP, регенерация II, +30% урон от огня"
+    drop-chance: 0.15
 
 # ==========================================
 #  ALCHEMIST TIER АИРДРОПОВ (v2.2.0)
@@ -235,7 +235,7 @@ alchemist-airdrop:
   interval-seconds: 14400           # Раз в 4 часа
   player-cooldown-seconds: 86400    # Кулдаун на игрока (24 часа)
   despawn-minutes: 30               # Сундук исчезает через 30 минут
-  artifact-chance: 15               # 15% шанс на артефакт в сундуке
+  artifact-chance: 8                # 8% шанс на артефакт в сундуке
   vk-announce: false                # Уведомление в ВК чат
 
   # Сообщения по тирам

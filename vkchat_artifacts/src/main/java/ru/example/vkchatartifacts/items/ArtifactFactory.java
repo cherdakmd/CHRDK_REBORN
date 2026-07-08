@@ -94,15 +94,15 @@ public class ArtifactFactory {
         String specialArtifact = null;
         if (isMythic) {
             double roll = ThreadLocalRandom.current().nextDouble() * 100;
-            if (roll < 0.3) {
+            if (roll < 0.15) {
                 specialArtifact = "DRAGON_HEART";
                 buff = "DRAGON_BLOOD";
                 mat = Material.DRAGON_BREATH;
-            } else if (roll < 0.8) {
+            } else if (roll < 0.4) {
                 specialArtifact = "PHOENIX_FEATHER";
                 buff = "REVIVAL";
                 mat = Material.TOTEM_OF_UNDYING;
-            } else if (roll < 2.3) {
+            } else if (roll < 1.15) {
                 specialArtifact = "ABYSSAL_CROWN";
                 buff = "ABYSSAL_POWER";
                 mat = Material.NETHER_STAR;
@@ -302,15 +302,15 @@ public class ArtifactFactory {
      */
     public static String getBuffDescription(String buff, int level) {
         switch (buff) {
-            case "HEALTH": return "Макс. здоровье +" + (level * 2) + " HP (пассивно)";
-            case "DAMAGE": return "Урон в ближнем бою +" + level + " (каждый удар)";
-            case "SPEED": return "Скорость передвижения +" + (level * 10) + "%";
+            case "HEALTH": return "Макс. здоровье +" + level + " HP (пассивно)";
+            case "DAMAGE": return "Урон в ближнем бою +" + Math.max(1, level / 2) + " (каждый удар)";
+            case "SPEED": return "Скорость передвижения +" + (level * 5) + "%";
             case "REGENERATION": return "Регенерация " + level + " ур. (восстановление HP)";
-            case "VAMPIRISM": return "Вампиризм " + (level * 10) + "% (крадёт HP при ударе)";
+            case "VAMPIRISM": return "Вампиризм " + (level * 5) + "% (крадёт HP при ударе)";
             case "THORNS": return "Отражение урона " + level + " ур. (атакующий получает урон)";
             case "FIRE_RESISTANCE": return "Полный иммунитет к огню и лаве";
             case "LEVITATION": return "Иммунитет к урону от падения";
-            case "CRITICAL": return "Шанс критического удара +" + (level * 5) + "% (x2 урон)";
+            case "CRITICAL": return "Шанс критического удара +" + (level * 4) + "% (x1.5 урон)";
             case "ABSORPTION": return "Абсорбция " + level + " ур. (временные сердца)";
             case "NIGHT_VISION": return "Ночное зрение (видно в темноте)";
             case "HASTE": return "Спешка " + level + " ур. (быстрее копаете/рубите)";
@@ -322,15 +322,15 @@ public class ArtifactFactory {
             case "FREEZE_AURA": return "Ледяная аура " + level + " ур. (замедляет рядом)";
             case "LIGHTNING_STRIKE": return "Удар молнии " + level + " ур. (шанс при атаке)";
             case "GHOST_WALK": return "Призрачный шаг (невидимость при HP < 40%)";
-            case "TRUE_STRIKE": return "Истинный удар (игнорирует броню врага)";
-            case "STEEL_SKIN": return "Стальная кожа +" + level + " (доп. броня)";
+            case "TRUE_STRIKE": return "Истинный удар +" + (level * 1) + " (игнорирует броню врага)";
+            case "STEEL_SKIN": return "Стальная кожа +" + Math.max(1, level / 2) + " (доп. броня)";
             case "AQUATIC_SPEED": return "Скорость под водой +" + level;
             case "FIRE_WALKER": return "Хождение по лаве (не горите на лаве)";
-            case "XP_BOOST": return "Бонус опыта +" + (level * 15) + "% (от всех источников)";
+            case "XP_BOOST": return "Бонус опыта +" + (level * 8) + "% (от всех источников)";
             case "DOUBLE_JUMP": return "Двойной прыжок (прыжок в воздухе)";
-            case "DODGE_CHANCE": return "Уклонение " + (level * 5) + "% (шанс избежать урона)";
-            case "KNOCKBACK_RESIST": return "Анти-отбрасывание " + (level * 30) + "%";
-            case "MAX_HEALTH_BOOST": return "Колоссальное здоровье +" + (level * 10) + " HP";
+            case "DODGE_CHANCE": return "Уклонение " + (level * 3) + "% (шанс избежать урона)";
+            case "KNOCKBACK_RESIST": return "Анти-отбрасывание " + (level * 15) + "%";
+            case "MAX_HEALTH_BOOST": return "Колоссальное здоровье +" + (level * 5) + " HP";
             case "HERO_OF_VILLAGE": return "Герой Деревни " + level + " (торговля с жителями)";
             case "STRENGTH_BOOST": return "Сила " + level + " ур. (больше урона)";
             case "RESISTANCE": return "Сопротивление " + level + " ур. (меньше урона)";
@@ -338,8 +338,8 @@ public class ArtifactFactory {
             case "LUCK_OF_THE_SEA": return "Морская удача " + level + " (шанс сокровищ)";
             case "SOUL_DRAIN": return "Вытягивание души +" + level + " (лечит при убийстве)";
             case "FROST_BITE": return "Морозный укус " + level + " (замедление + урон)";
-            case "MANA_SHIELD": return "Мана-щит (поглощает " + (level * 10) + "% урона)";
-            case "TELEKINESIS": return "Телекинез (авто-подбор предметов, радиус +" + (level * 2) + ")";
+            case "MANA_SHIELD": return "Мана-щит (поглощает " + (level * 5) + "% урона)";
+            case "TELEKINESIS": return "Телекинез (авто-подбор предметов, радиус +" + level + ")";
             case "ENDER_SHIFT": return "Эндер-сдвиг (ПКМ в воздухе = телепорт)";
             case "BERSERKER": return "Ярость " + level + " (больше урона при низком HP)";
             case "ARCANE_BURST": return "Магический взрыв " + level + " (AoE при убийстве)";
@@ -347,17 +347,17 @@ public class ArtifactFactory {
             case "LIFESTEAL_AURA": return "Аура вампиризма " + level + " (вампиризм x2 при HP<30%)";
             case "IRON_WILL": return "Железная воля " + level + " (не сдвигается при низком HP)";
             case "TRAP_SENSE": return "Чувство ловушки " + level + " (видит скрытые опасности)";
-            case "TREASURE_HUNTER": return "Охотник за сокровищами +" + (level * 10) + "% (доп. дроп)";
+            case "TREASURE_HUNTER": return "Охотник за сокровищами +" + (level * 5) + "% (доп. дроп)";
             case "FLAME_TONGUE": return "Пылающий язык " + level + " (поджигает врагов)";
             case "WIND_WALKER": return "Шагающий по ветру " + level + " (скорость + прыжок)";
             case "ECHO_STRIKE": return "Удар-эхо " + level + " (шанс двойной атаки)";
             case "SOUL_SHIELD": return "Щит души (Абсорбция II при HP < 30%)";
             case "FIRE_RESISTANCE_AURA": return "Аура огнестойкости (союзникам в 5 блоках)";
-            case "XP_MAGNET": return "Магнит опыта +" + (level * 50) + "% (радиус сбора)";
-            case "LOOT_FIND": return "Поиск добычи +" + (level * 25) + "% (редкие предметы)";
+            case "XP_MAGNET": return "Магнит опыта +" + (level * 25) + "% (радиус сбора)";
+            case "LOOT_FIND": return "Поиск добычи +" + (level * 15) + "% (редкие предметы)";
             case "REVIVAL": return "Возрождение (50% HP при смерти, КД 10 мин)";
-            case "ABYSSAL_POWER": return "Сила Бездны (+10 урон, невидимость при HP<30%)";
-            case "DRAGON_BLOOD": return "Кровь Дракона (+10 HP, Реген II, +50% урон огнём)";
+            case "ABYSSAL_POWER": return "Сила Бездны (+5 урон, невидимость при HP<30%)";
+            case "DRAGON_BLOOD": return "Кровь Дракона (+5 HP, Реген II, +30% урон огнём)";
             case "DARK_PACT": return "Тёмный пакт (+30% урон, −15% HP)";
             case "BLOOD_OATH": return "Кровавая клятва (+20% вампиризм, −10% защиты)";
             case "VOID_TOUCH": return "Прикосновение пустоты (шанс телепорта врага при ударе)";
