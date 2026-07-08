@@ -339,7 +339,8 @@ public class MarketGuiListener implements Listener {
         int stock = plugin.getMarketManager().getStock(itemId);
         int scarcityThreshold = plugin.getConfig().getInt("items." + itemId + ".scarcity-threshold", 0);
         String stockIcon;
-        if (stock <= -50) stockIcon = "§4💀 КРИТ. ДЕФИЦИТ";
+        if ("ENCHANTED_BOOK".equals(itemId)) stockIcon = "§a✓ Всегда в наличии";
+        else if (stock <= -50) stockIcon = "§4💀 КРИТ. ДЕФИЦИТ";
         else if (stock <= 0) stockIcon = "§c⚠ Дефицит";
         else if (scarcityThreshold > 0 && stock <= scarcityThreshold) stockIcon = "§e⚠ Мало: §f" + stock;
         else stockIcon = "§a✓ В наличии: §f" + stock;
@@ -537,11 +538,15 @@ public class MarketGuiListener implements Listener {
 
         if (!plugin.getMarketManager().canTrade(itemId, p)) { p.sendMessage("§cПодождите..."); return; }
 
-        int stock = plugin.getMarketManager().getStock(itemId);
-        int minStock = plugin.getConfig().getInt("items." + itemId + ".min-stock", -200);
-        int canBuy = Math.max(0, stock - minStock);
-        if (canBuy <= 0) { p.sendMessage("§cТовар закончился! Дефицит!"); return; }
-        int actual = Math.min(amount, canBuy);
+        boolean isBook = m == Material.ENCHANTED_BOOK;
+        int actual = amount;
+        if (!isBook) {
+            int stock = plugin.getMarketManager().getStock(itemId);
+            int minStock = plugin.getConfig().getInt("items." + itemId + ".min-stock", -200);
+            int canBuy = Math.max(0, stock - minStock);
+            if (canBuy <= 0) { p.sendMessage("§cТовар закончился! Дефицит!"); return; }
+            actual = Math.min(amount, canBuy);
+        }
 
         // Проверяем что все влезет в инвентарь ДО списания
         ItemStack sample = createCustomItem(plugin, itemId);
@@ -554,7 +559,8 @@ public class MarketGuiListener implements Listener {
         if (free < actual) { p.sendMessage("§cИнвентарь полон!"); return; }
 
         double donorMult = donorBuyMultiplier(p);
-        int cost = plugin.getMarketManager().buyItems(itemId, actual, donorMult);
+        int cost = isBook ? (int)(plugin.getConfig().getDouble("items." + itemId + ".base-price", 200) * donorMult)
+                          : plugin.getMarketManager().buyItems(itemId, actual, donorMult);
         if (cost <= 0) { p.sendMessage("§cОшибка цены!"); return; }
 
         int rep = VKChatBridge.getReputation(vkId);
@@ -562,9 +568,12 @@ public class MarketGuiListener implements Listener {
 
         for (int i = 0; i < actual; i++) {
             ItemStack toGive = createCustomItem(plugin, itemId);
-            if (m == Material.ENCHANTED_BOOK && !toGive.getItemMeta().hasEnchants()) {
+            if (isBook && !toGive.getItemMeta().hasEnchants()) {
                 toGive = plugin.getMarketManager().takeCustomBook();
-                if (toGive == null) toGive = createRandomEnchantedBook();
+                if (toGive == null) {
+                    if (Math.random() < 0.3 && tryGiveExcellentBook(p)) continue;
+                    toGive = createRandomEnchantedBook();
+                }
             }
             p.getInventory().addItem(toGive);
         }
@@ -919,6 +928,17 @@ public class MarketGuiListener implements Listener {
         meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "market_sell_all"), PersistentDataType.INTEGER, 1);
         it.setItemMeta(meta);
         return it;
+    }
+
+    private boolean tryGiveExcellentBook(Player p) {
+        try {
+            org.bukkit.plugin.Plugin ee = Bukkit.getPluginManager().getPlugin("ExcellentEnchants");
+            if (ee != null && ee.isEnabled()) {
+                Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "excellentenchants randombook " + p.getName());
+                return true;
+            }
+        } catch (Exception ignored) {}
+        return false;
     }
 
     private static ItemStack createRandomEnchantedBook() {
