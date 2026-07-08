@@ -1,5 +1,41 @@
 # CHANGELOG — VKChat Ultimate / CHRDK REBORN
 
+## v3.3.0 — 8 Июля 2026 — Global Cross-Module Improvements
+
+### ✅ Выполненные улучшения (5 из 12)
+
+| # | Улучшение | Описание |
+|---|-----------|----------|
+| 1 | **JobsBridge** | Типизированный фасад для VKChatJobs API. Заменяет 9 reflection-вызовов. Кэш 30 сек. |
+| 4 | **Единое версионирование** | config-version во все 8 конфигов, унификация plugin.yml/build.gradle |
+| 8 | **Удалена CHRD_MARKET_AND_CHAR_FIX** | Устаревшая директория с дубликатами удалена |
+| 9 | **Bukkit Events API** | ForgeSuccessEvent, BossDefeatEvent, NationJoinEvent |
+| 11 | **DonateStatusResolver → core** | Перемещён из gear, добавлен в VKChatAPI |
+
+### 🏗️ Новые файлы
+
+| Файл | Назначение |
+|------|-----------|
+| `core/util/JobsBridge.java` | Фасад для VKChatJobs: getLevel, getTotalLevel, hasSkill |
+| `core/util/DonateStatusResolver.java` | Централизованный резолвер донат-статусов |
+| `core/api/events/ForgeSuccessEvent.java` | Bukkit Event — успешная заточка |
+| `core/api/events/BossDefeatEvent.java` | Bukkit Event — повержен босс |
+| `core/api/events/NationJoinEvent.java` | Bukkit Event — игрок вступил в нацию |
+
+### ⏳ Запланированные улучшения (7 из 12 — Phase 7)
+
+| # | Улучшение | Модуль |
+|---|-----------|--------|
+| 2 | CataclysmRegistry | events |
+| 3 | NationGuiListener декомпозиция | nations |
+| 5 | SetCombatEffectRegistry | gear |
+| 6 | Материалы профессий из конфига | jobs |
+| 7 | TeleportCommand декомпозиция | teleport |
+| 10 | MarketTransactionService | market |
+| 12 | NationListener декомпозиция | nations |
+
+---
+
 ## v3.2.0 — 8 Июля 2026 — Mobs Full Refactor
 
 ### 🔴 10 ИСПРАВЛЕНИЙ MOBS (MOBS_FIX)

@@ -1,3 +1,5 @@
+config-version: 1
+
 # Настройки Синтеза (Скрещивание предметов)
 synthesis:
   scroll_name: "&d&l Свиток Синтеза"

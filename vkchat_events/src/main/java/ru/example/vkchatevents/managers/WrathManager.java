@@ -27,13 +27,15 @@ import ru.example.vkchat.VKChatPlugin;
 import ru.example.vkchat.api.VKCommandEvent;
 import ru.example.vkchatevents.VKChatEventsPlugin;
 import ru.example.vkchatevents.util.ClaimProtection;
+import ru.example.vkchatevents.cataclysm.CataclysmRegistry;
 
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.UUID;
 
 public class WrathManager implements Listener {
     private final VKChatEventsPlugin plugin;
-    
+    private final CataclysmRegistry cataclysmRegistry;
+
     private boolean wrathActive = false;
     private LivingEntity activeBoss = null;
 
@@ -45,6 +47,7 @@ public class WrathManager implements Listener {
 
     public WrathManager(VKChatEventsPlugin plugin) {
         this.plugin = plugin;
+        this.cataclysmRegistry = new CataclysmRegistry(plugin);
         
         int interval = plugin.getConfig().getInt("wrath.interval", 28800); // Раз в 8 часов (Мирный режим)
         new BukkitRunnable() {
@@ -54,7 +57,7 @@ public class WrathManager implements Listener {
                 if (ThreadLocalRandom.current().nextBoolean()) {
                     tryStartWrath();
                 } else {
-                    String[] cats = {"acid_rain", "earthquake", "tempest", "meteor_shower", "blizzard", "eclipse", "reputation_bloom", "angelic_grace", "star_shower", "geysers", "blood_moon_hunt", "treasure_comet", "station_fall", "fog_shadows", "plasma_storm", "gravity_anomaly"};
+                    String[] cats = cataclysmRegistry.getAllIds().toArray(new String[0]);
                     startCataclysm(cats[ThreadLocalRandom.current().nextInt(cats.length)]);
                 }
             }
@@ -70,17 +73,8 @@ public class WrathManager implements Listener {
                 if (Bukkit.getOnlinePlayers().isEmpty()) return;
                 if (ThreadLocalRandom.current().nextInt(100) >= autoChance) return;
 
-                // Взвешенный выбор типа катаклизма
-                String[] allTypes = {"acid_rain", "earthquake", "tempest", "meteor_shower", "blizzard", "eclipse",
-                        "reputation_bloom", "angelic_grace", "star_shower", "geysers", "blood_moon_hunt",
-                        "treasure_comet", "station_fall", "fog_shadows", "plasma_storm", "gravity_anomaly"};
-                java.util.List<String> weighted = new java.util.ArrayList<>();
-                for (String t : allTypes) {
-                    double w = plugin.getConfig().getDouble("wrath.cataclysms.auto-spawn.weights." + t, 1.0);
-                    int count = (int) Math.max(1, Math.round(w * 10));
-                    for (int i = 0; i < count; i++) weighted.add(t);
-                }
-                String type = weighted.get(ThreadLocalRandom.current().nextInt(weighted.size()));
+                // Взвешенный выбор типа катаклизма (через реестр)
+                String type = cataclysmRegistry.getRandomWeightedId();
 
                 // Выбираем случайного онлайн-игрока рядом с которым случится катаклизм
                 java.util.List<Player> online = new java.util.ArrayList<>(Bukkit.getOnlinePlayers());
@@ -107,6 +101,10 @@ public class WrathManager implements Listener {
 
     public String getActiveCataclysm() {
         return activeCataclysm;
+    }
+
+    public CataclysmRegistry getCataclysmRegistry() {
+        return cataclysmRegistry;
     }
 
     public long getCataclysmEndTime() {
@@ -183,7 +181,7 @@ public class WrathManager implements Listener {
     public void startCataclysm(String type) {
         if (activeCataclysm != null) return;
         this.activeCataclysm = type;
-        
+
         World world = Bukkit.getWorlds().get(0);
 
         if (type.equals("acid_rain")) {
@@ -1095,11 +1093,11 @@ public class WrathManager implements Listener {
             int vkId = e.getSenderVkId();
             int peer = e.getPeerId();
 
-            int cost = plugin.getConfig().getInt("wrath.vk-event-cost", 1500); // 1500 репутации ВК
+            int cost = plugin.getConfig().getInt("wrath.vk-event-cost", 1500);
 
             if (args.length < 2) {
-                VKChatPlugin.getInstance().getApi().sendMessage(peer, 
-                        "⛏️ Использование: !ивент <дождь/земля/шторм/метеорит/буран/затмение/золото/благо/звезда/гейзер/луна/комета/станция/туман/плазма/гравитация/босс>\n" +
+                VKChatPlugin.getInstance().getApi().sendMessage(peer,
+                        "⛏️ Использование: !ивент <" + cataclysmRegistry.getAvailableTypes() + ">\n" +
                         "💰 Стоимость запуска любого события — " + cost + " репутации ВК!");
                 return;
             }
@@ -1110,7 +1108,32 @@ public class WrathManager implements Listener {
                 return;
             }
 
-            String type = args[1].toLowerCase();
+            String typeArg = args[1].toLowerCase();
+
+            // Спец-обработка: босс
+            if (typeArg.equals("босс") || typeArg.equals("boss")) {
+                if (isActive()) {
+                    VKChatPlugin.getInstance().getApi().sendMessage(peer, "❌ Аватар Гнева Богов уже бродит по серверу!");
+                    return;
+                }
+                VKChatPlugin.getInstance().getApi().takeReputation(vkId, cost);
+                Bukkit.getScheduler().runTask(plugin, this::tryStartWrath);
+                VKChatPlugin.getInstance().getApi().sendMessage(peer, "✅ Вы призвали Аватара Гнева Богов за " + cost + " репутации!");
+                return;
+            }
+
+            // Разрешаем алиас через реестр
+            String cataclysmId = cataclysmRegistry.resolveAlias(typeArg);
+            if (cataclysmId == null) {
+                VKChatPlugin.getInstance().getApi().sendMessage(peer, "❌ Неверный тип катаклизма! Доступные: " + cataclysmRegistry.getAvailableTypes() + ".");
+                return;
+            }
+
+            if (activeCataclysm != null) {
+                VKChatPlugin.getInstance().getApi().sendMessage(peer, "❌ На сервере уже бушует катаклизм!");
+                return;
+            }
+
             UUID uuid = VKChatPlugin.getInstance().getApi().getUuidByVkId(vkId);
             if (uuid == null) {
                 VKChatPlugin.getInstance().getApi().sendMessage(peer, "❌ Твой аккаунт не привязан к серверу Minecraft!");
@@ -1123,145 +1146,13 @@ public class WrathManager implements Listener {
                 return;
             }
 
-            if (type.equals("дождь") || type.equals("rain")) {
-                if (activeCataclysm != null) {
-                    VKChatPlugin.getInstance().getApi().sendMessage(peer, "❌ На сервере уже бушует катаклизм!");
-                    return;
-                }
-                VKChatPlugin.getInstance().getApi().takeReputation(vkId, cost);
-                Bukkit.getScheduler().runTask(plugin, () -> startCataclysm("acid_rain"));
-                VKChatPlugin.getInstance().getApi().sendMessage(peer, "✅ Вы успешно запустили событие 'Кислотный Дождь' за " + cost + " репутации!");
-            } else if (type.equals("земля") || type.equals("earth")) {
-                if (activeCataclysm != null) {
-                    VKChatPlugin.getInstance().getApi().sendMessage(peer, "❌ На сервере уже бушует катаклизм!");
-                    return;
-                }
-                VKChatPlugin.getInstance().getApi().takeReputation(vkId, cost);
-                Bukkit.getScheduler().runTask(plugin, () -> startCataclysm("earthquake"));
-                VKChatPlugin.getInstance().getApi().sendMessage(peer, "✅ Вы успешно запустили событие 'Землетрясение' за " + cost + " репутации!");
-            } else if (type.equals("шторм") || type.equals("storm")) {
-                if (activeCataclysm != null) {
-                    VKChatPlugin.getInstance().getApi().sendMessage(peer, "❌ На сервере уже бушует катаклизм!");
-                    return;
-                }
-                VKChatPlugin.getInstance().getApi().takeReputation(vkId, cost);
-                Bukkit.getScheduler().runTask(plugin, () -> startCataclysm("tempest"));
-                VKChatPlugin.getInstance().getApi().sendMessage(peer, "✅ Вы успешно запустили событие 'Грозовой Шторм' за " + cost + " репутации!");
-            } else if (type.equals("метеорит") || type.equals("meteor")) {
-                if (activeCataclysm != null) {
-                    VKChatPlugin.getInstance().getApi().sendMessage(peer, "❌ На сервере уже бушует катаклизм!");
-                    return;
-                }
-                VKChatPlugin.getInstance().getApi().takeReputation(vkId, cost);
-                Bukkit.getScheduler().runTask(plugin, () -> startCataclysm("meteor_shower"));
-                VKChatPlugin.getInstance().getApi().sendMessage(peer, "✅ Вы успешно запустили событие 'Метеоритный Дождь' за " + cost + " репутации!");
-            } else if (type.equals("буран") || type.equals("blizzard")) {
-                if (activeCataclysm != null) {
-                    VKChatPlugin.getInstance().getApi().sendMessage(peer, "❌ На сервере уже бушует катаклизм!");
-                    return;
-                }
-                VKChatPlugin.getInstance().getApi().takeReputation(vkId, cost);
-                Bukkit.getScheduler().runTask(plugin, () -> startCataclysm("blizzard"));
-                VKChatPlugin.getInstance().getApi().sendMessage(peer, "✅ Вы успешно запустили событие 'Снежный Буран' за " + cost + " репутации!");
-            } else if (type.equals("затмение") || type.equals("eclipse")) {
-                if (activeCataclysm != null) {
-                    VKChatPlugin.getInstance().getApi().sendMessage(peer, "❌ На сервере уже бушует катаклизм!");
-                    return;
-                }
-                VKChatPlugin.getInstance().getApi().takeReputation(vkId, cost);
-                Bukkit.getScheduler().runTask(plugin, () -> startCataclysm("eclipse"));
-                VKChatPlugin.getInstance().getApi().sendMessage(peer, "✅ Вы успешно запустили событие 'Солнечное Затмение' за " + cost + " репутации!");
-            } else if (type.equals("золото") || type.equals("gold") || type.equals("bloom")) {
-                if (activeCataclysm != null) {
-                    VKChatPlugin.getInstance().getApi().sendMessage(peer, "❌ На сервере уже бушует катаклизм!");
-                    return;
-                }
-                VKChatPlugin.getInstance().getApi().takeReputation(vkId, cost);
-                Bukkit.getScheduler().runTask(plugin, () -> startCataclysm("reputation_bloom"));
-                VKChatPlugin.getInstance().getApi().sendMessage(peer, "✅ Вы запустили благословение 'Золотой Век' за " + cost + " репутации!");
-            } else if (type.equals("благо") || type.equals("grace") || type.equals("angel")) {
-                if (activeCataclysm != null) {
-                    VKChatPlugin.getInstance().getApi().sendMessage(peer, "❌ На сервере уже бушует катаклизм!");
-                    return;
-                }
-                VKChatPlugin.getInstance().getApi().takeReputation(vkId, cost);
-                Bukkit.getScheduler().runTask(plugin, () -> startCataclysm("angelic_grace"));
-                VKChatPlugin.getInstance().getApi().sendMessage(peer, "✅ Вы запустили благословение 'Ангельская Благодать' за " + cost + " репутации!");
-            } else if (type.equals("звезда") || type.equals("star") || type.equals("shower")) {
-                if (activeCataclysm != null) {
-                    VKChatPlugin.getInstance().getApi().sendMessage(peer, "❌ На сервере уже бушует катаклизм!");
-                    return;
-                }
-                VKChatPlugin.getInstance().getApi().takeReputation(vkId, cost);
-                Bukkit.getScheduler().runTask(plugin, () -> startCataclysm("star_shower"));
-                VKChatPlugin.getInstance().getApi().sendMessage(peer, "✅ Вы запустили благословение 'Звездопад Желаний' за " + cost + " репутации!");
-            } else if (type.equals("гейзер") || type.equals("geyser") || type.equals("geysers")) {
-                if (activeCataclysm != null) {
-                    VKChatPlugin.getInstance().getApi().sendMessage(peer, "❌ На сервере уже бушует катаклизм!");
-                    return;
-                }
-                VKChatPlugin.getInstance().getApi().takeReputation(vkId, cost);
-                Bukkit.getScheduler().runTask(plugin, () -> startCataclysm("geysers"));
-                VKChatPlugin.getInstance().getApi().sendMessage(peer, "✅ Вы запустили катаклизм 'Гейзеры земли' за " + cost + " репутации!");
-            } else if (type.equals("луна") || type.equals("moon") || type.equals("blood") || type.equals("blood_moon")) {
-                if (activeCataclysm != null) {
-                    VKChatPlugin.getInstance().getApi().sendMessage(peer, "❌ На сервере уже бушует катаклизм!");
-                    return;
-                }
-                VKChatPlugin.getInstance().getApi().takeReputation(vkId, cost);
-                Bukkit.getScheduler().runTask(plugin, () -> startCataclysm("blood_moon_hunt"));
-                VKChatPlugin.getInstance().getApi().sendMessage(peer, "✅ Вы запустили событие 'Кровавая Луна' за " + cost + " репутации!");
-            } else if (type.equals("комета") || type.equals("comet") || type.equals("treasure") || type.equals("treasure_comet")) {
-                if (activeCataclysm != null) {
-                    VKChatPlugin.getInstance().getApi().sendMessage(peer, "❌ На сервере уже бушует катаклизм!");
-                    return;
-                }
-                VKChatPlugin.getInstance().getApi().takeReputation(vkId, cost);
-                Bukkit.getScheduler().runTask(plugin, () -> startCataclysm("treasure_comet"));
-                VKChatPlugin.getInstance().getApi().sendMessage(peer, "✅ Вы запустили событие 'Комета Сокровищ' за " + cost + " репутации!");
-            } else if (type.equals("станция") || type.equals("station") || type.equals("station_fall")) {
-                if (activeCataclysm != null) {
-                    VKChatPlugin.getInstance().getApi().sendMessage(peer, "❌ На сервере уже бушует катаклизм!");
-                    return;
-                }
-                VKChatPlugin.getInstance().getApi().takeReputation(vkId, cost);
-                Bukkit.getScheduler().runTask(plugin, () -> startCataclysm("station_fall"));
-                VKChatPlugin.getInstance().getApi().sendMessage(peer, "✅ Вы запустили событие 'Падение Космической Станции' за " + cost + " репутации!");
-            } else if (type.equals("туман") || type.equals("fog") || type.equals("fog_shadows") || type.equals("тени")) {
-                if (activeCataclysm != null) {
-                    VKChatPlugin.getInstance().getApi().sendMessage(peer, "❌ На сервере уже бушует катаклизм!");
-                    return;
-                }
-                VKChatPlugin.getInstance().getApi().takeReputation(vkId, cost);
-                Bukkit.getScheduler().runTask(plugin, () -> startCataclysm("fog_shadows"));
-                VKChatPlugin.getInstance().getApi().sendMessage(peer, "✅ Вы запустили катаклизм 'Туман Теней' за " + cost + " репутации!");
-            } else if (type.equals("плазма") || type.equals("plasma") || type.equals("plasma_storm")) {
-                if (activeCataclysm != null) {
-                    VKChatPlugin.getInstance().getApi().sendMessage(peer, "❌ На сервере уже бушует катаклизм!");
-                    return;
-                }
-                VKChatPlugin.getInstance().getApi().takeReputation(vkId, cost);
-                Bukkit.getScheduler().runTask(plugin, () -> startCataclysm("plasma_storm"));
-                VKChatPlugin.getInstance().getApi().sendMessage(peer, "✅ Вы запустили катаклизм 'Плазменный Шторм' за " + cost + " репутации!");
-            } else if (type.equals("гравитация") || type.equals("gravity") || type.equals("gravity_anomaly") || type.equals("гравитация")) {
-                if (activeCataclysm != null) {
-                    VKChatPlugin.getInstance().getApi().sendMessage(peer, "❌ На сервере уже бушует катаклизм!");
-                    return;
-                }
-                VKChatPlugin.getInstance().getApi().takeReputation(vkId, cost);
-                Bukkit.getScheduler().runTask(plugin, () -> startCataclysm("gravity_anomaly"));
-                VKChatPlugin.getInstance().getApi().sendMessage(peer, "✅ Вы запустили катаклизм 'Извращение Гравитации' за " + cost + " репутации!");
-            } else if (type.equals("босс") || type.equals("boss")) {
-                if (isActive()) {
-                    VKChatPlugin.getInstance().getApi().sendMessage(peer, "❌ Аватар Гнева Богов уже бродит по серверу!");
-                    return;
-                }
-                VKChatPlugin.getInstance().getApi().takeReputation(vkId, cost);
-                Bukkit.getScheduler().runTask(plugin, this::tryStartWrath);
-                VKChatPlugin.getInstance().getApi().sendMessage(peer, "✅ Вы призвали Аватара Гнева Богов за " + cost + " репутации!");
-            } else {
-                VKChatPlugin.getInstance().getApi().sendMessage(peer, "❌ Неверный тип катаклизма! Доступные: дождь, земля, шторм, метеорит, буран, затмение, золото, благо, звезда, гейзер, луна, комета, станция, туман, плазма, гравитация, босс.");
-            }
+            VKChatPlugin.getInstance().getApi().takeReputation(vkId, cost);
+            Bukkit.getScheduler().runTask(plugin, () -> startCataclysm(cataclysmId));
+
+            CataclysmRegistry.CataclysmDef def = cataclysmRegistry.getDef(cataclysmId);
+            String name = def != null ? def.getDisplayName() : cataclysmId;
+            String category = (def != null && def.isPositive()) ? "благословение" : "событие";
+            VKChatPlugin.getInstance().getApi().sendMessage(peer, "✅ Вы запустили " + category + " '" + name + "' за " + cost + " репутации!");
         }
     }
 }

@@ -123,14 +123,8 @@ public class ContractManager {
     }
 
     public int getHunterJobLevel(Player p) {
-        try {
-            org.bukkit.plugin.Plugin jobs = Bukkit.getPluginManager().getPlugin("VKChatJobs");
-            if (jobs != null && jobs.isEnabled()) {
-                Object dm = jobs.getClass().getMethod("getJobsDataManager").invoke(jobs);
-                return (int) dm.getClass().getMethod("getLevel", java.util.UUID.class, String.class).invoke(dm, p.getUniqueId(), "hunter");
-            }
-        } catch (Throwable ignored) {}
-        return 1;
+        int level = ru.example.vkchat.util.JobsBridge.getLevel(p, "hunter");
+        return level > 0 ? level : 1;
     }
 
     public void generateContract(Player p) {

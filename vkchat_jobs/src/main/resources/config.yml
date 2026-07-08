@@ -1,3 +1,5 @@
+config-version: 1
+
 settings:
   enabled: true
   max-level: 50

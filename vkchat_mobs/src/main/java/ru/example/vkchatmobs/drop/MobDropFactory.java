@@ -326,18 +326,7 @@ public class MobDropFactory {
     // ═══════════════════════════════════════════
 
     private int getJobLevels(Player p) {
-        int total = 0;
-        try {
-            org.bukkit.plugin.Plugin jobsPlugin = Bukkit.getPluginManager().getPlugin("VKChatJobs");
-            if (jobsPlugin != null && jobsPlugin.isEnabled()) {
-                Object dataManager = jobsPlugin.getClass().getMethod("getJobsDataManager").invoke(jobsPlugin);
-                for (String job : Arrays.asList("miner", "woodcutter", "farmer", "alchemist", "blacksmith")) {
-                    total += (int) dataManager.getClass().getMethod("getLevel", UUID.class, String.class)
-                            .invoke(dataManager, p.getUniqueId(), job);
-                }
-            }
-        } catch (Exception ignored) {}
-        return total;
+        return ru.example.vkchat.util.JobsBridge.getTotalLevel(p);
     }
 
     private int getRankFromMob(LivingEntity mob) {

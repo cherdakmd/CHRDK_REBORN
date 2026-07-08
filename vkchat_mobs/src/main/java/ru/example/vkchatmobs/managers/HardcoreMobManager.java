@@ -579,15 +579,7 @@ public class HardcoreMobManager implements Listener {
         if (vk != -1) score += VKChatBridge.getReputation(vk) / 500;
         for (ItemStack item : p.getInventory().getArmorContents()) score += getUpgrade(item);
         score += getUpgrade(p.getInventory().getItemInMainHand());
-        try {
-            org.bukkit.plugin.Plugin jobs = Bukkit.getPluginManager().getPlugin("VKChatJobs");
-            if (jobs != null && jobs.isEnabled()) {
-                Object dm = jobs.getClass().getMethod("getJobsDataManager").invoke(jobs);
-                for (String j : Arrays.asList("miner", "woodcutter", "farmer", "alchemist", "blacksmith")) {
-                    score += (int) dm.getClass().getMethod("getLevel", UUID.class, String.class).invoke(dm, p.getUniqueId(), j);
-                }
-            }
-        } catch (Throwable ignored) {}
+        score += ru.example.vkchat.util.JobsBridge.getTotalLevel(p);
         return score;
     }
 

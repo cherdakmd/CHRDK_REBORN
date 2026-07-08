@@ -269,7 +269,10 @@ public class MarketManager {
         }
         int maxHistory = plugin.getConfig().getInt("market2.history.max-entries", 100);
         tradeLogger.saveTo(data);
-        savePriceHistory();.subList(Math.max(0, history.size() - maxHistory), history.size()));
+        savePriceHistory();
+        data.set("history", history.size() > maxHistory
+                ? history.subList(Math.max(0, history.size() - maxHistory), history.size())
+                : history);
         data.set("momentum", null);
         for (Map.Entry<String, Double> entry : momentum.entrySet()) {
             data.set("momentum." + entry.getKey(), entry.getValue());

@@ -791,20 +791,8 @@ public class MobListener implements Listener {
     // ═══ Утилиты ═══
 
     private int getJobLevels(Player p) {
-        int total = 1;
-        try {
-            org.bukkit.plugin.Plugin jobsPlugin = Bukkit.getPluginManager().getPlugin("VKChatJobs");
-            if (jobsPlugin != null && jobsPlugin.isEnabled()) {
-                Object dataManager = jobsPlugin.getClass().getMethod("getJobsDataManager").invoke(jobsPlugin);
-                int m = (int) dataManager.getClass().getMethod("getLevel", UUID.class, String.class).invoke(dataManager, p.getUniqueId(), "miner");
-                int w = (int) dataManager.getClass().getMethod("getLevel", UUID.class, String.class).invoke(dataManager, p.getUniqueId(), "woodcutter");
-                int f = (int) dataManager.getClass().getMethod("getLevel", UUID.class, String.class).invoke(dataManager, p.getUniqueId(), "farmer");
-                int a = (int) dataManager.getClass().getMethod("getLevel", UUID.class, String.class).invoke(dataManager, p.getUniqueId(), "alchemist");
-                int b = (int) dataManager.getClass().getMethod("getLevel", UUID.class, String.class).invoke(dataManager, p.getUniqueId(), "blacksmith");
-                total = m + w + f + a + b;
-            }
-        } catch (Exception ignored) {}
-        return total;
+        int total = ru.example.vkchat.util.JobsBridge.getTotalLevel(p);
+        return total > 0 ? total : 1;
     }
 
     public void cleanupMaps(long now) {

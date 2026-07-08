@@ -6,6 +6,8 @@ import ru.example.vkchatnations.data.NationManager;
 import ru.example.vkchatnations.listeners.NationGuiListener;
 import ru.example.vkchatnations.listeners.NationListener;
 import ru.example.vkchatnations.listeners.ClaimDefenseListener;
+import ru.example.vkchatnations.listeners.MutationEffectScheduler;
+import ru.example.vkchatnations.listeners.NationalItemActivator;
 import ru.example.vkchatnations.gui.MapGui;
 import ru.example.vkchatnations.gui.ClaimGui;
 import ru.example.vkchatnations.tasks.TaxTask;
@@ -91,6 +93,8 @@ public class VKChatNationsPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(guiListener, this);
         getServer().getPluginManager().registerEvents(new PreventListener(this), this);
         getServer().getPluginManager().registerEvents(new ClaimDefenseListener(this), this);
+        getServer().getPluginManager().registerEvents(new NationalItemActivator(this), this);
+        new MutationEffectScheduler(this).start();
         
         NationCommand nationCmd = new NationCommand(this);
         getCommand("nation").setExecutor(nationCmd);

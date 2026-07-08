@@ -6,6 +6,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 import ru.example.vkchatmarket.VKChatMarketPlugin;
+import ru.example.vkchatmarket.data.MarketTransactionService;
 import ru.example.vkchatmarket.listeners.MarketGuiListener;
 
 import java.util.ArrayList;
@@ -32,7 +33,7 @@ public class MarketCommand implements CommandExecutor, TabCompleter {
         }
 
         if (args.length > 0 && (args[0].equalsIgnoreCase("sellall") || args[0].equalsIgnoreCase("продатьвсе"))) {
-            MarketGuiListener.sellAllFromCommand(plugin, p);
+            MarketTransactionService.sellAllFromCommand(plugin, p);
             return true;
         }
 

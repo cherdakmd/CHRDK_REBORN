@@ -12,7 +12,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
 import ru.example.vkchat.VKChatPlugin;
-import ru.example.vkchatgear.donate.DonateStatusResolver;
+import ru.example.vkchat.util.DonateStatusResolver;
 import ru.example.vkchatgear.forge.SetBonusManager;
 
 import java.util.*;
@@ -34,6 +34,9 @@ public class GearManager {
 
     public int getBlacksmithLevel(Player p) {
         if (p == null) return 0;
+        int level = ru.example.vkchat.util.JobsBridge.getLevel(p, "blacksmith");
+        if (level > 0) return level;
+        // Fallback если JobsBridge не доступен
         try {
             org.bukkit.plugin.Plugin jobsPlugin = Bukkit.getPluginManager().getPlugin("VKChatJobs");
             if (jobsPlugin != null && jobsPlugin.isEnabled()) {
@@ -649,15 +652,11 @@ public class GearManager {
             }
             
             // Check Blacksmith Legend skill
-            org.bukkit.plugin.Plugin jobsPlugin = Bukkit.getPluginManager().getPlugin("VKChatJobs");
-            if (jobsPlugin != null && jobsPlugin.isEnabled()) {
-                Object dataManager = jobsPlugin.getClass().getMethod("getJobsDataManager").invoke(jobsPlugin);
-                int blacksmithLvlJob = (int) dataManager.getClass().getMethod("getLevel", java.util.UUID.class, String.class).invoke(dataManager, crafter.getUniqueId(), "blacksmith");
-                if (blacksmithLvlJob >= 30) {
-                    boolean hasSkill = (boolean) dataManager.getClass().getMethod("hasSkill", java.util.UUID.class, String.class, String.class).invoke(dataManager, crafter.getUniqueId(), "blacksmith", "black_leg");
-                    if (hasSkill) {
-                        luckPoints += 50; // Extra 50 luck points (~ +5% to rare/legendary rolls based on logic)
-                    }
+            int blacksmithLvlJob = ru.example.vkchat.util.JobsBridge.getLevel(crafter, "blacksmith");
+            if (blacksmithLvlJob >= 30) {
+                boolean hasSkill = ru.example.vkchat.util.JobsBridge.hasSkill(crafter.getUniqueId(), "blacksmith", "black_leg");
+                if (hasSkill) {
+                    luckPoints += 50; // Extra 50 luck points (~ +5% to rare/legendary rolls based on logic)
                 }
             }
         } catch (Exception ignored) {}

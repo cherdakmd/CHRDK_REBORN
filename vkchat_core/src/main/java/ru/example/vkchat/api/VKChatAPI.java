@@ -136,4 +136,54 @@ public class VKChatAPI {
     public int getServerRank(UUID uuid) {
         return plugin.getStatsManager().getRank(uuid);
     }
+
+    // ==========================================
+    //  ДОНАТ-СТАТУСЫ (DonateStatusResolver)
+    // ==========================================
+
+    /**
+     * Получить ID донат-статуса игрока (spark/flame/star/legend/overlord или null).
+     */
+    public String getDonateStatus(Player player) {
+        return ru.example.vkchat.util.DonateStatusResolver.getStatusId(player);
+    }
+
+    /**
+     * Скидка на кузню для донатера (0.0 — нет, до 0.65).
+     */
+    public double getDonateForgeDiscount(Player player) {
+        return ru.example.vkchat.util.DonateStatusResolver.getForgeDiscount(player);
+    }
+
+    /**
+     * Множитель рынка для донатера (1.0 — базовый, до 1.70).
+     */
+    public double getDonateMarketMultiplier(Player player) {
+        return ru.example.vkchat.util.DonateStatusResolver.getMarketMultiplier(player);
+    }
+
+    /**
+     * Есть ли у игрока донат-статус.
+     */
+    public boolean hasDonateStatus(Player player) {
+        return ru.example.vkchat.util.DonateStatusResolver.hasDonateStatus(player);
+    }
+
+    // ==========================================
+    //  ПРОФЕССИИ (JobsBridge)
+    // ==========================================
+
+    /**
+     * Уровень профессии игрока. Возвращает 0 если VKChatJobs не установлен.
+     */
+    public int getJobLevel(UUID uuid, String job) {
+        return ru.example.vkchat.util.JobsBridge.getLevel(uuid, job);
+    }
+
+    /**
+     * Суммарный уровень всех профессий.
+     */
+    public int getTotalJobLevel(UUID uuid) {
+        return ru.example.vkchat.util.JobsBridge.getTotalLevel(uuid);
+    }
 }

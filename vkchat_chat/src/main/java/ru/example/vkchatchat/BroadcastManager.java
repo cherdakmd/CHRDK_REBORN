@@ -79,11 +79,8 @@ public class BroadcastManager implements Listener {
 
     private void checkJobLevel(Player p) {
         try {
-            org.bukkit.plugin.Plugin jobs = Bukkit.getPluginManager().getPlugin("VKChatJobs");
-            if (jobs == null || !jobs.isEnabled()) return;
-            Object dataMgr = jobs.getClass().getMethod("getJobsDataManager").invoke(jobs);
-            if (dataMgr == null) return;
-            int totalLvl = (int) dataMgr.getClass().getMethod("getTotalLevel", Player.class).invoke(dataMgr, p);
+            int totalLvl = ru.example.vkchat.util.JobsBridge.getTotalLevelPlayer(p);
+            if (totalLvl <= 0) return;
             int prev = lastJobLevel.getOrDefault(p.getUniqueId(), 0);
             if (totalLvl > prev && prev > 0) {
                 List<String> msgs = plugin.getConfig().getStringList("broadcasts.job-level-messages");

@@ -193,8 +193,7 @@ public class SalvageCommand implements CommandExecutor, Listener, TabCompleter {
         try {
             org.bukkit.plugin.Plugin jobsPlugin = Bukkit.getPluginManager().getPlugin("VKChatJobs");
             if (jobsPlugin != null && jobsPlugin.isEnabled()) {
-                Object dataManager = jobsPlugin.getClass().getMethod("getJobsDataManager").invoke(jobsPlugin);
-                int blacksmithLvl = (int) dataManager.getClass().getMethod("getLevel", UUID.class, String.class).invoke(dataManager, p.getUniqueId(), "blacksmith");
+                int blacksmithLvl = ru.example.vkchat.util.JobsBridge.getLevel(p, "blacksmith");
                 jobBonusMultiplier += (blacksmithLvl * 0.01);
             }
         } catch (Exception ignored) {}

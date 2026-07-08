@@ -145,8 +145,7 @@ public class QuestManager implements Listener {
                     try {
                         org.bukkit.plugin.Plugin jobsPlugin = Bukkit.getPluginManager().getPlugin("VKChatJobs");
                         if (jobsPlugin != null && jobsPlugin.isEnabled()) {
-                            Object dm = jobsPlugin.getClass().getMethod("getJobsDataManager").invoke(jobsPlugin);
-                            int pLvl = (int) dm.getClass().getMethod("getLevel", UUID.class, String.class).invoke(dm, p.getUniqueId(), reqJob);
+                            int pLvl = ru.example.vkchat.util.JobsBridge.getLevel(p, reqJob);
                             if (pLvl < reqLvl) continue; // Не дорос
                         } else {
                             continue; // Плагин джобсов не запущен
