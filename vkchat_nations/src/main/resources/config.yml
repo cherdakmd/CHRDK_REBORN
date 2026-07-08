@@ -82,33 +82,33 @@ messages:
 # ==========================================
 nations:
   soviet_light:
-    name: "&cСовет"
-    prefix: "&c[Совет]"
+    name: "&cСоюз"
+    prefix: "&c[Союз]"
     color: "&c"
-    description: "Советская нация. Ускоренная добыча."
+    description: "Индустриальная нация. Ускоренная добыча."
     bonuses:
       - "FAST_DIGGING;2"
   soviet_dark:
-    name: "&4КГБ"
-    prefix: "&4[КГБ]"
+    name: "&4Чека"
+    prefix: "&4[Чека]"
     color: "&4"
-    description: "Скрытная нация. Скорость и невидимость."
+    description: "Теневая нация. Скрытность и контроль."
     bonuses:
       - "SPEED;1"
       - "INVISIBILITY;1"
 
   pagan_light:
-    name: "&aВолхвы"
-    prefix: "&a[Волхв]"
+    name: "&aВедуны"
+    prefix: "&a[Ведун]"
     color: "&a"
-    description: "Природная нация. Регенерация."
+    description: "Природная нация. Гармония и регенерация."
     bonuses:
       - "REGENERATION;1"
   pagan_dark:
-    name: "&2Культ"
-    prefix: "&2[Культ]"
+    name: "&2Навь"
+    prefix: "&2[Навь]"
     color: "&2"
-    description: "Культовая нация. Сила в бою."
+    description: "Тёмная нация. Сила через кровь."
     bonuses:
       - "INCREASE_DAMAGE;1"
 
@@ -116,14 +116,14 @@ nations:
     name: "&eРусь"
     prefix: "&e[Русь]"
     color: "&e"
-    description: "Защитная нация. Стойкость."
+    description: "Защитная нация. Стойкость и честь."
     bonuses:
       - "DAMAGE_RESISTANCE;1"
   imperial_dark:
-    name: "&6Опричнина"
-    prefix: "&6[Оприч]"
+    name: "&6Гроза"
+    prefix: "&6[Гроза]"
     color: "&6"
-    description: "Карательная нация. Прыгучесть."
+    description: "Карательная нация. Стремительность."
     bonuses:
       - "JUMP;2"
 

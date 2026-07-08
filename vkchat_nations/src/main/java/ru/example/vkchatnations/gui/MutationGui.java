@@ -58,16 +58,16 @@ public class MutationGui {
                     "§7Дарует постоянное пассивное состояние сытости I",
                     "§7(уровень голода вашего персонажа никогда не падает).");
         } else if (nation.equals("soviet_dark")) {
-            addMutationItem(inv, 11, "kgb_clandestine", "👤 Спецагент КГБ", Material.ENDER_PEARL, p,
+            addMutationItem(inv, 11, "kgb_clandestine", "👤 Спецагент", Material.ENDER_PEARL, p,
                     "§7Дает полную невидимость на 10 сек при",
                     "§7приседании (Shift), если в руках нет оружия.");
-            addMutationItem(inv, 12, "poison_immunity", "🧪 Противоядие КГБ", Material.MILK_BUCKET, p,
+            addMutationItem(inv, 12, "poison_immunity", "🧪 Противоядие", Material.MILK_BUCKET, p,
                     "§7Дает постоянную пассивную защиту",
                     "§7и полный иммунитет к эффекту Отравления.");
             addMutationItem(inv, 13, "dark_assassin", "🗡️ Ночной Охотник", Material.OBSIDIAN, p,
                     "§7Увеличивает весь ваш урон на +20% ночью",
                     "§7или при уровне освещения блока <= 7.");
-            addMutationItem(inv, 14, "kgb_radar", "🛰️ Радар КГБ", Material.COMPASS, p,
+            addMutationItem(inv, 14, "kgb_radar", "🛰 Радар", Material.COMPASS, p,
                     "§7Постоянно подсвечивает (эффект Glowing)",
                     "§7всех враждебных мобов в радиусе 12 блоков.");
             addMutationItem(inv, 15, "tactical_strike", "💥 Тактический Удар", Material.GOLDEN_SWORD, p,
@@ -77,7 +77,7 @@ public class MutationGui {
             addMutationItem(inv, 11, "forest_communion", "🌿 Единение с Лесом", Material.OAK_SAPLING, p,
                     "§7Дает постоянную Регенерацию II и Скорость I,",
                     "§7когда вы находитесь в лесных/таежных биомах.");
-            addMutationItem(inv, 12, "nature_regrowth", "🌾 Сила Волхвов", Material.WHEAT_SEEDS, p,
+            addMutationItem(inv, 12, "nature_regrowth", "🌾 Сила Ведунов", Material.WHEAT_SEEDS, p,
                     "§7Шанс 45% мгновенно вырастить пшеницу,",
                     "§7картофель или морковь при клике пустой рукой.");
             addMutationItem(inv, 13, "herbal_healing", "🍎 Целебные Травы", Material.SWEET_BERRIES, p,
@@ -131,7 +131,7 @@ public class MutationGui {
             addMutationItem(inv, 13, "gravity_leap", "🪶 Опричный Прыжок", Material.PHANTOM_MEMBRANE, p,
                     "§7Дарует полный иммунитет к урону от падения,",
                     "§7если высота вашего падения меньше 15 блоков.");
-            addMutationItem(inv, 14, "oprichnik_fury", "⚡ Ярость Опричника", Material.REDSTONE_ORE, p,
+            addMutationItem(inv, 14, "oprichnik_fury", "⚡ Ярость Грозы", Material.REDSTONE_ORE, p,
                     "§7Каждое убийство игрока или монстра дарует вам",
                     "§7эффект Скорости II на 5 секунд.");
             addMutationItem(inv, 15, "iron_skin", "🛡️ Стальная Воля", Material.IRON_CHESTPLATE, p,

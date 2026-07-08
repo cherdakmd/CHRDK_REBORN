@@ -33,20 +33,35 @@ public class VKChatNationsPlugin extends JavaPlugin {
                 getConfig().options().copyDefaults(true);
             }
             boolean changed = false;
-            changed |= replaceIfLegacy("nations.soviet_light.name", "&cСветлый Совет (Пролетариат)", "&cСовет");
-            changed |= replaceIfLegacy("nations.soviet_light.prefix", "&c[Труд]", "&c[Совет]");
-            changed |= replaceIfLegacy("nations.soviet_light.description", "Светлая советская нация. Ускоренная добыча.", "Советская нация. Ускоренная добыча.");
-            changed |= replaceIfLegacy("nations.soviet_dark.name", "&4Темный Совет (КГБ)", "&4КГБ");
-            changed |= replaceIfLegacy("nations.soviet_dark.description", "Темная советская нация. Скорость и скрытность.", "Скрытная нация. Скорость и невидимость.");
-            changed |= replaceIfLegacy("nations.pagan_light.name", "&aСветлые Язычники (Волхвы)", "&aВолхвы");
-            changed |= replaceIfLegacy("nations.pagan_light.description", "Светлая языческая нация. Регенерация.", "Природная нация. Регенерация.");
-            changed |= replaceIfLegacy("nations.pagan_dark.name", "&2Темные Язычники (Культ)", "&2Культ");
-            changed |= replaceIfLegacy("nations.pagan_dark.description", "Темная языческая нация. Жестокость.", "Культовая нация. Сила в бою.");
+            changed |= replaceIfLegacy("nations.soviet_light.name", "&cСветлый Совет (Пролетариат)", "&cСоюз");
+            changed |= replaceIfLegacy("nations.soviet_light.name", "&cСовет", "&cСоюз");
+            changed |= replaceIfLegacy("nations.soviet_light.prefix", "&c[Труд]", "&c[Союз]");
+            changed |= replaceIfLegacy("nations.soviet_light.prefix", "&c[Совет]", "&c[Союз]");
+            changed |= replaceIfLegacy("nations.soviet_light.description", "Светлая советская нация. Ускоренная добыча.", "Индустриальная нация. Ускоренная добыча.");
+            changed |= replaceIfLegacy("nations.soviet_light.description", "Советская нация. Ускоренная добыча.", "Индустриальная нация. Ускоренная добыча.");
+            changed |= replaceIfLegacy("nations.soviet_dark.name", "&4Темный Совет (КГБ)", "&4Чека");
+            changed |= replaceIfLegacy("nations.soviet_dark.name", "&4КГБ", "&4Чека");
+            changed |= replaceIfLegacy("nations.soviet_dark.description", "Темная советская нация. Скорость и скрытность.", "Теневая нация. Скрытность и контроль.");
+            changed |= replaceIfLegacy("nations.soviet_dark.description", "Скрытная нация. Скорость и невидимость.", "Теневая нация. Скрытность и контроль.");
+            changed |= replaceIfLegacy("nations.pagan_light.name", "&aСветлые Язычники (Волхвы)", "&aВедуны");
+            changed |= replaceIfLegacy("nations.pagan_light.name", "&aВолхвы", "&aВедуны");
+            changed |= replaceIfLegacy("nations.pagan_light.prefix", "&a[Волхв]", "&a[Ведун]");
+            changed |= replaceIfLegacy("nations.pagan_light.description", "Светлая языческая нация. Регенерация.", "Природная нация. Гармония и регенерация.");
+            changed |= replaceIfLegacy("nations.pagan_light.description", "Природная нация. Регенерация.", "Природная нация. Гармония и регенерация.");
+            changed |= replaceIfLegacy("nations.pagan_dark.name", "&2Темные Язычники (Культ)", "&2Навь");
+            changed |= replaceIfLegacy("nations.pagan_dark.name", "&2Культ", "&2Навь");
+            changed |= replaceIfLegacy("nations.pagan_dark.prefix", "&2[Культ]", "&2[Навь]");
+            changed |= replaceIfLegacy("nations.pagan_dark.description", "Темная языческая нация. Жестокость.","Тёмная нация. Сила через кровь.");
+            changed |= replaceIfLegacy("nations.pagan_dark.description", "Культовая нация. Сила в бою.","Тёмная нация. Сила через кровь.");
             changed |= replaceIfLegacy("nations.imperial_light.name", "&eСветлая Империя (Богатыри)", "&eРусь");
-            changed |= replaceIfLegacy("nations.imperial_light.description", "Светлая нация Царя. Защитники.", "Защитная нация. Стойкость.");
-            changed |= replaceIfLegacy("nations.imperial_dark.name", "&6Темная Империя (Опричники)", "&6Опричнина");
-            changed |= replaceIfLegacy("nations.imperial_dark.prefix", "&6[Опричник]", "&6[Оприч]");
-            changed |= replaceIfLegacy("nations.imperial_dark.description", "Темная нация Царя. Каратели.", "Карательная нация. Прыгучесть.");
+            changed |= replaceIfLegacy("nations.imperial_light.description", "Светлая нация Царя. Защитники.","Защитная нация. Стойкость и честь.");
+            changed |= replaceIfLegacy("nations.imperial_light.description", "Защитная нация. Стойкость.","Защитная нация. Стойкость и честь.");
+            changed |= replaceIfLegacy("nations.imperial_dark.name", "&6Темная Империя (Опричники)", "&6Гроза");
+            changed |= replaceIfLegacy("nations.imperial_dark.name", "&6Опричнина", "&6Гроза");
+            changed |= replaceIfLegacy("nations.imperial_dark.prefix", "&6[Опричник]", "&6[Гроза]");
+            changed |= replaceIfLegacy("nations.imperial_dark.prefix", "&6[Оприч]", "&6[Гроза]");
+            changed |= replaceIfLegacy("nations.imperial_dark.description", "Темная нация Царя. Каратели.","Карательная нация. Стремительность.");
+            changed |= replaceIfLegacy("nations.imperial_dark.description", "Карательная нация. Прыгучесть.","Карательная нация. Стремительность.");
             if (changed) {
                 java.io.File configFile = new java.io.File(getDataFolder(), "config.yml");
                 if (configFile.exists()) {

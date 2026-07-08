@@ -162,7 +162,7 @@ public class NationShopGui {
                     "&7Дарует эффект Спешки II на 1 минуту.",
                     "&7Перезарядка: 2 минуты."));
         } else if (nation.equals("soviet_dark")) {
-            inv.setItem(s1, createNationalItem(Material.LEATHER_HELMET, "🕶️ Тактические Очки КГБ", "kgb_glasses", 250,
+            inv.setItem(s1, createNationalItem(Material.LEATHER_HELMET, "🕶 Тактические Очки Чека", "kgb_glasses", 250,
                     "&eПассивный эффект: &aТепловизор",
                     "&7Дарует постоянное Ночное Зрение",
                     "&7при ношении данного шлема."));
@@ -175,7 +175,7 @@ public class NationShopGui {
                     "&7Дарует Невидимость I и Скорость II",
                     "&7на 30 секунд. Кд 2 минуты."));
         } else if (nation.equals("pagan_light")) {
-            inv.setItem(s1, createNationalItem(Material.WOODEN_HOE, "🌿 Древесный Посох Волхвов", "pagan_staff", 250,
+            inv.setItem(s1, createNationalItem(Material.WOODEN_HOE, "🌿 Древесный Посох Ведунов", "pagan_staff", 250,
                     "&eАктивное свойство (ПКМ): &aДыхание Леса",
                     "&7Мгновенно исцеляет вас на 4 HP.",
                     "&7Перезарядка: 30 секунд."));
@@ -213,7 +213,7 @@ public class NationShopGui {
                     "&eПассивный эффект: &aЦарская Сытость",
                     "&7Полное насыщение и сатурация на 2 мин."));
         } else if (nation.equals("imperial_dark")) {
-            inv.setItem(s1, createNationalItem(Material.IRON_SWORD, "🗡️ Карающая Сабля Опричника", "imperial_saber", 250,
+            inv.setItem(s1, createNationalItem(Material.IRON_SWORD, "🗡 Карающая Сабля Грозы", "imperial_saber", 250,
                     "&eПассивный эффект: &aСекущий Удар",
                     "&7Каждый удар имеет 25% шанс вызвать",
                     "&7кровотечение (эффект яда) на 4 сек."));
@@ -334,7 +334,7 @@ public class NationShopGui {
         return switch (setKey) {
             case "udarnik"  -> "Ударник Труда";
             case "tankist"  -> "Танкист";
-            case "volhv"    -> "Волхв";
+            case "volhv"    -> "Ведун";
             case "koshchey" -> "Бессмертный";
             case "bogatyr"  -> "Богатырь";
             case "sokol"    -> "Ясный Сокол";
