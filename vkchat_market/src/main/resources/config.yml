@@ -1268,6 +1268,18 @@ items:
     scarcity-threshold: 5
     max-multiplier: 5.0
 
+  ENCHANTED_BOOK:
+    name: "&dЗачарованная книга (любая)"
+    category: "Редкости"
+    base-price: 200.0
+    min-price: 30.0
+    elasticity: 50.0
+    recovery-rate: 3
+    max-stock: 60
+    min-stock: -30
+    scarcity-threshold: 10
+    max-multiplier: 5.0
+
 # Лимитированные редкие товары (сбалансированные цены)
 limited-items:
   TOTEM_OF_UNDYING:

@@ -22,6 +22,7 @@ import ru.example.vkchatmarket.VKChatMarketPlugin;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class MarketGuiListener implements Listener {
     private static final int PAGE_SIZE = 35;
@@ -506,7 +507,7 @@ public class MarketGuiListener implements Listener {
         int toRemove = count;
         for (int i = 0; i < p.getInventory().getSize(); i++) {
             ItemStack item = p.getInventory().getItem(i);
-            if (item != null && item.getType() == m && (!item.hasItemMeta() || !item.getItemMeta().hasLore())) {
+            if (item != null && item.getType() == m && (m == Material.ENCHANTED_BOOK || !item.hasItemMeta() || !item.getItemMeta().hasLore())) {
                 if (item.getAmount() <= toRemove) { toRemove -= item.getAmount(); p.getInventory().setItem(i, null); }
                 else { item.setAmount(item.getAmount() - toRemove); toRemove = 0; }
                 if (toRemove == 0) break;
@@ -553,6 +554,9 @@ public class MarketGuiListener implements Listener {
 
         for (int i = 0; i < actual; i++) {
             ItemStack toGive = createCustomItem(plugin, itemId);
+            if (m == Material.ENCHANTED_BOOK && !toGive.getItemMeta().hasEnchants()) {
+                toGive = createRandomEnchantedBook();
+            }
             p.getInventory().addItem(toGive);
         }
 
@@ -906,6 +910,21 @@ public class MarketGuiListener implements Listener {
         meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "market_sell_all"), PersistentDataType.INTEGER, 1);
         it.setItemMeta(meta);
         return it;
+    }
+
+    private static ItemStack createRandomEnchantedBook() {
+        Enchantment[] pool = {Enchantment.PROTECTION_ENVIRONMENTAL, Enchantment.DAMAGE_ALL, Enchantment.DIG_SPEED,
+                Enchantment.DURABILITY, Enchantment.LOOT_BONUS_BLOCKS, Enchantment.LOOT_BONUS_MOBS,
+                Enchantment.FIRE_ASPECT, Enchantment.ARROW_DAMAGE, Enchantment.DEPTH_STRIDER,
+                Enchantment.THORNS, Enchantment.PROTECTION_FALL, Enchantment.ARROW_INFINITE};
+        Enchantment ench = pool[ThreadLocalRandom.current().nextInt(pool.length)];
+        int maxLvl = ench.getMaxLevel();
+        int lvl = maxLvl > 3 ? ThreadLocalRandom.current().nextInt(1, 4) : ThreadLocalRandom.current().nextInt(1, maxLvl + 1);
+        ItemStack book = new ItemStack(Material.ENCHANTED_BOOK);
+        ItemMeta meta = book.getItemMeta();
+        meta.addEnchant(ench, lvl, true);
+        book.setItemMeta(meta);
+        return book;
     }
 
     private static ItemStack categoryItem(VKChatMarketPlugin plugin, Material mat, String category, String name, String... desc) {
