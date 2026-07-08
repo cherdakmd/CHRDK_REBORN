@@ -1,0 +1,31 @@
+name: VKChatGear
+version: "2.0.0"
+main: ru.example.vkchatgear.VKChatGearPlugin
+api-version: "1.16"
+depend: [VKChat]
+commands:
+  forge:
+    description: Перековать (сгенерировать) MMO-предмет за репутацию ВК
+    aliases: [кузня, перековать, foge]
+    permission: vkchat.gear.player
+
+  gearadmin:
+    description: Управление снаряжением, выдача рун, сетов и легендарок (Админ-команда)
+    permission: vkchat.gear.admin
+
+  runes:
+    description: Открыть интерактивный магазин Рун и Кристаллов Заточки
+    usage: /runes
+    permission: vkchat.gear.player
+
+  salvage:
+    description: Разобрать (утилизировать) MMO-предмет на репутацию ВК и опыт Minecraft
+    aliases: [разбор, утилизация]
+    permission: vkchat.gear.player
+permissions:
+  vkchat.gear.admin:
+    description: Доступ к выдаче легендарных сетов и рун
+    default: op
+  vkchat.gear.player:
+    description: Доступ к использованию ковки, рун и разборки
+    default: true

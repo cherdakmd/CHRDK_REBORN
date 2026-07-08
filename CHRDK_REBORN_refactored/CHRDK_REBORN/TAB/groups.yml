@@ -1,0 +1,29 @@
+# ═══════════════════════════════════════
+# TAB Groups — CHRDK REBORN
+# ═══════════════════════════════════════
+
+overlord:
+  tabprefix: "&d&lВЛАСТЕЛИН &r"
+  tagprefix: "&d&lВЛАСТЕЛИН &r"
+legend:
+  tabprefix: "&5&lЛЕГЕНДА &r"
+  tagprefix: "&5&lЛЕГЕНДА &r"
+star:
+  tabprefix: "&e&lЗВЕЗДА &r"
+  tagprefix: "&e&lЗВЕЗДА &r"
+flame:
+  tabprefix: "&6&lПЛАМЯ &r"
+  tagprefix: "&6&lПЛАМЯ &r"
+spark:
+  tabprefix: "&b&lИСКРА &r"
+  tagprefix: "&b&lИСКРА &r"
+vip:
+  tabprefix: "&a&lVIP &r"
+  tagprefix: "&a&lVIP &r"
+default:
+  tabprefix: "&7&l• &r"
+  tagprefix: "&7&l║ &r"
+
+_OTHER_GROUPS_:
+  tabprefix: "%luckperms-prefix%"
+  tagprefix: "%luckperms-prefix%"

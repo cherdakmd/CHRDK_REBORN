@@ -1,0 +1,153 @@
+# CHANGELOG — VKChat Ultimate / CHRDK REBORN
+
+## v2.1.1 — 8 Июля 2026 — Рефакторинг
+
+### 🏗️ Рефакторинг модуля Market (v3.1.0)
+
+- **NEW: `PriceEngine`** — выделенный движок вычисления цен, спредов, множителей. Отделяет бизнес-логику от `MarketManager`
+- **NEW: `TradeLogger`** — выделенный логгер транзакций и истории. Убирает логирование из God-класса
+- **NEW: `MarketItemFactory`** — фабрика ItemStack для GUI. Устраняет дублирование в MarketGuiListener
+- **FIX: `priceHistory`** теперь сохраняется на диск (раньше терялось при рестарте)
+- **FIX: Устранено дублирование** `donorSellMultiplier()` / `donorSellMultiplierStatic()` — единый метод в MarketItemFactory
+- **FIX: Устранены дублирующиеся импорты** в EnchantmentConflictManager
+- **FIX: Объединены** `GROUP_DISPLAY_OVERRIDES` и `getGroupDisplayName()` — единый источник истины
+- **IMPROVE: Добавлен `adjustStock()`** — атомарное изменение стока (для PriceEngine)
+- **IMPROVE: Добавлены `getMarketCyclePhase()` / `getDailyTrend()`** — public getters для PriceEngine
+
+### 💰 Рефакторинг модуля Donate (v2.1.0)
+
+- **FIX: Идемпотентность** — `lastProcessedId` сохраняется ДО обработки доната (save-ahead), предотвращая дублирование при рестарте
+- **FIX: Синхронизация** — добавлен `processingTxIds` Set для предотвращения параллельной обработки одного доната
+- **FIX: LuckPerms API** — `getDaysLeft()` использует LuckPerms API вместо reflection (с fallback)
+- **IMPROVE: Таблица подкоманд** — DonateCommand рефакторинг из лестницы if-else в Map<String, SubCommand>
+- **IMPROVE: Динамическое создание групп** — setup больше не хардкодит имена групп, читает из config.yml
+- **IMPROVE: `fundraiserCollected`** сохраняется в donations.yml между рестартами
+- **IMPROVE: TabComplete** — полная поддержка для fundraiser и pass подкоманд
+- **IMPROVE: Добавлено `vkchat.donate.use`** — отдельный permission для обычных игроков
+
+---
+
+## v2.1.0 — Июнь 2026
+
+### VKChatGear — Mythical Sets + Ancient Crystal + Max +25
+
+**5 Мифических наборов:**
+| Набон | Бонусы |
+|---|---|
+| **Костяной Доспех** | 50% шанс免疫 от смертельного урона + Regeneration II на 5 сек |
+| **Тень Клинка** | Каждый 3-й удар крит + невидимость 3 сек после убийства |
+| **Тлеющая Корона** | Огонь nearby врагов 4 сек + +50% к урону от огня |
+| **Туман Чумы** | Отравление nearby врагов + Slowness II |
+| **Звёздная Ковка** | Полная защита + Speed II + урон от неба мобам |
+
+**Ancient Crystal (4-й тир кристаллов):**
+- Материал: `HEART_OF_THE_SEA`
+- Диапазон: +20–+25
+- Шанс успеха: 25%
+- Шанс даунгрейда: 40%
+- Шанс уничтожения: 10%
+
+**Максимальная заточка:** +25 (было +20)
+
+---
+
+### VKChatMobs — Light Element + Hunter Archetype + Mob Storm + Scalable Drops
+
+**Стихия Света (Light):**
+- +8 урона нежити (зомби, скелеты, визеры)
+- CONFUSION 2 сек при попадании
+- Частицы END_ROD
+
+**Архетип Охотника (Hunter):**
+- SLOW 3 сек + BLINDNESS 2 сек при атаке
+- Ловушки: частицы smoke
+
+**MobStormManager — Мировое событие:**
+- 50 мобов в 3 волны за 30 секунд
+- 10% шанс при убийстве мини-босса
+- Оповещение всей нации
+
+**ELEMENTAL контракт:**
+- Убить 20 мобов случайной стихии
+- Доступен после 5 завершённых контрактов
+
+**Дроп Ancient Crystal:**
+- HEART_OF_THE_SEA с rank 9+ (~0.83%)
+
+**Масштабируемый дроп рун:**
+- `5% + 3% × ранг`, макс 50%
+
+---
+
+### VKChatEvents — 3 новых катаклизма + Автоспавн + Защита наций
+
+**3 новых катаклизма:**
+| Катаклизм | Описание |
+|---|---|
+| **Fog Shadows** | Тени из тумана атакуют игроков |
+| **Plasma Storm** | Плазменные разряды наносят урон |
+| **Gravity Anomaly** | Гравитация притягивает/отталкивает игроков |
+
+**Конфигурируемые параметры босса:**
+- Имя, тип, HP, лут — настраиваются в `wrath.boss.*`
+
+**Конфигурируемые параметры катаклизмов:**
+- Длительность, интервал тиков, шансы — в `wrath.cataclysms.*`
+
+**Автоспавн катаклизмов:**
+- Каждые 5 минут, 8% шанс
+- Катаклизм происходит ВОКРУГ случайного онлайн-игрока (радиус 64 блока)
+- Взвешенный выбор типа по конфигу
+- Личное уведомление игроку
+- Все 16 типов катаклизмов
+
+**Защита приватов наций:**
+- `EntityExplodeEvent` — взрывы не ломают блоки в приватах
+- `shouldAffectPlayer()` — все эффекты применяются только вне приватов
+- Eclipse/Blood Moon/Fog Shadows — мобы не спавнятся в приватах
+
+---
+
+
+### Исправления (все модули)
+
+- **vkchat_teleport:** команды gateway/portal зарегистрированы (были объявлены, но не подключены)
+- **vkchat_starter:** softdepend на VKChatMobs и VKChatArtifacts
+- **vkchat_core:** BloodMoonManager world теперь конфигурируется
+- **vkchat_core:** QuestManager → `quest_progress.yml`, BountyManager → `bounties.yml`
+- **vkchat_core:** MotdListener — все 16 типов катаклизмов
+- **vkchat_mobs:** PlaceholderAPI удалён из build.gradle
+- **vkchat_mobs:** shared `createSetFragment()` — убрана дупликация
+
+---
+
+## v2.0.5 — Июнь 2026
+
+- Интеграция `VKLongPollManager` в `VKChatPlugin` для стабильности LongPoll
+- Переработка `onEnable()`/`onDisable()` lifecycle
+
+---
+
+## v2.0.0 — Июнь 2026
+
+### Major Features
+- **Forge 2.0:** хаб `/forge`, слияние редкости, свитки, защита, логи
+- **Jobs 2.0:** ежедневки и специализации
+- **Market 2.0:** тренды дня, история, ротация редкостей
+- **Mobs/Events 2.0:** контракты, рейд-боссы, мировые угрозы
+- **DonatePay:** 4 месячных статуса с LuckPerms-группами
+
+### Nations
+- 6 наций: Совет, КГБ, Волхвы, Культ, Русь, Опричнина
+- Блочная система приватов (Малый/Средний/Большой)
+- 5-уровневая прокачка приватов
+- Лаборатория Мутаций (30 мутаций)
+
+### Core
+- VK интеграция, авторизация, 2FA
+- Репутация ВК как валюта
+- Модерация, предупреждения
+
+### Commands
+- Tab Complete для всех 13 командных классов
+- Команды: register, login, 2fa, vklink, rep, pay, nation, forge, runes, artifacts, market, jobs, events, donatepay, rtp, home, tpa, gateway, portal

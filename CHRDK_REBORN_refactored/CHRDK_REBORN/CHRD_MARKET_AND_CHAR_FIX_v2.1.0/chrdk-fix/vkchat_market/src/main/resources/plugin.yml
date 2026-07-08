@@ -1,0 +1,14 @@
+name: VKChatMarket
+version: "2.1.0"
+main: ru.example.vkchatmarket.VKChatMarketPluginV2
+api-version: "1.16"
+depend: [VKChat]
+commands:
+  market:
+    description: Открыть меню динамической экономической биржи торговли
+    aliases: [sell, shop, рынок, биржа]
+    permission: vkchat.market.player
+permissions:
+  vkchat.market.player:
+    description: Доступ к использованию экономической биржи покупки/продажи ресурсов
+    default: true

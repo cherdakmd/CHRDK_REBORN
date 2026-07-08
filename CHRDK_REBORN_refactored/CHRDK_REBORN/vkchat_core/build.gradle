@@ -1,0 +1,37 @@
+plugins {
+    id 'java'
+}
+
+group = 'ru.example'
+version = '2.0.0'
+
+repositories {
+    mavenCentral()
+    maven { url = 'https://hub.spigotmc.org/nexus/content/repositories/snapshots/' }
+    maven { url = 'https://oss.sonatype.org/content/repositories/snapshots' }
+    maven { url = 'https://repo.extendedclip.com/content/repositories/placeholderapi/' }
+    maven { url = 'https://jitpack.io' }
+}
+
+dependencies {
+    compileOnly 'org.spigotmc:spigot-api:1.16.5-R0.1-SNAPSHOT'
+    compileOnly 'me.clip:placeholderapi:2.11.5'
+    compileOnly 'com.github.MilkBowl:VaultAPI:1.7'
+
+    implementation 'com.zaxxer:HikariCP:4.0.3'
+    implementation 'org.json:json:20230227'
+    implementation 'org.mindrot:jbcrypt:0.4'
+}
+
+jar {
+    archiveBaseName.set('VKChat')
+    archiveClassifier.set('all')
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    from {
+        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+}
+
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+}

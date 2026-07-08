@@ -1,0 +1,29 @@
+name: VKChatChat
+version: 1.0.0
+main: ru.example.vkchatchat.VKChatChatPlugin
+api-version: "1.16"
+depend: [VKChat]
+softdepend: [LuckPerms, VKChatNations]
+commands:
+  channel:
+    description: Переключить канал чата
+    aliases: [chat, ch]
+    permission: vkchat.chat.player
+  mute:
+    description: Замутить игрока
+    permission: vkchat.chat.mute
+  msg:
+    description: Отправить личное сообщение
+    aliases: [tell, w, m]
+    permission: vkchat.chat.player
+  ignore:
+    description: Игнорировать игрока
+    permission: vkchat.chat.player
+  cc:
+    description: Очистить чат
+    permission: vkchat.chat.player
+permissions:
+  vkchat.chat.player:
+    default: true
+  vkchat.chat.mute:
+    default: op

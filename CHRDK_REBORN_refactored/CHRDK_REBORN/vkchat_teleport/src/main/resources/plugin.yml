@@ -1,0 +1,54 @@
+name: VKChatTeleport
+version: 2.0.0
+main: ru.example.vkchatteleport.VKChatTeleportPlugin
+api-version: "1.16"
+depend: [VKChat]
+commands:
+  tpa:
+    description: Отправить игроку запрос на телепортацию к нему за репутацию ВК
+    usage: /tpa <player>
+    permission: vkchat.teleport.player
+  tpaccept:
+    description: Принять входящий запрос на телепортацию
+    permission: vkchat.teleport.player
+  tpdeny:
+    description: Отклонить входящий запрос на телепортацию
+    aliases: [tpdecline]
+    permission: vkchat.teleport.player
+  sethome:
+    description: Установить именованную точку дома
+    usage: /sethome [имя]
+    permission: vkchat.teleport.player
+  home:
+    description: Телепортироваться в одну из ваших точек дома
+    usage: /home [имя]
+    permission: vkchat.teleport.player
+  homes:
+    description: Показать список всех ваших сохраненных точек дома
+    permission: vkchat.teleport.player
+  delhome:
+    description: Удалить сохраненную точку дома
+    usage: /delhome [имя]
+    permission: vkchat.teleport.player
+  gateway:
+    description: Телепортация через межфракционные порталы за репутацию ВК
+    usage: /gateway <soviet|pagan|imperial>
+    aliases: [portal]
+    permission: vkchat.teleport.player
+  rtp:
+    description: Телепортироваться в случайную безопасную точку диких земель за репутацию ВК
+    permission: vkchat.teleport.player
+  tpahere:
+    description: Пригласить игрока телепортироваться к вам за репутацию ВК
+    usage: /tpahere <player>
+    permission: vkchat.teleport.player
+  back:
+    description: Вернуться к месту последней смерти за репутацию ВК
+    permission: vkchat.teleport.player
+  tphistory:
+    description: Показать историю ваших телепортаций
+    permission: vkchat.teleport.player
+permissions:
+  vkchat.teleport.player:
+    description: Доступ к использованию личных точек дома, RTP и запросов TPA
+    default: true

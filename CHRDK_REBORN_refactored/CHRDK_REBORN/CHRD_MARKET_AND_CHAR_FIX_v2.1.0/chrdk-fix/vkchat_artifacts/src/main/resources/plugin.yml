@@ -1,0 +1,15 @@
+name: VKChatArtifacts
+version: 2.1.0
+main: ru.example.vkchatartifacts.VKChatArtifactsPluginV2
+api-version: "1.16"
+depend: [VKChat]
+commands:
+  artifacts:
+    description: Открыть меню покупки кастомных MMO-артефактов и эликсиров
+    usage: /artifacts
+    aliases: [артефакты, зелья]
+    permission: vkchat.artifacts.player
+permissions:
+  vkchat.artifacts.player:
+    description: Доступ к просмотру и использованию магазина артефактов
+    default: true
