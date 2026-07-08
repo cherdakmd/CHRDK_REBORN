@@ -1,25 +1,25 @@
-# ==========================================
-# ДИНАМИЧЕСКИЙ РЫНОК (VKChat Market) v3.0
-# Жёсткая экономика: дефицит, высокие цены, один предмет за покупку
+﻿# ==========================================
+# Р”РРќРђРњРР§Р•РЎРљРР™ Р Р«РќРћРљ (VKChat Market) v3.0
+# Р–С‘СЃС‚РєР°СЏ СЌРєРѕРЅРѕРјРёРєР°: РґРµС„РёС†РёС‚, РІС‹СЃРѕРєРёРµ С†РµРЅС‹, РѕРґРёРЅ РїСЂРµРґРјРµС‚ Р·Р° РїРѕРєСѓРїРєСѓ
 # ==========================================
 config-version: 1
 
 settings:
   enabled: true
-  gui-title: "&8Динамический Рынок"
-  recovery-interval: 300       # 5 минут восстановление
-  buy-spread: 0.20             # Наценка при покупке 20%
-  sell-spread: 0.10            # Комиссия при продаже 10%
-  trade-cooldown-ms: 500       # Кулдаун между сделками 0.5 сек
+  gui-title: "&8Р”РёРЅР°РјРёС‡РµСЃРєРёР№ Р С‹РЅРѕРє"
+  recovery-interval: 300       # 5 РјРёРЅСѓС‚ РІРѕСЃСЃС‚Р°РЅРѕРІР»РµРЅРёРµ
+  buy-spread: 0.20             # РќР°С†РµРЅРєР° РїСЂРё РїРѕРєСѓРїРєРµ 20%
+  sell-spread: 0.10            # РљРѕРјРёСЃСЃРёСЏ РїСЂРё РїСЂРѕРґР°Р¶Рµ 10%
+  trade-cooldown-ms: 500       # РљСѓР»РґР°СѓРЅ РјРµР¶РґСѓ СЃРґРµР»РєР°РјРё 0.5 СЃРµРє
 
 items:
-  # ===== РУДЫ / СЛИТКИ =====
-  # Цены привязаны к доходу: ~300 реп/час
+  # ===== Р РЈР”Р« / РЎР›РРўРљР =====
+  # Р¦РµРЅС‹ РїСЂРёРІСЏР·Р°РЅС‹ Рє РґРѕС…РѕРґСѓ: ~300 СЂРµРї/С‡Р°СЃ
   # Common: 5-20, Uncommon: 20-50, Rare: 50-150, Epic: 150-300, Legendary: 300-800, Mythic: 800-2000
   
   IRON_INGOT:
-    name: "&fЖелезный слиток"
-    category: "Руды/слитки"
+    name: "&fР–РµР»РµР·РЅС‹Р№ СЃР»РёС‚РѕРє"
+    category: "Р СѓРґС‹/СЃР»РёС‚РєРё"
     base-price: 25.0
     min-price: 5.0
     elasticity: 100.0
@@ -30,8 +30,8 @@ items:
     max-multiplier: 4.0
   
   GOLD_INGOT:
-    name: "&eЗолотой слиток"
-    category: "Руды/слитки"
+    name: "&eР—РѕР»РѕС‚РѕР№ СЃР»РёС‚РѕРє"
+    category: "Р СѓРґС‹/СЃР»РёС‚РєРё"
     base-price: 60.0
     min-price: 12.0
     elasticity: 80.0
@@ -42,8 +42,8 @@ items:
     max-multiplier: 5.0
     
   DIAMOND:
-    name: "&bАлмаз"
-    category: "Руды/слитки"
+    name: "&bРђР»РјР°Р·"
+    category: "Р СѓРґС‹/СЃР»РёС‚РєРё"
     base-price: 200.0
     min-price: 50.0
     elasticity: 50.0
@@ -54,8 +54,8 @@ items:
     max-multiplier: 6.0
 
   EMERALD:
-    name: "&aИзумруд"
-    category: "Руды/слитки"
+    name: "&aРР·СѓРјСЂСѓРґ"
+    category: "Р СѓРґС‹/СЃР»РёС‚РєРё"
     base-price: 100.0
     min-price: 20.0
     elasticity: 60.0
@@ -66,8 +66,8 @@ items:
     max-multiplier: 5.0
 
   NETHERITE_SCRAP:
-    name: "&cНезеритовый лом"
-    category: "Руды/слитки"
+    name: "&cРќРµР·РµСЂРёС‚РѕРІС‹Р№ Р»РѕРј"
+    category: "Р СѓРґС‹/СЃР»РёС‚РєРё"
     base-price: 800.0
     min-price: 200.0
     elasticity: 20.0
@@ -78,8 +78,8 @@ items:
     max-multiplier: 8.0
 
   COPPER_INGOT:
-    name: "&6Медный слиток"
-    category: "Руды/слитки"
+    name: "&6РњРµРґРЅС‹Р№ СЃР»РёС‚РѕРє"
+    category: "Р СѓРґС‹/СЃР»РёС‚РєРё"
     base-price: 10.0
     min-price: 2.0
     elasticity: 150.0
@@ -90,8 +90,8 @@ items:
     max-multiplier: 3.0
 
   RAW_IRON:
-    name: "&fСырое железо"
-    category: "Руды/слитки"
+    name: "&fРЎС‹СЂРѕРµ Р¶РµР»РµР·Рѕ"
+    category: "Р СѓРґС‹/СЃР»РёС‚РєРё"
     base-price: 18.0
     min-price: 4.0
     elasticity: 120.0
@@ -102,8 +102,8 @@ items:
     max-multiplier: 4.0
 
   RAW_GOLD:
-    name: "&eСырое золото"
-    category: "Руды/слитки"
+    name: "&eРЎС‹СЂРѕРµ Р·РѕР»РѕС‚Рѕ"
+    category: "Р СѓРґС‹/СЃР»РёС‚РєРё"
     base-price: 40.0
     min-price: 10.0
     elasticity: 90.0
@@ -114,8 +114,8 @@ items:
     max-multiplier: 5.0
 
   RAW_COPPER:
-    name: "&6Сырая медь"
-    category: "Руды/слитки"
+    name: "&6РЎС‹СЂР°СЏ РјРµРґСЊ"
+    category: "Р СѓРґС‹/СЃР»РёС‚РєРё"
     base-price: 8.0
     min-price: 1.0
     elasticity: 160.0
@@ -126,8 +126,8 @@ items:
     max-multiplier: 3.0
 
   ANCIENT_DEBRIS:
-    name: "&4Древний мусор"
-    category: "Руды/слитки"
+    name: "&4Р”СЂРµРІРЅРёР№ РјСѓСЃРѕСЂ"
+    category: "Р СѓРґС‹/СЃР»РёС‚РєРё"
     base-price: 2000.0
     min-price: 500.0
     elasticity: 10.0
@@ -138,8 +138,8 @@ items:
     max-multiplier: 10.0
 
   DEEPSLATE_DIAMOND_ORE:
-    name: "&bАлмазная руда глубинного сланца"
-    category: "Руды/слитки"
+    name: "&bРђР»РјР°Р·РЅР°СЏ СЂСѓРґР° РіР»СѓР±РёРЅРЅРѕРіРѕ СЃР»Р°РЅС†Р°"
+    category: "Р СѓРґС‹/СЃР»РёС‚РєРё"
     base-price: 1000.0
     min-price: 300.0
     elasticity: 15.0
@@ -149,10 +149,10 @@ items:
     scarcity-threshold: 5
     max-multiplier: 8.0
 
-  # ===== РЕСУРСЫ =====
+  # ===== Р Р•РЎРЈР РЎР« =====
   COAL:
-    name: "&8Уголь"
-    category: "Ресурсы"
+    name: "&8РЈРіРѕР»СЊ"
+    category: "Р РµСЃСѓСЂСЃС‹"
     base-price: 5.0
     min-price: 1.0
     elasticity: 180.0
@@ -163,8 +163,8 @@ items:
     max-multiplier: 3.0
 
   REDSTONE:
-    name: "&cРедстоун"
-    category: "Ресурсы"
+    name: "&cР РµРґСЃС‚РѕСѓРЅ"
+    category: "Р РµСЃСѓСЂСЃС‹"
     base-price: 10.0
     min-price: 2.0
     elasticity: 150.0
@@ -175,8 +175,8 @@ items:
     max-multiplier: 3.5
 
   GLOWSTONE_DUST:
-    name: "&eСветопыль"
-    category: "Ресурсы"
+    name: "&eРЎРІРµС‚РѕРїС‹Р»СЊ"
+    category: "Р РµСЃСѓСЂСЃС‹"
     base-price: 15.0
     min-price: 3.0
     elasticity: 120.0
@@ -187,8 +187,8 @@ items:
     max-multiplier: 4.0
 
   QUARTZ:
-    name: "&fКварц Нижнего Мира"
-    category: "Ресурсы"
+    name: "&fРљРІР°СЂС† РќРёР¶РЅРµРіРѕ РњРёСЂР°"
+    category: "Р РµСЃСѓСЂСЃС‹"
     base-price: 12.0
     min-price: 2.0
     elasticity: 140.0
@@ -198,10 +198,10 @@ items:
     scarcity-threshold: 50
     max-multiplier: 3.5
 
-  # ===== МОБЫ =====
+  # ===== РњРћР‘Р« =====
   BONE:
-    name: "&fКость"
-    category: "Мобы"
+    name: "&fРљРѕСЃС‚СЊ"
+    category: "РњРѕР±С‹"
     base-price: 3.0
     min-price: 0.5
     elasticity: 200.0
@@ -212,8 +212,8 @@ items:
     max-multiplier: 2.5
 
   STRING:
-    name: "&fНить"
-    category: "Мобы"
+    name: "&fРќРёС‚СЊ"
+    category: "РњРѕР±С‹"
     base-price: 3.0
     min-price: 0.5
     elasticity: 200.0
@@ -224,8 +224,8 @@ items:
     max-multiplier: 2.5
 
   SPIDER_EYE:
-    name: "&4Паучий глаз"
-    category: "Мобы"
+    name: "&4РџР°СѓС‡РёР№ РіР»Р°Р·"
+    category: "РњРѕР±С‹"
     base-price: 15.0
     min-price: 3.0
     elasticity: 130.0
@@ -236,8 +236,8 @@ items:
     max-multiplier: 4.0
 
   GUNPOWDER:
-    name: "&8Порох"
-    category: "Мобы"
+    name: "&8РџРѕСЂРѕС…"
+    category: "РњРѕР±С‹"
     base-price: 20.0
     min-price: 4.0
     elasticity: 110.0
@@ -248,8 +248,8 @@ items:
     max-multiplier: 4.5
 
   BLAZE_ROD:
-    name: "&6Огненный стержень"
-    category: "Мобы/Нижний мир"
+    name: "&6РћРіРЅРµРЅРЅС‹Р№ СЃС‚РµСЂР¶РµРЅСЊ"
+    category: "РњРѕР±С‹/РќРёР¶РЅРёР№ РјРёСЂ"
     base-price: 80.0
     min-price: 15.0
     elasticity: 60.0
@@ -260,8 +260,8 @@ items:
     max-multiplier: 6.0
 
   GHAST_TEAR:
-    name: "&fСлеза гаста"
-    category: "Мобы/Нижний мир"
+    name: "&fРЎР»РµР·Р° РіР°СЃС‚Р°"
+    category: "РњРѕР±С‹/РќРёР¶РЅРёР№ РјРёСЂ"
     base-price: 250.0
     min-price: 50.0
     elasticity: 30.0
@@ -272,8 +272,8 @@ items:
     max-multiplier: 8.0
 
   MAGMA_CREAM:
-    name: "&6Магмовый крем"
-    category: "Мобы/Нижний мир"
+    name: "&6РњР°РіРјРѕРІС‹Р№ РєСЂРµРј"
+    category: "РњРѕР±С‹/РќРёР¶РЅРёР№ РјРёСЂ"
     base-price: 40.0
     min-price: 8.0
     elasticity: 80.0
@@ -284,8 +284,8 @@ items:
     max-multiplier: 5.0
 
   PHANTOM_MEMBRANE:
-    name: "&9Мембрана фантома"
-    category: "Мобы"
+    name: "&9РњРµРјР±СЂР°РЅР° С„Р°РЅС‚РѕРјР°"
+    category: "РњРѕР±С‹"
     base-price: 60.0
     min-price: 12.0
     elasticity: 70.0
@@ -296,8 +296,8 @@ items:
     max-multiplier: 5.5
 
   PRISMARINE_SHARD:
-    name: "&bПризмариновый осколок"
-    category: "Мобы/Океан"
+    name: "&bРџСЂРёР·РјР°СЂРёРЅРѕРІС‹Р№ РѕСЃРєРѕР»РѕРє"
+    category: "РњРѕР±С‹/РћРєРµР°РЅ"
     base-price: 35.0
     min-price: 7.0
     elasticity: 90.0
@@ -308,8 +308,8 @@ items:
     max-multiplier: 5.0
 
   PRISMARINE_CRYSTALS:
-    name: "&bПризмариновые кристаллы"
-    category: "Мобы/Океан"
+    name: "&bРџСЂРёР·РјР°СЂРёРЅРѕРІС‹Рµ РєСЂРёСЃС‚Р°Р»Р»С‹"
+    category: "РњРѕР±С‹/РћРєРµР°РЅ"
     base-price: 50.0
     min-price: 10.0
     elasticity: 75.0
@@ -320,8 +320,8 @@ items:
     max-multiplier: 5.5
 
   ROTTEN_FLESH:
-    name: "&2Гнилая плоть"
-    category: "Мобы"
+    name: "&2Р“РЅРёР»Р°СЏ РїР»РѕС‚СЊ"
+    category: "РњРѕР±С‹"
     base-price: 2.0
     min-price: 0.2
     elasticity: 250.0
@@ -332,8 +332,8 @@ items:
     max-multiplier: 2.0
 
   LEATHER:
-    name: "&6Кожа"
-    category: "Мобы"
+    name: "&6РљРѕР¶Р°"
+    category: "РњРѕР±С‹"
     base-price: 12.0
     min-price: 2.0
     elasticity: 140.0
@@ -344,8 +344,8 @@ items:
     max-multiplier: 4.0
 
   FEATHER:
-    name: "&fПеро"
-    category: "Мобы"
+    name: "&fРџРµСЂРѕ"
+    category: "РњРѕР±С‹"
     base-price: 5.0
     min-price: 1.0
     elasticity: 170.0
@@ -356,8 +356,8 @@ items:
     max-multiplier: 3.0
 
   SLIME_BALL:
-    name: "&aСлизь"
-    category: "Мобы"
+    name: "&aРЎР»РёР·СЊ"
+    category: "РњРѕР±С‹"
     base-price: 35.0
     min-price: 7.0
     elasticity: 90.0
@@ -368,8 +368,8 @@ items:
     max-multiplier: 5.0
 
   ENDER_PEARL:
-    name: "&5Жемчуг Края"
-    category: "Мобы/Край"
+    name: "&5Р–РµРјС‡СѓРі РљСЂР°СЏ"
+    category: "РњРѕР±С‹/РљСЂР°Р№"
     base-price: 60.0
     min-price: 12.0
     elasticity: 65.0
@@ -379,10 +379,10 @@ items:
     scarcity-threshold: 15
     max-multiplier: 6.0
 
-  # ===== СТРОЙМАТЕРИАЛЫ =====
+  # ===== РЎРўР РћР™РњРђРўР•Р РРђР›Р« =====
   COBBLESTONE:
-    name: "&7Булыжник"
-    category: "Стройматериалы"
+    name: "&7Р‘СѓР»С‹Р¶РЅРёРє"
+    category: "РЎС‚СЂРѕР№РјР°С‚РµСЂРёР°Р»С‹"
     base-price: 1.0
     min-price: 0.1
     elasticity: 300.0
@@ -393,8 +393,8 @@ items:
     max-multiplier: 2.0
 
   STONE:
-    name: "&7Камень"
-    category: "Стройматериалы"
+    name: "&7РљР°РјРµРЅСЊ"
+    category: "РЎС‚СЂРѕР№РјР°С‚РµСЂРёР°Р»С‹"
     base-price: 1.5
     min-price: 0.2
     elasticity: 280.0
@@ -405,8 +405,8 @@ items:
     max-multiplier: 2.0
 
   DEEPSLATE:
-    name: "&8Глубинный сланец"
-    category: "Стройматериалы"
+    name: "&8Р“Р»СѓР±РёРЅРЅС‹Р№ СЃР»Р°РЅРµС†"
+    category: "РЎС‚СЂРѕР№РјР°С‚РµСЂРёР°Р»С‹"
     base-price: 2.0
     min-price: 0.3
     elasticity: 250.0
@@ -417,8 +417,8 @@ items:
     max-multiplier: 2.5
 
   OBSIDIAN:
-    name: "&5Обсидиан"
-    category: "Стройматериалы"
+    name: "&5РћР±СЃРёРґРёР°РЅ"
+    category: "РЎС‚СЂРѕР№РјР°С‚РµСЂРёР°Р»С‹"
     base-price: 35.0
     min-price: 7.0
     elasticity: 70.0
@@ -429,8 +429,8 @@ items:
     max-multiplier: 5.0
 
   SAND:
-    name: "&eПесок"
-    category: "Стройматериалы"
+    name: "&eРџРµСЃРѕРє"
+    category: "РЎС‚СЂРѕР№РјР°С‚РµСЂРёР°Р»С‹"
     base-price: 1.0
     min-price: 0.1
     elasticity: 290.0
@@ -441,8 +441,8 @@ items:
     max-multiplier: 2.0
 
   GLASS:
-    name: "&fСтекло"
-    category: "Стройматериалы"
+    name: "&fРЎС‚РµРєР»Рѕ"
+    category: "РЎС‚СЂРѕР№РјР°С‚РµСЂРёР°Р»С‹"
     base-price: 2.5
     min-price: 0.3
     elasticity: 220.0
@@ -453,8 +453,8 @@ items:
     max-multiplier: 2.5
 
   CLAY_BALL:
-    name: "&7Глина"
-    category: "Стройматериалы"
+    name: "&7Р“Р»РёРЅР°"
+    category: "РЎС‚СЂРѕР№РјР°С‚РµСЂРёР°Р»С‹"
     base-price: 2.5
     min-price: 0.3
     elasticity: 230.0
@@ -465,8 +465,8 @@ items:
     max-multiplier: 2.5
 
   BRICK:
-    name: "&cКирпич"
-    category: "Стройматериалы"
+    name: "&cРљРёСЂРїРёС‡"
+    category: "РЎС‚СЂРѕР№РјР°С‚РµСЂРёР°Р»С‹"
     base-price: 5.0
     min-price: 1.0
     elasticity: 180.0
@@ -477,8 +477,8 @@ items:
     max-multiplier: 3.0
 
   GRANITE:
-    name: "&cГранит"
-    category: "Стройматериалы"
+    name: "&cР“СЂР°РЅРёС‚"
+    category: "РЎС‚СЂРѕР№РјР°С‚РµСЂРёР°Р»С‹"
     base-price: 1.5
     min-price: 0.2
     elasticity: 280.0
@@ -489,8 +489,8 @@ items:
     max-multiplier: 2.0
 
   DIORITE:
-    name: "&fДиорит"
-    category: "Стройматериалы"
+    name: "&fР”РёРѕСЂРёС‚"
+    category: "РЎС‚СЂРѕР№РјР°С‚РµСЂРёР°Р»С‹"
     base-price: 1.5
     min-price: 0.2
     elasticity: 280.0
@@ -501,8 +501,8 @@ items:
     max-multiplier: 2.0
 
   ANDESITE:
-    name: "&7Андезит"
-    category: "Стройматериалы"
+    name: "&7РђРЅРґРµР·РёС‚"
+    category: "РЎС‚СЂРѕР№РјР°С‚РµСЂРёР°Р»С‹"
     base-price: 1.5
     min-price: 0.2
     elasticity: 280.0
@@ -513,8 +513,8 @@ items:
     max-multiplier: 2.0
 
   BASALT:
-    name: "&8Базальт"
-    category: "Стройматериалы"
+    name: "&8Р‘Р°Р·Р°Р»СЊС‚"
+    category: "РЎС‚СЂРѕР№РјР°С‚РµСЂРёР°Р»С‹"
     base-price: 2.0
     min-price: 0.3
     elasticity: 260.0
@@ -525,8 +525,8 @@ items:
     max-multiplier: 2.5
 
   BLACKSTONE:
-    name: "&8Чернит"
-    category: "Стройматериалы"
+    name: "&8Р§РµСЂРЅРёС‚"
+    category: "РЎС‚СЂРѕР№РјР°С‚РµСЂРёР°Р»С‹"
     base-price: 2.5
     min-price: 0.3
     elasticity: 240.0
@@ -537,8 +537,8 @@ items:
     max-multiplier: 2.5
 
   DIRT:
-    name: "&7Земля"
-    category: "Стройматериалы"
+    name: "&7Р—РµРјР»СЏ"
+    category: "РЎС‚СЂРѕР№РјР°С‚РµСЂРёР°Р»С‹"
     base-price: 0.5
     min-price: 0.1
     elasticity: 350.0
@@ -549,8 +549,8 @@ items:
     max-multiplier: 1.5
 
   COARSE_DIRT:
-    name: "&7Грубая земля"
-    category: "Стройматериалы"
+    name: "&7Р“СЂСѓР±Р°СЏ Р·РµРјР»СЏ"
+    category: "РЎС‚СЂРѕР№РјР°С‚РµСЂРёР°Р»С‹"
     base-price: 1.0
     min-price: 0.1
     elasticity: 300.0
@@ -561,8 +561,8 @@ items:
     max-multiplier: 2.0
 
   GRASS_BLOCK:
-    name: "&aТравяной блок"
-    category: "Стройматериалы"
+    name: "&aРўСЂР°РІСЏРЅРѕР№ Р±Р»РѕРє"
+    category: "РЎС‚СЂРѕР№РјР°С‚РµСЂРёР°Р»С‹"
     base-price: 2.0
     min-price: 0.3
     elasticity: 250.0
@@ -573,8 +573,8 @@ items:
     max-multiplier: 2.5
 
   GRAVEL:
-    name: "&7Гравий"
-    category: "Стройматериалы"
+    name: "&7Р“СЂР°РІРёР№"
+    category: "РЎС‚СЂРѕР№РјР°С‚РµСЂРёР°Р»С‹"
     base-price: 1.5
     min-price: 0.2
     elasticity: 280.0
@@ -585,8 +585,8 @@ items:
     max-multiplier: 2.0
 
   SOUL_SAND:
-    name: "&4Песок душ"
-    category: "Стройматериалы"
+    name: "&4РџРµСЃРѕРє РґСѓС€"
+    category: "РЎС‚СЂРѕР№РјР°С‚РµСЂРёР°Р»С‹"
     base-price: 8.0
     min-price: 1.5
     elasticity: 120.0
@@ -597,8 +597,8 @@ items:
     max-multiplier: 4.0
 
   SOUL_SOIL:
-    name: "&4Почва душ"
-    category: "Стройматериалы"
+    name: "&4РџРѕС‡РІР° РґСѓС€"
+    category: "РЎС‚СЂРѕР№РјР°С‚РµСЂРёР°Р»С‹"
     base-price: 8.0
     min-price: 1.5
     elasticity: 120.0
@@ -609,8 +609,8 @@ items:
     max-multiplier: 4.0
 
   MUD:
-    name: "&7Грязь"
-    category: "Стройматериалы"
+    name: "&7Р“СЂСЏР·СЊ"
+    category: "РЎС‚СЂРѕР№РјР°С‚РµСЂРёР°Р»С‹"
     base-price: 2.0
     min-price: 0.3
     elasticity: 250.0
@@ -621,8 +621,8 @@ items:
     max-multiplier: 2.5
 
   SNOW_BLOCK:
-    name: "&fСнежный блок"
-    category: "Стройматериалы"
+    name: "&fРЎРЅРµР¶РЅС‹Р№ Р±Р»РѕРє"
+    category: "РЎС‚СЂРѕР№РјР°С‚РµСЂРёР°Р»С‹"
     base-price: 1.0
     min-price: 0.1
     elasticity: 300.0
@@ -633,8 +633,8 @@ items:
     max-multiplier: 2.0
 
   ICE:
-    name: "&bЛёд"
-    category: "Стройматериалы"
+    name: "&bР›С‘Рґ"
+    category: "РЎС‚СЂРѕР№РјР°С‚РµСЂРёР°Р»С‹"
     base-price: 5.0
     min-price: 1.0
     elasticity: 150.0
@@ -645,8 +645,8 @@ items:
     max-multiplier: 3.0
 
   PACKED_ICE:
-    name: "&bПлотный лёд"
-    category: "Стройматериалы"
+    name: "&bРџР»РѕС‚РЅС‹Р№ Р»С‘Рґ"
+    category: "РЎС‚СЂРѕР№РјР°С‚РµСЂРёР°Р»С‹"
     base-price: 12.0
     min-price: 2.0
     elasticity: 100.0
@@ -657,8 +657,8 @@ items:
     max-multiplier: 4.0
 
   BLUE_ICE:
-    name: "&9Синий лёд"
-    category: "Стройматериалы"
+    name: "&9РЎРёРЅРёР№ Р»С‘Рґ"
+    category: "РЎС‚СЂРѕР№РјР°С‚РµСЂРёР°Р»С‹"
     base-price: 30.0
     min-price: 6.0
     elasticity: 60.0
@@ -669,8 +669,8 @@ items:
     max-multiplier: 5.0
 
   MOSS_BLOCK:
-    name: "&aБлок мха"
-    category: "Стройматериалы"
+    name: "&aР‘Р»РѕРє РјС…Р°"
+    category: "РЎС‚СЂРѕР№РјР°С‚РµСЂРёР°Р»С‹"
     base-price: 3.0
     min-price: 0.5
     elasticity: 200.0
@@ -681,8 +681,8 @@ items:
     max-multiplier: 2.5
 
   MUD_BRICKS:
-    name: "&7Кирпичи из грязи"
-    category: "Стройматериалы"
+    name: "&7РљРёСЂРїРёС‡Рё РёР· РіСЂСЏР·Рё"
+    category: "РЎС‚СЂРѕР№РјР°С‚РµСЂРёР°Р»С‹"
     base-price: 4.0
     min-price: 0.8
     elasticity: 180.0
@@ -693,8 +693,8 @@ items:
     max-multiplier: 3.0
 
   TERRACOTTA:
-    name: "&cТерракота"
-    category: "Стройматериалы"
+    name: "&cРўРµСЂСЂР°РєРѕС‚Р°"
+    category: "РЎС‚СЂРѕР№РјР°С‚РµСЂРёР°Р»С‹"
     base-price: 3.0
     min-price: 0.5
     elasticity: 200.0
@@ -704,10 +704,10 @@ items:
     scarcity-threshold: 200
     max-multiplier: 2.5
 
-  # ===== ДЕРЕВО =====
+  # ===== Р”Р•Р Р•Р’Рћ =====
   OAK_LOG:
-    name: "&6Дубовое бревно"
-    category: "Дерево"
+    name: "&6Р”СѓР±РѕРІРѕРµ Р±СЂРµРІРЅРѕ"
+    category: "Р”РµСЂРµРІРѕ"
     base-price: 4.0
     min-price: 0.5
     elasticity: 180.0
@@ -718,8 +718,8 @@ items:
     max-multiplier: 3.0
 
   SPRUCE_LOG:
-    name: "&6Еловое бревно"
-    category: "Дерево"
+    name: "&6Р•Р»РѕРІРѕРµ Р±СЂРµРІРЅРѕ"
+    category: "Р”РµСЂРµРІРѕ"
     base-price: 4.0
     min-price: 0.5
     elasticity: 180.0
@@ -730,8 +730,8 @@ items:
     max-multiplier: 3.0
 
   BIRCH_LOG:
-    name: "&fБерёзовое бревно"
-    category: "Дерево"
+    name: "&fР‘РµСЂС‘Р·РѕРІРѕРµ Р±СЂРµРІРЅРѕ"
+    category: "Р”РµСЂРµРІРѕ"
     base-price: 4.0
     min-price: 0.5
     elasticity: 180.0
@@ -742,8 +742,8 @@ items:
     max-multiplier: 3.0
 
   JUNGLE_LOG:
-    name: "&aТропическое бревно"
-    category: "Дерево"
+    name: "&aРўСЂРѕРїРёС‡РµСЃРєРѕРµ Р±СЂРµРІРЅРѕ"
+    category: "Р”РµСЂРµРІРѕ"
     base-price: 5.0
     min-price: 0.6
     elasticity: 160.0
@@ -754,8 +754,8 @@ items:
     max-multiplier: 3.5
 
   ACACIA_LOG:
-    name: "&6Акациевое бревно"
-    category: "Дерево"
+    name: "&6РђРєР°С†РёРµРІРѕРµ Р±СЂРµРІРЅРѕ"
+    category: "Р”РµСЂРµРІРѕ"
     base-price: 5.0
     min-price: 0.6
     elasticity: 160.0
@@ -766,8 +766,8 @@ items:
     max-multiplier: 3.5
 
   DARK_OAK_LOG:
-    name: "&8Тёмное дубовое бревно"
-    category: "Дерево"
+    name: "&8РўС‘РјРЅРѕРµ РґСѓР±РѕРІРѕРµ Р±СЂРµРІРЅРѕ"
+    category: "Р”РµСЂРµРІРѕ"
     base-price: 6.0
     min-price: 0.8
     elasticity: 140.0
@@ -778,8 +778,8 @@ items:
     max-multiplier: 4.0
 
   MANGROVE_LOG:
-    name: "&cМангровое бревно"
-    category: "Дерево"
+    name: "&cРњР°РЅРіСЂРѕРІРѕРµ Р±СЂРµРІРЅРѕ"
+    category: "Р”РµСЂРµРІРѕ"
     base-price: 7.0
     min-price: 0.9
     elasticity: 130.0
@@ -790,8 +790,8 @@ items:
     max-multiplier: 4.0
 
   CHERRY_LOG:
-    name: "&dВишнёвое бревно"
-    category: "Дерево"
+    name: "&dР’РёС€РЅС‘РІРѕРµ Р±СЂРµРІРЅРѕ"
+    category: "Р”РµСЂРµРІРѕ"
     base-price: 8.0
     min-price: 1.0
     elasticity: 120.0
@@ -801,10 +801,10 @@ items:
     scarcity-threshold: 40
     max-multiplier: 4.5
 
-  # ===== ЕДА / ФЕРМА =====
+  # ===== Р•Р”Рђ / Р¤Р•Р РњРђ =====
   WHEAT:
-    name: "&eПшеница"
-    category: "Еда/ферма"
+    name: "&eРџС€РµРЅРёС†Р°"
+    category: "Р•РґР°/С„РµСЂРјР°"
     base-price: 5.0
     min-price: 0.6
     elasticity: 190.0
@@ -815,8 +815,8 @@ items:
     max-multiplier: 2.5
 
   BREAD:
-    name: "&6Хлеб"
-    category: "Еда/ферма"
+    name: "&6РҐР»РµР±"
+    category: "Р•РґР°/С„РµСЂРјР°"
     base-price: 12.0
     min-price: 2.0
     elasticity: 140.0
@@ -827,8 +827,8 @@ items:
     max-multiplier: 3.5
 
   CARROT:
-    name: "&6Морковь"
-    category: "Еда/ферма"
+    name: "&6РњРѕСЂРєРѕРІСЊ"
+    category: "Р•РґР°/С„РµСЂРјР°"
     base-price: 6.0
     min-price: 0.8
     elasticity: 170.0
@@ -839,8 +839,8 @@ items:
     max-multiplier: 3.0
 
   POTATO:
-    name: "&eКартофель"
-    category: "Еда/ферма"
+    name: "&eРљР°СЂС‚РѕС„РµР»СЊ"
+    category: "Р•РґР°/С„РµСЂРјР°"
     base-price: 6.0
     min-price: 0.8
     elasticity: 170.0
@@ -851,8 +851,8 @@ items:
     max-multiplier: 3.0
 
   BEETROOT:
-    name: "&cСвёкла"
-    category: "Еда/ферма"
+    name: "&cРЎРІС‘РєР»Р°"
+    category: "Р•РґР°/С„РµСЂРјР°"
     base-price: 5.0
     min-price: 0.6
     elasticity: 190.0
@@ -863,8 +863,8 @@ items:
     max-multiplier: 2.5
 
   APPLE:
-    name: "&cЯблоко"
-    category: "Еда/ферма"
+    name: "&cРЇР±Р»РѕРєРѕ"
+    category: "Р•РґР°/С„РµСЂРјР°"
     base-price: 8.0
     min-price: 1.0
     elasticity: 150.0
@@ -875,8 +875,8 @@ items:
     max-multiplier: 4.0
 
   MELON_SLICE:
-    name: "&aЛомтик арбуза"
-    category: "Еда/ферма"
+    name: "&aР›РѕРјС‚РёРє Р°СЂР±СѓР·Р°"
+    category: "Р•РґР°/С„РµСЂРјР°"
     base-price: 2.0
     min-price: 0.2
     elasticity: 220.0
@@ -887,8 +887,8 @@ items:
     max-multiplier: 2.0
 
   PUMPKIN:
-    name: "&6Тыква"
-    category: "Еда/ферма"
+    name: "&6РўС‹РєРІР°"
+    category: "Р•РґР°/С„РµСЂРјР°"
     base-price: 8.0
     min-price: 1.0
     elasticity: 150.0
@@ -899,8 +899,8 @@ items:
     max-multiplier: 4.0
 
   SUGAR_CANE:
-    name: "&aСахарный тростник"
-    category: "Еда/ферма"
+    name: "&aРЎР°С…Р°СЂРЅС‹Р№ С‚СЂРѕСЃС‚РЅРёРє"
+    category: "Р•РґР°/С„РµСЂРјР°"
     base-price: 6.0
     min-price: 0.8
     elasticity: 170.0
@@ -911,8 +911,8 @@ items:
     max-multiplier: 3.0
 
   BAMBOO:
-    name: "&aБамбук"
-    category: "Еда/ферма"
+    name: "&aР‘Р°РјР±СѓРє"
+    category: "Р•РґР°/С„РµСЂРјР°"
     base-price: 2.0
     min-price: 0.2
     elasticity: 230.0
@@ -923,8 +923,8 @@ items:
     max-multiplier: 2.0
 
   CACTUS:
-    name: "&2Кактус"
-    category: "Еда/ферма"
+    name: "&2РљР°РєС‚СѓСЃ"
+    category: "Р•РґР°/С„РµСЂРјР°"
     base-price: 4.0
     min-price: 0.5
     elasticity: 190.0
@@ -935,8 +935,8 @@ items:
     max-multiplier: 2.5
 
   SWEET_BERRIES:
-    name: "&cСладкие ягоды"
-    category: "Еда/ферма"
+    name: "&cРЎР»Р°РґРєРёРµ СЏРіРѕРґС‹"
+    category: "Р•РґР°/С„РµСЂРјР°"
     base-price: 4.0
     min-price: 0.5
     elasticity: 200.0
@@ -947,8 +947,8 @@ items:
     max-multiplier: 2.5
 
   GLOW_BERRIES:
-    name: "&eСветящиеся ягоды"
-    category: "Еда/ферма"
+    name: "&eРЎРІРµС‚СЏС‰РёРµСЃСЏ СЏРіРѕРґС‹"
+    category: "Р•РґР°/С„РµСЂРјР°"
     base-price: 5.0
     min-price: 0.6
     elasticity: 180.0
@@ -958,10 +958,10 @@ items:
     scarcity-threshold: 80
     max-multiplier: 3.0
 
-  # ===== ДЕКОР =====
+  # ===== Р”Р•РљРћР  =====
   WHITE_WOOL:
-    name: "&fБелая шерсть"
-    category: "Декор"
+    name: "&fР‘РµР»Р°СЏ С€РµСЂСЃС‚СЊ"
+    category: "Р”РµРєРѕСЂ"
     base-price: 6.0
     min-price: 0.8
     elasticity: 170.0
@@ -972,8 +972,8 @@ items:
     max-multiplier: 3.0
 
   BLACK_WOOL:
-    name: "&8Чёрная шерсть"
-    category: "Декор"
+    name: "&8Р§С‘СЂРЅР°СЏ С€РµСЂСЃС‚СЊ"
+    category: "Р”РµРєРѕСЂ"
     base-price: 7.0
     min-price: 0.9
     elasticity: 160.0
@@ -984,8 +984,8 @@ items:
     max-multiplier: 3.5
 
   INK_SAC:
-    name: "&8Чернильный мешок"
-    category: "Декор"
+    name: "&8Р§РµСЂРЅРёР»СЊРЅС‹Р№ РјРµС€РѕРє"
+    category: "Р”РµРєРѕСЂ"
     base-price: 10.0
     min-price: 1.5
     elasticity: 140.0
@@ -996,8 +996,8 @@ items:
     max-multiplier: 4.0
 
   GLOW_INK_SAC:
-    name: "&bСветящийся чернильный мешок"
-    category: "Декор"
+    name: "&bРЎРІРµС‚СЏС‰РёР№СЃСЏ С‡РµСЂРЅРёР»СЊРЅС‹Р№ РјРµС€РѕРє"
+    category: "Р”РµРєРѕСЂ"
     base-price: 30.0
     min-price: 5.0
     elasticity: 90.0
@@ -1008,8 +1008,8 @@ items:
     max-multiplier: 5.0
 
   AMETHYST_SHARD:
-    name: "&dОсколок аметиста"
-    category: "Магия"
+    name: "&dРћСЃРєРѕР»РѕРє Р°РјРµС‚РёСЃС‚Р°"
+    category: "РњР°РіРёСЏ"
     base-price: 30.0
     min-price: 5.0
     elasticity: 90.0
@@ -1020,8 +1020,8 @@ items:
     max-multiplier: 5.0
 
   EXPERIENCE_BOTTLE:
-    name: "&aПузырёк опыта"
-    category: "Магия"
+    name: "&aРџСѓР·С‹СЂС‘Рє РѕРїС‹С‚Р°"
+    category: "РњР°РіРёСЏ"
     base-price: 20.0
     min-price: 3.0
     elasticity: 110.0
@@ -1032,8 +1032,8 @@ items:
     max-multiplier: 4.5
 
   LAPIS_LAZULI:
-    name: "&9Лазурит"
-    category: "Руды/слитки"
+    name: "&9Р›Р°Р·СѓСЂРёС‚"
+    category: "Р СѓРґС‹/СЃР»РёС‚РєРё"
     base-price: 8.0
     min-price: 2.0
     elasticity: 120.0
@@ -1043,372 +1043,54 @@ items:
     scarcity-threshold: 50
     max-multiplier: 4.0
 
-  # ═══ ЗАЧАРОВАННЫЕ КНИГИ ═══
-  ENCHANT_BOOK_PROT4:
-    name: "&dЗачарованная книга: Защита IV"
-    category: "Редкости"
-    material: "ENCHANTED_BOOK"
-    enchant: "PROTECTION_ENVIRONMENTAL"
-    enchant-level: 4
-    base-price: 350.0
-    min-price: 80.0
-    elasticity: 40.0
-    recovery-rate: 2
-    max-stock: 30
-    min-stock: -15
-    scarcity-threshold: 5
-    max-multiplier: 5.0
-
-  ENCHANT_BOOK_SHARP5:
-    name: "&dЗачарованная книга: Острота V"
-    category: "Редкости"
-    material: "ENCHANTED_BOOK"
-    enchant: "DAMAGE_ALL"
-    enchant-level: 5
-    base-price: 500.0
-    min-price: 120.0
-    elasticity: 35.0
-    recovery-rate: 1
-    max-stock: 25
-    min-stock: -10
-    scarcity-threshold: 5
-    max-multiplier: 6.0
-
-  ENCHANT_BOOK_EFF5:
-    name: "&dЗачарованная книга: Эффективность V"
-    category: "Редкости"
-    material: "ENCHANTED_BOOK"
-    enchant: "DIG_SPEED"
-    enchant-level: 5
-    base-price: 400.0
-    min-price: 100.0
-    elasticity: 35.0
-    recovery-rate: 1
-    max-stock: 25
-    min-stock: -10
-    scarcity-threshold: 5
-    max-multiplier: 5.5
-
-  ENCHANT_BOOK_UNB3:
-    name: "&dЗачарованная книга: Прочность III"
-    category: "Редкости"
-    material: "ENCHANTED_BOOK"
-    enchant: "DURABILITY"
-    enchant-level: 3
-    base-price: 300.0
-    min-price: 70.0
-    elasticity: 40.0
-    recovery-rate: 2
-    max-stock: 30
-    min-stock: -15
-    scarcity-threshold: 5
-    max-multiplier: 5.0
-
-  ENCHANT_BOOK_FORT3:
-    name: "&dЗачарованная книга: Удача III"
-    category: "Редкости"
-    material: "ENCHANTED_BOOK"
-    enchant: "LOOT_BONUS_BLOCKS"
-    enchant-level: 3
-    base-price: 450.0
-    min-price: 110.0
-    elasticity: 35.0
-    recovery-rate: 1
-    max-stock: 20
-    min-stock: -10
-    scarcity-threshold: 5
-    max-multiplier: 6.0
-
-  ENCHANT_BOOK_SILK:
-    name: "&dЗачарованная книга: Шёлковое касание"
-    category: "Редкости"
-    material: "ENCHANTED_BOOK"
-    enchant: "SILK_TOUCH"
-    enchant-level: 1
-    base-price: 600.0
-    min-price: 150.0
-    elasticity: 30.0
-    recovery-rate: 1
-    max-stock: 15
-    min-stock: -5
-    scarcity-threshold: 3
-    max-multiplier: 7.0
-
-  ENCHANT_BOOK_MEND:
-    name: "&dЗачарованная книга: Починка"
-    category: "Редкости"
-    material: "ENCHANTED_BOOK"
-    enchant: "MENDING"
-    enchant-level: 1
-    base-price: 800.0
-    min-price: 200.0
-    elasticity: 25.0
-    recovery-rate: 1
-    max-stock: 10
-    min-stock: -5
-    scarcity-threshold: 2
-    max-multiplier: 8.0
-
-  ENCHANT_BOOK_FEATHER4:
-    name: "&dЗачарованная книга: Невесомость IV"
-    category: "Редкости"
-    material: "ENCHANTED_BOOK"
-    enchant: "PROTECTION_FALL"
-    enchant-level: 4
-    base-price: 250.0
-    min-price: 60.0
-    elasticity: 45.0
-    recovery-rate: 2
-    max-stock: 25
-    min-stock: -10
-    scarcity-threshold: 5
-    max-multiplier: 5.0
-
-  ENCHANT_BOOK_LOOT3:
-    name: "&dЗачарованная книга: Добыча III"
-    category: "Редкости"
-    material: "ENCHANTED_BOOK"
-    enchant: "LOOT_BONUS_MOBS"
-    enchant-level: 3
-    base-price: 400.0
-    min-price: 100.0
-    elasticity: 35.0
-    recovery-rate: 1
-    max-stock: 20
-    min-stock: -10
-    scarcity-threshold: 5
-    max-multiplier: 6.0
-
-  ENCHANT_BOOK_FIRE2:
-    name: "&dЗачарованная книга: Заговор огня II"
-    category: "Редкости"
-    material: "ENCHANTED_BOOK"
-    enchant: "FIRE_ASPECT"
-    enchant-level: 2
-    base-price: 350.0
-    min-price: 80.0
-    elasticity: 40.0
-    recovery-rate: 2
-    max-stock: 20
-    min-stock: -10
-    scarcity-threshold: 5
-    max-multiplier: 5.5
-
-  ENCHANT_BOOK_POWER5:
-    name: "&dЗачарованная книга: Сила V"
-    category: "Редкости"
-    material: "ENCHANTED_BOOK"
-    enchant: "ARROW_DAMAGE"
-    enchant-level: 5
-    base-price: 450.0
-    min-price: 110.0
-    elasticity: 35.0
-    recovery-rate: 1
-    max-stock: 20
-    min-stock: -10
-    scarcity-threshold: 5
-    max-multiplier: 6.0
-
-  ENCHANT_BOOK_FLAME1:
-    name: "&dЗачарованная книга: Пламя I"
-    category: "Редкости"
-    material: "ENCHANTED_BOOK"
-    enchant: "ARROW_FIRE"
-    enchant-level: 1
-    base-price: 300.0
-    min-price: 70.0
-    elasticity: 40.0
-    recovery-rate: 2
-    max-stock: 20
-    min-stock: -10
-    scarcity-threshold: 5
-    max-multiplier: 5.0
-
-  ENCHANT_BOOK_INFIN1:
-    name: "&dЗачарованная книга: Бесконечность I"
-    category: "Редкости"
-    material: "ENCHANTED_BOOK"
-    enchant: "ARROW_INFINITE"
-    enchant-level: 1
-    base-price: 600.0
-    min-price: 150.0
-    elasticity: 30.0
-    recovery-rate: 1
-    max-stock: 15
-    min-stock: -5
-    scarcity-threshold: 3
-    max-multiplier: 7.0
-
-  ENCHANT_BOOK_THORNS3:
-    name: "&dЗачарованная книга: Шипы III"
-    category: "Редкости"
-    material: "ENCHANTED_BOOK"
-    enchant: "THORNS"
-    enchant-level: 3
-    base-price: 350.0
-    min-price: 80.0
-    elasticity: 40.0
-    recovery-rate: 2
-    max-stock: 20
-    min-stock: -10
-    scarcity-threshold: 5
-    max-multiplier: 5.5
-
-  ENCHANT_BOOK_DEPTH3:
-    name: "&dЗачарованная книга: Подводник III"
-    category: "Редкости"
-    material: "ENCHANTED_BOOK"
-    enchant: "DEPTH_STRIDER"
-    enchant-level: 3
-    base-price: 300.0
-    min-price: 70.0
-    elasticity: 40.0
-    recovery-rate: 2
-    max-stock: 20
-    min-stock: -10
-    scarcity-threshold: 5
-    max-multiplier: 5.0
-
-  ENCHANTED_BOOK:
-    name: "&dЗачарованная книга (любая)"
-    category: "Редкости"
-    base-price: 200.0
-    min-price: 30.0
-    elasticity: 50.0
-    recovery-rate: 3
-    max-stock: 60
-    min-stock: -30
-    scarcity-threshold: 10
-    max-multiplier: 5.0
-
-  ENCHANTED_BOOK:
-    name: "&d✨ Зачарованная книга (случайные чары)"
-    category: "Редкости"
-    base-price: 200.0
-    min-price: 30.0
-    elasticity: 50.0
-    recovery-rate: 3
-    max-stock: 60
-    min-stock: -30
-    scarcity-threshold: 10
-    max-multiplier: 5.0
-
-# Лимитированные редкие товары (сбалансированные цены)
-limited-items:
-  TOTEM_OF_UNDYING:
-    name: "&6Тотем бессмертия"
-    price: 15000
-    daily-limit: 1
-  ENCHANTED_GOLDEN_APPLE:
-    name: "&dЗачарованное золотое яблоко"
-    price: 25000
-    daily-limit: 1
-  ECHO_SHARD:
-    name: "&3Эхо-осколок"
-    price: 10000
-    daily-limit: 2
-  NETHERITE_INGOT:
-    name: "&6Незеритовый слиток"
-    price: 20000
-    daily-limit: 1
-  HEART_OF_THE_SEA:
-    name: "&3Сердце моря"
-    price: 30000
-    daily-limit: 1
-  # ═══ EE КНИГИ — только если ExcellentEnchants установлен ═══
-  # Эти предметы будут доступны только когда EE активен.
-  # Ключ enchant — это EE-ключ зачарования.
-  EE_BOOK_RANDOM:
-    name: "&5✦ Случайная EE-книга"
-    category: "Редкости"
-    material: "ENCHANTED_BOOK"
-    base-price: 500.0
-    min-price: 100.0
-    elasticity: 30.0
-    recovery-rate: 1
-    max-stock: 50
-    min-stock: -20
-    scarcity-threshold: 10
-    max-multiplier: 6.0
-    ee-random: true            # Спец. флаг: случайная EE-книга
-    ee-min-rarity: "common"    # Минимальная раритетность
-  EE_BOOK_RARE:
-    name: "&9✦ Редкая EE-книга"
-    category: "Редкости"
-    material: "ENCHANTED_BOOK"
-    base-price: 1500.0
-    min-price: 300.0
-    elasticity: 20.0
-    recovery-rate: 0
-    max-stock: 20
-    min-stock: -10
-    scarcity-threshold: 5
-    max-multiplier: 8.0
-    ee-random: true
-    ee-min-rarity: "rare"
-  EE_BOOK_EXOTIC:
-    name: "&d✦ Экзотическая EE-книга"
-    category: "Редкости"
-    material: "ENCHANTED_BOOK"
-    base-price: 5000.0
-    min-price: 1000.0
-    elasticity: 10.0
-    recovery-rate: 0
-    max-stock: 10
-    min-stock: -5
-    scarcity-threshold: 3
-    max-multiplier: 10.0
-    ee-random: true
-    ee-min-rarity: "exotic"
-
-# Market 3.0: реальная экономика
+# Market 3.0: СЂРµР°Р»СЊРЅР°СЏ СЌРєРѕРЅРѕРјРёРєР°
 market2:
   trends:
-    min-multiplier: 0.50     # -50% в кризисе
-    max-multiplier: 2.00     # +100% в ажиотаже
+    min-multiplier: 0.50     # -50% РІ РєСЂРёР·РёСЃРµ
+    max-multiplier: 2.00     # +100% РІ Р°Р¶РёРѕС‚Р°Р¶Рµ
   events:
-    chance: 0.15             # 15% шанс на событие каждые 30 мин
-    duration-ms: 600000      # 10 минут
-    max-concurrent: 3        # Максимум одновременных событий
+    chance: 0.15             # 15% С€Р°РЅСЃ РЅР° СЃРѕР±С‹С‚РёРµ РєР°Р¶РґС‹Рµ 30 РјРёРЅ
+    duration-ms: 600000      # 10 РјРёРЅСѓС‚
+    max-concurrent: 3        # РњР°РєСЃРёРјСѓРј РѕРґРЅРѕРІСЂРµРјРµРЅРЅС‹С… СЃРѕР±С‹С‚РёР№
   cycle:
-    chance: 0.05             # 5% шанс на смену цикла
-    duration-ms: 1800000     # 30 минут
-  trade-impact: 0.05        # Каждый предмет двигает цену на 5%. 1 покупка = +5% к цене
+    chance: 0.05             # 5% С€Р°РЅСЃ РЅР° СЃРјРµРЅСѓ С†РёРєР»Р°
+    duration-ms: 1800000     # 30 РјРёРЅСѓС‚
+  trade-impact: 0.05        # РљР°Р¶РґС‹Р№ РїСЂРµРґРјРµС‚ РґРІРёРіР°РµС‚ С†РµРЅСѓ РЅР° 5%. 1 РїРѕРєСѓРїРєР° = +5% Рє С†РµРЅРµ
   limited-rotation:
     enabled: true
     count: 2
-  recovery-multiplier: 1.0  # Множитель скорости восстановления
+  recovery-multiplier: 1.0  # РњРЅРѕР¶РёС‚РµР»СЊ СЃРєРѕСЂРѕСЃС‚Рё РІРѕСЃСЃС‚Р°РЅРѕРІР»РµРЅРёСЏ
   history:
     min-volume-log: 16
     max-entries: 100
   flash-sale:
-    chance: 0.10             # 10% шанс каждые 10 минут
-    duration-ms: 300000      # 5 минут
+    chance: 0.10             # 10% С€Р°РЅСЃ РєР°Р¶РґС‹Рµ 10 РјРёРЅСѓС‚
+    duration-ms: 300000      # 5 РјРёРЅСѓС‚
   quest:
-    reward: 1000             # Награда за квест
+    reward: 1000             # РќР°РіСЂР°РґР° Р·Р° РєРІРµСЃС‚
 
-# ═══════════════════════════════════════
-# EXCELLENT ENCHANTS ИНТЕГРАЦИЯ
-# ═══════════════════════════════════════
+# в•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђ
+# EXCELLENT ENCHANTS РРќРўР•Р“Р РђР¦РРЇ
+# в•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђ
 excellent-enchants:
-  enabled: true              # Включить интеграцию с ExcellentEnchants
-  # Раритности EE-книг при покупке случайной книги
+  enabled: true              # Р’РєР»СЋС‡РёС‚СЊ РёРЅС‚РµРіСЂР°С†РёСЋ СЃ ExcellentEnchants
+  # Р Р°СЂРёС‚РЅРѕСЃС‚Рё EE-РєРЅРёРі РїСЂРё РїРѕРєСѓРїРєРµ СЃР»СѓС‡Р°Р№РЅРѕР№ РєРЅРёРіРё
   book-rarity-weights:
-    common: 40               # 40% шанс обычной книги
-    uncommon: 30             # 30% необычной
-    rare: 18                 # 18% редкой
-    exotic: 9                # 9% экзотической
-    mythic: 3                # 3% мифической
-  # Замена ванильных книг на EE-аналоги при покупке
+    common: 40               # 40% С€Р°РЅСЃ РѕР±С‹С‡РЅРѕР№ РєРЅРёРіРё
+    uncommon: 30             # 30% РЅРµРѕР±С‹С‡РЅРѕР№
+    rare: 18                 # 18% СЂРµРґРєРѕР№
+    exotic: 9                # 9% СЌРєР·РѕС‚РёС‡РµСЃРєРѕР№
+    mythic: 3                # 3% РјРёС„РёС‡РµСЃРєРѕР№
+  # Р—Р°РјРµРЅР° РІР°РЅРёР»СЊРЅС‹С… РєРЅРёРі РЅР° EE-Р°РЅР°Р»РѕРіРё РїСЂРё РїРѕРєСѓРїРєРµ
   replace-vanilla-books: true
-  # EE-книги в категории "Книги чар" рынка
+  # EE-РєРЅРёРіРё РІ РєР°С‚РµРіРѕСЂРёРё "РљРЅРёРіРё С‡Р°СЂ" СЂС‹РЅРєР°
   show-in-rare-category: true
-  # Веса EE-раритетов для цены на рынке
+  # Р’РµСЃР° EE-СЂР°СЂРёС‚РµС‚РѕРІ РґР»СЏ С†РµРЅС‹ РЅР° СЂС‹РЅРєРµ
   rarity-price-multipliers:
     common: 1.0
     uncommon: 1.5
     rare: 3.0
     exotic: 7.0
     mythic: 15.0
-  # Интервал обновления кеша EE-зачарований (тик)
-  cache-refresh-interval: 36000  # 30 минут
+  # РРЅС‚РµСЂРІР°Р» РѕР±РЅРѕРІР»РµРЅРёСЏ РєРµС€Р° EE-Р·Р°С‡Р°СЂРѕРІР°РЅРёР№ (С‚РёРє)
+  cache-refresh-interval: 36000  # 30 РјРёРЅСѓС‚
