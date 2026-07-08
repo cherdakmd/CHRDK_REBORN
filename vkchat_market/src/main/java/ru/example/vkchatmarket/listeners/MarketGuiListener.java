@@ -24,7 +24,7 @@ import java.util.Arrays;
 import java.util.List;
 
 public class MarketGuiListener implements Listener {
-    private static final int PAGE_SIZE = 36;
+    private static final int PAGE_SIZE = 35;
     private final VKChatMarketPlugin plugin;
 
     // Слоты для сетки товаров (4 ряда по 9)
