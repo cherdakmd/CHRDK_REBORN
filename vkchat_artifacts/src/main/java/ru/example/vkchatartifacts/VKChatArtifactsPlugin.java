@@ -9,6 +9,7 @@ import org.bukkit.event.HandlerList;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 import ru.example.vkchatartifacts.commands.ArtifactCommand;
+import ru.example.vkchatartifacts.effects.BuffEffectRegistry;
 import ru.example.vkchatartifacts.listeners.ArtifactListener;
 import ru.example.vkchatartifacts.listeners.ConsumablesListener;
 import ru.example.vkchatartifacts.bosses.BossManager;
@@ -19,6 +20,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class VKChatArtifactsPlugin extends JavaPlugin {
     private static VKChatArtifactsPlugin instance;
     private BossManager bossManager;
+    private BuffEffectRegistry buffEffectRegistry;
     private final Map<UUID, Long> airdropCooldowns = new ConcurrentHashMap<>();
     private final Map<Location, Long> activeChests = new ConcurrentHashMap<>();
     private final Random rng = new Random();
@@ -38,6 +40,7 @@ public class VKChatArtifactsPlugin extends JavaPlugin {
         }
 
         bossManager = new BossManager(this);
+        buffEffectRegistry = new BuffEffectRegistry(this);
 
         getServer().getPluginManager().registerEvents(new ArtifactListener(this), this);
         getServer().getPluginManager().registerEvents(new ConsumablesListener(this), this);
@@ -77,6 +80,14 @@ public class VKChatArtifactsPlugin extends JavaPlugin {
     
     public BossManager getBossManager() {
         return bossManager;
+    }
+
+    /**
+     * FIX #6: Получить реестр баффов/проклятий артефактов.
+     * Заменяет 50+ if-else цепочек в ArtifactListener.
+     */
+    public BuffEffectRegistry getBuffEffectRegistry() {
+        return buffEffectRegistry;
     }
 
     public long getTotalArtifactsGenerated() {

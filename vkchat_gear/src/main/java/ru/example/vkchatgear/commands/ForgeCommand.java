@@ -23,9 +23,6 @@ import ru.example.vkchat.VKChatPlugin;
 import ru.example.vkchatgear.VKChatGearPlugin;
 
 import org.bukkit.command.TabCompleter;
-import java.io.File;
-import java.io.FileWriter;
-import java.text.SimpleDateFormat;
 import java.util.*;
 
 public class ForgeCommand implements CommandExecutor, Listener, TabCompleter {
@@ -859,16 +856,14 @@ public class ForgeCommand implements CommandExecutor, Listener, TabCompleter {
         try { VKChatPlugin.getInstance().getApi().sendToMainChat(msg); } catch (Exception ignored) {}
     }
 
+    /**
+     * FIX #3: Делегирует логирование в ForgeLogger.
+     * Убирает прямой FileWriter из ForgeCommand (SRP).
+     */
     private void log(Player p, String action, String details) {
-        try {
-            if (!plugin.getDataFolder().exists()) plugin.getDataFolder().mkdirs();
-            File file = new File(plugin.getDataFolder(), "forge-log.log");
-            String stamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
-            try (FileWriter fw = new FileWriter(file, true)) {
-                fw.write(stamp + " | " + action + " | " + p.getName() + " | " + details.replace('\n', ' ') + "\n");
-            }
-        } catch (Exception e) {
-            plugin.getLogger().warning("Не удалось записать forge-log.log: " + e.getMessage());
+        ru.example.vkchatgear.forge.ForgeLogger logger = plugin.getForgeLogger();
+        if (logger != null) {
+            logger.log(p.getName(), action, details);
         }
     }
 

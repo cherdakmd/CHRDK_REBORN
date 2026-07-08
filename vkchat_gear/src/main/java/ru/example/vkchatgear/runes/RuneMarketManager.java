@@ -9,6 +9,12 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * RuneMarketManager — динамический рынок рун.
+ *
+ * FIX #7: Базовые цены загружаются из config.yml (rune-prices.*) через RuneRegistry.
+ * IMPROVE #6: Цены рун настраиваются без пересборки плагина.
+ */
 public class RuneMarketManager {
     private final VKChatGearPlugin plugin;
     private File file;
@@ -24,7 +30,40 @@ public class RuneMarketManager {
         load();
     }
 
+    /**
+     * FIX #7: Загружает базовые цены из RuneRegistry (конфиг).
+     * Fallback на хардкод для обратной совместимости.
+     */
     private void setupBases() {
+        // Сначала пытаемся загрузить из RuneRegistry
+        RuneRegistry registry = plugin.getRuneRegistry();
+        if (registry != null) {
+            for (RuneRegistry.RuneDef def : registry.getAllRunes()) {
+                basePrices.put(def.getId(), def.getBasePrice());
+            }
+            if (!basePrices.isEmpty()) {
+                plugin.getLogger().info("[RuneMarket] Загружено " + basePrices.size() + " базовых цен из RuneRegistry");
+            }
+        }
+
+        // Кристаллы и свитки (не руны — добавляем хардкодом, т.к. их нет в RuneRegistry)
+        basePrices.putIfAbsent("crystal_common", 400);
+        basePrices.putIfAbsent("crystal_rare", 900);
+        basePrices.putIfAbsent("crystal_legendary", 1800);
+        basePrices.putIfAbsent("crystal_ancient", 3500);
+        basePrices.putIfAbsent("safety_scroll", 1500);
+
+        // Fallback: если RuneRegistry ничего не дал, используем хардкод
+        if (basePrices.size() <= 5) {
+            setupBasesFallback();
+        }
+    }
+
+    /**
+     * Legacy fallback для базовых цен.
+     * Используется только если RuneRegistry не загрузил данные.
+     */
+    private void setupBasesFallback() {
         // Базовые цены на руны
         basePrices.put("vampirism", 1000);
         basePrices.put("poison_cloud", 800);
@@ -62,55 +101,43 @@ public class RuneMarketManager {
         basePrices.put("magma_walker", 1500);
         basePrices.put("meteor_shower", 1900);
 
-        // ═══ 35 УНИКАЛЬНЫХ ИМЕНОВАННЫХ РУН ═══
-        // Атакующие руны
-        basePrices.put("flame_rune", 2000);      // 🔥 Руна Пламени
-        basePrices.put("frost_rune", 2000);       // ❄️ Руна Мороза
-        basePrices.put("lightning_rune", 2500);   // ⚡ Руна Молнии
-        basePrices.put("poison_rune", 1800);      // ☠️ Руна Яда
-        basePrices.put("blood_rune", 2200);       // 🩸 Руна Крови
-        basePrices.put("shadow_rune", 2800);      // 🌑 Руна Тени
-        basePrices.put("holy_rune", 3000);        // ✨ Руна Святости
-        basePrices.put("void_rune", 3500);        // 🌀 Руна Пустоты
-        basePrices.put("chaos_rune", 4000);       // 💀 Руна Хаоса
-        basePrices.put("death_rune", 5000);       // ☠️ Руна Смерти
+        // Именованные руны
+        basePrices.put("flame_rune", 2000);
+        basePrices.put("frost_rune", 2000);
+        basePrices.put("lightning_rune", 2500);
+        basePrices.put("poison_rune", 1800);
+        basePrices.put("blood_rune", 2200);
+        basePrices.put("shadow_rune", 2800);
+        basePrices.put("holy_rune", 3000);
+        basePrices.put("void_rune", 3500);
+        basePrices.put("chaos_rune", 4000);
+        basePrices.put("death_rune", 5000);
+        basePrices.put("iron_rune", 1500);
+        basePrices.put("stone_rune", 1500);
+        basePrices.put("water_rune", 1800);
+        basePrices.put("wind_rune", 2000);
+        basePrices.put("earth_rune", 2200);
+        basePrices.put("spirit_rune", 2500);
+        basePrices.put("time_rune", 3000);
+        basePrices.put("space_rune", 3500);
+        basePrices.put("arcane_rune", 2000);
+        basePrices.put("nature_rune", 1800);
+        basePrices.put("fire_rune", 1500);
+        basePrices.put("ice_rune", 1500);
+        basePrices.put("thunder_rune", 2000);
+        basePrices.put("darkness_rune", 2500);
+        basePrices.put("light_rune", 2500);
+        basePrices.put("luck_rune", 1500);
+        basePrices.put("speed_rune", 1200);
+        basePrices.put("strength_rune", 1200);
+        basePrices.put("health_rune", 1000);
+        basePrices.put("xp_rune", 800);
+        basePrices.put("loot_rune", 1200);
+        basePrices.put("mining_rune", 1000);
+        basePrices.put("fishing_rune", 800);
+        basePrices.put("farming_rune", 800);
 
-        // Защитные руны
-        basePrices.put("iron_rune", 1500);        // 🛡️ Руна Железа
-        basePrices.put("stone_rune", 1500);        // 🪨 Руна Камня
-        basePrices.put("water_rune", 1800);        // 🌊 Руна Воды
-        basePrices.put("wind_rune", 2000);         // 💨 Руна Ветра
-        basePrices.put("earth_rune", 2200);        // 🌍 Руна Земли
-        basePrices.put("spirit_rune", 2500);       // 👻 Руна Духа
-        basePrices.put("time_rune", 3000);         // ⏰ Руна Времени
-        basePrices.put("space_rune", 3500);        // 🌌 Руна Пространства
-
-        // Магические руны
-        basePrices.put("arcane_rune", 2000);       // 🔮 Руна Аркан
-        basePrices.put("nature_rune", 1800);       // 🌿 Руна Природы
-        basePrices.put("fire_rune", 1500);         // 🔥 Руна Огня
-        basePrices.put("ice_rune", 1500);          // 🧊 Руна Льда
-        basePrices.put("thunder_rune", 2000);      // ⚡ Руна Грома
-        basePrices.put("darkness_rune", 2500);     // 🌑 Руна Тьмы
-        basePrices.put("light_rune", 2500);        // ☀️ Руна Света
-
-        // Утилитарные руны
-        basePrices.put("luck_rune", 1500);         // 🍀 Руна Удачи
-        basePrices.put("speed_rune", 1200);        // 💨 Руна Скорости
-        basePrices.put("strength_rune", 1200);     // 💪 Руна Силы
-        basePrices.put("health_rune", 1000);       // ❤️ Руна Здоровья
-        basePrices.put("xp_rune", 800);            // ⬆️ Руна Опыта
-        basePrices.put("loot_rune", 1200);         // 🎁 Руна Добычи
-        basePrices.put("mining_rune", 1000);       // ⛏️ Руна Добычи
-        basePrices.put("fishing_rune", 800);       // 🎣 Руна Рыбалки
-        basePrices.put("farming_rune", 800);       // 🌾 Руна Фермерства
-
-        // Кристаллы и Свиток
-        basePrices.put("crystal_common", 400);
-        basePrices.put("crystal_rare", 900);
-        basePrices.put("crystal_legendary", 1800);
-        basePrices.put("crystal_ancient", 3500);
-        basePrices.put("safety_scroll", 1500);
+        plugin.getLogger().warning("[RuneMarket] RuneRegistry пуст — используются fallback-цены");
     }
 
     private void load() {

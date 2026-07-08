@@ -208,3 +208,105 @@ git push -f origin master
 | LuckPerms API | Reflection | API + fallback |
 | priceHistory persistence | ❌ | ✅ |
 | DonateCommand структура | if-else chain | SubCommand table |
+
+---
+
+## 🔍 Анализ модуля Pass (Проходка) — v3.1.0
+
+### Найденные проблемы
+
+| # | Критичность | Проблема | Статус |
+|---|------------|----------|--------|
+| 1 | 🔴 HIGH | **Хранение по именам** — `Set<String>` вместо UUID, ломается при смене ника | ✅ **FIX: UUID-based PassHolder** |
+| 2 | 🔴 HIGH | **Нет проверки истечения при входе** — игрок заходит с истёкшей проходкой и не знает | ✅ **FIX: checkPassExpiry** |
+| 3 | 🔴 HIGH | **Проходка + донат-статус одновременно** — логика не проверяет пересечение | ✅ **FIX: removePassOnStatusGrant** |
+| 4 | 🟡 MEDIUM | **Нет валидации** — passHolders не сверяется с LP при загрузке | ✅ **FIX: validatePassHolders** |
+| 5 | 🟡 MEDIUM | **Единая длительность** — проходка = донат-статус = 30д, без раздельной настройки | ✅ **FIX: pass.duration-days** |
+| 6 | 🟡 MEDIUM | **Нет проверки ВК** — можно выдать проходку игроку с привязанным ВК | ✅ **FIX: grantPass skip check** |
+| 7 | 🟡 MEDIUM | **Нет лимита лок. репутации** — проходочник может накопить бесконечно | ✅ **FIX: pass.local-rep-cap** |
+| 8 | 🟢 LOW | **PDC local_rep не чистится** — при истечении проходки данные остаются навсегда | ✅ **FIX: cleanupLocalRep** |
+| 9 | 🟢 LOW | **Нет save-ahead** — при краше может быть несогласованность | ✅ **FIX: save-ahead в PassManager** |
+| 10 | 🔴 HIGH | **Логика в DonateManager** — нарушение SRP, 836 строк и рост | ✅ **FIX: выделен PassManager** |
+
+### Реализованные улучшения
+
+| # | Улучшение | Описание |
+|---|-----------|----------|
+| 1 | **PassManager** | Выделенный класс с единой ответственностью (~470 строк) |
+| 2 | **PassHolder record** | UUID, grantDate, expiryDate, source, amountPaid — полные метаданные |
+| 3 | **Миграция проходка → ВК** | При привязке ВК автоматически переносит лок. репутацию и удаляет проходку |
+| 4 | **/pass команда** | Отдельная команда: info, rep, buy, list, give, remove, stats |
+| 5 | **Grace-период** | 1-3 дня после истечения — игрок может ещё зайти, видит предупреждение |
+| 6 | **Аналитика** | Куплено/активно/истекло/конвертировано + процент конверсии |
+| 7 | **Настраиваемые сообщения** | 8 новых шаблонов: pass-grant, pass-expiring, pass-expired, pass-grace, pass-converted |
+| 8 | **Bukkit Events** | PassGrantEvent, PassExpireEvent, PassConvertEvent для расширяемости |
+| 9 | **Автоочистка** | Фоновая проверка каждые 5 мин + очистка при загрузке |
+| 10 | **/pass buy** | Информационная команда — как купить проходку через DonatePay |
+
+### Архитектура PassManager
+
+```
+VKChatDonatePlugin
+├── DonateManager (статусы, polling, fundraiser)
+│   ├── processDonation() → делегирует проходку в PassManager
+│   └── handleStatusGrant() → removePassOnStatusGrant()
+├── PassManager (проходки)
+│   ├── grantPass() — выдача с проверками ВК и статуса
+│   ├── extendPass() — продление
+│   ├── removePass() — отзыв + очистка PDC
+│   ├── removePassOnStatusGrant() — FIX #3
+│   ├── checkPassExpiry() — FIX #2 + grace-период
+│   ├── convertPassToVk() — IMPROVE #3
+│   ├── getLocalRep/addLocalRep/takeLocalRep — FIX #7 (cap)
+│   └── getAnalytics() — IMPROVE #6
+├── PassCommand (/pass)
+│   ├── info — статус проходки
+│   ├── rep — локальная репутация
+│   ├── buy — как купить
+│   └── admin: list, give, remove, stats
+└── Events (pass/event/)
+    ├── PassGrantEvent
+    ├── PassExpireEvent
+    └── PassConvertEvent
+```
+
+### Миграция данных (автоматическая)
+
+```
+donations.yml:
+  pass_holders: [name1, name2, ...]    ← старый формат
+
+                    ↓ при первом запуске v3.1 ↓
+
+pass_data.yml:
+  stats:
+    total-purchased: 2
+    total-converted: 0
+    total-expired: 0
+  holders:
+    <uuid-1>:
+      last-name: "name1"
+      grant-date: 1720000000000
+      expiry-date: 1722592000000
+      source: "donate-legacy"
+      amount-paid: 0
+    <uuid-2>:
+      last-name: "name2"
+      ...
+```
+
+### Файлы рефакторинга Pass v3.1
+
+| Файл | Тип | Назначение |
+|------|-----|-----------|
+| `pass/PassManager.java` | НОВЫЙ | Менеджер проходок (470 строк) |
+| `pass/PassCommand.java` | НОВЫЙ | Команда /pass (180 строк) |
+| `pass/event/PassGrantEvent.java` | НОВЫЙ | Bukkit Event — выдача |
+| `pass/event/PassExpireEvent.java` | НОВЫЙ | Bukkit Event — истечение |
+| `pass/event/PassConvertEvent.java` | НОВЫЙ | Bukkit Event — конвертация → ВК |
+| `DonateManager.java` | ОБНОВЛЁН | Делегирование проходки, pass_holders убран |
+| `DonateCommand.java` | ОБНОВЛЁН | /donate pass делегирует в PassManager |
+| `VKChatDonatePlugin.java` | ОБНОВЛЁН | PassManager init + VKPlayerLinkEvent listener |
+| `config.yml` | ОБНОВЛЁН | v4: расширенный pass section + 8 новых сообщений |
+| `plugin.yml` | ОБНОВЛЁН | v3.1.0, /pass команда, новые permissions |
+| `build.gradle` | ОБНОВЛЁН | v3.1.0 |

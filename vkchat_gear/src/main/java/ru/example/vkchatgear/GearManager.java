@@ -12,6 +12,8 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
 import ru.example.vkchat.VKChatPlugin;
+import ru.example.vkchatgear.donate.DonateStatusResolver;
+import ru.example.vkchatgear.forge.SetBonusManager;
 
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
@@ -55,28 +57,39 @@ public class GearManager {
         return Math.max(0, (int) Math.round(base * (1.0 - totalDiscount)));
     }
 
+    /**
+     * FIX: Скидка через централизованный DonateStatusResolver.
+     * Заменяет захардкоженный if-else с vkchat.donate.* проверками.
+     */
     private double getDonateDiscount(Player p) {
-        if (p.hasPermission("vkchat.donate.overlord")) return 0.65;
-        if (p.hasPermission("vkchat.donate.legend")) return 0.50;
-        if (p.hasPermission("vkchat.donate.star")) return 0.35;
-        if (p.hasPermission("vkchat.donate.flame")) return 0.20;
-        if (p.hasPermission("vkchat.donate.spark")) return 0.10;
-        return 0.0;
+        return DonateStatusResolver.getForgeDiscount(p);
     }
 
     public boolean takeVkReputation(Player p, int cost, String actionName) {
         if (cost <= 0) return true;
         int vkId = VKChatPlugin.getInstance().getApi().getLinkedVkId(p);
-        if (vkId == -1 && !ru.example.vkchat.util.VKChatBridge.hasPass(p)) {
-            p.sendMessage(ChatColor.RED + "Для действия '" + actionName + "' нужно привязать ВКонтакте (/vklink).");
+        boolean hasPass = ru.example.vkchat.util.VKChatBridge.hasPass(p);
+        if (vkId == -1 && !hasPass) {
+            p.sendMessage(ChatColor.RED + "Для действия '" + actionName + "' нужно привязать ВКонтакте (/vklink) или купить проходку.");
             return false;
         }
-        int rep = VKChatPlugin.getInstance().getApi().getReputation(vkId);
-        if (rep < cost) {
-            p.sendMessage(ChatColor.RED + "Недостаточно репутации ВК для '" + actionName + "'. Нужно: " + cost + ", у тебя: " + rep + ".");
-            return false;
+        // FIX #5: Поддержка PassManager — локальная репутация для проходочников
+        if (vkId != -1) {
+            int rep = VKChatPlugin.getInstance().getApi().getReputation(vkId);
+            if (rep < cost) {
+                p.sendMessage(ChatColor.RED + "Недостаточно репутации ВК для '" + actionName + "'. Нужно: " + cost + ", у тебя: " + rep + ".");
+                return false;
+            }
+            VKChatPlugin.getInstance().getApi().takeReputation(vkId, cost);
+        } else if (hasPass) {
+            // Проходочник — используем локальную репутацию через VKChatBridge
+            int localRep = ru.example.vkchat.util.VKChatBridge.getLocalReputation(p);
+            if (localRep < cost) {
+                p.sendMessage(ChatColor.RED + "Недостаточно репутации для '" + actionName + "'. Нужно: " + cost + ", у тебя: " + localRep + ".");
+                return false;
+            }
+            ru.example.vkchat.util.VKChatBridge.takeLocalReputation(p, cost);
         }
-        VKChatPlugin.getInstance().getApi().takeReputation(vkId, cost);
         return true;
     }
 
@@ -937,6 +950,11 @@ public class GearManager {
         p.removePotionEffect(org.bukkit.potion.PotionEffectType.ABSORPTION);
     }
 
+    /**
+     * @deprecated Используйте {@link SetBonusManager#applySetBonuses(Player)}.
+     * Метод оставлен для обратной совместимости.
+     */
+    @Deprecated
     public void checkSetBonus(Player p) {
         if (p == null) return;
         Map<String, Integer> setCounts = new HashMap<>();
@@ -1150,7 +1168,13 @@ public class GearManager {
         }
     }
 
+    /**
+     * FIX #4: Делегирует в SetBonusManager.
+     */
     public boolean isWearingSet(Player p, String setName) {
+        SetBonusManager sbm = plugin.getSetBonusManager();
+        if (sbm != null) return sbm.isWearingSet(p, setName);
+        // Fallback на старую логику
         int count = 0;
         java.util.Set<String> pieceTypes = new java.util.HashSet<>();
         for (ItemStack armor : p.getInventory().getArmorContents()) {

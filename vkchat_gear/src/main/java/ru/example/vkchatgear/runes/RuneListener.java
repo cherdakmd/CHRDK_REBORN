@@ -11,6 +11,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
 import ru.example.vkchatgear.VKChatGearPlugin;
+import ru.example.vkchatgear.runes.RuneRegistry;
 import ru.example.vkchat.VKChatPlugin;
 
 import java.util.ArrayList;
@@ -425,41 +426,57 @@ public class RuneListener implements Listener {
         }
     }
     
+    /**
+     * FIX #8: Делегирует в RuneRegistry вместо хардкода 30+ маппингов.
+     * Старая реализация с if-else цепочкой заменена на конфиг-управляемый реестр.
+     */
     private String getEnchantIdByName(String name) {
-        if (name.equals("Вампиризм")) return "vampirism";
-        if (name.equals("Ядовитое Облако")) return "poison_cloud";
-        if (name.equals("Бронебойность")) return "armor_piercing";
-        if (name.equals("Уклонение")) return "dodge";
-        if (name.equals("Огненная аура")) return "fire_aura";
-        if (name.equals("Зеркало")) return "reflect_magic";
-        if (name.equals("Казнь")) return "execute";
-        if (name.equals("Метеоритный Удар")) return "meteor";
-        if (name.equals("Берсерк")) return "berserk";
-        if (name.equals("Жнец Душ")) return "soul_reaper";
-        if (name.equals("Эгида")) return "shield";
-        if (name.equals("Второе Дыхание")) return "second_wind";
-        if (name.equals("Похищение Жизни")) return "life_steal";
-        if (name.equals("Огненный Удар")) return "fire_punch";
-        if (name.equals("Паралич")) return "paralyze";
-        if (name.equals("Поглощение")) return "absorption";
-        if (name.equals("Аура Спешки")) return "haste_aura";
-        if (name.equals("Печать Души")) return "rarity_seal";
-        
-        // Новые маппинги
-        if (name.equals("Аура Вампиризма")) return "vampire_aoe";
-        if (name.equals("Распад")) return "disintegration";
-        if (name.equals("Полет Ветра")) return "wind_glide";
-        if (name.equals("Ледяное Касание")) return "frozen_touch";
-        if (name.equals("Связь Душ")) return "soul_bond";
-        if (name.equals("Удар Грома")) return "thunder_strike";
-        if (name.equals("Критический Удар")) return "critical_strike";
-        if (name.equals("Кожа Голема")) return "golem_skin";
-        if (name.equals("Аура Исцеления")) return "healing_aura";
-        if (name.equals("Магнит Руд")) return "ore_magnet";
-        if (name.equals("Рефлексы Паука")) return "spider_reflexes";
-        if (name.equals("Магматический Шаг")) return "magma_walker";
-        if (name.equals("Метеоритный Дождь")) return "meteor_shower";
-        
-        return null;
+        RuneRegistry registry = plugin.getRuneRegistry();
+        if (registry != null) {
+            String id = registry.getEnchantIdByName(name);
+            if (id != null) return id;
+        }
+        // Fallback для обратной совместимости при отсутствии в конфиге
+        return getEnchantIdByNameFallback(name);
+    }
+
+    /**
+     * Legacy fallback маппинг — только для рун, не загруженных из конфига.
+     */
+    private String getEnchantIdByNameFallback(String name) {
+        switch (name) {
+            case "Вампиризм": return "vampirism";
+            case "Ядовитое Облако": return "poison_cloud";
+            case "Бронебойность": return "armor_piercing";
+            case "Уклонение": return "dodge";
+            case "Огненная аура": return "fire_aura";
+            case "Зеркало": return "reflect_magic";
+            case "Казнь": return "execute";
+            case "Метеоритный Удар": return "meteor";
+            case "Берсерк": return "berserk";
+            case "Жнец Душ": return "soul_reaper";
+            case "Эгида": return "shield";
+            case "Второе Дыхание": return "second_wind";
+            case "Похищение Жизни": return "life_steal";
+            case "Огненный Удар": return "fire_punch";
+            case "Паралич": return "paralyze";
+            case "Поглощение": return "absorption";
+            case "Аура Спешки": return "haste_aura";
+            case "Печать Души": return "rarity_seal";
+            case "Аура Вампиризма": return "vampire_aoe";
+            case "Распад": return "disintegration";
+            case "Полет Ветра": return "wind_glide";
+            case "Ледяное Касание": return "frozen_touch";
+            case "Связь Душ": return "soul_bond";
+            case "Удар Грома": return "thunder_strike";
+            case "Критический Удар": return "critical_strike";
+            case "Кожа Голема": return "golem_skin";
+            case "Аура Исцеления": return "healing_aura";
+            case "Магнит Руд": return "ore_magnet";
+            case "Рефлексы Паука": return "spider_reflexes";
+            case "Магматический Шаг": return "magma_walker";
+            case "Метеоритный Дождь": return "meteor_shower";
+            default: return null;
+        }
     }
 }

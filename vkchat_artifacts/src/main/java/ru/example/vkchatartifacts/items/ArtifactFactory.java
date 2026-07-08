@@ -7,6 +7,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
 import ru.example.vkchatartifacts.VKChatArtifactsPlugin;
+import ru.example.vkchatartifacts.effects.BuffEffectRegistry;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -150,35 +151,9 @@ public class ArtifactFactory {
         lore.add(ChatColor.GREEN + "➕ " + getBuffDescription(buff, level));
         
         if (!isMythic) {
-            switch (curse) {
-                case "SLOWNESS": lore.add(ChatColor.RED + "☠ Проклятие: Замедление I"); break;
-                case "WEAKNESS": lore.add(ChatColor.RED + "☠ Проклятие: Слабость I"); break;
-                case "HUNGER": lore.add(ChatColor.RED + "☠ Проклятие: Сильный Голод"); break;
-                case "FRAGILE": lore.add(ChatColor.RED + "☠ Проклятие: Хрупкость (Ломается через 24ч)"); break;
-                case "BLINDNESS": lore.add(ChatColor.RED + "☠ Проклятие: Периодическая слепота"); break;
-                case "VULNERABILITY": lore.add(ChatColor.RED + "☠ Проклятие: Уязвимость (+20% урон)"); break;
-                case "DECAY": lore.add(ChatColor.RED + "☠ Проклятие: Разложение (потеря ХП)"); break;
-                case "SILENCE": lore.add(ChatColor.RED + "☠ Проклятие: Молчание (блок предметов)"); break;
-                case "BLOODLETTING": lore.add(ChatColor.RED + "☠ Проклятие: Кровопускание (потеря ХП)"); break;
-                case "ANCHOR": lore.add(ChatColor.RED + "☠ Проклятие: Якорь (нет телепорта)"); break;
-                case "NIGHTMARE": lore.add(ChatColor.RED + "☠ Проклятие: Кошмар (случайная тошнота)"); break;
-                case "GREED": lore.add(ChatColor.RED + "☠ Проклятие: Жадность (+50% золото/реп, -30% HP)"); break;
-                case "CHAOS": lore.add(ChatColor.RED + "☠ Проклятие: Хаос (случайные зелья каждые 10 сек)"); break;
-
-                // Новые проклятия (12)
-                case "CURSED_LUCK": lore.add(ChatColor.RED + "☠ Проклятие: Проклятая удача (-50% к дропу)"); break;
-                case "CURSED_XP": lore.add(ChatColor.RED + "☠ Проклятие: Проклятый опыт (-50% к опыту)"); break;
-                case "CURSED_SPEED": lore.add(ChatColor.RED + "☠ Проклятие: Проклятая скорость (-20% скорости)"); break;
-                case "CURSED_DAMAGE": lore.add(ChatColor.RED + "☠ Проклятие: Проклятый урон (-20% к урону)"); break;
-                case "CURSED_DEFENSE": lore.add(ChatColor.RED + "☠ Проклятие: Проклятая защита (-20% к защите)"); break;
-                case "CURSED_VISION": lore.add(ChatColor.RED + "☠ Проклятие: Проклятое зрение (периодическая слепота)"); break;
-                case "CURSED_HUNGER": lore.add(ChatColor.RED + "☠ Проклятие: Проклятый голод (быстрый голод)"); break;
-                case "CURSED_WEIGHT": lore.add(ChatColor.RED + "☠ Проклятие: Проклятый вес (замедление при полном инвентаре)"); break;
-                case "CURSED_FIRE": lore.add(ChatColor.RED + "☠ Проклятие: Проклятый огонь (периодическое горение)"); break;
-                case "CURSED_DROWNING": lore.add(ChatColor.RED + "☠ Проклятие: Проклятое утопление (урон в воде)"); break;
-                case "CURSED_FALL": lore.add(ChatColor.RED + "☠ Проклятие: Проклятое падение (+50% урона от падения)"); break;
-                case "CURSED_DARKNESS": lore.add(ChatColor.RED + "☠ Проклятие: Проклятая тьма (слепота в темноте)"); break;
-            }
+            // FIX #9: Используем BuffEffectRegistry для описания проклятий
+            String curseLore = getCurseLore(plugin, curse);
+            lore.add(curseLore);
         } else {
             lore.add(ChatColor.AQUA + "✨ Эта реликвия не имеет проклятий.");
             lore.add(ChatColor.AQUA + "✨ Привязана к душе (Не выпадает при смерти).");
@@ -203,6 +178,56 @@ public class ArtifactFactory {
         item.setItemMeta(meta);
         plugin.incrementArtifactsGenerated();
         return item;
+    }
+
+    /**
+     * FIX #9: Получить описание проклятия через BuffEffectRegistry.
+     * Fallback на switch для неизвестных проклятий.
+     */
+    private static String getCurseLore(VKChatArtifactsPlugin plugin, String curse) {
+        BuffEffectRegistry registry = plugin.getBuffEffectRegistry();
+        if (registry != null) {
+            BuffEffectRegistry.CurseDef def = registry.getCurse(curse);
+            if (def != null) {
+                return ChatColor.RED + def.getDescription();
+            }
+        }
+        // Fallback
+        return getCurseLoreFallback(curse);
+    }
+
+    /**
+     * Legacy fallback для описания проклятий.
+     */
+    private static String getCurseLoreFallback(String curse) {
+        switch (curse) {
+            case "SLOWNESS": return ChatColor.RED + "☠ Проклятие: Замедление I";
+            case "WEAKNESS": return ChatColor.RED + "☠ Проклятие: Слабость I";
+            case "HUNGER": return ChatColor.RED + "☠ Проклятие: Сильный Голод";
+            case "FRAGILE": return ChatColor.RED + "☠ Проклятие: Хрупкость (Ломается через 24ч)";
+            case "BLINDNESS": return ChatColor.RED + "☠ Проклятие: Периодическая слепота";
+            case "VULNERABILITY": return ChatColor.RED + "☠ Проклятие: Уязвимость (+20% урон)";
+            case "DECAY": return ChatColor.RED + "☠ Проклятие: Разложение (потеря ХП)";
+            case "SILENCE": return ChatColor.RED + "☠ Проклятие: Молчание (блок предметов)";
+            case "BLOODLETTING": return ChatColor.RED + "☠ Проклятие: Кровопускание (потеря ХП)";
+            case "ANCHOR": return ChatColor.RED + "☠ Проклятие: Якорь (нет телепорта)";
+            case "NIGHTMARE": return ChatColor.RED + "☠ Проклятие: Кошмар (случайная тошнота)";
+            case "GREED": return ChatColor.RED + "☠ Проклятие: Жадность (+50% золото/реп, -30% HP)";
+            case "CHAOS": return ChatColor.RED + "☠ Проклятие: Хаос (случайные зелья каждые 10 сек)";
+            case "CURSED_LUCK": return ChatColor.RED + "☠ Проклятие: Проклятая удача (-50% к дропу)";
+            case "CURSED_XP": return ChatColor.RED + "☠ Проклятие: Проклятый опыт (-50% к опыту)";
+            case "CURSED_SPEED": return ChatColor.RED + "☠ Проклятие: Проклятая скорость (-20% скорости)";
+            case "CURSED_DAMAGE": return ChatColor.RED + "☠ Проклятие: Проклятый урон (-20% к урону)";
+            case "CURSED_DEFENSE": return ChatColor.RED + "☠ Проклятие: Проклятая защита (-20% к защите)";
+            case "CURSED_VISION": return ChatColor.RED + "☠ Проклятие: Проклятое зрение (периодическая слепота)";
+            case "CURSED_HUNGER": return ChatColor.RED + "☠ Проклятие: Проклятый голод (быстрый голод)";
+            case "CURSED_WEIGHT": return ChatColor.RED + "☠ Проклятие: Проклятый вес (замедление при полном инвентаре)";
+            case "CURSED_FIRE": return ChatColor.RED + "☠ Проклятие: Проклятый огонь (периодическое горение)";
+            case "CURSED_DROWNING": return ChatColor.RED + "☠ Проклятие: Проклятое утопление (урон в воде)";
+            case "CURSED_FALL": return ChatColor.RED + "☠ Проклятие: Проклятое падение (+50% урона от падения)";
+            case "CURSED_DARKNESS": return ChatColor.RED + "☠ Проклятие: Проклятая тьма (слепота в темноте)";
+            default: return ChatColor.RED + "☠ Проклятие: " + curse;
+        }
     }
 
     /**

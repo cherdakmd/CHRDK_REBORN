@@ -1,5 +1,67 @@
 # CHANGELOG — VKChat Ultimate / CHRDK REBORN
 
+## v3.2.0 — 8 Июля 2026 — Gear/Artifacts/Runes Full Refactor
+
+### 🔴 10 ИСПРАВЛЕНИЙ GEAR/ARTIFACTS/RUNES (GEAR_FIX)
+
+| # | Критичность | Исправление |
+|---|------------|-------------|
+| 1 | 🔴 HIGH | DonateStatusResolver заменяет захардкоженный if-else donate-скидки в GearManager.getDonateDiscount() |
+| 2 | 🔴 HIGH | SetBonusManager заменяет 200+ строк хардкода в GearManager.checkSetBonus() — бонусы настраиваются из config.yml |
+| 3 | 🔴 HIGH | ForgeLogger вынесен из ForgeCommand — SRP, структурированные логи с типами операций |
+| 4 | 🔴 HIGH | RuneRegistry заменяет 30+ захардкоженных маппингов getEnchantIdByName() в RuneListener |
+| 5 | 🟡 MEDIUM | takeVkReputation теперь поддерживает PassManager/локальную репутацию для проходочников |
+| 6 | 🟡 MEDIUM | BuffEffectRegistry заменяет 50+ if-else цепочек в ArtifactListener.applyPassiveEffects() |
+| 7 | 🟡 MEDIUM | RuneMarketManager загружает базовые цены из RuneRegistry/config вместо хардкода setupBases() |
+| 8 | 🟡 MEDIUM | ArtifactFactory использует BuffEffectRegistry для описания проклятий вместо хардкода |
+| 9 | 🟢 LOW | VKChatArtifactsPlugin инициализирует BuffEffectRegistry в onEnable() |
+| 10 | 🟢 LOW | GearManager.checkSetBonus() помечен как @deprecated — делегирует в SetBonusManager |
+
+### 🟢 10 УЛУЧШЕНИЙ GEAR/ARTIFACTS/RUNES (GEAR_IMPROVE)
+
+| # | Улучшение |
+|---|-----------|
+| 1 | DonateStatusResolver — единая точка проверки донат-статусов для ВСЕХ модулей (gear, chat, market и др.) |
+| 2 | SetBonusManager: конфиг-управляемые бонусы с поддержкой upgrade-level-based масштабирования (effects, debuffs, effects-15, effects-20) |
+| 3 | ForgeLogger: структурированные логи с типами операций (FUSION_SUCCESS, UPGRADE_FAIL и др.) |
+| 4 | RuneRegistry: name→ID маппинг из конфига вместо хардкода + автоматическое определение категории (weapon/armor/tool) |
+| 5 | BuffEffectRegistry: типизированная система баффов/проклятий с категориями (POTION, ATTRIBUTE, SPECIAL, ON_ATTACK, ON_DAMAGE) |
+| 6 | RuneMarketManager: цены рун из config.yml через RuneRegistry — без пересборки плагина |
+| 7 | ArtifactFactory.getCurseLore() делегирует в BuffEffectRegistry с fallback на legacy switch |
+| 8 | Gear plugin.yml v3.2.0 + Artifacts plugin.yml v3.2.0 |
+| 9 | Все новые классы имеют fallback на legacy-логику для обратной совместимости |
+| 10 | Root build.gradle v3.2.0 |
+
+### 🏗️ Новые файлы
+
+| Файл | Назначение |
+|------|-----------|
+| `vkchat_gear/.../donate/DonateStatusResolver.java` | Централизованный резолвер донат-статусов (spark/flame/star/legend/overlord) |
+| `vkchat_gear/.../forge/ForgeLogger.java` | Выделенный логгер операций кузни |
+| `vkchat_gear/.../forge/SetBonusManager.java` | Конфиг-управляемая система сет-бонусов |
+| `vkchat_gear/.../runes/RuneRegistry.java` | Конфиг-управляемый реестр рун |
+| `vkchat_artifacts/.../effects/BuffEffectRegistry.java` | Конфиг-управляемый реестр баффов/проклятий артефактов |
+
+### 📦 Обновлённые файлы
+
+| Файл | Изменение |
+|------|-----------|
+| `GearManager.java` | getDonateDiscount() → DonateStatusResolver; takeVkReputation() + PassManager; checkSetBonus() @deprecated; isWearingSet() → SetBonusManager |
+| `ForgeCommand.java` | log() делегирует в ForgeLogger вместо прямого FileWriter |
+| `RuneListener.java` | getEnchantIdByName() → RuneRegistry с fallback |
+| `RuneMarketManager.java` | setupBases() → RuneRegistry для базовых цен с fallback |
+| `ArtifactFactory.java` | getCurseLore() → BuffEffectRegistry с fallback |
+| `VKChatGearPlugin.java` | Инициализация SetBonusManager, ForgeLogger, RuneRegistry |
+| `VKChatArtifactsPlugin.java` | Инициализация BuffEffectRegistry, геттер |
+| `vkchat_gear/plugin.yml` | v3.2.0 |
+| `vkchat_gear/build.gradle` | v3.2.0 |
+| `vkchat_artifacts/plugin.yml` | v3.2.0 |
+| `vkchat_artifacts/build.gradle` | v3.2.0 |
+| `build.gradle` | v3.2.0 |
+
+---
+
+
 ## v3.1.0 — 8 Июля 2026 — Pass System Full Refactor
 
 ### 🔴 10 ИСПРАВЛЕНИЙ ПРОХОДКИ (PASS_FIX)

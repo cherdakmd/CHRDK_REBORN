@@ -15,6 +15,10 @@ import ru.example.vkchatgear.commands.ForgeCommand;
 import ru.example.vkchatgear.commands.GearAdminCommand;
 import ru.example.vkchatgear.runes.RuneCommand;
 import ru.example.vkchatgear.runes.RuneListener;
+import ru.example.vkchatgear.donate.DonateStatusResolver;
+import ru.example.vkchatgear.forge.ForgeLogger;
+import ru.example.vkchatgear.forge.SetBonusManager;
+import ru.example.vkchatgear.runes.RuneRegistry;
 import ru.example.vkchat.util.VKChatBridge;
 
 import java.util.List;
@@ -23,6 +27,9 @@ public class VKChatGearPlugin extends JavaPlugin {
     private static VKChatGearPlugin instance;
     private GearManager gearManager;
     private ru.example.vkchatgear.runes.RuneMarketManager runeMarketManager;
+    private SetBonusManager setBonusManager;
+    private ForgeLogger forgeLogger;
+    private RuneRegistry runeRegistry;
     private int magicEventTaskId = -1;
 
     // Магические события
@@ -79,6 +86,9 @@ public class VKChatGearPlugin extends JavaPlugin {
 
         gearManager = new GearManager(this);
         runeMarketManager = new ru.example.vkchatgear.runes.RuneMarketManager(this);
+        setBonusManager = new SetBonusManager(this);
+        forgeLogger = new ForgeLogger(this);
+        runeRegistry = new RuneRegistry(this);
         
         CombatListener combatListener = new CombatListener(this);
         getServer().getPluginManager().registerEvents(new CraftListener(this), this);
@@ -232,7 +242,7 @@ public class VKChatGearPlugin extends JavaPlugin {
                 }
 
                 // Звёздная Ковка - Регенерация в темноте (свет <= 7)
-                if (gearManager.isWearingSet(p, "starforged")) {
+                if (setBonusManager.isWearingSet(p, "starforged")) {
                     int light = p.getLocation().getBlock().getLightLevel();
                     if (light <= 7) {
                         p.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, 60, 0, false, false, false));
@@ -240,7 +250,7 @@ public class VKChatGearPlugin extends JavaPlugin {
                 }
 
                 // Постоянно обновляем бонусы сетов: не зависит от движения игрока и не даёт "рывков" эффектов.
-                gearManager.checkSetBonus(p);
+                setBonusManager.applySetBonuses(p);
             }
         }, 20L, 20L); // Раз в секунду
     }
@@ -309,4 +319,8 @@ public class VKChatGearPlugin extends JavaPlugin {
     public ru.example.vkchatgear.runes.RuneMarketManager getRuneMarketManager() {
         return runeMarketManager;
     }
+
+    public SetBonusManager getSetBonusManager() { return setBonusManager; }
+    public ForgeLogger getForgeLogger() { return forgeLogger; }
+    public RuneRegistry getRuneRegistry() { return runeRegistry; }
 }
