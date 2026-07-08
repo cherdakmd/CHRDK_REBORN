@@ -67,7 +67,7 @@ public class GearManager {
     public boolean takeVkReputation(Player p, int cost, String actionName) {
         if (cost <= 0) return true;
         int vkId = VKChatPlugin.getInstance().getApi().getLinkedVkId(p);
-        if (vkId == -1) {
+        if (vkId == -1 && !ru.example.vkchat.util.VKChatBridge.hasPass(p)) {
             p.sendMessage(ChatColor.RED + "Для действия '" + actionName + "' нужно привязать ВКонтакте (/vklink).");
             return false;
         }

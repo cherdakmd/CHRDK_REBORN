@@ -157,7 +157,7 @@ public class NationCommand implements CommandExecutor, TabCompleter {
             }
 
             int vkId = VKChatPlugin.getInstance().getApi().getLinkedVkId(p);
-            if (vkId == -1) {
+            if (vkId == -1 && !ru.example.vkchat.util.VKChatBridge.hasPass(p)) {
                 p.sendMessage(ChatColor.RED + "Сначала привяжите ВКонтакте (/vklink), чтобы телепортироваться за репутацию!");
                 return true;
             }
@@ -250,7 +250,7 @@ public class NationCommand implements CommandExecutor, TabCompleter {
             }
 
             int vkId = VKChatPlugin.getInstance().getApi().getLinkedVkId(p);
-            if (vkId == -1) {
+            if (vkId == -1 && !ru.example.vkchat.util.VKChatBridge.hasPass(p)) {
                 p.sendMessage(ChatColor.RED + "❌ Сначала привяжите ВКонтакте! (/vklink)");
                 return true;
             }
@@ -285,7 +285,7 @@ public class NationCommand implements CommandExecutor, TabCompleter {
             }
 
             int vkId = VKChatPlugin.getInstance().getApi().getLinkedVkId(p);
-            if (vkId == -1) {
+            if (vkId == -1 && !ru.example.vkchat.util.VKChatBridge.hasPass(p)) {
                 p.sendMessage(ChatColor.RED + "❌ Сначала привяжите ВКонтакте (/vklink), чтобы изменить Нацию!");
                 return true;
             }
@@ -410,7 +410,7 @@ public class NationCommand implements CommandExecutor, TabCompleter {
 
         else if (action.equals("charge")) {
             int vkId = VKChatPlugin.getInstance().getApi().getLinkedVkId(p);
-            if (vkId == -1) {
+            if (vkId == -1 && !ru.example.vkchat.util.VKChatBridge.hasPass(p)) {
                 p.sendMessage(ChatColor.RED + "Сначала привяжи ВКонтакте (/vklink)!");
                 return true;
             }
@@ -524,7 +524,7 @@ public class NationCommand implements CommandExecutor, TabCompleter {
                 return true;
             }
             int vkId = VKChatPlugin.getInstance().getApi().getLinkedVkId(p);
-            if (vkId == -1) {
+            if (vkId == -1 && !ru.example.vkchat.util.VKChatBridge.hasPass(p)) {
                 p.sendMessage(ChatColor.RED + "Сначала привяжите ВКонтакте (/vklink)!");
                 return true;
             }

@@ -251,7 +251,7 @@ public class DonateManager {
 
         Player p = offPlayer.getPlayer();
         int vkId = p != null ? VKChatPlugin.getInstance().getApi().getLinkedVkId(p) : -1;
-        if (vkId == -1 && p != null) {
+        if (vkId == -1 && p != null && !ru.example.vkchat.util.VKChatBridge.hasPass(p)) {
             p.sendMessage(ChatColor.RED + "Привяжи ВК (/vklink) чтобы получить репутацию за донат!");
         } else if (vkId != -1) {
             VKChatPlugin.getInstance().getApi().addReputation(vkId, rep);

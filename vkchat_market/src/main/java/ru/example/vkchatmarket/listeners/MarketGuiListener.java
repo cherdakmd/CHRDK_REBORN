@@ -477,7 +477,7 @@ public class MarketGuiListener implements Listener {
     private void sellItems(Player p, String itemId, int limit) {
         Material m = getMarketMaterial(plugin, itemId);
         int vkId = VKChatBridge.getLinkedVkId(p);
-        if (vkId == -1) { p.sendMessage("§cПривяжи ВК (/vklink) для торговли!"); return; }
+        if (vkId == -1 && !ru.example.vkchat.util.VKChatBridge.hasPass(p)) { p.sendMessage("§cПривяжи ВК (/vklink) для торговли!"); return; }
 
         int count = 0;
         boolean isCustom = !plugin.getConfig().getString("items." + itemId + ".enchant", "").isEmpty();
@@ -524,7 +524,7 @@ public class MarketGuiListener implements Listener {
     private void buyItems(Player p, String itemId, int amount) {
         Material m = getMarketMaterial(plugin, itemId);
         int vkId = VKChatBridge.getLinkedVkId(p);
-        if (vkId == -1) { p.sendMessage("§cПривяжи ВК (/vklink) для торговли!"); return; }
+        if (vkId == -1 && !ru.example.vkchat.util.VKChatBridge.hasPass(p)) { p.sendMessage("§cПривяжи ВК (/vklink) для торговли!"); return; }
 
         if (!plugin.getMarketManager().canTrade(itemId, p)) { p.sendMessage("§cПодождите..."); return; }
 
@@ -568,7 +568,7 @@ public class MarketGuiListener implements Listener {
     private void buyLimitedItem(Player p, String itemId) {
         Material m = getMarketMaterial(plugin, itemId);
         int vkId = VKChatBridge.getLinkedVkId(p);
-        if (vkId == -1) { p.sendMessage("§cПривяжи ВК (/vklink)!"); return; }
+        if (vkId == -1 && !ru.example.vkchat.util.VKChatBridge.hasPass(p)) { p.sendMessage("§cПривяжи ВК (/vklink)!"); return; }
         int price = (int) Math.max(1, Math.round(plugin.getConfig().getInt("limited-items." + itemId + ".price", 1000) * donorBuyMultiplier(p)));
         int limit = plugin.getConfig().getInt("limited-items." + itemId + ".daily-limit", 1);
         String today = new java.text.SimpleDateFormat("yyyyMMdd").format(new java.util.Date());
@@ -593,7 +593,7 @@ public class MarketGuiListener implements Listener {
      */
     public static void sellAllFromCommand(VKChatMarketPlugin plugin, Player p) {
         int vkId = VKChatBridge.getLinkedVkId(p);
-        if (vkId == -1) { p.sendMessage("§cПривяжи ВК (/vklink)!"); return; }
+        if (vkId == -1 && !ru.example.vkchat.util.VKChatBridge.hasPass(p)) { p.sendMessage("§cПривяжи ВК (/vklink)!"); return; }
 
         java.util.Map<String, Integer> toSell = new java.util.HashMap<>();
         for (String itemId : getConfiguredItems(plugin, "all")) {
@@ -698,7 +698,7 @@ public class MarketGuiListener implements Listener {
         }
 
         int vkId = VKChatBridge.getLinkedVkId(p);
-        if (vkId == -1) { p.sendMessage("§cПривяжи ВК (/vklink)!"); return; }
+        if (vkId == -1 && !ru.example.vkchat.util.VKChatBridge.hasPass(p)) { p.sendMessage("§cПривяжи ВК (/vklink)!"); return; }
         int totalCount = 0;
         int totalRep = 0;
         java.util.Map<String, Integer> toSell = collectSellable(p);

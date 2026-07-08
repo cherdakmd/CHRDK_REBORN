@@ -170,7 +170,7 @@ public class MapGui implements Listener {
         }
 
         int vkId = VKChatPlugin.getInstance().getApi().getLinkedVkId(p);
-        if (vkId == -1) {
+        if (vkId == -1 && !ru.example.vkchat.util.VKChatBridge.hasPass(p)) {
             p.sendMessage(ChatColor.RED + "Для телепортации нужно привязать ВК! (/vklink)");
             return;
         }

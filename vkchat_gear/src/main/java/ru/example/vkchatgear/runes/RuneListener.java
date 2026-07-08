@@ -42,7 +42,7 @@ public class RuneListener implements Listener {
                 String id = meta.getPersistentDataContainer().get(new NamespacedKey(plugin, "rune_id"), PersistentDataType.STRING);
                 
                 int vkId = VKChatPlugin.getInstance().getApi().getLinkedVkId(p);
-                if (vkId == -1) {
+                if (vkId == -1 && !ru.example.vkchat.util.VKChatBridge.hasPass(p)) {
                     p.sendMessage(ChatColor.RED + "Сначала привяжите ВКонтакте! (/vklink)");
                     p.closeInventory();
                     return;
@@ -88,7 +88,7 @@ public class RuneListener implements Listener {
                 String tier = meta.getPersistentDataContainer().get(new NamespacedKey(plugin, "crystal_tier"), PersistentDataType.STRING);
                 
                 int vkId = VKChatPlugin.getInstance().getApi().getLinkedVkId(p);
-                if (vkId == -1) {
+                if (vkId == -1 && !ru.example.vkchat.util.VKChatBridge.hasPass(p)) {
                     p.sendMessage(ChatColor.RED + "Сначала привяжите ВКонтакте! (/vklink)");
                     p.closeInventory();
                     return;
@@ -150,7 +150,7 @@ public class RuneListener implements Listener {
                 int price = meta.getPersistentDataContainer().get(safetyScrollPriceKey, PersistentDataType.INTEGER);
                 
                 int vkId = VKChatPlugin.getInstance().getApi().getLinkedVkId(p);
-                if (vkId == -1) {
+                if (vkId == -1 && !ru.example.vkchat.util.VKChatBridge.hasPass(p)) {
                     p.sendMessage(ChatColor.RED + "Сначала привяжите ВКонтакте! (/vklink)");
                     p.closeInventory();
                     return;
@@ -189,7 +189,7 @@ public class RuneListener implements Listener {
             } else if (meta.getPersistentDataContainer().has(fusionScrollPriceKey, PersistentDataType.INTEGER)) {
                 int price = meta.getPersistentDataContainer().get(fusionScrollPriceKey, PersistentDataType.INTEGER);
                 int vkId = VKChatPlugin.getInstance().getApi().getLinkedVkId(p);
-                if (vkId == -1) {
+                if (vkId == -1 && !ru.example.vkchat.util.VKChatBridge.hasPass(p)) {
                     p.sendMessage(ChatColor.RED + "Сначала привяжите ВКонтакте! (/vklink)");
                     p.closeInventory();
                     return;

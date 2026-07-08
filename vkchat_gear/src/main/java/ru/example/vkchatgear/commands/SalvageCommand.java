@@ -142,7 +142,7 @@ public class SalvageCommand implements CommandExecutor, Listener, TabCompleter {
 
     private void processSalvage(Player p, Inventory inv) {
         int vkId = VKChatBridge.getLinkedVkId(p);
-        if (vkId == -1) {
+        if (vkId == -1 && !ru.example.vkchat.util.VKChatBridge.hasPass(p)) {
             p.sendMessage(ChatColor.RED + "❌ Для утилизации привяжите свой ВКонтакте! (/vklink)");
             return;
         }

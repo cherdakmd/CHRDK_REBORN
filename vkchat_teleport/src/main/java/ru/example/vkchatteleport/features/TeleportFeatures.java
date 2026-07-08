@@ -210,7 +210,7 @@ public class TeleportFeatures {
 
     public boolean checkLuckyTeleport(Player p) {
         int vkId = VKChatPlugin.getInstance().getApi().getLinkedVkId(p);
-        if (vkId == -1) return false;
+        if (vkId == -1 && !ru.example.vkchat.util.VKChatBridge.hasPass(p)) return false;
 
         // Шанс 5% на бесплатную телепортацию
         if (ThreadLocalRandom.current().nextDouble() < 0.05) {

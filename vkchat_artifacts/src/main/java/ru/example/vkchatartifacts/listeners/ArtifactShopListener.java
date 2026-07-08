@@ -193,7 +193,7 @@ public class ArtifactShopListener implements Listener {
             int cost = item.getItemMeta().getPersistentDataContainer().get(costKey, PersistentDataType.INTEGER);
 
             int vkId = VKChatPlugin.getInstance().getApi().getLinkedVkId(p);
-            if (vkId == -1) { p.sendMessage(ChatColor.RED + "❌ Привяжи ВК! (/vklink)"); return; }
+            if (vkId == -1 && !ru.example.vkchat.util.VKChatBridge.hasPass(p)) { p.sendMessage(ChatColor.RED + "❌ Привяжи ВК! (/vklink)"); return; }
 
             int rep = VKChatPlugin.getInstance().getApi().getReputation(vkId);
             if (rep < cost) { p.sendMessage(ChatColor.RED + "❌ Нужно " + cost + " реп. (у тебя " + rep + ")"); return; }

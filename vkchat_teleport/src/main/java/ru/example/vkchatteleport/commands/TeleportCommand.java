@@ -39,7 +39,7 @@ public class TeleportCommand implements CommandExecutor, TabCompleter {
         
         Player p = (Player) sender;
         int vkId = VKChatPlugin.getInstance().getApi().getLinkedVkId(p);
-        if (vkId == -1) {
+        if (vkId == -1 && !ru.example.vkchat.util.VKChatBridge.hasPass(p)) {
             p.sendMessage(ChatColor.RED + "❌ Для использования телепортации необходимо привязать ВКонтакте! Напишите: " + ChatColor.YELLOW + "/vklink");
             return true;
         }

@@ -335,7 +335,7 @@ public class TeleportManager {
 
     private void executeTeleport(Player player, Location target, String successMessage, int cost, String cooldownType, Runnable onComplete) {
         int vkId = VKChatPlugin.getInstance().getApi().getLinkedVkId(player);
-        if (vkId == -1) {
+        if (vkId == -1 && !ru.example.vkchat.util.VKChatBridge.hasPass(player)) {
             player.sendMessage(ChatColor.RED + "Для телепортации нужно привязать ВКонтакте (/vklink)!");
             return;
         }

@@ -589,7 +589,7 @@ public class NationGuiListener implements Listener {
                 int cost = ChunkClaim.getUpgradeCost(claim.getLevel());
                 lore.add(ChatColor.GRAY + "Цена повышения: " + ChatColor.GOLD + cost + " реп. ВК");
                 lore.add("");
-                if (vkId == -1) {
+                if (vkId == -1 && !ru.example.vkchat.util.VKChatBridge.hasPass(p)) {
                     lore.add(ChatColor.RED + "▶ Привяжите ВК для прокачки! (/vklink)");
                 } else if (rep >= cost) {
                     lore.add(ChatColor.YELLOW + "▶ Нажмите, чтобы прокачать!");
@@ -881,7 +881,7 @@ public class NationGuiListener implements Listener {
                 int radius = item.getItemMeta().getPersistentDataContainer().get(radiusKey, PersistentDataType.INTEGER);
 
                 int vkId = VKChatPlugin.getInstance().getApi().getLinkedVkId(p);
-                if (vkId == -1) {
+                if (vkId == -1 && !ru.example.vkchat.util.VKChatBridge.hasPass(p)) {
                     p.sendMessage(ChatColor.RED + "❌ Для покупок привяжите ВКонтакте! (/vklink)");
                     return;
                 }
@@ -997,7 +997,7 @@ public class NationGuiListener implements Listener {
                 int expansions = claim.getExtraRadius();
                 int cost = ChunkClaim.getRadiusExpandCost(expansions);
                 int vkId = VKChatPlugin.getInstance().getApi().getLinkedVkId(p);
-                if (vkId == -1) {
+                if (vkId == -1 && !ru.example.vkchat.util.VKChatBridge.hasPass(p)) {
                     p.sendMessage(ChatColor.RED + "❌ Привяжите ВК! (/vklink)");
                     return;
                 }
@@ -1045,7 +1045,7 @@ public class NationGuiListener implements Listener {
             else if (clicked.getType() == Material.REDSTONE) {
                 // Покормить репутацией ВК
                 int vkId = VKChatPlugin.getInstance().getApi().getLinkedVkId(p);
-                if (vkId == -1) {
+                if (vkId == -1 && !ru.example.vkchat.util.VKChatBridge.hasPass(p)) {
                     p.sendMessage(ChatColor.RED + "❌ Для питания за репутацию привяжите ВКонтакте! (/vklink)");
                     return;
                 }
@@ -1111,7 +1111,7 @@ public class NationGuiListener implements Listener {
             }
 
             int vkId = VKChatPlugin.getInstance().getApi().getLinkedVkId(p);
-            if (vkId == -1) {
+            if (vkId == -1 && !ru.example.vkchat.util.VKChatBridge.hasPass(p)) {
                 p.sendMessage(ChatColor.RED + "❌ Для прокачки привяжите ВКонтакте! (/vklink)");
                 p.playSound(p.getLocation(), Sound.ENTITY_ITEM_BREAK, 1f, 1f);
                 return;
@@ -1151,7 +1151,7 @@ public class NationGuiListener implements Listener {
             }
 
             int vkId = VKChatPlugin.getInstance().getApi().getLinkedVkId(p);
-            if (vkId == -1) {
+            if (vkId == -1 && !ru.example.vkchat.util.VKChatBridge.hasPass(p)) {
                 p.sendMessage(ChatColor.RED + "❌ Для покупок привяжите ВКонтакте! (/vklink)");
                 return;
             }
@@ -1227,7 +1227,7 @@ public class NationGuiListener implements Listener {
                     }
                     
                     int vkId = VKChatPlugin.getInstance().getApi().getLinkedVkId(p);
-                    if (vkId == -1) {
+                    if (vkId == -1 && !ru.example.vkchat.util.VKChatBridge.hasPass(p)) {
                         p.sendMessage(ChatColor.RED + "❌ Сначала привяжите ВКонтакте! (/vklink)");
                         return;
                     }

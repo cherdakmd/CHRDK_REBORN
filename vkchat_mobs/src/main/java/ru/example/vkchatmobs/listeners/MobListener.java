@@ -1156,7 +1156,7 @@ public class MobListener implements Listener {
 
         // Проверяем привязку ВК
         int vkId = ru.example.vkchatmobs.util.VKChatBridge.getLinkedVkId(p);
-        if (vkId == -1) {
+        if (vkId == -1 && !ru.example.vkchat.util.VKChatBridge.hasPass(p)) {
             p.sendMessage("§c❌ Для использования жетона ваш игровой аккаунт должен быть привязан к ВК! Введите: /vklink");
             p.playSound(p.getLocation(), Sound.ENTITY_VILLAGER_NO, 1.0f, 1.0f);
             return;

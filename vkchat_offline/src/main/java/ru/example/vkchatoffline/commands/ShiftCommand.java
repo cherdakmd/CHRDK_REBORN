@@ -30,7 +30,7 @@ public class ShiftCommand implements CommandExecutor {
             return true;
         }
 
-        if (vkId == -1) {
+        if (vkId == -1 && !ru.example.vkchat.util.VKChatBridge.hasPass(p)) {
             p.sendMessage(ChatColor.RED + "Сначала привяжите ВКонтакте! (/vklink)");
             return true;
         }

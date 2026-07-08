@@ -93,7 +93,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
                 return true;
             }
             int vkId = VKChatPlugin.getInstance().getApi().getLinkedVkId(p);
-            if (vkId == -1) {
+            if (vkId == -1 && !ru.example.vkchat.util.VKChatBridge.hasPass(p)) {
                 p.sendMessage(ChatColor.RED + "❌ Привяжите ВК! (/vklink)");
                 return true;
             }

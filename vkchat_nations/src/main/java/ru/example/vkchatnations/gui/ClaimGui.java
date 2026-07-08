@@ -198,7 +198,7 @@ public class ClaimGui implements Listener {
         }
         else if (slot == 15) { // Reputation
             int vkId = VKChatPlugin.getInstance().getApi().getLinkedVkId(p);
-            if (vkId == -1) {
+            if (vkId == -1 && !ru.example.vkchat.util.VKChatBridge.hasPass(p)) {
                 p.sendMessage(ChatColor.RED + "Сначала привяжите ВК! (/vklink)");
                 return;
             }
