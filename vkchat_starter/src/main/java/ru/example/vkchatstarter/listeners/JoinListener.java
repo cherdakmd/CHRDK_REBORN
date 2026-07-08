@@ -107,13 +107,18 @@ public class JoinListener implements Listener {
         }
 
         // Показ фич сервера
-        p.sendMessage(ChatColor.GRAY + "" + ChatColor.ITALIC + "Фичи сервера:");
-        p.sendMessage(ChatColor.GRAY + "  • " + ChatColor.GOLD + "/nation " + ChatColor.GRAY + "— выбор нации и приваты");
+        p.sendMessage(ChatColor.GRAY + "" + ChatColor.ITALIC + "Команды сервера:");
+        p.sendMessage(ChatColor.GRAY + "  • " + ChatColor.GOLD + "/menu " + ChatColor.GRAY + "— главное меню всех систем");
         p.sendMessage(ChatColor.GRAY + "  • " + ChatColor.GOLD + "/quest " + ChatColor.GRAY + "— обучение с наградами");
-        p.sendMessage(ChatColor.GRAY + "  • " + ChatColor.GOLD + "/shop " + ChatColor.GRAY + "— торговля за репутацию");
+        p.sendMessage(ChatColor.GRAY + "  • " + ChatColor.GOLD + "/nation " + ChatColor.GRAY + "— выбор нации и приваты");
+        p.sendMessage(ChatColor.GRAY + "  • " + ChatColor.GOLD + "/market " + ChatColor.GRAY + "— рынок ресурсов");
+        p.sendMessage(ChatColor.GRAY + "  • " + ChatColor.GOLD + "/artifacts " + ChatColor.GRAY + "— артефакты и баффы");
+        p.sendMessage(ChatColor.GRAY + "  • " + ChatColor.GOLD + "/forge " + ChatColor.GRAY + "— кузня MMO-снаряжения");
         p.sendMessage(ChatColor.GRAY + "  • " + ChatColor.GOLD + "/runes " + ChatColor.GRAY + "— заточка предметов");
-        p.sendMessage(ChatColor.GRAY + "  • " + ChatColor.GOLD + "!шахта " + ChatColor.GRAY + "в ВК — заработок офлайн");
-        p.sendMessage(ChatColor.GRAY + "  • " + ChatColor.GOLD + "/stash " + ChatColor.GRAY + "— забрать награды шахты");
+        p.sendMessage(ChatColor.GRAY + "  • " + ChatColor.GOLD + "/events " + ChatColor.GRAY + "— мировые ивенты и боссы");
+        p.sendMessage(ChatColor.GRAY + "  • " + ChatColor.GOLD + "/mobs " + ChatColor.GRAY + "— элитные мобы и контракты");
+        p.sendMessage(ChatColor.GRAY + "  • " + ChatColor.GOLD + "/jobs " + ChatColor.GRAY + "— профессии и навыки");
+        p.sendMessage(ChatColor.GRAY + "  • " + ChatColor.GOLD + "/donate info " + ChatColor.GRAY + "— поддержка сервера");
         p.sendMessage("");
 
         // === 10. ИНИЦИАЛИЗАЦИЯ КВЕСТА ===
