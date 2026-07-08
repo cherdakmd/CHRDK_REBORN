@@ -515,6 +515,14 @@ public class MarketGuiListener implements Listener {
         }
 
         VKChatBridge.addPoints(vkId, rep);
+        if (m == Material.ENCHANTED_BOOK) {
+            for (int i = 0; i < p.getInventory().getSize(); i++) {
+                ItemStack stack = p.getInventory().getItem(i);
+                if (stack != null && stack.getType() == m && stack.hasItemMeta() && !stack.getItemMeta().getEnchants().isEmpty()) {
+                    plugin.getMarketManager().addCustomBook(stack.clone());
+                }
+            }
+        }
         p.sendMessage("§a§l💰 Продано §f" + count + " шт. §a→ §e" + rep + " реп.");
         p.playSound(p.getLocation(), org.bukkit.Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1f, 1f);
         p.sendTitle("§a§l+ " + rep + " реп.", "§fПродано " + count + " шт. " + itemId, 5, 20, 5);
@@ -555,7 +563,8 @@ public class MarketGuiListener implements Listener {
         for (int i = 0; i < actual; i++) {
             ItemStack toGive = createCustomItem(plugin, itemId);
             if (m == Material.ENCHANTED_BOOK && !toGive.getItemMeta().hasEnchants()) {
-                toGive = createRandomEnchantedBook();
+                toGive = plugin.getMarketManager().takeCustomBook();
+                if (toGive == null) toGive = createRandomEnchantedBook();
             }
             p.getInventory().addItem(toGive);
         }

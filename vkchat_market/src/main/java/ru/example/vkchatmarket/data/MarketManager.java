@@ -1,9 +1,13 @@
 package ru.example.vkchatmarket.data;
 
+import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.enchantments.Enchantment;
 import ru.example.vkchatmarket.VKChatMarketPlugin;
 
 import java.io.File;
@@ -71,7 +75,8 @@ public class MarketManager {
     private final Map<String, Integer> yesterdayVolume = new ConcurrentHashMap<>(); // Вчерашний объём
     private final java.util.List<String> history = new CopyOnWriteArrayList<>();
     private String trendDate = "";
-    private int marketCyclePhase = 0; // 0=normal, 1=boom, 2=bust
+    private int marketCyclePhase = 0;
+    private final Map<String, String> customBooks = new ConcurrentHashMap<>();
     private long cycleEndTime = 0L;
 
     private final Map<String, java.util.List<Double>> priceHistory = new ConcurrentHashMap<>();
@@ -168,8 +173,52 @@ public class MarketManager {
         }
         marketCyclePhase = data.getInt("cycle.phase", 0);
         cycleEndTime = data.getLong("cycle.endtime", 0L);
+        loadCustomBooks();
         ensureDailyTrends();
     }
+
+    private void loadCustomBooks() {
+        org.bukkit.configuration.ConfigurationSection sec = data.getConfigurationSection("custom_books");
+        if (sec != null) {
+            for (String key : sec.getKeys(false))
+                customBooks.put(key, data.getString("custom_books." + key));
+        }
+    }
+
+    public String addCustomBook(ItemStack book) {
+        if (!book.hasItemMeta() || !book.getItemMeta().hasEnchants()) return null;
+        Map<org.bukkit.enchantments.Enchantment, Integer> enchs = book.getItemMeta().getEnchants();
+        StringBuilder sb = new StringBuilder();
+        for (Map.Entry<org.bukkit.enchantments.Enchantment, Integer> e : enchs.entrySet()) {
+            if (sb.length() > 0) sb.append(",");
+            sb.append(e.getKey().getName()).append(":").append(e.getValue());
+        }
+        if (sb.length() == 0) return null;
+        String id = "CB_" + System.currentTimeMillis() + "_" + (int)(Math.random() * 1000);
+        customBooks.put(id, sb.toString()); stock.put(id, 1);
+        return id;
+    }
+
+    public ItemStack takeCustomBook() {
+        if (customBooks.isEmpty()) return null;
+        String first = customBooks.keySet().iterator().next();
+        String encoded = customBooks.remove(first); stock.remove(first);
+        ItemStack book = new ItemStack(Material.ENCHANTED_BOOK);
+        ItemMeta meta = book.getItemMeta();
+        for (String part : encoded.split(",")) {
+            String[] kv = part.split(":");
+            if (kv.length == 2) {
+                try {
+                    org.bukkit.enchantments.Enchantment ench = org.bukkit.enchantments.Enchantment.getByName(kv[0]);
+                    if (ench != null) meta.addEnchant(ench, Integer.parseInt(kv[1]), true);
+                } catch (Exception ignored) {}
+            }
+        }
+        book.setItemMeta(meta);
+        return book;
+    }
+
+    public boolean hasCustomBooks() { return !customBooks.isEmpty(); }
 
     public void saveAll() {
         data.set("stock", null);
@@ -193,6 +242,9 @@ public class MarketManager {
         }
         data.set("cycle.phase", marketCyclePhase);
         data.set("cycle.endtime", cycleEndTime);
+        data.set("custom_books", null);
+        for (Map.Entry<String, String> e : customBooks.entrySet())
+            data.set("custom_books." + e.getKey(), e.getValue());
         try { data.save(file); } catch (IOException e) {
             plugin.getLogger().warning("Не удалось сохранить market_data.yml: " + e.getMessage());
         }
