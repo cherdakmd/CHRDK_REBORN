@@ -55,7 +55,12 @@ public class PreventListener implements Listener {
 
     private void msgUnauthorized(Player p) {
         if (System.currentTimeMillis() % 5000 < 200) {
-            p.sendMessage(ChatColor.RED + "⚠ Привяжи ВК (/vklink) или купи проходку — /donate info");
+            p.sendMessage(ChatColor.RED + "━━━━━━━━━━━━━━━━━━━━━━━━━━");
+            p.sendMessage(ChatColor.YELLOW + "⚠ Ты не авторизован!");
+            p.sendMessage("");
+            p.sendMessage(ChatColor.WHITE + "1) " + ChatColor.AQUA + "/vklink" + ChatColor.GRAY + " — привязать ВК");
+            p.sendMessage(ChatColor.WHITE + "2) " + ChatColor.GOLD + "/donate info" + ChatColor.GRAY + " — купить проходку (500₽)");
+            p.sendMessage(ChatColor.RED + "━━━━━━━━━━━━━━━━━━━━━━━━━━");
         }
     }
 
@@ -124,7 +129,13 @@ public class PreventListener implements Listener {
     @EventHandler(priority = EventPriority.LOWEST)
     public void onCommand(PlayerCommandPreprocessEvent e) {
         Player p = e.getPlayer();
-        if (isUnauthorized(p)) { e.setCancelled(true); msgUnauthorized(p); return; }
+        if (isUnauthorized(p)) {
+            String cmd = e.getMessage().toLowerCase().trim();
+            if (cmd.startsWith("/vklink") || cmd.startsWith("/register") || cmd.startsWith("/login") || cmd.startsWith("/donate") || cmd.startsWith("/help") || cmd.startsWith("/?")) return;
+            e.setCancelled(true);
+            msgUnauthorized(p);
+            return;
+        }
         if (isAwaitingNationSelection(p)) {
             String cmd = e.getMessage().toLowerCase();
             if (cmd.startsWith("/nation") || cmd.startsWith("/нация")) return;
