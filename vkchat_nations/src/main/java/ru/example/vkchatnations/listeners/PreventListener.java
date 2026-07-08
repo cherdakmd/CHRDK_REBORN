@@ -26,51 +26,48 @@ import java.util.UUID;
 public class PreventListener implements Listener {
     private final VKChatNationsPlugin plugin;
 
-    public PreventListener(VKChatNationsPlugin plugin) {
-        this.plugin = plugin;
-    }
+    public PreventListener(VKChatNationsPlugin plugin) { this.plugin = plugin; }
 
     private boolean isAwaitingNationSelection(Player p) {
-        // Игрок уже полностью зарегистрирован и вошел по ВК, но еще НЕ выбрал Нацию
         return VKChatPlugin.getInstance().getApi().isFullyAuthorized(p) && !plugin.getNationManager().hasNation(p);
+    }
+
+    private boolean isUnauthorized(Player p) {
+        return !VKChatPlugin.getInstance().getApi().isFullyAuthorized(p);
+    }
+
+    private boolean block(Player p, boolean isMove) {
+        if (isUnauthorized(p)) {
+            if (!isMove) msgUnauthorized(p);
+            return true;
+        }
+        if (isAwaitingNationSelection(p)) {
+            if (!isMove) p.sendMessage(ChatColor.RED + "⚠ Выберите Нацию через /nation!");
+            return true;
+        }
+        return false;
+    }
+
+    private void msgUnauthorized(Player p) {
+        if (System.currentTimeMillis() % 5000 < 200) {
+            p.sendMessage(ChatColor.RED + "⚠ Привяжи ВК (/vklink) или купи проходку — /donate info");
+        }
     }
 
     @EventHandler(priority = EventPriority.LOWEST)
     public void onMove(PlayerMoveEvent e) {
         Player p = e.getPlayer();
-        if (isAwaitingNationSelection(p)) {
-            Location from = e.getFrom();
-            Location to = e.getTo();
-            if (to == null) return;
-
-            if (from.getX() != to.getX() || from.getY() != to.getY() || from.getZ() != to.getZ()) {
-                e.setTo(from);
-                if (System.currentTimeMillis() % 5000 < 150) {
-                    boolean hasVk = VKChatPlugin.getInstance().getApi().getLinkedVkId(p) != -1;
-                    if (hasVk) {
-                        p.sendMessage(ChatColor.RED + "Выберите Нацию через /nation, чтобы начать движение!");
-                    } else {
-                        p.sendMessage(ChatColor.RED + "Нет ВК? Купи проходку за 500₽ — /donate info");
-                    }
-                }
-            }
-        }
+        Location to = e.getTo();
+        if (to == null) return;
+        if (e.getFrom().getX() == to.getX() && e.getFrom().getY() == to.getY() && e.getFrom().getZ() == to.getZ()) return;
+        if (isUnauthorized(p)) { e.setTo(e.getFrom()); msgUnauthorized(p); return; }
+        if (isAwaitingNationSelection(p)) { e.setTo(e.getFrom()); return; }
     }
-    
+
     @EventHandler(priority = EventPriority.LOWEST)
     public void onChat(AsyncPlayerChatEvent e) {
         Player p = e.getPlayer();
-        if (isAwaitingNationSelection(p)) {
-            e.setCancelled(true);
-            boolean hasVk = VKChatPlugin.getInstance().getApi().getLinkedVkId(p) != -1;
-            if (hasVk) {
-                p.sendMessage(ChatColor.RED + "⚠️ Сначала выберите Нацию! /nation");
-            } else {
-                p.sendMessage(ChatColor.RED + "⚠️ Привяжи ВК (/vklink) или купи проходку — /donate info");
-            }
-            return;
-        }
-        // Переименование привата
+        if (block(p, false)) { e.setCancelled(true); return; }
         if (plugin.getNationManager().isAwaitingRename(p.getUniqueId())) {
             e.setCancelled(true);
             String msg = e.getMessage().trim();
@@ -91,7 +88,6 @@ public class PreventListener implements Listener {
             }
             return;
         }
-        // Добавление доверенного
         if (plugin.getNationManager().isAwaitingTrustedAdd(p.getUniqueId())) {
             e.setCancelled(true);
             String msg = e.getMessage().trim();
@@ -123,8 +119,8 @@ public class PreventListener implements Listener {
     @EventHandler(priority = EventPriority.LOWEST)
     public void onCommand(PlayerCommandPreprocessEvent e) {
         Player p = e.getPlayer();
+        if (isUnauthorized(p)) { e.setCancelled(true); msgUnauthorized(p); return; }
         if (isAwaitingNationSelection(p)) {
-            // Разрешаем команду выбора нации
             String cmd = e.getMessage().toLowerCase();
             if (cmd.startsWith("/nation") || cmd.startsWith("/нация")) return;
             e.setCancelled(true);
@@ -133,69 +129,29 @@ public class PreventListener implements Listener {
     }
 
     @EventHandler(priority = EventPriority.LOWEST)
-    public void onInteract(PlayerInteractEvent e) {
-        Player p = e.getPlayer();
-        if (isAwaitingNationSelection(p)) {
-            e.setCancelled(true);
-            p.sendMessage(ChatColor.RED + "Взаимодействие заблокировано! Сначала выберите Нацию: /nation");
-        }
-    }
+    public void onInteract(PlayerInteractEvent e) { if (block(e.getPlayer(), false)) e.setCancelled(true); }
 
     @EventHandler(priority = EventPriority.LOWEST)
-    public void onBlockBreak(BlockBreakEvent e) {
-        Player p = e.getPlayer();
-        if (isAwaitingNationSelection(p)) {
-            e.setCancelled(true);
-            p.sendMessage(ChatColor.RED + "Разрушение блоков заблокировано! Сначала выберите Нацию: /nation");
-        }
-    }
+    public void onBlockBreak(BlockBreakEvent e) { if (block(e.getPlayer(), false)) e.setCancelled(true); }
 
     @EventHandler(priority = EventPriority.LOWEST)
-    public void onBlockPlace(BlockPlaceEvent e) {
-        Player p = e.getPlayer();
-        if (isAwaitingNationSelection(p)) {
-            e.setCancelled(true);
-            p.sendMessage(ChatColor.RED + "Установка блоков заблокирована! Сначала выберите Нацию: /nation");
-        }
-    }
+    public void onBlockPlace(BlockPlaceEvent e) { if (block(e.getPlayer(), false)) e.setCancelled(true); }
 
     @EventHandler(priority = EventPriority.LOWEST)
-    public void onDrop(PlayerDropItemEvent e) {
-        Player p = e.getPlayer();
-        if (isAwaitingNationSelection(p)) {
-            e.setCancelled(true);
-            p.sendMessage(ChatColor.RED + "Выбрасывание заблокировано! Сначала выберите Нацию: /nation");
-        }
-    }
+    public void onDrop(PlayerDropItemEvent e) { if (block(e.getPlayer(), false)) e.setCancelled(true); }
 
     @EventHandler(priority = EventPriority.LOWEST)
     public void onPickup(EntityPickupItemEvent e) {
-        if (e.getEntity() instanceof Player) {
-            Player p = (Player) e.getEntity();
-            if (isAwaitingNationSelection(p)) {
-                e.setCancelled(true);
-                p.sendMessage(ChatColor.RED + "Подбор предметов заблокирован! Сначала выберите Нацию: /nation");
-            }
-        }
+        if (e.getEntity() instanceof Player p && block(p, false)) e.setCancelled(true);
     }
 
     @EventHandler(priority = EventPriority.LOWEST)
     public void onDamage(EntityDamageEvent e) {
-        if (e.getEntity() instanceof Player) {
-            Player p = (Player) e.getEntity();
-            if (isAwaitingNationSelection(p)) {
-                e.setCancelled(true); // Абсолютная неуязвимость во время выбора нации
-            }
-        }
+        if (e.getEntity() instanceof Player p && (isUnauthorized(p) || isAwaitingNationSelection(p))) e.setCancelled(true);
     }
 
     @EventHandler(priority = EventPriority.LOWEST)
     public void onDamageEntity(EntityDamageByEntityEvent e) {
-        if (e.getDamager() instanceof Player) {
-            Player p = (Player) e.getDamager();
-            if (isAwaitingNationSelection(p)) {
-                e.setCancelled(true); // Не позволяет бить других до выбора нации
-            }
-        }
+        if (e.getDamager() instanceof Player p && (isUnauthorized(p) || isAwaitingNationSelection(p))) e.setCancelled(true);
     }
 }
