@@ -267,14 +267,12 @@ public class ForgeCommand implements CommandExecutor, Listener, TabCompleter {
         if (clicked == null || clicked.getType() == Material.AIR) return;
 
         if (title.equals(HUB_TITLE)) {
-            if (raw == 19) openFusion(p);
-            else if (raw == 21) openReforge(p);
-            else if (raw == 23) openCleanse(p);
-            else if (raw == 25) openRepair(p);
-            else if (raw == 31) openRuneCleansing(p);
-            else if (raw == 34) openScrolls(p);
-            else if (raw == 37) { p.closeInventory(); p.performCommand("runes"); }
-            else if (raw == 39) { p.closeInventory(); p.performCommand("salvage"); }
+            if (raw == 20) openFusion(p);
+            else if (raw == 22) openReforge(p);
+            else if (raw == 24) openCleanse(p);
+            else if (raw == 29) openRepair(p);
+            else if (raw == 31) openScrolls(p);
+            else if (raw == 33) openRuneCleansing(p);
             else if (raw == CLOSE_SLOT) p.closeInventory();
             return;
         }
