@@ -86,9 +86,10 @@ public class CombatEffectRegistry {
         boolean apply(CombatContext ctx, Player victim, ItemStack armor, int armorSlotIdx);
     }
 
-    @FunctionalInterface
     public interface OffensiveRarityProc {
         void apply(CombatContext ctx, Player attacker, LivingEntity target, ItemStack weapon);
+        String[] getAliases();
+        int getChance();
     }
 
     @FunctionalInterface
@@ -402,7 +403,7 @@ public class CombatEffectRegistry {
 
     private void registerOffensiveRarityProcs() {
         // Грозовой Импульс / Воля Грозаа — 12% шанс
-        offenseRarityProcs.add(new OffensiveRarityProc(
+        offenseRarityProcs.add(new OffensiveRarityEntry(
                 new String[]{"Грозовой Импульс", "Воля Грозаа"}, 12,
                 (ctx, attacker, target, weapon) -> {
                     double procDamage = 4.0 + Math.min(8.0, ctx.getEvent().getDamage() * 0.20);
@@ -416,7 +417,7 @@ public class CombatEffectRegistry {
                 }));
 
         // Багровый Резонанс / Кровь Рода — 14% шанс
-        offenseRarityProcs.add(new OffensiveRarityProc(
+        offenseRarityProcs.add(new OffensiveRarityEntry(
                 new String[]{"Багровый Резонанс", "Кровь Рода"}, 14,
                 (ctx, attacker, target, weapon) -> {
                     double heal = Math.min(6.0, Math.max(1.0, ctx.getEvent().getFinalDamage() * 0.22));
@@ -426,7 +427,7 @@ public class CombatEffectRegistry {
                 }));
 
         // Похищение Жизни / Вампиризм — 16% шанс
-        offenseRarityProcs.add(new OffensiveRarityProc(
+        offenseRarityProcs.add(new OffensiveRarityEntry(
                 new String[]{"Похищение Жизни", "Вампиризм"}, 16,
                 (ctx, attacker, target, weapon) -> {
                     double heal = Math.min(4.0, Math.max(1.0, ctx.getEvent().getFinalDamage() * 0.18));
@@ -436,7 +437,7 @@ public class CombatEffectRegistry {
                 }));
 
         // Пламенный Контур — 12% шанс
-        offenseRarityProcs.add(new OffensiveRarityProc(
+        offenseRarityProcs.add(new OffensiveRarityEntry(
                 new String[]{"Пламенный Контур"}, 12,
                 (ctx, attacker, target, weapon) -> {
                     target.setFireTicks(Math.max(target.getFireTicks(), 80));
@@ -896,8 +897,8 @@ public class CombatEffectRegistry {
         String weaponProc = ctx.getRarityProc(weapon);
         if (weaponProc.isEmpty()) return;
         for (OffensiveRarityProc orp : offenseRarityProcs) {
-            if (CombatContext.isProc(weaponProc, orp.aliases) && ctx.rollChance(orp.chance)) {
-                orp.effect.apply(ctx, attacker, target, weapon);
+            if (CombatContext.isProc(weaponProc, orp.getAliases()) && ctx.rollChance(orp.getChance())) {
+                orp.apply(ctx, attacker, target, weapon);
             }
         }
     }
@@ -950,7 +951,7 @@ public class CombatEffectRegistry {
         }
     }
 
-    static class OffensiveRarityProc {
+    static class OffensiveRarityEntry implements OffensiveRarityProc {
         final String[] aliases;
         final int chance;
         final OffensiveRarityApplier effect;
@@ -960,10 +961,18 @@ public class CombatEffectRegistry {
             void apply(CombatContext ctx, Player attacker, LivingEntity target, ItemStack weapon);
         }
 
-        OffensiveRarityProc(String[] aliases, int chance, OffensiveRarityApplier effect) {
+        OffensiveRarityEntry(String[] aliases, int chance, OffensiveRarityApplier effect) {
             this.aliases = aliases;
             this.chance = chance;
             this.effect = effect;
         }
+
+        @Override
+        public void apply(CombatContext ctx, Player attacker, LivingEntity target, ItemStack weapon) {
+            effect.apply(ctx, attacker, target, weapon);
+        }
+
+        @Override public String[] getAliases() { return aliases; }
+        @Override public int getChance() { return chance; }
     }
 }

@@ -148,9 +148,9 @@ public class JobsListener implements Listener {
 
                 if (plugin.getJobsDataManager().hasSkill(p.getUniqueId(), "miner", "miner_magnet")) {
                     if (Math.random() < 0.15) {
-                        ItemStack ingot = materialResolver.getIngotFromOre(m);
+                        Material ingot = materialResolver.getIngotFromOre(m);
                         if (ingot != null) {
-                            b.getWorld().dropItemNaturally(b.getLocation(), ingot);
+                            b.getWorld().dropItemNaturally(b.getLocation(), new ItemStack(ingot));
                             p.sendMessage(org.bukkit.ChatColor.AQUA + "✨ Магнит Руд притянул слиток!");
                         }
                     }

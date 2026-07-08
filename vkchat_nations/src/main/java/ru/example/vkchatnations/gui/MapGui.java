@@ -145,7 +145,7 @@ public class MapGui implements Listener {
         } else {
             if (claim.getOwner().equals(p.getUniqueId())) {
                 if (click == ClickType.LEFT) {
-                    plugin.getClaimGui().openGui(p, targetChunk);
+                    plugin.getClaimGui().openClaimFeedGui(p, claim);
                 } else if (click == ClickType.SHIFT_RIGHT) {
                     plugin.getNationManager().unclaimChunk(p, targetChunk);
                     openMap(p);

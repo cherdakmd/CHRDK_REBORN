@@ -223,14 +223,14 @@ public class MaterialResolver {
     }
 
     private void registerDefaultOreToIngot() {
-        try { oreToIngot.put(Material.IRON_ORE, Material.IRON_INGOT); } catch (Exception ignored) {}
-        try { oreToIngot.put(Material.DEEPSLATE_IRON_ORE, Material.IRON_INGOT); } catch (Exception ignored) {}
-        try { oreToIngot.put(Material.GOLD_ORE, Material.GOLD_INGOT); } catch (Exception ignored) {}
-        try { oreToIngot.put(Material.DEEPSLATE_GOLD_ORE, Material.GOLD_INGOT); } catch (Exception ignored) {}
-        try { oreToIngot.put(Material.NETHER_GOLD_ORE, Material.GOLD_INGOT); } catch (Exception ignored) {}
-        try { oreToIngot.put(Material.COPPER_ORE, Material.valueOf("COPPER_INGOT")); } catch (Exception ignored) {}
-        try { oreToIngot.put(Material.DEEPSLATE_COPPER_ORE, Material.valueOf("COPPER_INGOT")); } catch (Exception ignored) {}
-        try { oreToIngot.put(Material.ANCIENT_DEBRIS, Material.NETHERITE_SCRAP); } catch (Exception ignored) {}
+        oreToIngot.put(Material.IRON_ORE, Material.IRON_INGOT);
+        oreToIngot.put(Material.GOLD_ORE, Material.GOLD_INGOT);
+        oreToIngot.put(Material.NETHER_GOLD_ORE, Material.GOLD_INGOT);
+        oreToIngot.put(Material.ANCIENT_DEBRIS, Material.NETHERITE_SCRAP);
+        try { oreToIngot.put(Material.valueOf("DEEPSLATE_IRON_ORE"), Material.IRON_INGOT); } catch (Exception ignored) {}
+        try { oreToIngot.put(Material.valueOf("DEEPSLATE_GOLD_ORE"), Material.GOLD_INGOT); } catch (Exception ignored) {}
+        try { oreToIngot.put(Material.valueOf("COPPER_ORE"), Material.valueOf("COPPER_INGOT")); } catch (Exception ignored) {}
+        try { oreToIngot.put(Material.valueOf("DEEPSLATE_COPPER_ORE"), Material.valueOf("COPPER_INGOT")); } catch (Exception ignored) {}
     }
 
     private void loadCropToSeed() {

@@ -13,6 +13,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 import ru.example.vkchatteleport.VKChatTeleportPlugin;
+import ru.example.vkchatteleport.util.DonateTierHelper;
 import ru.example.vkchatteleport.manager.TeleportManager;
 import ru.example.vkchat.VKChatPlugin;
 
@@ -448,7 +449,7 @@ public class TeleportCommand implements CommandExecutor, TabCompleter {
         int senderRep = VKChatPlugin.getInstance().getApi().getReputation(senderVk);
         int cost = (int) Math.ceil(senderRep * 0.02);
         if (cost < 10) cost = 10;
-        cost = Math.min(senderRep, applyDonateDiscount(senderPlayer, cost));
+        cost = Math.min(senderRep, new DonateTierHelper(plugin).applyDiscount(senderPlayer, cost));
 
         if (senderRep < cost) {
             p.sendMessage(ChatColor.RED + "❌ У отправителя больше нет необходимой репутации.");
