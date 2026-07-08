@@ -222,11 +222,29 @@ public class GuiListener implements Listener {
     private void handleSubMenuClick(Player p, int slot, String title) {
         if (title.equals(ECONOMY_TITLE)) {
             if (slot == 10 || slot == 11 || slot == 12 || slot == 13 || slot == 14) run(p, "forge");
+            else if (slot == 15) run(p, "rtp");
             else if (slot == 31) p.sendMessage(ChatColor.YELLOW + "Админ-аудит экономики: /vkchat economy");
         } else if (title.equals(RPG_TITLE)) {
-            if (slot == 10) run(p, "forge"); else if (slot == 12) run(p, "runes"); else if (slot == 14) run(p, "artifacts"); else if (slot == 16) run(p, "mobs"); else if (slot == 28) run(p, "jobs"); else if (slot == 32) run(p, "stash");
+            if (slot == 10) run(p, "forge");
+            else if (slot == 12) run(p, "runes");
+            else if (slot == 14) run(p, "artifacts");
+            else if (slot == 16) run(p, "mobs");
+            else if (slot == 28) run(p, "jobs");
+            else if (slot == 30) openHelpMenu(p);
+            else if (slot == 32) run(p, "events");
         } else if (title.equals(VK_TITLE)) {
             if (slot == 10) run(p, "vk");
+            else if (slot == 12) run(p, "mobs");
+            else if (slot == 14) p.sendMessage(ChatColor.YELLOW + "Промокоды вводи в ЛС бота ВК: !промо <код>");
+            else if (slot == 16) p.sendMessage(ChatColor.YELLOW + "Команды ВК: !охота, !профиль, !рейтинг, !бонус, !донат");
+        } else if (title.equals(HELP_TITLE)) {
+            // informational only
+        } else if (title.equals(NEWBIE_TITLE)) {
+            if (slot == 10) run(p, "vklink");
+            else if (slot == 12) { p.closeInventory(); p.sendMessage(ChatColor.AQUA + "Телепорты: /rtp, /sethome, /home, /tpa"); }
+            else if (slot == 14) run(p, "jobs");
+            else if (slot == 16) run(p, "forge");
+            else if (slot == 28) run(p, "stash");
         }
     }
 
