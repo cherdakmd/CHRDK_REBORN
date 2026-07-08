@@ -737,14 +737,8 @@ public class AuthManager {
     }
 
     public boolean isFullyAuthorized(Player p) {
-        // Проверяем ВК-привязку (не требует пароль)
-        if (isLinked(p)) {
-            // Проверяем, не ожидает ли 2FA
-            if (isWaiting2fa(p)) {
-                return false;
-            }
-            return true; // ВК привязан + 2FA пройден = авторизован
-        }
+        if (isLinked(p) && !isWaiting2fa(p)) return true;
+        if (p.hasPermission("vkchat.pass")) return true;
         return false;
     }
 }

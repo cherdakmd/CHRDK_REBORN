@@ -67,6 +67,13 @@ public class DonateCommand implements CommandExecutor, TabCompleter {
             sender.sendMessage("");
             sender.sendMessage(ChatColor.GREEN + "✅ Готово! Группы, префиксы, вес и права настроены.");
             sender.sendMessage(ChatColor.GRAY + "Перезапусти сервер для старта опроса API.");
+
+            // Проходка без ВК
+            dispatch("lp creategroup pass");
+            dispatch("lp group pass setweight 0");
+            dispatch("lp group pass permission set vkchat.pass true");
+            sender.sendMessage(ChatColor.GRAY + "  🎫 Проходка (vkchat.pass) — OK");
+
             return true;
         }
 

@@ -2,6 +2,7 @@ package ru.example.vkchat.util;
 
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.bukkit.persistence.PersistentDataType;
 import ru.example.vkchat.VKChatPlugin;
 import ru.example.vkchat.api.VKChatAPI;
 
@@ -81,5 +82,70 @@ public class VKChatBridge {
     public static boolean isBloodMoonActive() {
         if (!available) return false;
         try { return plugin.getBloodMoonManager() != null && plugin.getBloodMoonManager().isActive(); } catch (Exception e) { return false; }
+    }
+
+    // ═══ ПРОХОДКА (pass) + ЛОКАЛЬНАЯ РЕПУТАЦИЯ ═══
+
+    public static boolean hasPass(Player p) {
+        return p != null && p.hasPermission("vkchat.pass");
+    }
+
+    public static boolean hasVkOrPass(Player p) {
+        if (p == null) return false;
+        int vkId = getLinkedVkId(p);
+        if (vkId != -1) return true;
+        return hasPass(p);
+    }
+
+    public static int getLocalReputation(Player p) {
+        if (p == null) return 0;
+        try {
+            var pdc = p.getPersistentDataContainer();
+            var key = new org.bukkit.NamespacedKey("vkchat", "local_rep");
+            return pdc.getOrDefault(key, PersistentDataType.INTEGER, 0);
+        } catch (Exception e) { return 0; }
+    }
+
+    public static void addLocalReputation(Player p, int amount) {
+        if (p == null || amount <= 0) return;
+        try {
+            var pdc = p.getPersistentDataContainer();
+            var key = new org.bukkit.NamespacedKey("vkchat", "local_rep");
+            int cur = pdc.getOrDefault(key, PersistentDataType.INTEGER, 0);
+            pdc.set(key, PersistentDataType.INTEGER, cur + amount);
+        } catch (Exception ignored) {}
+    }
+
+    public static boolean takeLocalReputation(Player p, int amount) {
+        if (p == null || amount <= 0) return false;
+        try {
+            var pdc = p.getPersistentDataContainer();
+            var key = new org.bukkit.NamespacedKey("vkchat", "local_rep");
+            int cur = pdc.getOrDefault(key, PersistentDataType.INTEGER, 0);
+            if (cur < amount) return false;
+            pdc.set(key, PersistentDataType.INTEGER, cur - amount);
+            return true;
+        } catch (Exception e) { return false; }
+    }
+
+    public static int getEffectiveRep(Player p) {
+        int vkId = getLinkedVkId(p);
+        if (vkId != -1) return getReputation(vkId);
+        if (hasPass(p)) return getLocalReputation(p);
+        return 0;
+    }
+
+    public static boolean addEffectiveRep(Player p, int amount) {
+        int vkId = getLinkedVkId(p);
+        if (vkId != -1) return addPoints(vkId, amount);
+        if (hasPass(p)) { addLocalReputation(p, amount); return true; }
+        return false;
+    }
+
+    public static boolean takeEffectiveRep(Player p, int amount) {
+        int vkId = getLinkedVkId(p);
+        if (vkId != -1) return takeReputation(vkId, amount);
+        if (hasPass(p)) return takeLocalReputation(p, amount);
+        return false;
     }
 }

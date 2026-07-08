@@ -147,10 +147,32 @@ public class DonateManager {
     }
 
     private void processDonation(int txId, double amountRub, String sender) {
-        // Никнейм из ИМЕНИ отправителя (игрок указывает ник в имени донатера)
         String nick = extractNickFromSender(sender);
         if (nick == null) {
             plugin.getLogger().info("Донат #" + txId + " (" + amountRub + "₽) — ник не извлечён из '" + sender + "'");
+            return;
+        }
+
+        OfflinePlayer offPlayer = Bukkit.getOfflinePlayer(nick);
+        if (!offPlayer.hasPlayedBefore()) {
+            plugin.getLogger().info("Донат #" + txId + " — игрок " + nick + " не найден");
+            return;
+        }
+
+        // ═══ ПРОХОДКА (без ВК) ═══
+        int passPrice = plugin.getConfig().getInt("pass.price", 500);
+        boolean hasVk = false;
+        Player online = offPlayer.getPlayer();
+        if (online != null) {
+            try { hasVk = VKChatPlugin.getInstance().getApi().getLinkedVkId(online) != -1; } catch (Exception ignored) {}
+        }
+
+        if (!hasVk && amountRub >= passPrice) {
+            grantPass(offPlayer, amountRub);
+            String key = offPlayer.getName().toLowerCase();
+            totalDonated.put(key, totalDonated.getOrDefault(key, 0.0) + amountRub);
+            updateFundraiser(amountRub);
+            plugin.getLogger().info("ПРОХОДКА: " + nick + " (" + amountRub + "₽) #" + txId);
             return;
         }
 
@@ -175,7 +197,6 @@ public class DonateManager {
         }
 
         // Найти игрока
-        OfflinePlayer offPlayer = Bukkit.getOfflinePlayer(nick);
         if (!offPlayer.hasPlayedBefore()) {
             plugin.getLogger().info("Донат #" + txId + " — игрок " + nick + " не найден");
             return;
@@ -370,6 +391,18 @@ public class DonateManager {
             if (player.hasPermission("vkchat.donate." + order.get(i))) return true;
         }
         return false;
+    }
+
+    private void grantPass(OfflinePlayer player, double amount) {
+        runLuckPermsCommand("lp user " + player.getName()
+                + " permission settemp vkchat.pass true " + MONTH_SECONDS + "s");
+        plugin.getLogger().info("LuckPerms: " + player.getName() + " → проходка vkchat.pass (30д)");
+
+        if (plugin.getConfig().getBoolean("broadcasts.enabled", true)) {
+            String mcMsg = ChatColor.translateAlternateColorCodes('&',
+                    "&6🎫 &e" + player.getName() + " &6приобрёл проходку на сервер! &aДобро пожаловать!");
+            Bukkit.broadcastMessage(mcMsg);
+        }
     }
 
     private void grantStatus(OfflinePlayer player, StatusDef status) {
