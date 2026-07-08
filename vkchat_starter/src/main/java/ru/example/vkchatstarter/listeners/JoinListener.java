@@ -122,7 +122,7 @@ public class JoinListener implements Listener {
         // === 11. ПОКАЗ ТАЙТЛА ===
         String firstQuestName = getFirstQuestName();
         p.sendTitle(
-                ChatColor.GOLD + "★ CHRDK REBORN ★",
+                ChatColor.GOLD + "✦ CHRDK REBORN ✦",
                 ChatColor.YELLOW + "Первое задание: " + firstQuestName,
                 20, 100, 20
         );

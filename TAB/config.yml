@@ -7,15 +7,15 @@ header-footer:
   designs:
     default:
       header:
-        - "&4&l⚔ &c&lCHRDK REBORN &4&l⚔"
-        - "&7Добро пожаловать, &f%player%"
+        - "&6&l✦ CHRDK REBORN ✦"
+        - "&7MMO-Выживание 1.16.5 &8| &f%player%"
         - ""
       footer:
         - ""
-        - "&7Онлайн &c%online% &8| &7Репутация &c%vkchat_reputation%"
+        - "&7Онлайн &6%online% &8| &7Реп &6%vkchat_reputation%"
         - "&7Статус: %luckperms-prefix%"
         - ""
-        - "&4⚔ &c/donate info &4⚔ &8— &7поддержи сервер!"
+        - "&6✦ &e/donate info &6✦ &8— &7/artifacts /nation /jobs"
         - ""
 
 tablist-name-formatting:
