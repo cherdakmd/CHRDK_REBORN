@@ -32,9 +32,15 @@ import java.util.UUID;
 
 public class JobsListener implements Listener {
     private final VKChatJobsPlugin plugin;
+    private final ru.example.vkchatjobs.resolver.MaterialResolver materialResolver;
 
     public JobsListener(VKChatJobsPlugin plugin) {
         this.plugin = plugin;
+        this.materialResolver = new ru.example.vkchatjobs.resolver.MaterialResolver(plugin);
+    }
+
+    public ru.example.vkchatjobs.resolver.MaterialResolver getMaterialResolver() {
+        return materialResolver;
     }
 
     @EventHandler
@@ -119,7 +125,7 @@ public class JobsListener implements Listener {
         Player p = e.getPlayer();
         Material m = e.getBlock().getType();
 
-        if (isOre(m)) {
+        if (materialResolver.isOre(m)) {
             if (plugin.getPlacedBlockTracker() != null && plugin.getPlacedBlockTracker().consumeIfPlaced(e.getBlock())) return;
             if (checkFatigue(p, "miner")) {
                 plugin.getJobsDataManager().addExp(p, "miner", 50);
@@ -142,7 +148,7 @@ public class JobsListener implements Listener {
 
                 if (plugin.getJobsDataManager().hasSkill(p.getUniqueId(), "miner", "miner_magnet")) {
                     if (Math.random() < 0.15) {
-                        ItemStack ingot = getIngotFromOre(m);
+                        ItemStack ingot = materialResolver.getIngotFromOre(m);
                         if (ingot != null) {
                             b.getWorld().dropItemNaturally(b.getLocation(), ingot);
                             p.sendMessage(org.bukkit.ChatColor.AQUA + "✨ Магнит Руд притянул слиток!");
@@ -158,7 +164,7 @@ public class JobsListener implements Listener {
                                 for (int dz = -1; dz <= 1; dz++) {
                                     if (dx == 0 && dy == 0 && dz == 0) continue;
                                     Block rel = b.getRelative(dx, dy, dz);
-                                    if (isOre(rel.getType())) {
+                                    if (materialResolver.isOre(rel.getType())) {
                                         for (ItemStack drop : rel.getDrops(tool)) {
                                             b.getWorld().dropItemNaturally(rel.getLocation(), drop);
                                         }
@@ -190,7 +196,7 @@ public class JobsListener implements Listener {
 
                 minerQuest(p);
             }
-        } else if (m.name().endsWith("_LOG")) {
+        } else if (materialResolver.isLog(m)) {
             if (plugin.getPlacedBlockTracker() != null && plugin.getPlacedBlockTracker().consumeIfPlaced(e.getBlock())) return;
             if (checkFatigue(p, "woodcutter")) {
                 plugin.getJobsDataManager().addExp(p, "woodcutter", 20);
@@ -228,7 +234,7 @@ public class JobsListener implements Listener {
 
                 woodcutterQuest(p);
             }
-        } else if (isCrop(m)) {
+        } else if (materialResolver.isCrop(m)) {
             if (e.getBlock().getBlockData() instanceof org.bukkit.block.data.Ageable) {
                 org.bukkit.block.data.Ageable age = (org.bukkit.block.data.Ageable) e.getBlock().getBlockData();
                 if (age.getAge() < age.getMaximumAge()) return;
@@ -250,7 +256,7 @@ public class JobsListener implements Listener {
                     }
                 }
                 if (plugin.getJobsDataManager().hasSkill(p.getUniqueId(), "farmer", "farm_auto")) {
-                    Material seed = getSeedFromCrop(m);
+                    Material seed = materialResolver.getSeedFromCrop(m);
                     if (seed != null) {
                         ItemStack seedStack = new ItemStack(seed);
                         if (p.getInventory().containsAtLeast(seedStack, 1)) {
@@ -333,8 +339,7 @@ public class JobsListener implements Listener {
         ItemStack res = e.getCurrentItem();
         if (res == null) return;
 
-        String n = res.getType().name();
-        if (n.endsWith("_SWORD") || n.endsWith("_CHESTPLATE") || n.endsWith("_PICKAXE") || n.endsWith("_HELMET") || n.endsWith("_LEGGINGS") || n.endsWith("_BOOTS") || n.endsWith("_AXE")) {
+        if (materialResolver.isBlacksmithItem(res.getType())) {
             if (checkFatigue(p, "blacksmith")) {
                 plugin.getJobsDataManager().addExp(p, "blacksmith", 100);
                 notifyXpGain(p, "blacksmith", 100);
@@ -593,41 +598,7 @@ public class JobsListener implements Listener {
         return false;
     }
 
-    private boolean isOre(Material m) {
-        String name = m.name();
-        return m == Material.DIAMOND_ORE || m == Material.IRON_ORE || m == Material.GOLD_ORE || m == Material.COAL_ORE ||
-                m == Material.EMERALD_ORE || m == Material.LAPIS_ORE || m == Material.REDSTONE_ORE ||
-                m == Material.ANCIENT_DEBRIS ||
-                name.contains("COPPER") || name.contains("DEEPSLATE") || name.contains("NETHER_GOLD") || name.contains("QUARTZ_ORE");
-    }
-
-    private boolean isCrop(Material m) {
-        return m == Material.WHEAT || m == Material.CARROTS || m == Material.POTATOES ||
-                m == Material.BEETROOTS || m.name().contains("CROPS") || m.name().contains("PUMPKIN") || m.name().contains("MELON");
-    }
-
-    private ItemStack getIngotFromOre(Material m) {
-        String name = m.name();
-        if (name.contains("IRON_ORE")) return new ItemStack(Material.IRON_INGOT);
-        if (name.contains("GOLD_ORE") || name.equals("NETHER_GOLD_ORE")) return new ItemStack(Material.GOLD_INGOT);
-        if (name.contains("COPPER_ORE")) {
-            try {
-                return new ItemStack(Material.valueOf("COPPER_INGOT"));
-            } catch (Exception ignored) {}
-        }
-        if (name.equals("ANCIENT_DEBRIS")) return new ItemStack(Material.NETHERITE_SCRAP);
-        return null;
-    }
-
-    private Material getSeedFromCrop(Material m) {
-        switch (m) {
-            case WHEAT: return Material.WHEAT_SEEDS;
-            case CARROTS: return Material.CARROT;
-            case POTATOES: return Material.POTATO;
-            case BEETROOTS: return Material.BEETROOT_SEEDS;
-            default: return null;
-        }
-    }
+    // isOre/isCrop/getIngotFromOre/getSeedFromCrop — вынесены в MaterialResolver
 
     private void minerQuest(Player p) {
         NamespacedKey compKey = new NamespacedKey(plugin, "jobs_task_miner_completed");

@@ -25,10 +25,17 @@ import java.util.stream.Collectors;
 
 public class TeleportCommand implements CommandExecutor, TabCompleter {
     private final VKChatTeleportPlugin plugin;
+    private final ru.example.vkchatteleport.util.DonateTierHelper donateHelper;
+    private final ru.example.vkchatteleport.util.GatewayRegistry gatewayRegistry;
 
     public TeleportCommand(VKChatTeleportPlugin plugin) {
         this.plugin = plugin;
+        this.donateHelper = new ru.example.vkchatteleport.util.DonateTierHelper(plugin);
+        this.gatewayRegistry = new ru.example.vkchatteleport.util.GatewayRegistry(plugin);
     }
+
+    public ru.example.vkchatteleport.util.DonateTierHelper getDonateHelper() { return donateHelper; }
+    public ru.example.vkchatteleport.util.GatewayRegistry getGatewayRegistry() { return gatewayRegistry; }
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
@@ -99,45 +106,35 @@ public class TeleportCommand implements CommandExecutor, TabCompleter {
     // ==========================================
     private void handleGateway(Player p, int vkId, String[] args) {
         if (args.length < 1) {
-            p.sendMessage(ChatColor.RED + "❌ Использование: " + ChatColor.YELLOW + "/gateway <soviet|pagan|imperial>");
-            p.sendMessage(ChatColor.GRAY + "Телепортация на базу выбранной фракции стоит " + ChatColor.GOLD + "25 реп. ВК" + ChatColor.GRAY + ".");
+            StringBuilder sb = new StringBuilder();
+            sb.append(ChatColor.RED + "❌ Использование: " + ChatColor.YELLOW + "/gateway <фракция>\n");
+            sb.append(ChatColor.GRAY + "Доступные фракции: " + ChatColor.GOLD);
+            sb.append(String.join(", ", gatewayRegistry.getAliases()));
+            sb.append(ChatColor.GRAY + "\nСтоимость: " + ChatColor.GOLD + "25 реп. ВК");
+            p.sendMessage(sb.toString());
             return;
         }
 
-        String targetNation = args[0].toLowerCase();
-        Location targetLoc = null;
-        String nationName = "";
-
-        if (targetNation.contains("soviet") || targetNation.contains("совет")) {
-            targetLoc = new Location(p.getWorld(), 100.5, 80.0, 100.5);
-            nationName = "Советский Союз";
-        } else if (targetNation.contains("pagan") || targetNation.contains("языч")) {
-            targetLoc = new Location(p.getWorld(), -500.5, 80.0, -500.5);
-            nationName = "Языческий Культ";
-        } else if (targetNation.contains("imperial") || targetNation.contains("импер")) {
-            targetLoc = new Location(p.getWorld(), 1000.5, 80.0, -1000.5);
-            nationName = "Священная Империя";
-        } else {
-            p.sendMessage(ChatColor.RED + "❌ Неизвестная фракция! Доступные: soviet, pagan, imperial");
+        ru.example.vkchatteleport.util.GatewayRegistry.GatewayDef gateway = gatewayRegistry.resolve(args[0]);
+        if (gateway == null) {
+            p.sendMessage(ChatColor.RED + "❌ Неизвестная фракция! Доступные: " + ChatColor.GOLD + String.join(", ", gatewayRegistry.getAliases()));
             return;
         }
 
-        // Ставим игрока на безопасный Y над землей
-        targetLoc.setY(p.getWorld().getHighestBlockYAt(targetLoc) + 1.0);
-
+        Location targetLoc = gateway.toLocation(p.getWorld());
         int currentRep = VKChatPlugin.getInstance().getApi().getReputation(vkId);
-        int cost = applyDonateDiscount(p, 25);
+        int cost = donateHelper.applyDiscount(p, gateway.getCost());
 
         if (currentRep < cost) {
             p.sendMessage(ChatColor.RED + "❌ Недостаточно репутации! Для перемещения через портал требуется: " + ChatColor.GOLD + cost + ChatColor.RED + " реп. ВК.");
             return;
         }
 
-        String finalNationName = nationName;
+        String nationName = gateway.getName();
         plugin.getTeleportManager().startTeleportWarmup(
                 p,
                 targetLoc,
-                ChatColor.GREEN + "✨ Врата открылись! Вы телепортировались в столицу: " + ChatColor.YELLOW + finalNationName + ChatColor.GREEN + " за " + ChatColor.GOLD + cost + ChatColor.GREEN + " реп. ВК!",
+                ChatColor.GREEN + "✨ Врата открылись! Вы телепортировались в столицу: " + ChatColor.YELLOW + nationName + ChatColor.GREEN + " за " + ChatColor.GOLD + cost + ChatColor.GREEN + " реп. ВК!",
                 cost,
                 null,
                 null
@@ -150,13 +147,13 @@ public class TeleportCommand implements CommandExecutor, TabCompleter {
     private void handleRtp(Player p, int vkId) {
         int currentRep = VKChatPlugin.getInstance().getApi().getReputation(vkId);
         int cost = plugin.getConfig().getInt("teleportation.rtp.cost", 250);
-        cost = Math.max(1, applyDonateDiscount(p, cost));
+        cost = Math.max(1, donateHelper.applyDiscount(p, cost));
 
-        int cooldown = getDonateCooldown(p, "rtp");
+        int cooldown = donateHelper.getCooldown(p, "rtp");
 
         long cdRemaining = plugin.getTeleportManager().getCooldownRemaining("rtp", p.getUniqueId(), cooldown);
         if (cdRemaining > 0) {
-            p.sendMessage(ChatColor.RED + "⏳ Подождите " + ChatColor.GOLD + formatTime(cdRemaining));
+            p.sendMessage(ChatColor.RED + "⏳ Подождите " + ChatColor.GOLD + ru.example.vkchatteleport.util.DonateTierHelper.formatTime(cdRemaining));
             return;
         }
 
@@ -184,57 +181,7 @@ public class TeleportCommand implements CommandExecutor, TabCompleter {
     }
 
 
-    private int applyDonateDiscount(Player p, int cost) {
-        if (cost <= 0) return 0;
-        if (p.hasPermission("vkchat.donate.overlord")) return Math.max(1, (int)(cost * 0.35));
-        if (p.hasPermission("vkchat.donate.legend")) return Math.max(1, (int)(cost * 0.50));
-        if (p.hasPermission("vkchat.donate.star")) return Math.max(1, (int)(cost * 0.65));
-        if (p.hasPermission("vkchat.donate.flame")) return Math.max(1, (int)(cost * 0.80));
-        if (p.hasPermission("vkchat.donate.spark")) return Math.max(1, (int)(cost * 0.90));
-        return cost;
-    }
-
-    private int getDonateCooldown(Player p, String type) {
-        int base = plugin.getConfig().getInt("teleportation." + type + ".cooldown", 60);
-        if (p.hasPermission("vkchat.donate.overlord")) return Math.max(1, (int)(base * 0.15));
-        if (p.hasPermission("vkchat.donate.legend")) return Math.max(1, (int)(base * 0.30));
-        if (p.hasPermission("vkchat.donate.star")) return Math.max(1, (int)(base * 0.50));
-        if (p.hasPermission("vkchat.donate.flame")) return Math.max(1, (int)(base * 0.65));
-        if (p.hasPermission("vkchat.donate.spark")) return Math.max(1, (int)(base * 0.80));
-        return base;
-    }
-
-    private int getDonateWarmup(Player p) {
-        return plugin.getConfig().getInt("teleportation.warmup.delay", 3);
-    }
-
-    private int getDonateMaxHomes(Player p) {
-        if (p.hasPermission("vkchat.donate.overlord")) return 30;
-        if (p.hasPermission("vkchat.donate.legend")) return 20;
-        if (p.hasPermission("vkchat.donate.star")) return 12;
-        if (p.hasPermission("vkchat.donate.flame")) return 8;
-        if (p.hasPermission("vkchat.donate.spark")) return 5;
-        return plugin.getConfig().getInt("teleportation.home.max-homes", 3);
-    }
-
-    private boolean hasDonateStatus(Player p) {
-        return getDonateDiscount(p) > 0;
-    }
-
-    private double getDonateDiscount(Player p) {
-        if (p.hasPermission("vkchat.donate.overlord")) return 0.65;
-        if (p.hasPermission("vkchat.donate.legend")) return 0.50;
-        if (p.hasPermission("vkchat.donate.star")) return 0.35;
-        if (p.hasPermission("vkchat.donate.flame")) return 0.20;
-        if (p.hasPermission("vkchat.donate.spark")) return 0.10;
-        return 0;
-    }
-
-    private String formatTime(long seconds) {
-        if (seconds < 60) return seconds + " сек";
-        if (seconds < 3600) return (seconds / 60) + " мин " + (seconds % 60) + " сек";
-        return (seconds / 3600) + " ч " + ((seconds % 3600) / 60) + " мин";
-    }
+    // Donate-утилиты вынесены в DonateTierHelper
 
     private Location findSafeLocation(Player p) {
         Random r = new Random();
@@ -313,7 +260,7 @@ public class TeleportCommand implements CommandExecutor, TabCompleter {
             }
         }
 
-        int maxHomes = getDonateMaxHomes(p);
+        int maxHomes = donateHelper.getMaxHomes(p);
         int currentCount = plugin.getTeleportManager().getHomeCount(p.getUniqueId());
         boolean alreadyExists = plugin.getTeleportManager().getHome(p.getUniqueId(), homeName) != null;
 
@@ -366,13 +313,13 @@ public class TeleportCommand implements CommandExecutor, TabCompleter {
 
         int currentRep = VKChatPlugin.getInstance().getApi().getReputation(vkId);
         int cost = plugin.getConfig().getInt("teleportation.home.cost", 250);
-        cost = Math.max(1, applyDonateDiscount(p, cost));
+        cost = Math.max(1, donateHelper.applyDiscount(p, cost));
 
-        int cooldown = getDonateCooldown(p, "home");
+        int cooldown = donateHelper.getCooldown(p, "home");
 
         long cdRemaining = plugin.getTeleportManager().getCooldownRemaining("home", p.getUniqueId(), cooldown);
         if (cdRemaining > 0) {
-            p.sendMessage(ChatColor.RED + "⏳ Телепортация на перезарядке! Подождите " + ChatColor.GOLD + formatTime(cdRemaining));
+            p.sendMessage(ChatColor.RED + "⏳ Телепортация на перезарядке! Подождите " + ChatColor.GOLD + ru.example.vkchatteleport.util.DonateTierHelper.formatTime(cdRemaining));
             return;
         }
 
@@ -449,13 +396,13 @@ public class TeleportCommand implements CommandExecutor, TabCompleter {
 
         int currentRep = VKChatPlugin.getInstance().getApi().getReputation(vkId);
         int cost = plugin.getConfig().getInt("teleportation.tpa.cost", 250);
-        cost = Math.max(1, applyDonateDiscount(p, cost));
+        cost = Math.max(1, donateHelper.applyDiscount(p, cost));
 
-        int cooldown = getDonateCooldown(p, "tpa");
+        int cooldown = donateHelper.getCooldown(p, "tpa");
 
         long cdRemaining = plugin.getTeleportManager().getCooldownRemaining("tpa", p.getUniqueId(), cooldown);
         if (cdRemaining > 0) {
-            p.sendMessage(ChatColor.RED + "⏳ Запрос на перезарядке! Подождите " + ChatColor.GOLD + formatTime(cdRemaining));
+            p.sendMessage(ChatColor.RED + "⏳ Запрос на перезарядке! Подождите " + ChatColor.GOLD + ru.example.vkchatteleport.util.DonateTierHelper.formatTime(cdRemaining));
             return;
         }
 
@@ -576,13 +523,13 @@ public class TeleportCommand implements CommandExecutor, TabCompleter {
 
         int currentRep = VKChatPlugin.getInstance().getApi().getReputation(vkId);
         int cost = plugin.getConfig().getInt("teleportation.tpahere.cost", 150);
-        cost = Math.max(1, applyDonateDiscount(p, cost));
+        cost = Math.max(1, donateHelper.applyDiscount(p, cost));
 
-        int cooldown = getDonateCooldown(p, "tpahere");
+        int cooldown = donateHelper.getCooldown(p, "tpahere");
 
         long cdRemaining = plugin.getTeleportManager().getCooldownRemaining("tpahere", p.getUniqueId(), cooldown);
         if (cdRemaining > 0) {
-            p.sendMessage(ChatColor.RED + "⏳ Запрос на перезарядке! Подождите " + ChatColor.GOLD + formatTime(cdRemaining));
+            p.sendMessage(ChatColor.RED + "⏳ Запрос на перезарядке! Подождите " + ChatColor.GOLD + ru.example.vkchatteleport.util.DonateTierHelper.formatTime(cdRemaining));
             return;
         }
 
@@ -611,13 +558,13 @@ public class TeleportCommand implements CommandExecutor, TabCompleter {
 
         int currentRep = VKChatPlugin.getInstance().getApi().getReputation(vkId);
         int cost = plugin.getConfig().getInt("teleportation.back.cost", 50);
-        cost = Math.max(1, applyDonateDiscount(p, cost));
+        cost = Math.max(1, donateHelper.applyDiscount(p, cost));
 
-        int cooldown = getDonateCooldown(p, "back");
+        int cooldown = donateHelper.getCooldown(p, "back");
 
         long cdRemaining = plugin.getTeleportManager().getCooldownRemaining("back", p.getUniqueId(), cooldown);
         if (cdRemaining > 0) {
-            p.sendMessage(ChatColor.RED + "⏳ Подождите " + ChatColor.GOLD + formatTime(cdRemaining));
+            p.sendMessage(ChatColor.RED + "⏳ Подождите " + ChatColor.GOLD + ru.example.vkchatteleport.util.DonateTierHelper.formatTime(cdRemaining));
             return;
         }
 
@@ -712,7 +659,7 @@ public class TeleportCommand implements CommandExecutor, TabCompleter {
                 completions.addAll(homes.keySet());
             }
         } else if ((cmd.equals("gateway") || cmd.equals("portal")) && args.length == 1) {
-            completions.addAll(java.util.Arrays.asList("soviet", "pagan", "imperial"));
+            completions.addAll(gatewayRegistry.getAliases());
         }
 
         return completions.stream().filter(s -> last.isEmpty() || s.toLowerCase().startsWith(last)).collect(Collectors.toList());
