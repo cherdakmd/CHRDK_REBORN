@@ -161,18 +161,6 @@ items:
     scarcity-threshold: 100
     max-multiplier: 3.0
 
-  LAPIS_LAZULI:
-    name: "&9Лазурит"
-    category: "Ресурсы"
-    base-price: 15.0
-    min-price: 3.0
-    elasticity: 130.0
-    recovery-rate: 40
-    max-stock: 500
-    min-stock: -250
-    scarcity-threshold: 50
-    max-multiplier: 4.0
-
   REDSTONE:
     name: "&cРедстоун"
     category: "Ресурсы"
