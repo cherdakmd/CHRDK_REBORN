@@ -79,13 +79,14 @@ public class AuthListener implements Listener {
             }
         } else {
             // ВК НЕ ПРИВЯЗАН — пускаем и показываем инструкцию
-            p.sendMessage("§c⚠ Для игры нужна привязка ВК!");
+            p.sendMessage("§c⚠ Для игры нужна привязка ВК или проходка!");
             p.sendMessage("§7➊ Вступи в группу: §b" + plugin.getConfig().getString("vk.group-link", "https://vk.com/chrdk_reborn"));
             p.sendMessage("§7➋ Введи §a/vklink §7— получишь код");
             p.sendMessage("§7➌ Отправь код в беседу ВК боту");
-            p.sendMessage("§7➍ Подтверди вход через /2fa <код>");
-            p.sendMessage("§7➎ Зарегистрируйся: §a/register <пароль>");
-            p.sendTitle("§c⚠ Привяжи ВК!", "§7/vklink — получить код", 10, 70, 10);
+            p.sendMessage("");
+            p.sendMessage("§6💡 Нет ВК?");
+            p.sendMessage("§7Купи проходку за §e500₽ §7— §a/donate info");
+            p.sendTitle("§c⚠ Привяжи ВК!", "§7/vklink или /donate info", 10, 70, 10);
             placeSafetyPlatform(p);
             p.setVelocity(new Vector(0, 0, 0));
         }

@@ -127,6 +127,8 @@ public class MCCommands implements CommandExecutor, org.bukkit.command.TabComple
                 
                 p.spigot().sendMessage(chatLink);
                 p.sendMessage(org.bukkit.ChatColor.translateAlternateColorCodes('&', "&b&m================================================="));
+                p.sendMessage(org.bukkit.ChatColor.translateAlternateColorCodes('&', " &6💡 Нет ВК? Купи проходку — &e/donate info &6(500₽/30д)"));
+                p.sendMessage("");
             }
             return true;
         }
