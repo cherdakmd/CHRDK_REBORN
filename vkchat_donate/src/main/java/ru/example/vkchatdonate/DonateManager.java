@@ -31,6 +31,7 @@ public class DonateManager {
     private FileConfiguration dataCfg;
     private final Map<String, StatusDef> statuses = new LinkedHashMap<>();
     private final Map<String, Double> totalDonated = new LinkedHashMap<>();
+    private final Set<String> passHolders = new HashSet<>();
     private int lastProcessedId = 0;
     private boolean vkAnnounceWarningLogged = false;
     private BossBar fundraiserBar;
@@ -85,6 +86,9 @@ public class DonateManager {
         for (String key : dataCfg.getConfigurationSection("donated") != null ? dataCfg.getConfigurationSection("donated").getKeys(false) : Collections.<String>emptySet()) {
             totalDonated.put(key, dataCfg.getDouble("donated." + key, 0));
         }
+        for (String name : dataCfg.getStringList("pass_holders")) {
+            passHolders.add(name.toLowerCase());
+        }
     }
 
     private void saveData() {
@@ -92,6 +96,7 @@ public class DonateManager {
         for (Map.Entry<String, Double> e : totalDonated.entrySet()) {
             dataCfg.set("donated." + e.getKey(), e.getValue());
         }
+        dataCfg.set("pass_holders", new ArrayList<>(passHolders));
         try { dataCfg.save(dataFile); } catch (IOException e) {
             plugin.getLogger().warning("Ошибка сохранения donations.yml: " + e.getMessage());
         }
@@ -396,6 +401,8 @@ public class DonateManager {
     private void grantPass(OfflinePlayer player, double amount) {
         runLuckPermsCommand("lp user " + player.getName()
                 + " permission settemp vkchat.pass true " + MONTH_SECONDS + "s");
+        passHolders.add(player.getName().toLowerCase());
+        saveData();
         plugin.getLogger().info("LuckPerms: " + player.getName() + " → проходка vkchat.pass (30д)");
 
         if (plugin.getConfig().getBoolean("broadcasts.enabled", true)) {
@@ -494,6 +501,24 @@ public class DonateManager {
                     .append(" §7| Jobs: §f×").append(s.jobsXpMult).append("\n");
         }
         return sb.toString();
+    }
+
+    public Collection<String> getPassHolders() { return passHolders; }
+
+    public void grantPassManually(String name) {
+        OfflinePlayer off = Bukkit.getOfflinePlayer(name);
+        passHolders.add(name.toLowerCase());
+        runLuckPermsCommand("lp user " + off.getName()
+                + " permission settemp vkchat.pass true " + MONTH_SECONDS + "s");
+        saveData();
+        plugin.getLogger().info("Ручная выдача проходки: " + off.getName());
+    }
+
+    public void removePass(String name) {
+        passHolders.remove(name.toLowerCase());
+        runLuckPermsCommand("lp user " + name + " permission unset vkchat.pass");
+        saveData();
+        plugin.getLogger().info("Проходка отозвана: " + name);
     }
 
     public void shutdown() {

@@ -172,6 +172,37 @@ public class DonateCommand implements CommandExecutor, TabCompleter {
             return true;
         }
 
+        if (args[0].equalsIgnoreCase("pass")) {
+            if (!sender.hasPermission("vkchat.donate.admin")) {
+                sender.sendMessage(ChatColor.RED + "Нет прав.");
+                return true;
+            }
+            if (args.length < 2) {
+                sender.sendMessage(ChatColor.GOLD + "🎫 Проходки: /donate pass list | give <ник> | remove <ник>");
+                return true;
+            }
+            if (args[1].equalsIgnoreCase("list")) {
+                var holders = plugin.getDonateManager().getPassHolders();
+                if (holders.isEmpty()) {
+                    sender.sendMessage(ChatColor.GRAY + "Нет активных проходок.");
+                } else {
+                    sender.sendMessage(ChatColor.GOLD + "🎫 Владельцы проходок (" + holders.size() + "):");
+                    for (String name : holders) {
+                        sender.sendMessage(ChatColor.WHITE + "  • " + name);
+                    }
+                }
+            } else if (args[1].equalsIgnoreCase("give") && args.length >= 3) {
+                plugin.getDonateManager().grantPassManually(args[2]);
+                sender.sendMessage(ChatColor.GREEN + "✅ Проходка выдана: " + args[2]);
+            } else if (args[1].equalsIgnoreCase("remove") && args.length >= 3) {
+                plugin.getDonateManager().removePass(args[2]);
+                sender.sendMessage(ChatColor.GREEN + "✅ Проходка отозвана: " + args[2]);
+            } else {
+                sender.sendMessage(ChatColor.RED + "/donate pass list | give <ник> | remove <ник>");
+            }
+            return true;
+        }
+
         sender.sendMessage(plugin.getDonateManager().getSetupInfo());
         return true;
     }
