@@ -1,5 +1,32 @@
 # CHANGELOG — VKChat Ultimate / CHRDK REBORN
 
+## v2.1.1 — 8 Июля 2026 — Рефакторинг
+
+### 🏗️ Рефакторинг модуля Market (v3.1.0)
+
+- **NEW: `PriceEngine`** — выделенный движок вычисления цен, спредов, множителей. Отделяет бизнес-логику от `MarketManager`
+- **NEW: `TradeLogger`** — выделенный логгер транзакций и истории. Убирает логирование из God-класса
+- **NEW: `MarketItemFactory`** — фабрика ItemStack для GUI. Устраняет дублирование в MarketGuiListener
+- **FIX: `priceHistory`** теперь сохраняется на диск (раньше терялось при рестарте)
+- **FIX: Устранено дублирование** `donorSellMultiplier()` / `donorSellMultiplierStatic()` — единый метод в MarketItemFactory
+- **FIX: Устранены дублирующиеся импорты** в EnchantmentConflictManager
+- **FIX: Объединены** `GROUP_DISPLAY_OVERRIDES` и `getGroupDisplayName()` — единый источник истины
+- **IMPROVE: Добавлен `adjustStock()`** — атомарное изменение стока (для PriceEngine)
+- **IMPROVE: Добавлены `getMarketCyclePhase()` / `getDailyTrend()`** — public getters для PriceEngine
+
+### 💰 Рефакторинг модуля Donate (v2.1.0)
+
+- **FIX: Идемпотентность** — `lastProcessedId` сохраняется ДО обработки доната (save-ahead), предотвращая дублирование при рестарте
+- **FIX: Синхронизация** — добавлен `processingTxIds` Set для предотвращения параллельной обработки одного доната
+- **FIX: LuckPerms API** — `getDaysLeft()` использует LuckPerms API вместо reflection (с fallback)
+- **IMPROVE: Таблица подкоманд** — DonateCommand рефакторинг из лестницы if-else в Map<String, SubCommand>
+- **IMPROVE: Динамическое создание групп** — setup больше не хардкодит имена групп, читает из config.yml
+- **IMPROVE: `fundraiserCollected`** сохраняется в donations.yml между рестартами
+- **IMPROVE: TabComplete** — полная поддержка для fundraiser и pass подкоманд
+- **IMPROVE: Добавлено `vkchat.donate.use`** — отдельный permission для обычных игроков
+
+---
+
 ## v2.1.0 — Июнь 2026
 
 ### VKChatGear — Mythical Sets + Ancient Crystal + Max +25

@@ -1,15 +1,17 @@
 plugins { id 'java' }
 group = 'ru.example'
-version = '1.0.0'
+version = '2.1.0'
 
 repositories {
     mavenCentral()
     maven { url = 'https://oss.sonatype.org/content/repositories/snapshots' }
+    maven { url = 'https://repo.luckperms.me' }
 }
 
 dependencies {
     compileOnly 'org.spigotmc:spigot-api:1.16.5-R0.1-SNAPSHOT'
     compileOnly project(':vkchat_core')
+    compileOnly 'net.luckperms:api:5.4'
     implementation 'org.json:json:20230227'
 }
 

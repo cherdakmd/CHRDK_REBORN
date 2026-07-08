@@ -18,6 +18,7 @@ import org.bukkit.enchantments.Enchantment;
 import ru.example.vkchat.VKChatPlugin;
 import ru.example.vkchat.util.VKChatBridge;
 import ru.example.vkchatmarket.VKChatMarketPlugin;
+import ru.example.vkchatmarket.gui.MarketItemFactory;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -851,7 +852,7 @@ public class MarketGuiListener implements Listener {
         return "all";
     }
 
-    private static double donorSellMultiplierStatic(Player p) {
+    private static double donorSellMultiplierStatic_deprecated(Player p) {
         if (p.hasPermission("vkchat.donate.overlord")) return 1.70;
         if (p.hasPermission("vkchat.donate.legend")) return 1.50;
         if (p.hasPermission("vkchat.donate.star")) return 1.35;
@@ -860,7 +861,7 @@ public class MarketGuiListener implements Listener {
         return 1.0;
     }
 
-    private double donorSellMultiplier(Player p) {
+    private double donorSellMultiplier_deprecated(Player p) {
         if (p.hasPermission("vkchat.donate.overlord")) return 1.70;
         if (p.hasPermission("vkchat.donate.legend")) return 1.50;
         if (p.hasPermission("vkchat.donate.star")) return 1.35;

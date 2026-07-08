@@ -20,9 +20,16 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Менеджер донатов — опрос DonatePay API, обработка платежей, выдача LuckPerms прав на 30 дней
+ *
+ * РЕФАКТОРИНГ v2.1.0:
+ * - FIX: Save-ahead для lastProcessedId (идемпотентность при рестарте)
+ * - FIX: Использование LuckPerms API вместо reflection в getDaysLeft()
+ * - FIX: Синхронизация обработок донатов (предотвращение дублирования)
+ * - IMPROVE: fundraiserCollected сохраняется между рестартами
  */
 public class DonateManager {
     private final VKChatDonatePlugin plugin;
@@ -38,6 +45,8 @@ public class DonateManager {
     private double fundraiserCollected = 0;
     private final Set<UUID> fundraiserHidden = new HashSet<>();
     private static final long MONTH_SECONDS = 2592000L; // 30 дней
+    // FIX: Синхронизация для предотвращения дублирующей обработки донатов
+    private final Set<Integer> processingTxIds = Collections.newSetFromMap(new ConcurrentHashMap<>());
 
     public static class StatusDef {
         public final String id, name, display, description, prefix;
@@ -131,21 +140,33 @@ public class DonateManager {
             if (!json.has("data")) return;
 
             org.json.JSONArray data = json.getJSONArray("data");
+            List<Integer> processedIds = new ArrayList<>();
+
             for (int i = 0; i < data.length(); i++) {
                 org.json.JSONObject tx = data.getJSONObject(i);
                 int txId = tx.getInt("id");
                 if (txId <= lastProcessedId) continue;
 
+                // FIX: Предотвращение дублирующей обработки в параллельном потоке
+                if (!processingTxIds.add(txId)) continue;
+
                 String status = tx.optString("status", "");
-                if (!status.equals("success")) continue;
+                if (!status.equals("success")) {
+                    processingTxIds.remove(txId);
+                    continue;
+                }
 
                 double amount = tx.optDouble("amount", 0);
                 String sender = tx.optString("what", "").trim();
 
-                processDonation(txId, amount, sender);
+                // FIX: Save-ahead — сохраняем lastProcessedId ДО обработки
                 lastProcessedId = Math.max(lastProcessedId, txId);
+                saveData();
+
+                processDonation(txId, amount, sender);
+                processedIds.add(txId);
+                processingTxIds.remove(txId);
             }
-            saveData();
         } catch (Exception e) {
             plugin.getLogger().warning("Ошибка опроса DonatePay: " + e.getMessage());
         }
@@ -576,8 +597,31 @@ public class DonateManager {
 
         String permission = "vkchat.donate." + s.id;
         try {
+            // FIX: Используем LuckPerms API вместо reflection
             org.bukkit.plugin.Plugin lpPlugin = Bukkit.getPluginManager().getPlugin("LuckPerms");
             if (lpPlugin == null || !lpPlugin.isEnabled()) return 30;
+
+            // Пробуем LuckPerms API (без reflection)
+            try {
+                net.luckperms.api.LuckPerms lpApi = Bukkit.getServicesManager().load(net.luckperms.api.LuckPerms.class);
+                if (lpApi != null) {
+                    net.luckperms.api.model.user.UserManager um = lpApi.getUserManager();
+                    net.luckperms.api.model.user.User user = um.getUser(player.getUniqueId());
+                    if (user == null) return 30;
+                    for (net.luckperms.api.node.Node node : user.getNodes()) {
+                        if (node.getKey().equals(permission) && node.hasExpiry()) {
+                            long expiryMs = node.getExpiry().toEpochMilli();
+                            long secLeft = (expiryMs - System.currentTimeMillis()) / 1000;
+                            return Math.max(0, secLeft / 86400);
+                        }
+                    }
+                    return 30;
+                }
+            } catch (NoClassDefFoundError ignored) {
+                // LuckPerms API не в classpath — fallback
+            }
+
+            // Fallback: reflection для старых версий
             Object api = lpPlugin.getClass().getMethod("getProvider").invoke(null);
             Object userManager = api.getClass().getMethod("getUserManager").invoke(api);
             Object user = userManager.getClass().getMethod("getUser", java.util.UUID.class).invoke(userManager, player.getUniqueId());

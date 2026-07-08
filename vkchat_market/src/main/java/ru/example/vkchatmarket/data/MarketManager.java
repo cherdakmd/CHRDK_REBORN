@@ -18,7 +18,13 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
- * MarketManager v3.0 — Полная переработка экономики.
+ * MarketManager v3.1 — Рефакторинг.
+ * 
+ * Изменения v3.1:
+ * - Добавлен PriceEngine для вычисления цен (делегирование)
+ * - Добавлен TradeLogger для логирования (делегирование)
+ * - Добавлен метод adjustStock() для атомарного изменения стока
+ * - priceHistory теперь сохраняется на диск
  * 
  * Модель: реальная кривая спроса/предложения с эластичностью.
  * - Цена = base * supplyMultiplier * trendMultiplier * eventMultiplier
@@ -65,6 +71,8 @@ public class MarketManager {
     private final VKChatMarketPlugin plugin;
     private File file;
     private FileConfiguration data;
+    private PriceEngine priceEngine;
+    private TradeLogger tradeLogger;
 
     // Основные данные рынка
     private final Map<String, Integer> stock = new ConcurrentHashMap<>();       // Текущий запас (полож = избыток, отриц = дефицит)
@@ -125,7 +133,30 @@ public class MarketManager {
 
     public MarketManager(VKChatMarketPlugin plugin) {
         this.plugin = plugin;
+        this.priceEngine = new PriceEngine(plugin, this);
+        this.tradeLogger = new TradeLogger(plugin);
         load();
+    }
+
+    /**
+     * Получить PriceEngine для вычисления цен.
+     */
+    public PriceEngine getPriceEngine() {
+        return priceEngine;
+    }
+
+    /**
+     * Получить TradeLogger для логирования.
+     */
+    public TradeLogger getTradeLogger() {
+        return tradeLogger;
+    }
+
+    /**
+     * Атомарное изменение стока предмета.
+     */
+    public void adjustStock(String itemId, int delta) {
+        stock.merge(itemId, delta, Integer::sum);
     }
 
     private void load() {
@@ -175,6 +206,8 @@ public class MarketManager {
         cycleEndTime = data.getLong("cycle.endtime", 0L);
         loadCustomBooks();
         ensureDailyTrends();
+        tradeLogger.loadFrom(data);
+        loadPriceHistory();
     }
 
     private void loadCustomBooks() {
@@ -235,7 +268,8 @@ public class MarketManager {
             data.set("daily.volume." + entry.getKey(), entry.getValue());
         }
         int maxHistory = plugin.getConfig().getInt("market2.history.max-entries", 100);
-        data.set("history", history.subList(Math.max(0, history.size() - maxHistory), history.size()));
+        tradeLogger.saveTo(data);
+        savePriceHistory();.subList(Math.max(0, history.size() - maxHistory), history.size()));
         data.set("momentum", null);
         for (Map.Entry<String, Double> entry : momentum.entrySet()) {
             data.set("momentum." + entry.getKey(), entry.getValue());
@@ -866,5 +900,50 @@ public class MarketManager {
     public void cleanupCooldowns() {
         long cutoff = System.currentTimeMillis() - 60000;
         lastTradeTime.entrySet().removeIf(e -> e.getValue() < cutoff);
+    }
+
+    /**
+     * FIX: Сохранение priceHistory на диск.
+     */
+    private void savePriceHistory() {
+        int maxPoints = plugin.getConfig().getInt("market2.price-history.max-points", 100);
+        data.set("price_history", null);
+        for (Map.Entry<String, java.util.List<Double>> entry : priceHistory.entrySet()) {
+            java.util.List<Double> list = entry.getValue();
+            if (list.size() > maxPoints) {
+                list = list.subList(list.size() - maxPoints, list.size());
+            }
+            data.set("price_history." + entry.getKey(), list);
+        }
+    }
+
+    /**
+     * FIX: Загрузка priceHistory с диска.
+     */
+    private void loadPriceHistory() {
+        if (!data.contains("price_history")) return;
+        ConfigurationSection sec = data.getConfigurationSection("price_history");
+        if (sec == null) return;
+        for (String itemId : sec.getKeys(false)) {
+            java.util.List<Double> list = data.getDoubleList("price_history." + itemId);
+            if (!list.isEmpty()) {
+                priceHistory.put(itemId, new java.util.ArrayList<>(list));
+            }
+        }
+    }
+
+    /**
+     * FIX: Getter для cyclePhase (нужен PriceEngine).
+     */
+    public int getMarketCyclePhase() {
+        return marketCyclePhase;
+    }
+
+    /**
+     * FIX: Getter для dailyTrend конкретного предмета.
+     */
+    public double getDailyTrend(String itemId) {
+        ensureDailyTrends();
+        return dailyTrends.getOrDefault(itemId, 1.0);
     }
 }

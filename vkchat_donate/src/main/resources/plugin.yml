@@ -1,14 +1,18 @@
 name: VKChatDonate
-version: 1.0.0
+version: "2.1.0"
 main: ru.example.vkchatdonate.VKChatDonatePlugin
 api-version: "1.16"
 depend: [VKChat]
 softdepend: [LuckPerms]
 commands:
   donate:
-    description: Настройка донат-системы
-    permission: vkchat.donate.admin
+    description: Настройка донат-системы и просмотр статусов
+    aliases: [донат]
+    permission: vkchat.donate.use
 permissions:
   vkchat.donate.admin:
-    description: Доступ к /donate setup
+    description: Доступ к /donate setup, reload, fundraiser, pass
     default: op
+  vkchat.donate.use:
+    description: Доступ к /donate info, status, days, top
+    default: true

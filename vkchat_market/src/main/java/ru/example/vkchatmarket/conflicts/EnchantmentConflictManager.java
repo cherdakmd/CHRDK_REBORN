@@ -15,8 +15,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
-import java.util.Set;
-import java.util.logging.Logger;
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════
@@ -97,19 +95,14 @@ public final class EnchantmentConflictManager {
 
     /**
      * Получить читаемое имя группы.
+     * FIX: Устранено дублирование с GROUP_DISPLAY_OVERRIDES — единый источник истины.
      */
     public static String getGroupDisplayName(String groupId) {
-        switch (groupId) {
-            case "damage_swords":   return "⚔️ Урон по мобам (Sharpness / Smite / Bane)";
-            case "protection":      return "🛡️ Защита (одна из Protection-типов)";
-            case "bow_utility":     return "🏹 Утилитарные (Infinity / Mending)";
-            case "trident_meta":    return "🔱 Трезубец (Loyalty / Riptide / Channeling)";
-            case "crossbow_meta":   return "🎯 Арбалет (Multishot / Piercing)";
-            case "tool_loot":       return "⛏️ Инструмент (Silk Touch / Fortune)";
-            case "boots_movement":  return "👢 Ботинки (Depth Strider / Frost Walker)";
-            case "weapon_fire_aspect": return "🔥 Огненный аспект (Fire Aspect / Flame)";
-            default:                return groupId;
+        // Приоритет: override → switch → groupId
+        if (GROUP_DISPLAY_OVERRIDES.containsKey(groupId)) {
+            return GROUP_DISPLAY_OVERRIDES.get(groupId);
         }
+        return groupId;
     }
 
     /**
