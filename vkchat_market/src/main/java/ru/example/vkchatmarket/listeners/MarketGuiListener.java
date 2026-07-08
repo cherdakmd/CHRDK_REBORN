@@ -494,7 +494,7 @@ public class MarketGuiListener implements Listener {
 
         if (!plugin.getMarketManager().canTrade(itemId, p)) { p.sendMessage("§cПодождите..."); return; }
 
-        double donorMult = donorSellMultiplier(p);
+        double donorMult = MarketItemFactory.donorSellMultiplier(p);
         int rep = plugin.getMarketManager().sellItems(itemId, count, donorMult);
         if (rep <= 0) { p.sendMessage("§cРынок переполнен!"); return; }
         plugin.getMarketManager().markTrade(itemId, p);
@@ -552,7 +552,7 @@ public class MarketGuiListener implements Listener {
         }
         if (free < actual) { p.sendMessage("§cИнвентарь полон!"); return; }
 
-        double donorMult = donorBuyMultiplier(p);
+        double donorMult = MarketItemFactory.donorBuyMultiplier(p);
         int cost = isBook ? (int)(plugin.getConfig().getDouble("items." + itemId + ".base-price", 200) * donorMult)
                           : plugin.getMarketManager().buyItems(itemId, actual, donorMult);
         if (cost <= 0) { p.sendMessage("§cОшибка цены!"); return; }
@@ -565,8 +565,8 @@ public class MarketGuiListener implements Listener {
             if (isBook && !toGive.getItemMeta().hasEnchants()) {
                 toGive = plugin.getMarketManager().takeCustomBook();
                 if (toGive == null) {
-                    if (Math.random() < 0.3 && tryGiveExcellentBook(p)) continue;
-                    toGive = createRandomEnchantedBook();
+                    // EE интеграция: пробуем EE-книгу, потом ванильную
+                    toGive = MarketItemFactory.createRandomEnchantedBook();
                 }
             }
             p.getInventory().addItem(toGive);
@@ -585,7 +585,7 @@ public class MarketGuiListener implements Listener {
         Material m = getMarketMaterial(plugin, itemId);
         int vkId = VKChatBridge.getLinkedVkId(p);
         if (vkId == -1 && !ru.example.vkchat.util.VKChatBridge.hasPass(p)) { p.sendMessage("§cПривяжи ВК (/vklink)!"); return; }
-        int price = (int) Math.max(1, Math.round(plugin.getConfig().getInt("limited-items." + itemId + ".price", 1000) * donorBuyMultiplier(p)));
+        int price = (int) Math.max(1, Math.round(plugin.getConfig().getInt("limited-items." + itemId + ".price", 1000) * MarketItemFactory.donorBuyMultiplier(p)));
         int limit = plugin.getConfig().getInt("limited-items." + itemId + ".daily-limit", 1);
         String today = new java.text.SimpleDateFormat("yyyyMMdd").format(new java.util.Date());
         NamespacedKey limitKey = new NamespacedKey(plugin, "limited_" + today + "_" + itemId.toLowerCase());
@@ -640,7 +640,7 @@ public class MarketGuiListener implements Listener {
                     if (toRemove == 0) break;
                 }
             }
-            double donorMult = donorSellMultiplierStatic(p);
+            double donorMult = MarketItemFactory.donorSellMultiplier(p);
 
             int rep = Math.max(1, (int) Math.round(plugin.getMarketManager().calculateBulkSellPrice(itemId, count) * donorMult));
             totalRep += rep;
@@ -732,7 +732,7 @@ public class MarketGuiListener implements Listener {
                     if (toRemove == 0) break;
                 }
             }
-            double donorMult = donorSellMultiplier(p);
+            double donorMult = MarketItemFactory.donorSellMultiplier(p);
             int rep = Math.max(1, (int) Math.round(plugin.getMarketManager().calculateBulkSellPrice(itemId, count) * donorMult));
             totalRep += rep;
             totalCount += count;

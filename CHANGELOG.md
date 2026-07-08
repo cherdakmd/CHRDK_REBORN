@@ -1,5 +1,48 @@
 # CHANGELOG — VKChat Ultimate / CHRDK REBORN
 
+## v2.2.0 — 8 Июля 2026 — Market EE Integration
+
+### 🧙 ExcellentEnchants Integration (Market v3.2.0)
+
+- **NEW: `ExcellentEnchantsBridge`** — полноценный мост между маркетом и ExcellentEnchants
+  - Кешированный реестр EE-зачарований с автообновлением (30 мин)
+  - Получение EE-чар по раритетности (common/uncommon/rare/exotic/mythic)
+  - Получение EE-чар по типу предмета (sword, pickaxe, armor...)
+  - Создание EE-книг для рынка по ключу или раритетности
+  - Взвешенная генерация (common=40%, uncommon=30%, rare=18%, exotic=9%, mythic=3%)
+  - Graceful fallback: EE не установлен → ванильные книги
+  - Проверка конфликтов чар через EnchantmentConflictManager
+  - Читаемые имена и раритетность в lore книг
+
+- **NEW: EE-книги в конфигурации рынка**
+  - `EE_BOOK_RANDOM` — случайная EE-книга (500 реп)
+  - `EE_BOOK_RARE` — редкая EE-книга (1500 реп)
+  - `EE_BOOK_EXOTIC` — экзотическая EE-книга (5000 реп)
+  - Параметр `ee-random: true` + `ee-min-rarity` для фильтрации
+
+- **NEW: Конфигурация EE-интеграции** в config.yml
+  - `excellent-enchants.enabled` — включение/выключение
+  - `excellent-enchants.book-rarity-weights` — веса раритетов
+  - `excellent-enchants.replace-vanilla-books` — замена ванильных книг на EE
+  - `excellent-enchants.rarity-price-multipliers` — ценовые множители по раритету
+  - `excellent-enchants.cache-refresh-interval` — интервал обновления кеша
+
+- **IMPROVE: MarketItemFactory v2.0**
+  - Все методы создания книг используют ExcellentEnchantsBridge
+  - `createMarketItem()` показывает EE-раритетность и имя чар в lore
+  - Римские цифры для уровней (I, II, III, IV, V...)
+  - Единые донат-множители без дублирования
+
+- **IMPROVE: MarketGuiListener**
+  - Все вызовы `donorSellMultiplier()` / `donorBuyMultiplier()` → `MarketItemFactory.*`
+  - Устаревшие `_deprecated` методы помечены к удалению
+  - Покупка книг: EE → fallback на ванильные
+  - `tryGiveExcellentBook()` заменён на ExcellentEnchantsBridge
+
+- **FIX: plugin.yml** — добавлен `softdepend: [ExcellentEnchants]`
+
+---
+
 ## v2.1.1 — 8 Июля 2026 — Рефакторинг
 
 ### 🏗️ Рефакторинг модуля Market (v3.1.0)

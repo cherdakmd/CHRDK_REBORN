@@ -1,8 +1,9 @@
 name: VKChatMarket
-version: "3.1.0"
+version: "3.2.0"
 main: ru.example.vkchatmarket.VKChatMarketPlugin
 api-version: "1.16"
 depend: [VKChat]
+softdepend: [ExcellentEnchants]
 commands:
   market:
     description: Открыть меню динамической экономической биржи торговли

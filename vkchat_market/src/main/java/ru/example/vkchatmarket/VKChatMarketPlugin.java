@@ -7,6 +7,7 @@ import ru.example.vkchat.config.ConfigMigrationUtil;
 import ru.example.vkchatmarket.commands.MarketCommand;
 import ru.example.vkchatmarket.data.MarketFun;
 import ru.example.vkchatmarket.data.MarketManager;
+import ru.example.vkchatmarket.integration.ExcellentEnchantsBridge;
 import ru.example.vkchatmarket.listeners.MarketGuiListener;
 
 public class VKChatMarketPlugin extends JavaPlugin {
@@ -37,6 +38,9 @@ public class VKChatMarketPlugin extends JavaPlugin {
             return;
         }
 
+        // Инициализация ExcellentEnchants моста
+        ExcellentEnchantsBridge.initialize();
+
         marketManager = new MarketManager(this);
         marketFun = new MarketFun(this);
         marketFun.load();
@@ -64,7 +68,12 @@ public class VKChatMarketPlugin extends JavaPlugin {
         // Квест дня обновляется при старте
         marketFun.ensureDailyQuest();
 
-        getLogger().info("VKChatMarket успешно запущен!");
+        // EE-кеш обновляется каждые 30 минут (подхватывает новые чары при reload EE)
+        if (ExcellentEnchantsBridge.isEnabled()) {
+            getServer().getScheduler().runTaskTimer(this, ExcellentEnchantsBridge::refreshCache, 36000L, 36000L);
+        }
+
+        getLogger().info("VKChatMarket v3.2.0 запущен! EE: " + (ExcellentEnchantsBridge.isEnabled() ? "✅" : "❌"));
     }
 
     @Override

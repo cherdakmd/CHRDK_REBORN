@@ -9,21 +9,26 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
 import ru.example.vkchatmarket.VKChatMarketPlugin;
+import ru.example.vkchatmarket.integration.ExcellentEnchantsBridge;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
- * MarketItemFactory — фабрика ItemStack для GUI рынка.
- * Вынесена из MarketGuiListener для устранения God-класса.
+ * MarketItemFactory v2.0 — фабрика ItemStack для GUI рынка.
+ * + Интеграция с ExcellentEnchants через ExcellentEnchantsBridge
+ * + Единые донат-множители (без дублирования)
  */
 public final class MarketItemFactory {
 
     private MarketItemFactory() {}
 
-    /**
-     * Создать базовый предмет с именем и lore.
-     */
+    // ═══════════════════════════════════════
+    // БАЗОВЫЕ ПРЕДМЕТЫ
+    // ═══════════════════════════════════════
+
     public static ItemStack create(Material mat, String name, String... lore) {
         ItemStack it = new ItemStack(mat);
         ItemMeta meta = it.getItemMeta();
@@ -35,9 +40,6 @@ public final class MarketItemFactory {
         return it;
     }
 
-    /**
-     * Создать предмет-категорию.
-     */
     public static ItemStack categoryItem(VKChatMarketPlugin plugin, Material mat,
                                           String category, String name, String... desc) {
         ItemStack it = new ItemStack(mat);
@@ -52,9 +54,6 @@ public final class MarketItemFactory {
         return it;
     }
 
-    /**
-     * Создать навигационную кнопку.
-     */
     public static ItemStack navItem(VKChatMarketPlugin plugin, Material mat,
                                      String name, int page, String category) {
         ItemStack it = new ItemStack(mat);
@@ -69,9 +68,6 @@ public final class MarketItemFactory {
         return it;
     }
 
-    /**
-     * Создать кнопку "Продать всё".
-     */
     public static ItemStack sellAllItem(VKChatMarketPlugin plugin) {
         ItemStack it = new ItemStack(Material.CHEST_MINECART);
         ItemMeta meta = it.getItemMeta();
@@ -91,11 +87,8 @@ public final class MarketItemFactory {
         return it;
     }
 
-    /**
-     * Создать предмет подтверждения продажи.
-     */
     public static ItemStack confirmSellAllItem(VKChatMarketPlugin plugin) {
-        ItemStack it = new ItemStack(Material.LIME_STAINED_GLASS_PANE);
+        ItemStack it = new ItemStack(Material.LIME_CONCRETE);
         ItemMeta meta = it.getItemMeta();
         if (meta == null) return it;
         meta.setDisplayName("§a§l✅ ПОДТВЕРДИТЬ ПРОДАЖУ");
@@ -107,10 +100,49 @@ public final class MarketItemFactory {
         return it;
     }
 
+    // ═══════════════════════════════════════
+    // ЗАЧАРОВАННЫЕ КНИГИ (EE ИНТЕГРАЦИЯ)
+    // ═══════════════════════════════════════
+
+    /**
+     * Создать зачарованную книгу для рынка.
+     * Приоритет: ExcellentEnchants → ванильные.
+     *
+     * @param enchKey ключ зачарования (vanilla name или EE key)
+     * @param level уровень
+     * @return книга или null
+     */
+    public static ItemStack createBookForMarket(String enchKey, int level) {
+        return ExcellentEnchantsBridge.createBookForMarket(enchKey, level);
+    }
+
     /**
      * Создать случайную зачарованную книгу.
+     * EE доступен → взвешенная EE-книга.
+     * EE не доступен → ванильная книга из пула.
      */
     public static ItemStack createRandomEnchantedBook() {
+        // Приоритет: ExcellentEnchants
+        if (ExcellentEnchantsBridge.isEnabled()) {
+            ItemStack eeBook = ExcellentEnchantsBridge.createWeightedRandomEEBook();
+            if (eeBook != null) return eeBook;
+        }
+
+        // Fallback: ванильные книги
+        return createVanillaRandomBook();
+    }
+
+    /**
+     * Создать случайную EE-книгу конкретной раритетности.
+     */
+    public static ItemStack createRandomEEBook(String rarity) {
+        return ExcellentEnchantsBridge.createRandomEEBook(rarity);
+    }
+
+    /**
+     * Ванильная случайная книга (fallback).
+     */
+    private static ItemStack createVanillaRandomBook() {
         Enchantment[] pool = {
                 Enchantment.DURABILITY, Enchantment.DIG_SPEED,
                 Enchantment.LOOT_BONUS_BLOCKS, Enchantment.LOOT_BONUS_MOBS,
@@ -132,8 +164,135 @@ public final class MarketItemFactory {
     }
 
     /**
-     * Определить иконку для категории.
+     * Проверить, подходит ли книга для рынка (конфликты).
      */
+    public static boolean isBookValidForMarket(ItemStack book) {
+        return ExcellentEnchantsBridge.isBookValidForMarket(book);
+    }
+
+    /**
+     * Получить читаемое имя зачарования с раритетностью.
+     */
+    public static String getEnchantDisplayLine(Enchantment ench, int level) {
+        String name = ExcellentEnchantsBridge.getEnchantDisplayName(ench);
+        String rarity = ExcellentEnchantsBridge.getRarityDisplay(ench);
+        return rarity + " " + name + " " + toRoman(level);
+    }
+
+    // ═══════════════════════════════════════
+    // ПРЕДМЕТЫ РЫНКА С EE LORE
+    // ═══════════════════════════════════════
+
+    /**
+     * Создать предмет для отображения в GUI рынка с полной информацией.
+     * Включает EE-информацию о зачарованиях.
+     */
+    public static ItemStack createMarketItem(VKChatMarketPlugin plugin, String itemId) {
+        String name = plugin.getConfig().getString("items." + itemId + ".name", itemId);
+        double sellPrice = plugin.getMarketManager().getCurrentPrice(itemId);
+        double buyPrice = plugin.getMarketManager().getBuyPrice(itemId);
+        double basePrice = plugin.getConfig().getDouble("items." + itemId + ".base-price", 10.0);
+
+        ItemStack displayItem = createCustomItem(plugin, itemId);
+        ItemMeta meta = displayItem.getItemMeta();
+        meta.setDisplayName("§f" + ChatColor.translateAlternateColorCodes('&', name));
+        List<String> lore = new ArrayList<>();
+
+        // Информация о EE-зачаровании (если это книга)
+        String enchKey = plugin.getConfig().getString("items." + itemId + ".enchant", "");
+        if (!enchKey.isEmpty()) {
+            Enchantment ench = resolveEnchantment(enchKey);
+            if (ench != null) {
+                int level = plugin.getConfig().getInt("items." + itemId + ".enchant-level", 1);
+                lore.add(ExcellentEnchantsBridge.getRarityDisplay(ench));
+                lore.add("§9" + ExcellentEnchantsBridge.getEnchantDisplayName(ench) + " " + toRoman(level));
+                lore.add("");
+            }
+        }
+
+        // Активные события
+        for (var ev : plugin.getMarketManager().getActiveEvents()) {
+            if (ev.itemId.equals(itemId)) {
+                long minLeft = Math.max(1, (ev.expireTime - System.currentTimeMillis()) / 60000);
+                lore.add("§d⚡ " + ev.name + " §7(ещё " + minLeft + " мин)");
+                break;
+            }
+        }
+
+        // Flash sale
+        if (plugin.getMarketFun().isFlashSaleActive(itemId)) {
+            lore.add("§e⚡ FLASH SALE §7— скидка §c"
+                    + (int)(plugin.getMarketFun().getFlashSaleDiscount() * 100) + "%§7!");
+        }
+
+        lore.add("");
+        double delta = basePrice > 0 ? ((sellPrice - basePrice) / basePrice) * 100.0 : 0;
+        String trend = delta >= 5 ? " §a▲" : delta <= -5 ? " §c▼" : "";
+        lore.add("§6💰 Продажа: §e" + String.format("%.0f", sellPrice) + " реп" + trend);
+        lore.add("§6🛒 Покупка: §e" + String.format("%.0f", buyPrice) + " реп");
+
+        // Сток
+        int stock = plugin.getMarketManager().getStock(itemId);
+        int scarcityThreshold = plugin.getConfig().getInt("items." + itemId + ".scarcity-threshold", 0);
+        String stockIcon;
+        if ("ENCHANTED_BOOK".equals(itemId) || enchKey != null && !enchKey.isEmpty())
+            stockIcon = "§a✓ Всегда в наличии";
+        else if (stock <= -50) stockIcon = "§4💀 КРИТ. ДЕФИЦИТ";
+        else if (stock <= 0) stockIcon = "§c⚠ Дефицит";
+        else if (scarcityThreshold > 0 && stock <= scarcityThreshold) stockIcon = "§e⚠ Мало: §f" + stock;
+        else stockIcon = "§a✓ В наличии: §f" + stock;
+        lore.add("§7" + stockIcon);
+
+        lore.add("");
+        lore.add("§eЛКМ — продать §7| §eПКМ — купить §7| §eShift — купить 16");
+        meta.setLore(lore);
+
+        meta.addItemFlags(ItemFlag.HIDE_ENCHANTS, ItemFlag.HIDE_ATTRIBUTES);
+        meta.getPersistentDataContainer().set(
+                new NamespacedKey(plugin, "market_item"),
+                PersistentDataType.STRING, itemId);
+        displayItem.setItemMeta(meta);
+        return displayItem;
+    }
+
+    /**
+     * Создать кастомный предмет (книгу с зачарованием).
+     * Поддерживает EE-зачарования через ExcellentEnchantsBridge.
+     */
+    public static ItemStack createCustomItem(VKChatMarketPlugin plugin, String itemId) {
+        String matName = plugin.getConfig().getString("items." + itemId + ".material", "");
+        Material mat;
+        if (!matName.isEmpty()) {
+            try { mat = Material.valueOf(matName); } catch (Exception e) { mat = Material.BARRIER; }
+        } else {
+            try { mat = Material.valueOf(itemId); } catch (Exception e) { mat = Material.BARRIER; }
+        }
+
+        String enchKey = plugin.getConfig().getString("items." + itemId + ".enchant", "");
+        if (!enchKey.isEmpty() && mat == Material.ENCHANTED_BOOK) {
+            int level = plugin.getConfig().getInt("items." + itemId + ".enchant-level", 1);
+            ItemStack book = ExcellentEnchantsBridge.createBookForMarket(enchKey, level);
+            if (book != null) return book;
+        }
+
+        return new ItemStack(mat);
+    }
+
+    /**
+     * Разрешить зачарование (EE или ванильное).
+     */
+    private static Enchantment resolveEnchantment(String key) {
+        // Пробуем EE
+        Enchantment ee = ExcellentEnchantsBridge.getEnchantment(key);
+        if (ee != null) return ee;
+        // Fallback: ванильное
+        return Enchantment.getByName(key);
+    }
+
+    // ═══════════════════════════════════════
+    // КАТЕГОРИИ И УТИЛИТЫ
+    // ═══════════════════════════════════════
+
     public static Material getCatIcon(String cat) {
         return switch (cat) {
             case "ores" -> Material.IRON_INGOT;
@@ -148,9 +307,6 @@ public final class MarketItemFactory {
         };
     }
 
-    /**
-     * Получить читаемое имя категории.
-     */
     public static String getCategoryDisplayName(String category) {
         return switch (category) {
             case "ores" -> "Руды и слитки";
@@ -170,9 +326,28 @@ public final class MarketItemFactory {
         };
     }
 
-    /**
-     * Определить донат-статус игрока.
-     */
+    // ═══════════════════════════════════════
+    // ДОНАТ-МНОЖИТЕЛИ (ЕДИНЫЙ ИСТОЧНИК)
+    // ═══════════════════════════════════════
+
+    public static double donorSellMultiplier(org.bukkit.entity.Player p) {
+        if (p.hasPermission("vkchat.donate.overlord")) return 1.70;
+        if (p.hasPermission("vkchat.donate.legend")) return 1.50;
+        if (p.hasPermission("vkchat.donate.star")) return 1.35;
+        if (p.hasPermission("vkchat.donate.flame")) return 1.20;
+        if (p.hasPermission("vkchat.donate.spark")) return 1.10;
+        return 1.0;
+    }
+
+    public static double donorBuyMultiplier(org.bukkit.entity.Player p) {
+        if (p.hasPermission("vkchat.donate.overlord")) return 0.35;
+        if (p.hasPermission("vkchat.donate.legend")) return 0.50;
+        if (p.hasPermission("vkchat.donate.star")) return 0.65;
+        if (p.hasPermission("vkchat.donate.flame")) return 0.80;
+        if (p.hasPermission("vkchat.donate.spark")) return 0.90;
+        return 1.0;
+    }
+
     public static String getDonorStatus(org.bukkit.entity.Player p) {
         if (p.hasPermission("vkchat.donate.overlord")) return "Повелитель";
         if (p.hasPermission("vkchat.donate.legend")) return "Легенда";
@@ -183,67 +358,22 @@ public final class MarketItemFactory {
         return "";
     }
 
-    /**
-     * Множитель продажи донатера (единый метод, без дублирования).
-     */
-    public static double donorSellMultiplier(org.bukkit.entity.Player p) {
-        if (p.hasPermission("vkchat.donate.overlord")) return 1.70;
-        if (p.hasPermission("vkchat.donate.legend")) return 1.50;
-        if (p.hasPermission("vkchat.donate.star")) return 1.35;
-        if (p.hasPermission("vkchat.donate.flame")) return 1.20;
-        if (p.hasPermission("vkchat.donate.spark")) return 1.10;
-        return 1.0;
-    }
-
-    /**
-     * Множитель покупки донатера.
-     */
-    public static double donorBuyMultiplier(org.bukkit.entity.Player p) {
-        if (p.hasPermission("vkchat.donate.overlord")) return 0.35;
-        if (p.hasPermission("vkchat.donate.legend")) return 0.50;
-        if (p.hasPermission("vkchat.donate.star")) return 0.65;
-        if (p.hasPermission("vkchat.donate.flame")) return 0.80;
-        if (p.hasPermission("vkchat.donate.spark")) return 0.90;
-        return 1.0;
-    }
-
-    /**
-     * Текстовый бонус продажи.
-     */
     public static String getSellBonus(org.bukkit.entity.Player p) {
         double mult = donorSellMultiplier(p);
         if (mult > 1.0) return "+" + String.format("%.0f", (mult - 1.0) * 100) + "%";
         return "нет";
     }
 
-    /**
-     * Текстовый бонус покупки.
-     */
     public static String getBuyBonus(org.bukkit.entity.Player p) {
-        if (p.hasPermission("vkchat.donate.overlord")) return "-65%";
-        if (p.hasPermission("vkchat.donate.legend")) return "-50%";
-        if (p.hasPermission("vkchat.donate.star")) return "-35%";
-        if (p.hasPermission("vkchat.donate.flame")) return "-20%";
-        if (p.hasPermission("vkchat.donate.spark")) return "-10%";
-        if (p.hasPermission("vkchat.donate.vip")) return "-5%";
+        double mult = donorBuyMultiplier(p);
+        if (mult < 1.0) return "-" + String.format("%.0f", (1.0 - mult) * 100) + "%";
         return "нет";
     }
 
-    /**
-     * Текстовый лимит-бонус.
-     */
-    public static String getLimitBonus(org.bukkit.entity.Player p) {
-        if (p.hasPermission("vkchat.donate.overlord")) return "x2.5";
-        if (p.hasPermission("vkchat.donate.legend")) return "x2.0";
-        if (p.hasPermission("vkchat.donate.star")) return "x1.5";
-        if (p.hasPermission("vkchat.donate.flame")) return "x1.3";
-        if (p.hasPermission("vkchat.donate.spark")) return "x1.1";
-        return "стандарт";
-    }
+    // ═══════════════════════════════════════
+    // УТИЛИТЫ
+    // ═══════════════════════════════════════
 
-    /**
-     * Проверка редкого товара.
-     */
     public static boolean isRareShopItem(String id) {
         return id.contains("TOTEM") || id.contains("ENCHANTED_GOLDEN_APPLE")
                 || id.contains("NETHERITE_INGOT") || id.contains("ECHO_SHARD")
@@ -251,42 +381,39 @@ public final class MarketItemFactory {
                 || id.contains("HEART_OF_THE_SEA");
     }
 
-    /**
-     * Угадать категорию по ID предмета.
-     */
-    public static String guessCategory(String id) {
-        if (id.contains("LOG") || id.contains("WOOD") || id.contains("PLANKS")) return "Дерево";
-        if (id.contains("ORE") || id.contains("INGOT") || id.contains("DIAMOND")
-                || id.contains("NETHERITE") || id.contains("GOLD")) return "Руды/слитки";
-        if (id.contains("APPLE") || id.contains("BREAD") || id.contains("CARROT")
-                || id.contains("POTATO") || id.contains("BEEF") || id.contains("PORK")
-                || id.contains("CHICKEN") || id.contains("WHEAT")) return "Еда/ферма";
-        if (id.contains("DIRT") || id.contains("GRASS") || id.contains("GRAVEL")
-                || id.contains("MUD")) return "Земля";
-        if (id.contains("ICE") || id.contains("SNOW")) return "Снег/лёд";
-        if (id.contains("WOOL") || id.contains("DYE") || id.contains("TERRACOTTA")) return "Декор";
-        if (id.contains("BLAZE") || id.contains("ENDER") || id.contains("GHAST")
-                || id.contains("SOUL")) return "Незер/мобы";
-        return "Ресурсы";
-    }
-
-    /**
-     * Нормализация категории.
-     */
     public static String normalizeCategory(String category) {
         if (category == null) return "all";
         String c = category.toLowerCase();
         if (c.equals("all") || c.equals("menu") || c.equals("все") || c.equals("категории")) return "menu";
-        if (c.equals("ores") || c.equals("руды") || c.equals("руды/слитки")) return "ores";
-        if (c.equals("food") || c.equals("еда") || c.equals("еда и ферма")) return "food";
+        if (c.equals("ores") || c.equals("руды")) return "ores";
+        if (c.equals("food") || c.equals("еда")) return "food";
         if (c.equals("wood") || c.equals("дерево")) return "wood";
-        if (c.equals("blocks") || c.equals("строй") || c.equals("стройматериалы")) return "blocks";
+        if (c.equals("blocks") || c.equals("строй")) return "blocks";
         if (c.equals("earth") || c.equals("земля")) return "earth";
-        if (c.equals("mob") || c.equals("мобы") || c.equals("лут мобов")) return "mob";
+        if (c.equals("mob") || c.equals("мобы")) return "mob";
         if (c.equals("decor") || c.equals("декор")) return "decor";
         if (c.equals("limited") || c.equals("редкости")) return "limited";
         if (c.equals("rare") || c.equals("книги")) return "rare";
         if (c.equals("trends") || c.equals("тренды")) return "trends";
         return "all";
+    }
+
+    /**
+     * Римские цифры для уровней зачарований.
+     */
+    public static String toRoman(int num) {
+        return switch (num) {
+            case 1 -> "I";
+            case 2 -> "II";
+            case 3 -> "III";
+            case 4 -> "IV";
+            case 5 -> "V";
+            case 6 -> "VI";
+            case 7 -> "VII";
+            case 8 -> "VIII";
+            case 9 -> "IX";
+            case 10 -> "X";
+            default -> String.valueOf(num);
+        };
     }
 }

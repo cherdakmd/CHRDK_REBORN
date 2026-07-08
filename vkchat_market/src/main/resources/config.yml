@@ -1314,6 +1314,51 @@ limited-items:
     name: "&3Сердце моря"
     price: 30000
     daily-limit: 1
+  # ═══ EE КНИГИ — только если ExcellentEnchants установлен ═══
+  # Эти предметы будут доступны только когда EE активен.
+  # Ключ enchant — это EE-ключ зачарования.
+  EE_BOOK_RANDOM:
+    name: "&5✦ Случайная EE-книга"
+    category: "Редкости"
+    material: "ENCHANTED_BOOK"
+    base-price: 500.0
+    min-price: 100.0
+    elasticity: 30.0
+    recovery-rate: 1
+    max-stock: 50
+    min-stock: -20
+    scarcity-threshold: 10
+    max-multiplier: 6.0
+    ee-random: true            # Спец. флаг: случайная EE-книга
+    ee-min-rarity: "common"    # Минимальная раритетность
+  EE_BOOK_RARE:
+    name: "&9✦ Редкая EE-книга"
+    category: "Редкости"
+    material: "ENCHANTED_BOOK"
+    base-price: 1500.0
+    min-price: 300.0
+    elasticity: 20.0
+    recovery-rate: 0
+    max-stock: 20
+    min-stock: -10
+    scarcity-threshold: 5
+    max-multiplier: 8.0
+    ee-random: true
+    ee-min-rarity: "rare"
+  EE_BOOK_EXOTIC:
+    name: "&d✦ Экзотическая EE-книга"
+    category: "Редкости"
+    material: "ENCHANTED_BOOK"
+    base-price: 5000.0
+    min-price: 1000.0
+    elasticity: 10.0
+    recovery-rate: 0
+    max-stock: 10
+    min-stock: -5
+    scarcity-threshold: 3
+    max-multiplier: 10.0
+    ee-random: true
+    ee-min-rarity: "exotic"
 
 # Market 3.0: реальная экономика
 market2:
@@ -1340,3 +1385,29 @@ market2:
     duration-ms: 300000      # 5 минут
   quest:
     reward: 1000             # Награда за квест
+
+# ═══════════════════════════════════════
+# EXCELLENT ENCHANTS ИНТЕГРАЦИЯ
+# ═══════════════════════════════════════
+excellent-enchants:
+  enabled: true              # Включить интеграцию с ExcellentEnchants
+  # Раритности EE-книг при покупке случайной книги
+  book-rarity-weights:
+    common: 40               # 40% шанс обычной книги
+    uncommon: 30             # 30% необычной
+    rare: 18                 # 18% редкой
+    exotic: 9                # 9% экзотической
+    mythic: 3                # 3% мифической
+  # Замена ванильных книг на EE-аналоги при покупке
+  replace-vanilla-books: true
+  # EE-книги в категории "Книги чар" рынка
+  show-in-rare-category: true
+  # Веса EE-раритетов для цены на рынке
+  rarity-price-multipliers:
+    common: 1.0
+    uncommon: 1.5
+    rare: 3.0
+    exotic: 7.0
+    mythic: 15.0
+  # Интервал обновления кеша EE-зачарований (тик)
+  cache-refresh-interval: 36000  # 30 минут
