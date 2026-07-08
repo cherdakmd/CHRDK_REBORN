@@ -1,5 +1,118 @@
 # CHANGELOG — VKChat Ultimate / CHRDK REBORN
 
+## v3.1.0 — 8 Июля 2026 — Pass System Full Refactor
+
+### 🔴 10 ИСПРАВЛЕНИЙ ПРОХОДКИ (PASS_FIX)
+
+| # | Критичность | Исправление |
+|---|------------|-------------|
+| 1 | 🔴 HIGH | Хранение проходок по UUID вместо имён (было `Set<String>` → `Map<UUID, PassHolder>`) |
+| 2 | 🔴 HIGH | Проверка истечения проходки при входе игрока (раньше только для донат-статусов) |
+| 3 | 🔴 HIGH | Проходка автоматически удаляется при получении донат-статуса (раньше сосуществовали) |
+| 4 | 🟡 MEDIUM | Валидация `passHolders` при загрузке — синхронизация с LuckPerms правами |
+| 5 | 🟡 MEDIUM | Отдельная длительность проходки `pass.duration-days` (не `donation-duration-days`) |
+| 6 | 🟡 MEDIUM | Пропуск выдачи проходки если игрок уже привязал ВК или имеет донат-статус |
+| 7 | 🟡 MEDIUM | Локальная репутация для проходочников имеет настраиваемый лимит (`pass.local-rep-cap`) |
+| 8 | 🟢 LOW | Очистка PDC `local_rep` при истечении/отзыве проходки (раньше оставался навсегда) |
+| 9 | 🟢 LOW | Save-ahead при выдаче/удалении проходки (идемпотентность как в DonateManager) |
+| 10 | 🔴 HIGH | Логика проходки вынесена из DonateManager в PassManager (SRP) |
+
+### 🟢 10 УЛУЧШЕНИЙ ПРОХОДКИ (PASS_IMPROVE)
+
+| # | Улучшение |
+|---|-----------|
+| 1 | Выделенный `PassManager` — Single Responsibility Principle |
+| 2 | `PassHolder` record с метаданными (UUID, grantDate, expiryDate, source, amountPaid) |
+| 3 | Миграция проходка → ВК: автоматический перенос локальной репутации при привязке ВК |
+| 4 | `/pass` — отдельная команда для игроков (статус, репутация, покупка) |
+| 5 | Grace-период: 1-3 дня после истечения проходки (настраиваемо) |
+| 6 | Аналитика: куплено / активно / истекло / конвертировано в ВК + процент конверсии |
+| 7 | Настраиваемые сообщения проходки из config.yml (8 новых шаблонов) |
+| 8 | События Bukkit: `PassGrantEvent`, `PassExpireEvent`, `PassConvertEvent` |
+| 9 | Автоочистка устаревших записей при загрузке + фоновая проверка каждые 5 мин |
+| 10 | `/pass buy` — информационная команда о покупке проходки |
+
+### 🏗️ Новые файлы
+
+| Файл | Назначение |
+|------|-----------|
+| `pass/PassManager.java` | Централизованный менеджер проходок: выдача, продление, истечение, конвертация |
+| `pass/PassCommand.java` | Команда /pass: info, rep, buy, list, give, remove, stats |
+| `pass/event/PassGrantEvent.java` | Bukkit Event — выдача проходки |
+| `pass/event/PassExpireEvent.java` | Bukkit Event — истечение проходки |
+| `pass/event/PassConvertEvent.java` | Bukkit Event — конвертация проходки в ВК |
+
+### 📦 Обновлённые файлы
+
+| Файл | Изменение |
+|------|-----------|
+| `DonateManager.java` | Делегирование проходки в PassManager, `pass_holders` убран из donations.yml |
+| `DonateCommand.java` | `/donate pass` делегирует в PassManager, `/donate status` показывает проходку |
+| `VKChatDonatePlugin.java` | Инициализация PassManager, слушатель `VKPlayerLinkEvent` для автоконвертации |
+| `config.yml` | v4: расширенный `pass` section (duration-days, grace-days, local-rep-cap, auto-convert), 8 новых сообщений |
+| `plugin.yml` | v3.1.0, `/pass` команда, `vkchat.pass.use`, `vkchat.pass.admin` |
+| `build.gradle` | v3.1.0 |
+
+### 🔄 Миграция данных
+
+- Старый формат `donations.yml` → `pass_holders: [name1, name2]` автоматически мигрируется в `pass_data.yml` по UUID
+- `pass_data.yml` содержит: `holders.<uuid>.{last-name, grant-date, expiry-date, source, amount-paid}` + `stats.*`
+- Поле `pass_holders` из `donations.yml` очищается при первом запуске v3.1
+
+---
+
+## v3.0.0 — 8 Июля 2026 — Donate Module Full Refactor
+
+### 🔴 10 ИСПРАВЛЕНИЙ (FIX)
+
+| # | Критичность | Исправление |
+|---|------------|-------------|
+| 1 | 🔴 HIGH | Все LP-операции через `LuckPermsHelper` (единая точка, нет размазывания) |
+| 2 | 🔴 HIGH | LP API вместо `dispatchCommand("lp ...")` где возможно (atomic, нет race condition) |
+| 3 | 🔴 HIGH | `getDaysLeft()` через чистый LuckPerms API (без reflection fallback) |
+| 4 | 🟡 MEDIUM | HTTP-клиент вынесен в `DonatePayClient` (Single Responsibility) |
+| 5 | 🟡 MEDIUM | Логирование HTTP-кода ошибки при polling (было молчание при 4xx/5xx) |
+| 6 | 🟡 MEDIUM | Защита API-токена от утечки в логи (раньше мог попасть в exception) |
+| 7 | 🟡 MEDIUM | Save-ahead `lastProcessedId` ПЕРЕД обработкой (идемпотентность) |
+| 8 | 🟡 MEDIUM | `processingTxIds` — защита от параллельной обработки одного доната |
+| 9 | 🟢 LOW | LP команды через UUID (а не имя) для онлайн-игроков |
+| 10 | 🟢 LOW | `fundraiserCollected` сохраняется между рестартами в donations.yml |
+
+### 🟢 10 УЛУЧШЕНИЙ (IMPROVE)
+
+| # | Улучшение |
+|---|-----------|
+| 1 | StatusDef — getters вместо public полей (encapsulation) |
+| 2 | Configurable donation duration (`donation-duration-days` в config.yml, не хардкод 30) |
+| 3 | Логирование всех донатов в `donate.log` (файловый аудит) + `DonateLogEntry` |
+| 4 | `/donate log` — просмотр последних 15 донатов для админов |
+| 5 | Проверка истёкших статусов при входе (уведомление за 3 дня и при истечении) |
+| 6 | `/donate upgrade` — информация о следующем статусе и сумме доплаты |
+| 7 | Улучшенное извлечение ника: пробуем `sender` и `comment` из DonatePay |
+| 8 | Настраиваемые сообщения в config.yml с переменными `{player}`, `{status}`, `{amount}` |
+| 9 | Fundraiser: broadcast при достижении 100% цели |
+| 10 | Статистика: `/donate stats` — общая сумма, количество донатеров, топ-5 |
+
+### 🏗️ Новые файлы
+
+| Файл | Назначение |
+|------|-----------|
+| `luckperms/LuckPermsHelper.java` | Централизованный LP API: setTempPermission, extendTempPermission, getDaysLeft |
+| `api/DonatePayClient.java` | HTTP-клиент DonatePay: fetch, parse, error handling |
+
+### 📦 Обновлённые файлы
+
+| Файл | Изменение |
+|------|-----------|
+| `DonateManager.java` | Полная переработка: LP через LuckPermsHelper, логирование, конфигурируемые сообщения |
+| `DonateCommand.java` | +upgrade, +log, +stats подкоманды |
+| `VKChatDonatePlugin.java` | LuckPermsHelper.init(), checkExpiredStatus, статистика при запуске |
+| `config.yml` | v3: +donation-duration-days, +pass section, +messages with variables |
+| `plugin.yml` | v3.0.0, +vkchat.donate.use |
+| `build.gradle` | v3.0.0 |
+
+---
+
 ## v2.2.0 — 8 Июля 2026 — Market EE Integration
 
 ### 🧙 ExcellentEnchants Integration (Market v3.2.0)
