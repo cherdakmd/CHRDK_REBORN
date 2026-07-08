@@ -102,9 +102,10 @@ public class MarketGuiListener implements Listener {
 
         // ═══ НИЖНИЙ РЯД ═══
         inv.setItem(45, categoryItem(plugin, Material.CLOCK, "trends", "§b📈 Тренды", "§7Горячие товары"));
-        inv.setItem(47, categoryItem(plugin, Material.DIAMOND, "limited", "§d💎 Редкости дня", "§7Лимит. товары"));
-        inv.setItem(49, sellAllItem(plugin));
-        inv.setItem(51, item(Material.BOOK, "§e📋 Квест дня", "§7" + plugin.getMarketFun().getQuestInfo()));
+        inv.setItem(46, categoryItem(plugin, Material.ENCHANTED_BOOK, "rare", "§d📚 Книги чар", "§7Ванильные зачарования"));
+        inv.setItem(48, categoryItem(plugin, Material.DIAMOND, "limited", "§d💎 Редкости дня", "§7Лимит. товары"));
+        inv.setItem(50, sellAllItem(plugin));
+        inv.setItem(52, item(Material.BOOK, "§e📋 Квест дня", "§7" + plugin.getMarketFun().getQuestInfo()));
         inv.setItem(53, item(Material.BARRIER, "§c✕ Закрыть"));
 
         p.openInventory(inv);
@@ -354,8 +355,7 @@ public class MarketGuiListener implements Listener {
     }
 
     private static ItemStack createLimitedItem(VKChatMarketPlugin plugin, String itemId) {
-        Material m;
-        try { m = Material.valueOf(itemId); } catch (Exception e) { m = Material.BARRIER; }
+        Material m = getMarketMaterial(plugin, itemId);
         String name = plugin.getConfig().getString("limited-items." + itemId + ".name", itemId);
         int price = plugin.getConfig().getInt("limited-items." + itemId + ".price", 1000);
         int limit = plugin.getConfig().getInt("limited-items." + itemId + ".daily-limit", 1);
@@ -745,8 +745,9 @@ public class MarketGuiListener implements Listener {
         category = normalizeCategory(category);
         if (isRareShopItem(id)) return false;
         if (category.equals("limited")) return false;
-        if (category.equals("all")) return true;
         String cfg = plugin.getConfig().getString("items." + id + ".category", guessCategory(id)).toLowerCase();
+        if (category.equals("rare")) return cfg.contains("редкост") || id.contains("ENCHANT_BOOK");
+        if (category.equals("all")) return true;
 
         if (category.equals("ores")) return cfg.contains("руд") || cfg.contains("слит") || id.contains("INGOT") || id.contains("ORE") || id.contains("DIAMOND") || id.contains("COPPER") || id.contains("EMERALD") || id.contains("SCRAP") || id.contains("DEBRIS");
         if (category.equals("food")) return cfg.contains("еда") || cfg.contains("ферм") || id.contains("BREAD") || id.contains("APPLE") || id.contains("CARROT") || id.contains("POTATO") || id.contains("WHEAT") || id.contains("PUMPKIN") || id.contains("MELON") || id.contains("BERRY") || id.contains("BEETROOT") || id.contains("SUGAR_CANE") || id.contains("BAMBOO") || id.contains("CACTUS");
@@ -775,6 +776,7 @@ public class MarketGuiListener implements Listener {
         if (category.equals("декор") || category.equals("decor")) return "decor";
         if (category.equals("декор2") || category.equals("decor2")) return "decor2";
         if (category.equals("limited") || category.equals("лимит") || category.equals("редкости")) return "limited";
+        if (category.equals("rare") || category.equals("редкое") || category.equals("книги")) return "rare";
         if (category.equals("trends") || category.equals("тренды")) return "trends";
         if (category.equals("menu") || category.equals("категории")) return "menu";
         return "all";
@@ -793,6 +795,7 @@ public class MarketGuiListener implements Listener {
             case "decor": return "Декор";
             case "decor2": return "Декор 2";
             case "limited": return "Редкости дня";
+            case "rare": return "Книги и редкости";
             case "all": return "Все товары";
             default: return "Биржа";
         }
