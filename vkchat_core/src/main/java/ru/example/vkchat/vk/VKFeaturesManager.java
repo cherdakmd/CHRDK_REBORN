@@ -4,7 +4,7 @@ import ru.example.vkchat.VKChatPlugin;
 
 /**
  * Центральный менеджер всех VK-фич.
- * Объединяет RiddleManager, MiniGamesManager и GamesManager.
+ * Объединяет RiddleManager и GamesManager.
  * Упрощает VKChatPlugin и улучшает масштабируемость.
  */
 public class VKFeaturesManager {
@@ -12,7 +12,6 @@ public class VKFeaturesManager {
     private final VKChatPlugin plugin;
 
     private RiddleManager riddleManager;
-    private MiniGamesManager miniGamesManager;
     private GamesManager gamesManager;
 
     public VKFeaturesManager(VKChatPlugin plugin) {
@@ -24,20 +23,15 @@ public class VKFeaturesManager {
      */
     public void initialize() {
         this.riddleManager = new RiddleManager(plugin);
-        this.miniGamesManager = new MiniGamesManager(plugin);
         this.gamesManager = new GamesManager(plugin);
 
-        plugin.getLogger().info("VK Features initialized: Riddles, MiniGames, Games");
+        plugin.getLogger().info("VK Features initialized: Riddles, Games");
     }
 
     // === Getters ===
 
     public RiddleManager getRiddleManager() {
         return riddleManager;
-    }
-
-    public MiniGamesManager getMiniGamesManager() {
-        return miniGamesManager;
     }
 
     public GamesManager getGamesManager() {

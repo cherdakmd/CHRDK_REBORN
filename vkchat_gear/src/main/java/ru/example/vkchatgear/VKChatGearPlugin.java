@@ -15,7 +15,6 @@ import ru.example.vkchatgear.commands.ForgeCommand;
 import ru.example.vkchatgear.commands.GearAdminCommand;
 import ru.example.vkchatgear.runes.RuneCommand;
 import ru.example.vkchatgear.runes.RuneListener;
-import ru.example.vkchatgear.donate.DonateStatusResolver;
 import ru.example.vkchatgear.forge.ForgeLogger;
 import ru.example.vkchatgear.forge.SetBonusManager;
 import ru.example.vkchatgear.runes.RuneRegistry;

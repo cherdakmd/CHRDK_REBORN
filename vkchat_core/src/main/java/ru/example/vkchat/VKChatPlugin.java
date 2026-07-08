@@ -292,10 +292,6 @@ public class VKChatPlugin extends JavaPlugin {
         return vkFeaturesManager != null ? vkFeaturesManager.getGamesManager() : null;
     }
 
-    public ru.example.vkchat.vk.MiniGamesManager getMiniGamesManager() {
-        return vkFeaturesManager != null ? vkFeaturesManager.getMiniGamesManager() : null;
-    }
-
     public ru.example.vkchat.vk.RiddleManager getRiddleManager() {
         return vkFeaturesManager != null ? vkFeaturesManager.getRiddleManager() : null;
     }

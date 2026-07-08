@@ -16,7 +16,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Date;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -24,10 +23,6 @@ public class ConfigManager {
     private final VKChatPlugin plugin;
     private FileConfiguration messages;
     private File messagesFile;
-    private FileConfiguration badwords;
-    private File badwordsFile;
-    private FileConfiguration eventsConfig;
-    private File eventsFile;
     private FileConfiguration hardcoreConfig;
     private File hardcoreFile;
     private final Pattern hexPattern = Pattern.compile("&#[a-fA-F0-9]{6}");
@@ -46,28 +41,6 @@ public class ConfigManager {
         }
         updateYamlWithDefaults(messagesFile, "messages.yml");
         messages = YamlConfiguration.loadConfiguration(messagesFile);
-
-        badwordsFile = new File(plugin.getDataFolder(), "badwords.yml");
-        if (!badwordsFile.exists()) {
-            try { plugin.saveResource("badwords.yml", false); } catch (Exception ex) {
-                plugin.getLogger().warning("badwords.yml не найден в JAR, создаю дефолтный.");
-                try { badwordsFile.createNewFile(); } catch (Exception ignored) {}
-            }
-        }
-        updateYamlWithDefaults(badwordsFile, "badwords.yml");
-        badwords = YamlConfiguration.loadConfiguration(badwordsFile);
-
-        eventsFile = new File(plugin.getDataFolder(), "events.yml");
-        if (!eventsFile.exists()) {
-            try {
-                plugin.saveResource("events.yml", false);
-            } catch (Exception ex) {
-                plugin.getLogger().warning("events.yml не найден в JAR, создаю дефолтный.");
-                try { eventsFile.createNewFile(); } catch (Exception ignored) {}
-            }
-        }
-        updateYamlWithDefaults(eventsFile, "events.yml");
-        eventsConfig = YamlConfiguration.loadConfiguration(eventsFile);
 
         hardcoreFile = new File(plugin.getDataFolder(), "hardcore.yml");
         if (!hardcoreFile.exists()) {
@@ -159,17 +132,8 @@ public class ConfigManager {
         }
     }
 
-    
-    public FileConfiguration getEventsConfig() {
-        return eventsConfig;
-    }
-    
     public FileConfiguration getHardcoreConfig() {
         return hardcoreConfig;
-    }
-
-    public java.util.List<String> getBadWords() {
-        return badwords.getStringList("words");
     }
 
     public String getMessage(String path) {
