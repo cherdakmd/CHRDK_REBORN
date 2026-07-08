@@ -341,7 +341,7 @@ public class NationListener implements Listener {
         if (!canBuild(p, e.getBlock())) e.setCancelled(true);
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.LOW)
     public void onBreak(BlockBreakEvent e) {
         Player p = e.getPlayer();
         org.bukkit.block.Block b = e.getBlock();
