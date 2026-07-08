@@ -52,7 +52,8 @@ public class ArtifactListener implements Listener {
     private final Set<Integer> boostingIds = ConcurrentHashMap.newKeySet();
     private final Set<String> absorbedCurses = Collections.synchronizedSet(new HashSet<>());
     private final java.util.Map<java.util.UUID, Long> revivalCooldowns = new java.util.concurrent.ConcurrentHashMap<>();
-    private final Set<UUID> processing = new HashSet<>(); // Защита от рекурсии
+    private final Set<UUID> processing = new HashSet<>();
+    private final Set<UUID> warnedOverLimit = new HashSet<>();
     private static final java.util.UUID ARTIFACT_HEALTH_UUID = java.util.UUID.fromString("7d4f6b7a-2f5a-4dbd-9c8c-0df91f5c1001");
     private static final java.util.UUID ARTIFACT_SPEED_UUID = java.util.UUID.fromString("7d4f6b7a-2f5a-4dbd-9c8c-0df91f5c1002");
     private static final java.util.UUID ARTIFACT_ARMOR_UUID = java.util.UUID.fromString("7d4f6b7a-2f5a-4dbd-9c8c-0df91f5c1003");
@@ -104,11 +105,16 @@ public class ArtifactListener implements Listener {
                 ConsumablesListener.ENCHANTMENT_SCROLL_BOOST.remove(p.getUniqueId());
             }
 
+            int maxArtifacts = plugin.getConfig().getInt("artifacts.max-artifacts", 5);
+            int processedCount = 0;
+            boolean warnedThisTick = false;
+
             for (ItemStack item : p.getInventory().getContents()) {
                 if (item == null || !item.hasItemMeta()) continue;
                 ItemMeta meta = item.getItemMeta();
                 if (!meta.getPersistentDataContainer().has(isArtifactKey, PersistentDataType.INTEGER)) continue;
 
+                // Fragile expiry check — always process regardless of limit
                 if (meta.getPersistentDataContainer().has(expireKey, PersistentDataType.LONG)) {
                     long expire = meta.getPersistentDataContainer().get(expireKey, PersistentDataType.LONG);
                     if (System.currentTimeMillis() > expire) {
@@ -117,6 +123,17 @@ public class ArtifactListener implements Listener {
                         continue;
                     }
                 }
+
+                // Если превышен лимит — артефакт не активен
+                if (processedCount >= maxArtifacts) {
+                    if (!warnedThisTick && !warnedOverLimit.contains(p.getUniqueId())) {
+                        warnedOverLimit.add(p.getUniqueId());
+                        p.sendMessage(org.bukkit.ChatColor.YELLOW + "☠ У тебя больше " + maxArtifacts + " артефактов! Лишние неактивны. Выбрось или разбери лишние.");
+                    }
+                    warnedThisTick = true;
+                    continue;
+                }
+                processedCount++;
 
                 String buff = meta.getPersistentDataContainer().get(buffKey, PersistentDataType.STRING);
                 int level = meta.getPersistentDataContainer().get(levelKey, PersistentDataType.INTEGER);
@@ -262,6 +279,11 @@ public class ArtifactListener implements Listener {
                         Bukkit.getScheduler().runTaskLater(plugin, () -> absorbedCurses.remove(curseAbsorbKey), 1200L);
                     }
                 }
+            }
+
+            // Сброс предупреждения если игрок снова в лимите
+            if (processedCount <= maxArtifacts) {
+                warnedOverLimit.remove(p.getUniqueId());
             }
 
             // TELEKINESIS: pickup nearby items
