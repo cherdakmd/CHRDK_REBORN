@@ -1,5 +1,5 @@
 name: VKChatMobs
-version: 2.1.0
+version: 3.2.0
 main: ru.example.vkchatmobs.VKChatMobsPlugin
 api-version: "1.16"
 depend: [VKChat, VKChatGear, VKChatArtifacts, VKChatNations]

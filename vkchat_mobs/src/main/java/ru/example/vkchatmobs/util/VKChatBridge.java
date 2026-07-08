@@ -12,6 +12,11 @@ import java.util.logging.Level;
  * Единый фасад для всех вызовов VKChat API.
  * Защищает от NPE, заворачивает все исключения в try-catch,
  * предоставляет единый стиль вызовов для всех модулей.
+ *
+ * FIX #6:  Добавлены hasPass()/getLocalReputation()/takeLocalReputation()/
+ *          addEffectiveRep()/takeEffectiveRep() для поддержки проходки.
+ * IMPROVE #5: Проходчики теперь получают локальную репутацию через PDC.
+ * IMPROVE #7: Делегирование в core VKChatBridge вместо дублирования.
  */
 public class VKChatBridge {
     private static VKChatPlugin plugin;
@@ -34,71 +39,88 @@ public class VKChatBridge {
 
     /** Получить VK ID игрока. Возвращает -1 при ошибке. */
     public static int getLinkedVkId(Player p) {
-        if (p == null) return -1;
-        AuthManager a = auth();
-        if (a == null) return -1;
-        try { return a.getLinkedVkId(p); } catch (Exception e) { return -1; }
+        return ru.example.vkchat.util.VKChatBridge.getLinkedVkId(p);
     }
 
     /** Получить VK ID по UUID. */
     public static int getLinkedVkId(java.util.UUID uuid) {
-        if (uuid == null) return -1;
-        VKChatAPI a = api();
-        if (a == null) return -1;
-        try { return a.getLinkedVkId(uuid); } catch (Exception e) { return -1; }
+        return ru.example.vkchat.util.VKChatBridge.getLinkedVkId(uuid);
     }
 
     /** Баланс репутации. */
     public static int getReputation(int vkId) {
-        if (vkId <= 0) return 0;
-        VKChatAPI a = api();
-        if (a == null) return 0;
-        try { return a.getReputation(vkId); } catch (Exception e) { return 0; }
+        return ru.example.vkchat.util.VKChatBridge.getReputation(vkId);
     }
 
     /** Начислить репутацию. */
     public static boolean addReputation(int vkId, int amount) {
-        if (vkId <= 0 || amount <= 0) return false;
-        VKChatAPI a = api();
-        if (a == null) return false;
-        try { a.addReputation(vkId, amount); return true; } catch (Exception e) { return false; }
+        return ru.example.vkchat.util.VKChatBridge.addPoints(vkId, amount);
     }
 
     /** Списать репутацию. */
     public static boolean takeReputation(int vkId, int amount) {
-        if (vkId <= 0 || amount <= 0) return false;
-        VKChatAPI a = api();
-        if (a == null) return false;
-        try { a.takeReputation(vkId, amount); return true; } catch (Exception e) { return false; }
+        return ru.example.vkchat.util.VKChatBridge.takeReputation(vkId, amount);
     }
 
     /** Начислить репутацию (аналог ReputationManager.addPoints). */
     public static boolean addPoints(int vkId, int amount) {
-        if (vkId <= 0 || amount <= 0) return false;
-        VKChatAPI a = api();
-        if (a == null) return false;
-        try { a.addReputation(vkId, amount); return true; } catch (Exception e) { return false; }
+        return ru.example.vkchat.util.VKChatBridge.addPoints(vkId, amount);
     }
 
     /** Отправить личное сообщение в ВК. */
     public static boolean sendMessage(int vkId, String text) {
-        if (vkId <= 0 || text == null) return false;
-        VKChatAPI a = api();
-        if (a == null) return false;
-        try { a.sendMessage(vkId, text); return true; } catch (Exception e) { return false; }
+        return ru.example.vkchat.util.VKChatBridge.sendMessage(vkId, text);
     }
 
     /** Отправить в общий чат ВК. */
     public static boolean sendToMainChat(String text) {
-        if (text == null) return false;
-        VKChatAPI a = api();
-        if (a == null) return false;
-        try { a.sendToMainChat(text); return true; } catch (Exception e) { return false; }
+        return ru.example.vkchat.util.VKChatBridge.sendToMainChat(text);
     }
 
     /** Кровавая Луна активна. */
     public static boolean isBloodMoonActive() {
-        if (!available) return false;
-        try { return plugin.getBloodMoonManager() != null && plugin.getBloodMoonManager().isActive(); } catch (Exception e) { return false; }
+        return ru.example.vkchat.util.VKChatBridge.isBloodMoonActive();
+    }
+
+    // ═══ ПРОХОДКА (pass) + ЛОКАЛЬНАЯ РЕПУТАЦИЯ ═══
+
+    /** Имеет ли игрок проходку. */
+    public static boolean hasPass(Player p) {
+        return ru.example.vkchat.util.VKChatBridge.hasPass(p);
+    }
+
+    /** Имеет ли игрок привязку ВК или проходку. */
+    public static boolean hasVkOrPass(Player p) {
+        return ru.example.vkchat.util.VKChatBridge.hasVkOrPass(p);
+    }
+
+    /** Получить локальную репутацию проходчика (PDC). */
+    public static int getLocalReputation(Player p) {
+        return ru.example.vkchat.util.VKChatBridge.getLocalReputation(p);
+    }
+
+    /** Начислить локальную репутацию проходчику. */
+    public static void addLocalReputation(Player p, int amount) {
+        ru.example.vkchat.util.VKChatBridge.addLocalReputation(p, amount);
+    }
+
+    /** Списать локальную репутацию проходчика. */
+    public static boolean takeLocalReputation(Player p, int amount) {
+        return ru.example.vkchat.util.VKChatBridge.takeLocalReputation(p, amount);
+    }
+
+    /** Эффективная репутация: VK если привязан, локальная если проходка, иначе 0. */
+    public static int getEffectiveRep(Player p) {
+        return ru.example.vkchat.util.VKChatBridge.getEffectiveRep(p);
+    }
+
+    /** Начислить эффективную репутацию: VK или локальную (для проходчиков). */
+    public static boolean addEffectiveRep(Player p, int amount) {
+        return ru.example.vkchat.util.VKChatBridge.addEffectiveRep(p, amount);
+    }
+
+    /** Списать эффективную репутацию: VK или локальную (для проходчиков). */
+    public static boolean takeEffectiveRep(Player p, int amount) {
+        return ru.example.vkchat.util.VKChatBridge.takeEffectiveRep(p, amount);
     }
 }

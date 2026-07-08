@@ -21,6 +21,8 @@ scaling:
   damage: true
   speed: false
   affect-spawners: false
+  super-boss-spawn-chance: 2.0
+  super-boss-cooldown-ms: 600000
 
 # ==========================================
 #  СТИХИИ
@@ -131,6 +133,124 @@ siege:
         - "DIAMOND_ESSENCE"
 
 # ==========================================
+#  СУПЕР-БОССЫ (BossAbilityRegistry)
+# ==========================================
+bosses:
+  vk-msg-cooldown-ms: 5000
+  warlord:
+    display-name: "Древний Воевода"
+    hp: 500.0
+    damage: 15.0
+    phase2-threshold: 0.5
+    phase2-effects:
+      - "SPEED:1:12000"
+      - "INCREASE_DAMAGE:0:12000"
+    phase2-message: "§c[Древний Воевода] МОЯ КРОВЬ КИПИТ! ПОЗНАЙТЕ ИСТИННУЮ ЯРОСТЬ КЛИНКА!"
+    phase2-sound: "ENTITY_ENDER_DRAGON_GROWL"
+    aura-particle: "REDSTONE"
+    aura-dust-color: "255,0,0"
+    abilities:
+      spin_attack:
+        message: "§c[Древний Воевода] РАССЕКАЮЩИЙ УДАР КЛИНКА!"
+        min-phase: 2
+        cooldown-ms: 8000
+        range: 6.0
+        damage: 8.0
+        particle: "SWEEP_ATTACK"
+        sound: "ENTITY_PLAYER_ATTACK_SWEEP"
+        target-effects:
+          - "KNOCKUP:0.5"
+  storm:
+    display-name: "Повелитель Бури"
+    hp: 600.0
+    damage: 15.0
+    phase2-threshold: 0.5
+    phase2-effects: []
+    phase2-message: "§b[Повелитель Бури] ГРОЗА ПОГЛОТИТ ВАС! ПРЕКЛОНИТЕ КОЛЕНИ ПЕРЕД СТИХИЕЙ!"
+    phase2-sound: "ENTITY_LIGHTNING_BOLT_THUNDER"
+    aura-particle: "SOUL_FIRE_FLAME"
+    abilities:
+      tornado:
+        message: "§b[Повелитель Бури] ПОДЧИНИТЕСЬ СИЛЕ УРАГАНА!"
+        min-phase: 1
+        cooldown-ms: 12000
+        range: 10.0
+        damage: 5.0
+        particle: "CLOUD"
+        sound: "ENTITY_ENDER_DRAGON_FLAP"
+        target-effects:
+          - "SLOW:80:1"
+          - "BLINDNESS:60:0"
+          - "PULL:0.45"
+        special-action: "tornado_variant"
+  alchemist:
+    display-name: "Проклятый Алхимик"
+    hp: 550.0
+    damage: 15.0
+    phase2-threshold: 0.5
+    phase2-effects: []
+    phase2-message: "§d[Проклятый Алхимик] ХА-ХА-ХА! МОИ СМЕРТЕЛЬНЫЕ РЕАГЕНТЫ ГОТОВЫ К РАСПЫЛЕНИЮ!"
+    phase2-sound: "ENTITY_WITCH_CELEBRATE"
+    aura-particle: "SPELL_WITCH"
+    abilities:
+      poison_flask:
+        message: "§d[Проклятый Алхимик] ПОПРОБУЙТЕ МОЙ НОВЫЙ ЯДОВИТЫЙ РЕАГЕНТ!"
+        min-phase: 2
+        cooldown-ms: 9000
+        range: 5.0
+        damage: 0
+        particle: "SPELL_WITCH"
+        sound: "ENTITY_SPLASH_POTION_BREAK"
+        target-effects:
+          - "POISON:120:1"
+          - "WITHER:80:0"
+        special-action: "self_heal_5pct"
+  void_walker:
+    display-name: "Странник Бездны"
+    hp: 700.0
+    damage: 15.0
+    phase2-threshold: 0.4
+    phase2-effects:
+      - "SPEED:1:12000"
+      - "INCREASE_DAMAGE:1:12000"
+    phase2-message: "§5[Странник Бездны] БЕЗДНА ОТКРЫВАЕТСЯ! ПРОСТРАНСТВО РАЗРЫВАЕТСЯ!"
+    phase2-sound: "ENTITY_ENDER_DRAGON_GROWL"
+    aura-particle: "REVERSE_PORTAL"
+    aura-dust-color: "80,0,120"
+    abilities:
+      teleport:
+        message: "§5[Странник Бездны] ПРОСТРАНСТВО СКЛАДЫВАЕТСЯ ВОКРУГ МЕНЯ!"
+        min-phase: 2
+        cooldown-ms: 6000
+        range: 0
+        damage: 0
+        particle: "REVERSE_PORTAL"
+        sound: "ENTITY_ENDERMAN_TELEPORT"
+        target-effects: []
+        special-action: "teleport_10_blocks"
+      void_explosion:
+        message: "§5[Странник Бездны] БЕЗДНА ПОГЛОЩАЕТ ВСЁ!"
+        min-phase: 2
+        cooldown-ms: 10000
+        range: 5.0
+        damage: 12.0
+        particle: "DRAGON_BREATH"
+        sound: "ENTITY_ENDER_DRAGON_GROWL"
+        target-effects:
+          - "WITHER:100:1"
+          - "BLINDNESS:60:0"
+      spawn_endermen:
+        message: "§5[Странник Бездны] МОИ СЛУГИ ПРИБЫВАЮТ ИЗ БЕЗДНЫ!"
+        min-phase: 2
+        cooldown-ms: 15000
+        range: 0
+        damage: 0
+        particle: "REVERSE_PORTAL"
+        sound: "ENTITY_ENDERMAN_SCREAM"
+        target-effects: []
+        special-action: "spawn_4_endermen"
+
+# ==========================================
 #  КРОВАВАЯ ЛУНА И МИНИ-БОССЫ
 # ==========================================
 blood_moon:
@@ -209,6 +329,21 @@ abilities:
 #  ЛУТ И НАГРАДЫ
 # ==========================================
 loot:
+  # Репутация (MobDropFactory)
+  rep:
+    base: 2
+    per-rank: 2
+    mini-boss-bonus: 15
+    super-boss-bonus: 50
+    max-base: 300
+    per-job-level: 3
+  # Кристаллы/свитки (MobDropFactory)
+  crystal-scroll-chance: 5
+  # Жетоны рун (MobDropFactory)
+  rune-token:
+    base-chance: 5
+    per-rank: 3
+    max-chance: 50
   multiply-exp: true
   multiply-items: true
   extra-rewards:
@@ -338,6 +473,109 @@ hardcore-mobs:
   anti-farm:
     max-elites-per-world: 35
     reward-cooldown-ms: 2500
+
+  # --- Архетипы (FIX #4/#5: из конфига вместо хардкода) ---
+  archetypes:
+    tank:
+      name: "Танк"
+      description: "Живучий боец ближнего боя"
+      passive-effect: "DAMAGE_RESISTANCE:0:2147483647"
+    assassin:
+      name: "Ассасин"
+      description: "Быстрый убийца"
+      passive-effect: "SPEED:1:2147483647"
+    archer:
+      name: "Стрелок"
+      description: "Мастер дальнего боя"
+    shaman:
+      name: "Шаман"
+      description: "Исцелитель и колдун"
+      passive-effect: "REGENERATION:0:2147483647"
+    necromancer:
+      name: "Некромант"
+      description: "Призывает прислужников"
+    hunter:
+      name: "Охотник"
+      description: "Выслеживает и замедляет"
+    warlord:
+      name: "Полководец"
+      description: "Ослабляет врагов"
+    berserker:
+      name: "Берсерк"
+      description: "Сильнее при малом здоровье"
+    paladin:
+      name: "Паладин"
+      description: "Исцеляет союзников"
+      passive-effect: "DAMAGE_RESISTANCE:0:2147483647"
+    ranger:
+      name: "Рейнджер"
+      description: "Мастер выживания"
+      passive-effect: "SPEED:0:2147483647"
+    alchemist:
+      name: "Алхимик"
+      description: "Мастер зелий и ядов"
+    summoner:
+      name: "Призыватель"
+      description: "Призывает орды слуг"
+    guardian:
+      name: "Страж"
+      description: "Защищает ближайших мобов"
+
+  # --- Стихии (FIX #4/#5: из конфига вместо хардкода) ---
+  elements:
+    fire:
+      name: "Огня"
+      particle: "FLAME"
+      on-hit-effect: ""
+    frost:
+      name: "Льда"
+      particle: "SNOWBALL"
+      on-hit-effect: "SLOW:100:2"
+    poison:
+      name: "Яда"
+      particle: "SPELL_WITCH"
+      on-hit-effect: "POISON:100:1"
+    storm:
+      name: "Бури"
+      particle: "CRIT_MAGIC"
+      on-hit-effect: ""
+    dark:
+      name: "Тьмы"
+      particle: "SMOKE_NORMAL"
+      on-hit-effect: ""
+    light:
+      name: "Света"
+      particle: "END_ROD"
+      on-hit-effect: ""
+    void:
+      name: "Бездны"
+      particle: "PORTAL"
+      on-hit-effect: ""
+    nature:
+      name: "Природы"
+      particle: "BLOCK_CRACK"
+      on-hit-effect: "POISON:120:1"
+    ice:
+      name: "Льда"
+      particle: "SNOW_SHOVEL"
+      on-hit-effect: "SLOW:60:3"
+    blood:
+      name: "Крови"
+      particle: "SPELL_WITCH"
+      on-hit-effect: "WITHER:80:1"
+    wind:
+      name: "Ветра"
+      particle: "CLOUD"
+      on-hit-effect: ""
+    earth:
+      name: "Земли"
+      particle: "BLOCK_DUST"
+      on-hit-effect: "SLOW:80:1"
+    crystal:
+      name: "Кристалла"
+      particle: "END_ROD"
+      on-hit-effect: ""
+
   rewards:
     rep:
       elite: 8

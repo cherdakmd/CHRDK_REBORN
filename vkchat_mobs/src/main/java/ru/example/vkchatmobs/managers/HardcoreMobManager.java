@@ -18,6 +18,7 @@ import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 import ru.example.vkchat.VKChatPlugin;
+import ru.example.vkchatmobs.util.BloodMoonHelper;
 import ru.example.vkchatmobs.util.VKChatBridge;
 import ru.example.vkchat.api.VKCommandEvent;
 import ru.example.vkchatmobs.VKChatMobsPlugin;
@@ -28,9 +29,11 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
- * Новая надстройка над vkchat_mobs: хардкорные элитки, архетипы, телеграфы,
- * смешанные награды, ВК-охота и админ-инструменты. Старый MobListener остаётся
- * как базовый слой совместимости, этот менеджер добавляет новый дизайн.
+ * Hardcore RPG Mobs: элитки, архетипы, телеграфы, смешанные награды.
+ *
+ * FIX #4/#5:  ARCHETYPES/ELEMENTS загружаются из config.yml.
+ *             archetypeName()/elementName() из конфига вместо switch.
+ * IMPROVE #4: Конфиг-управляемые реестры архетипов и стихий.
  */
 public class HardcoreMobManager implements Listener {
     private final VKChatMobsPlugin plugin;
@@ -44,10 +47,15 @@ public class HardcoreMobManager implements Listener {
 
     private final Map<UUID, Long> rewardCooldowns = new ConcurrentHashMap<>();
     private final Map<String, Long> vkMessageCooldowns = new ConcurrentHashMap<>();
-    private static final long VK_MSG_COOLDOWN_MS = 5000L; // 5 секунд между VK-сообщениями
+    private static final long VK_MSG_COOLDOWN_MS = 5000L;
 
-    private static final String[] ARCHETYPES = {"tank", "assassin", "archer", "shaman", "necromancer", "hunter", "warlord", "berserker", "paladin", "ranger", "alchemist", "summoner", "guardian"};
-    private static final String[] ELEMENTS = {"fire", "frost", "poison", "storm", "dark", "light", "void", "nature", "ice", "blood", "wind", "earth", "crystal"};
+    // Конфиг-управляемые реестры (FIX #4)
+    private List<String> archetypes;
+    private List<String> elements;
+
+    // Кэш русских имён (FIX #5)
+    private final Map<String, String> archetypeNames = new LinkedHashMap<>();
+    private final Map<String, String> elementNames = new LinkedHashMap<>();
 
     public HardcoreMobManager(VKChatMobsPlugin plugin) {
         this.plugin = plugin;
@@ -57,7 +65,80 @@ public class HardcoreMobManager implements Listener {
         this.tierKey = new NamespacedKey(plugin, "hardcore_tier");
         this.spawnerKey = new NamespacedKey(plugin, "from_spawner");
         this.lastAbilityKey = new NamespacedKey(plugin, "last_hardcore_ability");
+
+        loadRegistries();
         startAbilityTicker();
+    }
+
+    /**
+     * Загрузить архетипы и стихии из config.yml.
+     * FIX #4/#5: замена хардкоженных массивов и switch-блоков.
+     */
+    private void loadRegistries() {
+        // --- Архетипы из конфига ---
+        archetypes = new ArrayList<>();
+        archetypeNames.clear();
+
+        // Ключи архетипов из config (hardcore-mobs.archetypes)
+        if (plugin.getConfig().isConfigurationSection("hardcore-mobs.archetypes")) {
+            for (String key : plugin.getConfig().getConfigurationSection("hardcore-mobs.archetypes").getKeys(false)) {
+                archetypes.add(key);
+                String name = plugin.getConfig().getString("hardcore-mobs.archetypes." + key + ".name", key);
+                archetypeNames.put(key, name);
+            }
+        }
+
+        // Fallback: дефолтные архетипы если конфиг пуст
+        if (archetypes.isEmpty()) {
+            archetypes = Arrays.asList("tank", "assassin", "archer", "shaman", "necromancer",
+                    "hunter", "warlord", "berserker", "paladin", "ranger", "alchemist", "summoner", "guardian");
+            Map<String, String> defaults = Map.ofEntries(
+                    Map.entry("tank", "Танк"), Map.entry("assassin", "Ассасин"),
+                    Map.entry("archer", "Стрелок"), Map.entry("shaman", "Шаман"),
+                    Map.entry("necromancer", "Некромант"), Map.entry("hunter", "Охотник"),
+                    Map.entry("warlord", "Полководец"), Map.entry("berserker", "Берсерк"),
+                    Map.entry("paladin", "Паладин"), Map.entry("ranger", "Рейнджер"),
+                    Map.entry("alchemist", "Алхимик"), Map.entry("summoner", "Призыватель"),
+                    Map.entry("guardian", "Страж")
+            );
+            archetypeNames.putAll(defaults);
+        }
+
+        // --- Стихии из конфига ---
+        elements = new ArrayList<>();
+        elementNames.clear();
+
+        if (plugin.getConfig().isConfigurationSection("hardcore-mobs.elements")) {
+            for (String key : plugin.getConfig().getConfigurationSection("hardcore-mobs.elements").getKeys(false)) {
+                elements.add(key);
+                String name = plugin.getConfig().getString("hardcore-mobs.elements." + key + ".name", key);
+                elementNames.put(key, name);
+            }
+        }
+
+        // Fallback: дефолтные стихии если конфиг пуст
+        if (elements.isEmpty()) {
+            elements = Arrays.asList("fire", "frost", "poison", "storm", "dark", "light",
+                    "void", "nature", "ice", "blood", "wind", "earth", "crystal");
+            Map<String, String> defaults = Map.ofEntries(
+                    Map.entry("fire", "Огня"), Map.entry("frost", "Льда"),
+                    Map.entry("poison", "Яда"), Map.entry("storm", "Бури"),
+                    Map.entry("dark", "Тьмы"), Map.entry("light", "Света"),
+                    Map.entry("void", "Бездны"), Map.entry("nature", "Природы"),
+                    Map.entry("ice", "Льда"), Map.entry("blood", "Крови"),
+                    Map.entry("wind", "Ветра"), Map.entry("earth", "Земли"),
+                    Map.entry("crystal", "Кристалла")
+            );
+            elementNames.putAll(defaults);
+        }
+
+        plugin.getLogger().info("[HardcoreMobs] Загружено архетипов: " + archetypes.size()
+                + ", стихий: " + elements.size());
+    }
+
+    /** Перезагрузить реестры (при /mobs reload). */
+    public void reloadRegistries() {
+        loadRegistries();
     }
 
     public int getActiveEliteCount() {
@@ -89,7 +170,7 @@ public class HardcoreMobManager implements Listener {
         double baseChance = plugin.getConfig().getDouble("hardcore-mobs.elites.natural-spawn-chance", 2.0);
         double chance = baseChance + (playerCount * plugin.getConfig().getDouble("hardcore-mobs.elites.player-bonus", 0.5));
         if (isNightOrCave(mob.getLocation())) chance += plugin.getConfig().getDouble("hardcore-mobs.elites.night-cave-bonus", 3.0);
-        if (isBloodMoonLike()) chance += plugin.getConfig().getDouble("hardcore-mobs.elites.event-bonus", 8.0);
+        if (BloodMoonHelper.isBloodMoonActive()) chance += plugin.getConfig().getDouble("hardcore-mobs.elites.event-bonus", 8.0);
 
         if (ThreadLocalRandom.current().nextDouble() * 100.0 <= chance) {
             makeElite(mob, "elite", null, null, false);
@@ -111,8 +192,8 @@ public class HardcoreMobManager implements Listener {
     }
 
     public void makeElite(LivingEntity mob, String tier, String forcedArchetype, String forcedElement, boolean adminOrEvent) {
-        String archetype = forcedArchetype != null ? forcedArchetype : ARCHETYPES[ThreadLocalRandom.current().nextInt(ARCHETYPES.length)];
-        String element = forcedElement != null ? forcedElement : ELEMENTS[ThreadLocalRandom.current().nextInt(ELEMENTS.length)];
+        String archetype = forcedArchetype != null ? forcedArchetype : archetypes.get(ThreadLocalRandom.current().nextInt(archetypes.size()));
+        String element = forcedElement != null ? forcedElement : elements.get(ThreadLocalRandom.current().nextInt(elements.size()));
         tier = normalizeTier(tier);
 
         mob.getPersistentDataContainer().set(eliteKey, PersistentDataType.INTEGER, 1);
@@ -137,11 +218,9 @@ public class HardcoreMobManager implements Listener {
             else if (tier.equals("mini")) base = Math.max(base, 7);
             dmg.setBaseValue(base * Math.min(3.5, scale));
         }
-        if (archetype.equals("tank")) mob.addPotionEffect(new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, Integer.MAX_VALUE, 0, true, false));
-        if (archetype.equals("assassin")) mob.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, Integer.MAX_VALUE, 1, true, false));
-        if (archetype.equals("shaman")) mob.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, Integer.MAX_VALUE, 0, true, false));
-        if (archetype.equals("paladin")) mob.addPotionEffect(new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, Integer.MAX_VALUE, 0, true, false));
-        if (archetype.equals("ranger")) mob.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, Integer.MAX_VALUE, 0, true, false));
+
+        // Зельные эффекты архетипов — из конфига или дефолтные
+        applyArchetypePassive(mob, archetype);
 
         mob.setCustomName(formatName(tier, archetype, element, mob));
         mob.setCustomNameVisible(plugin.getConfig().getBoolean("hardcore-mobs.elites.show-name", true));
@@ -150,6 +229,44 @@ public class HardcoreMobManager implements Listener {
             String msg = ChatColor.DARK_RED + "☠ [ОХОТА] " + ChatColor.GOLD + strip(formatName(tier, archetype, element, mob)) + ChatColor.RED + " появился: X " + mob.getLocation().getBlockX() + " Z " + mob.getLocation().getBlockZ();
             Bukkit.broadcastMessage(msg);
         }
+    }
+
+    /**
+     * Применить пассивный эффект архетипа (скорость, сопротивление и т.д.).
+     * FIX #4: Конфиг-управляемые пассивки.
+     */
+    private void applyArchetypePassive(LivingEntity mob, String archetype) {
+        String basePath = "hardcore-mobs.archetypes." + archetype + ".passive-effect";
+        if (plugin.getConfig().contains(basePath)) {
+            String effectStr = plugin.getConfig().getString(basePath, "");
+            if (!effectStr.isEmpty()) {
+                applyEffectFromString(mob, effectStr, true);
+                return;
+            }
+        }
+        // Fallback: дефолтные пассивки
+        switch (archetype) {
+            case "tank": mob.addPotionEffect(new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, Integer.MAX_VALUE, 0, true, false)); break;
+            case "assassin": mob.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, Integer.MAX_VALUE, 1, true, false)); break;
+            case "shaman": mob.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, Integer.MAX_VALUE, 0, true, false)); break;
+            case "paladin": mob.addPotionEffect(new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, Integer.MAX_VALUE, 0, true, false)); break;
+            case "ranger": mob.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, Integer.MAX_VALUE, 0, true, false)); break;
+        }
+    }
+
+    /**
+     * Применить PotionEffect из строки формата "EFFECT:amplifier:duration".
+     */
+    private void applyEffectFromString(LivingEntity mob, String effectStr, boolean ambient) {
+        try {
+            String[] parts = effectStr.split(":");
+            PotionEffectType pet = PotionEffectType.getByName(parts[0]);
+            if (pet != null) {
+                int amplifier = parts.length > 1 ? Integer.parseInt(parts[1]) : 0;
+                int duration = parts.length > 2 ? Integer.parseInt(parts[2]) : Integer.MAX_VALUE;
+                mob.addPotionEffect(new PotionEffect(pet, duration, amplifier, ambient, false));
+            }
+        } catch (Exception ignored) {}
     }
 
     private void startAbilityTicker() {
@@ -272,6 +389,25 @@ public class HardcoreMobManager implements Listener {
             p.getWorld().spawnParticle(Particle.VILLAGER_ANGRY, mob.getLocation().add(0, 2, 0), 10, 1.0, 0.5, 1.0, 0);
         }
         p.damage(dmg, mob);
+        applyElementEffect(mob, p, element);
+    }
+
+    /**
+     * Применить эффект стихии.
+     * IMPROVE #4: Эффекты стихий из конфига + fallback.
+     */
+    private void applyElementEffect(LivingEntity mob, Player p, String element) {
+        // Проверяем конфиг-определённый эффект стихии
+        String effectPath = "hardcore-mobs.elements." + element + ".on-hit-effect";
+        if (plugin.getConfig().contains(effectPath)) {
+            String effectStr = plugin.getConfig().getString(effectPath, "");
+            if (!effectStr.isEmpty()) {
+                applyEffectFromString(p, effectStr);
+                return;
+            }
+        }
+
+        // Fallback: захардкоженные эффекты стихий
         switch (element) {
             case "fire": p.setFireTicks(100); break;
             case "frost": p.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, 100, 2)); break;
@@ -324,6 +460,18 @@ public class HardcoreMobManager implements Listener {
         }
     }
 
+    private void applyEffectFromString(org.bukkit.entity.Entity entity, String effectStr) {
+        try {
+            String[] parts = effectStr.split(":");
+            PotionEffectType pet = PotionEffectType.getByName(parts[0]);
+            if (pet != null && entity instanceof LivingEntity) {
+                int duration = parts.length > 1 ? Integer.parseInt(parts[1]) : 60;
+                int amplifier = parts.length > 2 ? Integer.parseInt(parts[2]) : 0;
+                ((LivingEntity) entity).addPotionEffect(new PotionEffect(pet, duration, amplifier));
+            }
+        } catch (Exception ignored) {}
+    }
+
     @EventHandler(priority = EventPriority.MONITOR)
     public void onDeath(EntityDeathEvent e) {
         LivingEntity mob = e.getEntity();
@@ -339,9 +487,16 @@ public class HardcoreMobManager implements Listener {
 
         String tier = mob.getPersistentDataContainer().getOrDefault(tierKey, PersistentDataType.STRING, "elite");
         int rep = plugin.getConfig().getInt("hardcore-mobs.rewards.rep." + tier, 8);
-        VKChatBridge.addPoints(VKChatBridge.getLinkedVkId(killer), rep);
 
-        if (ThreadLocalRandom.current().nextInt(100) < plugin.getConfig().getInt("hardcore-mobs.rewards.rune_token_chance." + tier, 10)) {
+        // IMPROVE #5: Используем addEffectiveRep для поддержки проходки
+        boolean awarded = VKChatBridge.addEffectiveRep(killer, rep);
+        if (!awarded) {
+            // Fallback
+            int vkId = VKChatBridge.getLinkedVkId(killer);
+            if (vkId != -1) VKChatBridge.addPoints(vkId, rep);
+        }
+
+        if (ThreadLocalRandom.current().nextInt(100) < plugin.getConfig().getInt("hardcore-mobs.rewards.rune-token-chance." + tier, 10)) {
             e.getDrops().add(MobListener.getRuneToken());
         }
         if ((tier.equals("raid") || tier.equals("world")) && ThreadLocalRandom.current().nextInt(100) < plugin.getConfig().getInt("hardcore-mobs.rewards.artifact-shard-chance." + tier, 20)) {
@@ -448,10 +603,6 @@ public class HardcoreMobManager implements Listener {
         return time > 13000 || loc.getBlockY() < 45 || loc.getBlock().getLightLevel() <= 7;
     }
 
-    private boolean isBloodMoonLike() {
-        try { return VKChatBridge.isBloodMoonActive(); } catch (Throwable ignored) { return false; }
-    }
-
     private String normalizeTier(String tier) {
         if (tier == null) return "elite";
         tier = tier.toLowerCase(Locale.ROOT);
@@ -460,10 +611,50 @@ public class HardcoreMobManager implements Listener {
     }
 
     private String strip(String s) { return ChatColor.stripColor(s == null ? "" : s); }
-    private Particle particleFor(String e) { if (e.equals("fire")) return Particle.FLAME; if (e.equals("frost")) return Particle.SNOWBALL; if (e.equals("poison")) return Particle.SPELL_WITCH; if (e.equals("storm")) return Particle.CRIT_MAGIC; if (e.equals("light")) return Particle.END_ROD; if (e.equals("ice")) return Particle.SNOW_SHOVEL; if (e.equals("blood")) return Particle.SPELL_WITCH; return Particle.SMOKE_NORMAL; }
+
+    /**
+     * FIX #5: Частицы стихий из конфига.
+     */
+    private Particle particleFor(String e) {
+        String configParticle = plugin.getConfig().getString("hardcore-mobs.elements." + e + ".particle", "");
+        if (!configParticle.isEmpty()) {
+            try { return Particle.valueOf(configParticle); } catch (Exception ignored) {}
+        }
+        // Fallback
+        if (e.equals("fire")) return Particle.FLAME;
+        if (e.equals("frost")) return Particle.SNOWBALL;
+        if (e.equals("poison")) return Particle.SPELL_WITCH;
+        if (e.equals("storm")) return Particle.CRIT_MAGIC;
+        if (e.equals("light")) return Particle.END_ROD;
+        if (e.equals("ice")) return Particle.SNOW_SHOVEL;
+        if (e.equals("blood")) return Particle.SPELL_WITCH;
+        return Particle.SMOKE_NORMAL;
+    }
+
     private String abilityName(String a, String e) { return archetypeName(a) + " / " + elementName(e); }
-    private String formatName(String tier, String a, String e, LivingEntity mob) { return ChatColor.translateAlternateColorCodes('&', tierColor(tier) + "[" + tier.toUpperCase() + "] &f" + archetypeName(a) + " " + elementName(e)); }
-    private String tierColor(String t) { if (t.equals("world")) return "&5&l"; if (t.equals("raid")) return "&4&l"; if (t.equals("mini")) return "&c&l"; return "&6"; }
-    private String archetypeName(String a) { switch (a) { case "tank": return "Танк"; case "assassin": return "Ассасин"; case "archer": return "Стрелок"; case "shaman": return "Шаман"; case "necromancer": return "Некромант"; case "hunter": return "Охотник"; case "warlord": return "Полководец"; case "berserker": return "Берсерк"; case "paladin": return "Паладин"; case "ranger": return "Рейнджер"; case "alchemist": return "Алхимик"; case "summoner": return "Призыватель"; case "guardian": return "Страж"; default: return "Элита"; } }
-    private String elementName(String e) { switch (e) { case "fire": return "Огня"; case "frost": return "Льда"; case "poison": return "Яда"; case "storm": return "Бури"; case "dark": return "Тьмы"; case "light": return "Света"; case "void": return "Бездны"; case "nature": return "Природы"; case "ice": return "Льда"; case "blood": return "Крови"; case "wind": return "Ветра"; case "earth": return "Земли"; case "crystal": return "Кристалла"; default: return "Хаоса"; } }
+
+    private String formatName(String tier, String a, String e, LivingEntity mob) {
+        return ChatColor.translateAlternateColorCodes('&', tierColor(tier) + "[" + tier.toUpperCase() + "] &f" + archetypeName(a) + " " + elementName(e));
+    }
+
+    private String tierColor(String t) {
+        if (t.equals("world")) return "&5&l";
+        if (t.equals("raid")) return "&4&l";
+        if (t.equals("mini")) return "&c&l";
+        return "&6";
+    }
+
+    /**
+     * FIX #5: Имя архетипа из конфига вместо switch.
+     */
+    private String archetypeName(String a) {
+        return archetypeNames.getOrDefault(a, "Элита");
+    }
+
+    /**
+     * FIX #5: Имя стихии из конфига вместо switch.
+     */
+    private String elementName(String e) {
+        return elementNames.getOrDefault(e, "Хаоса");
+    }
 }

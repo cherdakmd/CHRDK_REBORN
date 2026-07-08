@@ -1,6 +1,60 @@
 # CHANGELOG — VKChat Ultimate / CHRDK REBORN
 
-<<<<<<< HEAD
+## v3.2.0 — 8 Июля 2026 — Mobs Full Refactor
+
+### 🔴 10 ИСПРАВЛЕНИЙ MOBS (MOBS_FIX)
+
+| # | Критичность | Исправление |
+|---|------------|-------------|
+| 1 | 🔴 HIGH | BossAbilityRegistry интегрирован в MobListener — заменяет 300+ строк хардкода в startBossAbilitiesTask() |
+| 2 | 🔴 HIGH | MobDropFactory — выделенная фабрика лута/репутации из MobListener.onMobDeath() (~250 строк) |
+| 3 | 🔴 HIGH | BloodMoonHelper — единая точка проверки Кровавой Луны, заменяет 4 дублированных try-catch блока |
+| 4 | 🟡 MEDIUM | HardcoreMobManager: ARCHETYPES/ELEMENTS загружаются из config.yml вместо хардкоженных массивов |
+| 5 | 🟡 MEDIUM | HardcoreMobManager: archetypeName()/elementName() из конфига вместо 13-case switch |
+| 6 | 🟡 MEDIUM | VKChatBridge (mobs): добавлены hasPass()/getLocalReputation()/addEffectiveRep() для поддержки проходки |
+| 7 | 🟡 MEDIUM | MobListener.spawnSuperBoss() использует BossAbilityRegistry.getRandomBossDef() вместо хардкода |
+| 8 | 🟡 MEDIUM | MobListener.rollRandomGearItem() делегирует в RuneRegistry/GearPlugin с fallback |
+| 9 | 🟢 LOW | 7 Map полей MobListener инкапсулированы в CooldownManager (SRP, единая очистка) |
+| 10 | 🟢 LOW | Version bumps: mobs build.gradle 2.0.0→3.2.0, plugin.yml 2.1.0→3.2.0 |
+
+### 🟢 10 УЛУЧШЕНИЙ MOBS (MOBS_IMPROVE)
+
+| # | Улучшение |
+|---|-----------|
+| 1 | BossAbilityRegistry: конфиг-управляемые определения боссов с фазами, способностями, порогами |
+| 2 | MobDropFactory: конфиг-управляемые таблицы дропа с масштабированием по рангу |
+| 3 | BloodMoonHelper: единственный источник истины для Blood Moon state |
+| 4 | HardcoreMobManager: реестры архетипов/стихий из config.yml с fallback на дефолты |
+| 5 | Проходчики (pass holders) получают локальную репутацию через addEffectiveRep() |
+| 6 | BossDef data class: HP, урон, пороги фаз, способности — всё конфигурируемо |
+| 7 | VKChatBridge (mobs): делегирует в core bridge вместо дублирования кода |
+| 8 | MobListener.onMobDeath() декомпозирован: отдельные методы для репутации, дропа, жетонов |
+| 9 | Фазовый переход супер-боссов использует BossDef вместо захардкоженных if-else |
+| 10 | Полная секция боссов в config.yml: 4 босса с HP, фазами, способностями, аурами |
+
+### 🏗️ Новые файлы
+
+| Файл | Назначение |
+|------|-----------|
+| `boss/BossAbilityRegistry.java` | Реестр супер-боссов: BossDef, AbilityDef, executeAbility(), handlePhaseTransition(), spawnAuraParticles() |
+| `drop/MobDropFactory.java` | Фабрика лута и репутации: awardReputation(), rollCrystalScrollDrop(), awardTokensAndShards(), rollExtraLoot() |
+| `tracking/CooldownManager.java` | Инкапсуляция 7 Map полей: миньоны, способности, антифарм, VK-кулдауны |
+| `util/BloodMoonHelper.java` | Единая точка проверки Кровавой Луны |
+
+### 📦 Обновлённые файлы
+
+| Файл | Изменение |
+|------|-----------|
+| `MobListener.java` | 1320→850 строк: BossAbilityRegistry, MobDropFactory, CooldownManager, BloodMoonHelper, addEffectiveRep |
+| `HardcoreMobManager.java` | loadRegistries() из конфига, archetypeName()/elementName() из Map, BloodMoonHelper, addEffectiveRep |
+| `VKChatBridge.java` (mobs) | Делегирование в core bridge + hasPass/addEffectiveRep/takeEffectiveRep |
+| `VKChatMobsPlugin.java` | Инициализация BossAbilityRegistry, MobDropFactory, CooldownManager |
+| `config.yml` | Секция bosses (4 босса), loot.rep/crystal/rune-token, hardcore-mobs.archetypes/elements |
+| `build.gradle` | v3.2.0 |
+| `plugin.yml` | v3.2.0 |
+
+---
+
 ## v3.2.0 — 8 Июля 2026 — Gear/Artifacts/Runes Full Refactor
 
 ### 🔴 10 ИСПРАВЛЕНИЙ GEAR/ARTIFACTS/RUNES (GEAR_FIX)
@@ -176,8 +230,6 @@
 
 ---
 
-=======
->>>>>>> 68af1a03dc31ff8302ed5e0a6fc943c9242dd1e2
 ## v2.2.0 — 8 Июля 2026 — Market EE Integration
 
 ### 🧙 ExcellentEnchants Integration (Market v3.2.0)

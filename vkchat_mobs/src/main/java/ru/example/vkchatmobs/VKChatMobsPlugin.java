@@ -9,20 +9,33 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.java.JavaPlugin;
+import ru.example.vkchatmobs.boss.BossAbilityRegistry;
 import ru.example.vkchatmobs.data.ContractManager;
+import ru.example.vkchatmobs.drop.MobDropFactory;
 import ru.example.vkchatmobs.siege.SiegeManager;
 import ru.example.vkchatmobs.commands.MobCommand;
 import ru.example.vkchatmobs.listeners.MobListener;
 import ru.example.vkchatmobs.managers.HardcoreMobManager;
 import ru.example.vkchatmobs.managers.MobsEvents2Manager;
 import ru.example.vkchatmobs.managers.MobStormManager;
+import ru.example.vkchatmobs.tracking.CooldownManager;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
-
+/**
+ * VKChatMobsPlugin — главный класс плагина мобов.
+ *
+ * Фаза 6 рефакторинг:
+ * - BossAbilityRegistry: конфиг-управляемые супер-боссы
+ * - MobDropFactory: выделенная фабрика лута и репутации
+ * - CooldownManager: инкапсулированные кулдауны и антифарм
+ * - BloodMoonHelper: единая точка проверки Кровавой Луны
+ * - VKChatBridge: поддержка проходки (pass holders)
+ * - HardcoreMobManager: архетипы/стихии из конфига
+ */
 public class VKChatMobsPlugin extends JavaPlugin {
     private static VKChatMobsPlugin instance;
     private ContractManager contractManager;
@@ -30,8 +43,10 @@ public class VKChatMobsPlugin extends JavaPlugin {
     private HardcoreMobManager hardcoreMobManager;
     private MobsEvents2Manager events2Manager;
     private MobStormManager mobStormManager;
+    private BossAbilityRegistry bossAbilityRegistry;
+    private MobDropFactory mobDropFactory;
+    private CooldownManager cooldownManager;
     private static final Random random = new Random();
-    
 
     private void migrateConfigDefaults() {
         try {
@@ -75,6 +90,21 @@ public class VKChatMobsPlugin extends JavaPlugin {
         }
 
         ru.example.vkchatmobs.util.VKChatBridge.init();
+
+        // --- Фаза 6: Новые компоненты ---
+        cooldownManager = new CooldownManager();
+        mobDropFactory = new MobDropFactory(this);
+        bossAbilityRegistry = new BossAbilityRegistry(this);
+
+        // Попробовать загрузить боссов из конфига (если определены)
+        bossAbilityRegistry.loadFromConfig();
+
+        // Настроить кулдауны из конфига
+        cooldownManager.setSuperBossCooldownMs(
+                getConfig().getLong("scaling.super-boss-cooldown-ms", 600000L));
+        cooldownManager.setVkMsgCooldownMs(
+                getConfig().getLong("bosses.vk-msg-cooldown-ms", 5000L));
+
         contractManager = new ContractManager(this);
         siegeManager = new SiegeManager(this);
 
@@ -90,7 +120,7 @@ public class VKChatMobsPlugin extends JavaPlugin {
         }
         getServer().getPluginManager().registerEvents(cmd, this);
 
-        MobListener listener = new MobListener(this);
+        MobListener listener = new MobListener(this, cooldownManager, mobDropFactory, bossAbilityRegistry);
         getServer().getPluginManager().registerEvents(listener, this);
         hardcoreMobManager = new HardcoreMobManager(this);
         getServer().getPluginManager().registerEvents(hardcoreMobManager, this);
@@ -105,7 +135,7 @@ public class VKChatMobsPlugin extends JavaPlugin {
             listener.cleanupMaps(now);
         }, 6000L, 6000L);
 
-        getLogger().info("VKChatMobs (Hardcore RPG Mobs + Осады + Контракты + Шторм) успешно запущен!");
+        getLogger().info("VKChatMobs v3.2.0 (Hardcore RPG Mobs + Осады + Контракты + Шторм + BossRegistry) успешно запущен!");
     }
 
     @Override
@@ -138,6 +168,18 @@ public class VKChatMobsPlugin extends JavaPlugin {
 
     public MobStormManager getMobStormManager() {
         return mobStormManager;
+    }
+
+    public BossAbilityRegistry getBossAbilityRegistry() {
+        return bossAbilityRegistry;
+    }
+
+    public MobDropFactory getMobDropFactory() {
+        return mobDropFactory;
+    }
+
+    public CooldownManager getCooldownManager() {
+        return cooldownManager;
     }
 
     public static ItemStack createSetFragment(VKChatMobsPlugin plugin) {

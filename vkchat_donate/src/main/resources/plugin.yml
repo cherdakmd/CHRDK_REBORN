@@ -1,18 +1,31 @@
 name: VKChatDonate
-version: "2.1.0"
+version: "3.1.0"
 main: ru.example.vkchatdonate.VKChatDonatePlugin
 api-version: "1.16"
 depend: [VKChat]
 softdepend: [LuckPerms]
 commands:
   donate:
-    description: Настройка донат-системы и просмотр статусов
+    description: Система донатов — статусы, проходки, сбор средств
     aliases: [донат]
     permission: vkchat.donate.use
+  pass:
+    description: Проходка — статус, локальная репутация, покупка
+    aliases: [проходка]
+    permission: vkchat.pass.use
 permissions:
   vkchat.donate.admin:
-    description: Доступ к /donate setup, reload, fundraiser, pass
+    description: Доступ к /donate setup, reload, fundraiser, pass, log, stats
     default: op
   vkchat.donate.use:
-    description: Доступ к /donate info, status, days, top
+    description: Доступ к /donate info, status, days, top, upgrade
     default: true
+  vkchat.pass.use:
+    description: Доступ к /pass (информация, репутация, покупка)
+    default: true
+  vkchat.pass.admin:
+    description: Доступ к /pass list, give, remove, stats
+    default: op
+  vkchat.pass:
+    description: Право проходки (выдаётся автоматически при покупке)
+    default: false
