@@ -33,7 +33,9 @@ public class PreventListener implements Listener {
     }
 
     private boolean isUnauthorized(Player p) {
-        return !VKChatPlugin.getInstance().getApi().isFullyAuthorized(p);
+        try {
+            return !VKChatPlugin.getInstance().getApi().isFullyAuthorized(p);
+        } catch (Exception e) { return true; } // если API недоступен — блокируем
     }
 
     private boolean block(Player p, boolean isMove) {
