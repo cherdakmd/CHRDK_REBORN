@@ -101,12 +101,11 @@ public class MarketGuiListener implements Listener {
             inv.setItem(catSlots[i], categoryItem(plugin, getCatIcon(cats[i][0]), cats[i][0], cats[i][1], cats[i][2]));
         }
 
-        // ═══ НИЖНИЙ РЯД ═══
+        // ═══ НИЖНИЙ РЯД — равномерно ═══
         inv.setItem(45, categoryItem(plugin, Material.CLOCK, "trends", "§b📈 Тренды", "§7Горячие товары"));
-        inv.setItem(46, categoryItem(plugin, Material.ENCHANTED_BOOK, "rare", "§d📚 Книги чар", "§7Ванильные зачарования"));
-        inv.setItem(48, categoryItem(plugin, Material.DIAMOND, "limited", "§d💎 Редкости дня", "§7Лимит. товары"));
-        inv.setItem(50, sellAllItem(plugin));
-        inv.setItem(52, item(Material.BOOK, "§e📋 Квест дня", "§7" + plugin.getMarketFun().getQuestInfo()));
+        inv.setItem(47, categoryItem(plugin, Material.ENCHANTED_BOOK, "rare", "§d📚 Книги чар", "§7Все зачарования"));
+        inv.setItem(49, sellAllItem(plugin));
+        inv.setItem(51, categoryItem(plugin, Material.DIAMOND, "limited", "§d💎 Редкости дня", "§7Лимит. товары"));
         inv.setItem(53, item(Material.BARRIER, "§c✕ Закрыть"));
 
         p.openInventory(inv);
@@ -160,15 +159,9 @@ public class MarketGuiListener implements Listener {
 
         if (page > 0) inv.setItem(45, navItem(plugin, Material.SPECTRAL_ARROW, "§e◀ Назад", page - 1, category));
         inv.setItem(47, categoryItem(plugin, Material.COMPASS, "menu", "§f🏠 Меню", "§7К категориям"));
-        inv.setItem(49, item(Material.BOOK, "§6" + catName + " §8[" + (page+1) + "/" + pages + "]", "§7Товаров: §f" + ids.size(), "§e💰 Баланс: §f" + rep + " реп."));
+        inv.setItem(49, item(Material.BOOK, "§6" + catName + " §8" + (page+1) + "/" + pages, "§7Товаров: §f" + ids.size(), "§e💰 Баланс: §f" + rep + " реп."));
         inv.setItem(51, sellAllItem(plugin));
         if (page < pages - 1) inv.setItem(53, navItem(plugin, Material.SPECTRAL_ARROW, "§eВперёд ▶", page + 1, category));
-
-        // Быстрые категории
-        inv.setItem(46, categoryItem(plugin, Material.IRON_INGOT, "ores", "§7⛏ Руды", "§7"));
-        inv.setItem(48, categoryItem(plugin, Material.GOLDEN_CARROT, "food", "§7🍞 Еда", "§7"));
-        inv.setItem(50, categoryItem(plugin, Material.OAK_LOG, "wood", "§7🌲 Дерево", "§7"));
-        inv.setItem(52, categoryItem(plugin, Material.STONE, "blocks", "§7🧱 Блоки", "§7"));
 
         p.openInventory(inv);
     }
