@@ -21,11 +21,11 @@ public class StashManager {
     }
 
     private void load() {
-        if (!file.exists()) try { plugin.getDataFolder().mkdirs(); file.createNewFile(); } catch (Exception ignored) {}
+        if (!file.exists()) try { plugin.getDataFolder().mkdirs(); file.createNewFile(); } catch (Exception e) { plugin.getLogger().warning("Failed to create stash file: " + e.getMessage()); }
         data = YamlConfiguration.loadConfiguration(file);
     }
 
-    public void save() { try { data.save(file); } catch (Exception ignored) {} }
+    public void save() { try { data.save(file); } catch (Exception e) { plugin.getLogger().severe("Failed to save stash data: " + e.getMessage()); } }
 
     @SuppressWarnings("unchecked")
     public List<ItemStack> getItems(UUID uuid) {

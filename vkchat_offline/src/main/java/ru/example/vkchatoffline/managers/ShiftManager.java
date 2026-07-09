@@ -72,14 +72,14 @@ public class ShiftManager {
                     "⛏ Смена '" + getShiftName(shiftKey) + "' завершена! Напиши !шахта чтобы забрать награды.");
             VKChatPlugin.getInstance().getApi().sendKeyboard(vkId,
                     "Смена завершена!", Keyboards.shiftDone());
-        } catch (Exception ignored) {}
+        } catch (Exception e) { plugin.getLogger().warning("VK notify failed: " + e.getMessage()); }
     }
 
     private void notifyProgress(int vkId, long hoursLeft) {
         try {
             VKChatPlugin.getInstance().getApi().sendMessage(vkId,
                     "⛏ Ты на середине смены! Осталось примерно " + hoursLeft + " ч. Продолжай копать!");
-        } catch (Exception ignored) {}
+        } catch (Exception e) { plugin.getLogger().warning("VK progress notify failed: " + e.getMessage()); }
     }
 
     public boolean startShift(int vkId, String shiftKey) {
