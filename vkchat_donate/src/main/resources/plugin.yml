@@ -1,5 +1,5 @@
-name: VKChatDonate
-version: 3.1.0
+﻿name: VKChatDonate
+version: 3.2.0
 main: ru.example.vkchatdonate.VKChatDonatePlugin
 api-version: "1.16"
 depend: [VKChat]

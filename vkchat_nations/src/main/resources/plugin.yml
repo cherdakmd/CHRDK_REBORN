@@ -1,5 +1,5 @@
-name: VKChatNations
-version: 2.0.0
+﻿name: VKChatNations
+version: 3.2.0
 main: ru.example.vkchatnations.VKChatNationsPlugin
 api-version: "1.16"
 depend: [VKChat]

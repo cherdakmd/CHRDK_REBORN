@@ -1,4 +1,4 @@
-name: VKChatMarket
+﻿name: VKChatMarket
 version: 3.2.0
 main: ru.example.vkchatmarket.VKChatMarketPlugin
 api-version: "1.16"

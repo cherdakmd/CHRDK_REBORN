@@ -1,5 +1,5 @@
-name: VKChatEvents
-version: 2.0.0
+﻿name: VKChatEvents
+version: 3.2.0
 main: ru.example.vkchatevents.VKChatEventsPlugin
 api-version: "1.16"
 depend: [VKChat]

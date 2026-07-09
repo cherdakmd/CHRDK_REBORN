@@ -1,5 +1,5 @@
-name: VKChat
-version: 2.0.0
+﻿name: VKChat
+version: 3.2.0
 main: ru.example.vkchat.VKChatPlugin
 api-version: "1.16"
 softdepend: [Vault]

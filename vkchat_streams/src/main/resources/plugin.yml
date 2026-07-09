@@ -1,5 +1,5 @@
-name: VKChatStreams
-version: 1.0.0
+﻿name: VKChatStreams
+version: 3.2.0
 main: ru.example.vkchatstreams.VKChatStreamsPlugin
 api-version: "1.16"
 depend: [VKChat]

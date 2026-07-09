@@ -1,5 +1,5 @@
-name: VKChatOffline
-version: 1.0.0
+﻿name: VKChatOffline
+version: 3.2.0
 main: ru.example.vkchatoffline.VKChatOfflinePlugin
 api-version: "1.16"
 depend: [VKChat]

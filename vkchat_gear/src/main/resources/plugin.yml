@@ -1,4 +1,4 @@
-name: VKChatGear
+﻿name: VKChatGear
 version: 3.2.0
 main: ru.example.vkchatgear.VKChatGearPlugin
 api-version: "1.16"
