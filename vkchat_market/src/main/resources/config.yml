@@ -1,1096 +1,468 @@
 ﻿# ==========================================
-# Р”РРќРђРњРР§Р•РЎРљРР™ Р Р«РќРћРљ (VKChat Market) v3.0
-# Р–С‘СЃС‚РєР°СЏ СЌРєРѕРЅРѕРјРёРєР°: РґРµС„РёС†РёС‚, РІС‹СЃРѕРєРёРµ С†РµРЅС‹, РѕРґРёРЅ РїСЂРµРґРјРµС‚ Р·Р° РїРѕРєСѓРїРєСѓ
+# MARKET v4.0 — Clean Rewrite
 # ==========================================
-config-version: 1
+config-version: 4
 
 settings:
-  enabled: true
-  gui-title: "&8Р”РёРЅР°РјРёС‡РµСЃРєРёР№ Р С‹РЅРѕРє"
-  recovery-interval: 300       # 5 РјРёРЅСѓС‚ РІРѕСЃСЃС‚Р°РЅРѕРІР»РµРЅРёРµ
-  buy-spread: 0.20             # РќР°С†РµРЅРєР° РїСЂРё РїРѕРєСѓРїРєРµ 20%
-  sell-spread: 0.10            # РљРѕРјРёСЃСЃРёСЏ РїСЂРё РїСЂРѕРґР°Р¶Рµ 10%
-  trade-cooldown-ms: 500       # РљСѓР»РґР°СѓРЅ РјРµР¶РґСѓ СЃРґРµР»РєР°РјРё 0.5 СЃРµРє
+  buy-spread: 0.20
+  sell-spread: 0.10
+  # All prices scale: final = base * multiplier
+  price-multiplier: 1.0
+
+categories:
+  ores:
+    name: "§c⛏ Руды/слитки"
+    material: IRON_INGOT
+  food:
+    name: "§6🍞 Еда и ферма"
+    material: BREAD
+  wood:
+    name: "§a🌲 Дерево"
+    material: OAK_LOG
+  blocks:
+    name: "§7🧱 Стройматериалы"
+    material: STONE
+  mobs:
+    name: "§5☠ Лут мобов"
+    material: BONE
+  decor:
+    name: "§d🎨 Декор"
+    material: WHITE_WOOL
 
 items:
-  # ===== Р РЈР”Р« / РЎР›РРўРљР =====
-  # Р¦РµРЅС‹ РїСЂРёРІСЏР·Р°РЅС‹ Рє РґРѕС…РѕРґСѓ: ~300 СЂРµРї/С‡Р°СЃ
-  # Common: 5-20, Uncommon: 20-50, Rare: 50-150, Epic: 150-300, Legendary: 300-800, Mythic: 800-2000
-  
+  # ── РУДЫ / СЛИТКИ ──
   IRON_INGOT:
-    name: "&fР–РµР»РµР·РЅС‹Р№ СЃР»РёС‚РѕРє"
-    category: "Р СѓРґС‹/СЃР»РёС‚РєРё"
-    base-price: 25.0
-    min-price: 5.0
-    elasticity: 100.0
-    recovery-rate: 10
-    max-stock: 500
-    min-stock: -200
-    scarcity-threshold: 50
-    max-multiplier: 4.0
-  
+    material: IRON_INGOT
+    name: "§fЖелезный слиток"
+    category: ores
+    base-price: 25
   GOLD_INGOT:
-    name: "&eР—РѕР»РѕС‚РѕР№ СЃР»РёС‚РѕРє"
-    category: "Р СѓРґС‹/СЃР»РёС‚РєРё"
-    base-price: 60.0
-    min-price: 12.0
-    elasticity: 80.0
-    recovery-rate: 5
-    max-stock: 300
-    min-stock: -150
-    scarcity-threshold: 30
-    max-multiplier: 5.0
-    
+    material: GOLD_INGOT
+    name: "§eЗолотой слиток"
+    category: ores
+    base-price: 60
   DIAMOND:
-    name: "&bРђР»РјР°Р·"
-    category: "Р СѓРґС‹/СЃР»РёС‚РєРё"
-    base-price: 200.0
-    min-price: 50.0
-    elasticity: 50.0
-    recovery-rate: 2
-    max-stock: 100
-    min-stock: -50
-    scarcity-threshold: 15
-    max-multiplier: 6.0
-
+    material: DIAMOND
+    name: "§bАлмаз"
+    category: ores
+    base-price: 200
   EMERALD:
-    name: "&aРР·СѓРјСЂСѓРґ"
-    category: "Р СѓРґС‹/СЃР»РёС‚РєРё"
-    base-price: 100.0
-    min-price: 20.0
-    elasticity: 60.0
-    recovery-rate: 5
-    max-stock: 200
-    min-stock: -100
-    scarcity-threshold: 20
-    max-multiplier: 5.0
-
+    material: EMERALD
+    name: "§aИзумруд"
+    category: ores
+    base-price: 100
   NETHERITE_SCRAP:
-    name: "&cРќРµР·РµСЂРёС‚РѕРІС‹Р№ Р»РѕРј"
-    category: "Р СѓРґС‹/СЃР»РёС‚РєРё"
-    base-price: 800.0
-    min-price: 200.0
-    elasticity: 20.0
-    recovery-rate: 1
-    max-stock: 20
-    min-stock: -10
-    scarcity-threshold: 3
-    max-multiplier: 8.0
-
-  COPPER_INGOT:
-    name: "&6РњРµРґРЅС‹Р№ СЃР»РёС‚РѕРє"
-    category: "Р СѓРґС‹/СЃР»РёС‚РєРё"
-    base-price: 10.0
-    min-price: 2.0
-    elasticity: 150.0
-    recovery-rate: 40
-    max-stock: 800
-    min-stock: -400
-    scarcity-threshold: 80
-    max-multiplier: 3.0
-
-  RAW_IRON:
-    name: "&fРЎС‹СЂРѕРµ Р¶РµР»РµР·Рѕ"
-    category: "Р СѓРґС‹/СЃР»РёС‚РєРё"
-    base-price: 18.0
-    min-price: 4.0
-    elasticity: 120.0
-    recovery-rate: 30
-    max-stock: 600
-    min-stock: -300
-    scarcity-threshold: 60
-    max-multiplier: 4.0
-
-  RAW_GOLD:
-    name: "&eРЎС‹СЂРѕРµ Р·РѕР»РѕС‚Рѕ"
-    category: "Р СѓРґС‹/СЃР»РёС‚РєРё"
-    base-price: 40.0
-    min-price: 10.0
-    elasticity: 90.0
-    recovery-rate: 15
-    max-stock: 300
-    min-stock: -150
-    scarcity-threshold: 30
-    max-multiplier: 5.0
-
-  RAW_COPPER:
-    name: "&6РЎС‹СЂР°СЏ РјРµРґСЊ"
-    category: "Р СѓРґС‹/СЃР»РёС‚РєРё"
-    base-price: 8.0
-    min-price: 1.0
-    elasticity: 160.0
-    recovery-rate: 50
-    max-stock: 800
-    min-stock: -400
-    scarcity-threshold: 80
-    max-multiplier: 3.0
-
-  ANCIENT_DEBRIS:
-    name: "&4Р”СЂРµРІРЅРёР№ РјСѓСЃРѕСЂ"
-    category: "Р СѓРґС‹/СЃР»РёС‚РєРё"
-    base-price: 2000.0
-    min-price: 500.0
-    elasticity: 10.0
-    recovery-rate: 1
-    max-stock: 10
-    min-stock: -5
-    scarcity-threshold: 2
-    max-multiplier: 10.0
-
-  DEEPSLATE_DIAMOND_ORE:
-    name: "&bРђР»РјР°Р·РЅР°СЏ СЂСѓРґР° РіР»СѓР±РёРЅРЅРѕРіРѕ СЃР»Р°РЅС†Р°"
-    category: "Р СѓРґС‹/СЃР»РёС‚РєРё"
-    base-price: 1000.0
-    min-price: 300.0
-    elasticity: 15.0
-    recovery-rate: 1
-    max-stock: 30
-    min-stock: -15
-    scarcity-threshold: 5
-    max-multiplier: 8.0
-
-  # ===== Р Р•РЎРЈР РЎР« =====
+    material: NETHERITE_SCRAP
+    name: "§cНезеритовый лом"
+    category: ores
+    base-price: 800
   COAL:
-    name: "&8РЈРіРѕР»СЊ"
-    category: "Р РµСЃСѓСЂСЃС‹"
-    base-price: 5.0
-    min-price: 1.0
-    elasticity: 180.0
-    recovery-rate: 80
-    max-stock: 1000
-    min-stock: -500
-    scarcity-threshold: 100
-    max-multiplier: 3.0
-
+    material: COAL
+    name: "§8Уголь"
+    category: ores
+    base-price: 5
   REDSTONE:
-    name: "&cР РµРґСЃС‚РѕСѓРЅ"
-    category: "Р РµСЃСѓСЂСЃС‹"
-    base-price: 10.0
-    min-price: 2.0
-    elasticity: 150.0
-    recovery-rate: 60
-    max-stock: 600
-    min-stock: -300
-    scarcity-threshold: 60
-    max-multiplier: 3.5
-
-  GLOWSTONE_DUST:
-    name: "&eРЎРІРµС‚РѕРїС‹Р»СЊ"
-    category: "Р РµСЃСѓСЂСЃС‹"
-    base-price: 15.0
-    min-price: 3.0
-    elasticity: 120.0
-    recovery-rate: 30
-    max-stock: 400
-    min-stock: -200
-    scarcity-threshold: 40
-    max-multiplier: 4.0
-
-  QUARTZ:
-    name: "&fРљРІР°СЂС† РќРёР¶РЅРµРіРѕ РњРёСЂР°"
-    category: "Р РµСЃСѓСЂСЃС‹"
-    base-price: 12.0
-    min-price: 2.0
-    elasticity: 140.0
-    recovery-rate: 50
-    max-stock: 500
-    min-stock: -250
-    scarcity-threshold: 50
-    max-multiplier: 3.5
-
-  # ===== РњРћР‘Р« =====
-  BONE:
-    name: "&fРљРѕСЃС‚СЊ"
-    category: "РњРѕР±С‹"
-    base-price: 3.0
-    min-price: 0.5
-    elasticity: 200.0
-    recovery-rate: 100
-    max-stock: 1500
-    min-stock: -750
-    scarcity-threshold: 150
-    max-multiplier: 2.5
-
-  STRING:
-    name: "&fРќРёС‚СЊ"
-    category: "РњРѕР±С‹"
-    base-price: 3.0
-    min-price: 0.5
-    elasticity: 200.0
-    recovery-rate: 100
-    max-stock: 1500
-    min-stock: -750
-    scarcity-threshold: 150
-    max-multiplier: 2.5
-
-  SPIDER_EYE:
-    name: "&4РџР°СѓС‡РёР№ РіР»Р°Р·"
-    category: "РњРѕР±С‹"
-    base-price: 15.0
-    min-price: 3.0
-    elasticity: 130.0
-    recovery-rate: 40
-    max-stock: 500
-    min-stock: -250
-    scarcity-threshold: 50
-    max-multiplier: 4.0
-
-  GUNPOWDER:
-    name: "&8РџРѕСЂРѕС…"
-    category: "РњРѕР±С‹"
-    base-price: 20.0
-    min-price: 4.0
-    elasticity: 110.0
-    recovery-rate: 30
-    max-stock: 400
-    min-stock: -200
-    scarcity-threshold: 40
-    max-multiplier: 4.5
-
-  BLAZE_ROD:
-    name: "&6РћРіРЅРµРЅРЅС‹Р№ СЃС‚РµСЂР¶РµРЅСЊ"
-    category: "РњРѕР±С‹/РќРёР¶РЅРёР№ РјРёСЂ"
-    base-price: 80.0
-    min-price: 15.0
-    elasticity: 60.0
-    recovery-rate: 8
-    max-stock: 100
-    min-stock: -50
-    scarcity-threshold: 10
-    max-multiplier: 6.0
-
-  GHAST_TEAR:
-    name: "&fРЎР»РµР·Р° РіР°СЃС‚Р°"
-    category: "РњРѕР±С‹/РќРёР¶РЅРёР№ РјРёСЂ"
-    base-price: 250.0
-    min-price: 50.0
-    elasticity: 30.0
-    recovery-rate: 2
-    max-stock: 50
-    min-stock: -25
-    scarcity-threshold: 5
-    max-multiplier: 8.0
-
-  MAGMA_CREAM:
-    name: "&6РњР°РіРјРѕРІС‹Р№ РєСЂРµРј"
-    category: "РњРѕР±С‹/РќРёР¶РЅРёР№ РјРёСЂ"
-    base-price: 40.0
-    min-price: 8.0
-    elasticity: 80.0
-    recovery-rate: 15
-    max-stock: 200
-    min-stock: -100
-    scarcity-threshold: 20
-    max-multiplier: 5.0
-
-  PHANTOM_MEMBRANE:
-    name: "&9РњРµРјР±СЂР°РЅР° С„Р°РЅС‚РѕРјР°"
-    category: "РњРѕР±С‹"
-    base-price: 60.0
-    min-price: 12.0
-    elasticity: 70.0
-    recovery-rate: 10
-    max-stock: 150
-    min-stock: -75
-    scarcity-threshold: 15
-    max-multiplier: 5.5
-
-  PRISMARINE_SHARD:
-    name: "&bРџСЂРёР·РјР°СЂРёРЅРѕРІС‹Р№ РѕСЃРєРѕР»РѕРє"
-    category: "РњРѕР±С‹/РћРєРµР°РЅ"
-    base-price: 35.0
-    min-price: 7.0
-    elasticity: 90.0
-    recovery-rate: 20
-    max-stock: 200
-    min-stock: -100
-    scarcity-threshold: 20
-    max-multiplier: 5.0
-
-  PRISMARINE_CRYSTALS:
-    name: "&bРџСЂРёР·РјР°СЂРёРЅРѕРІС‹Рµ РєСЂРёСЃС‚Р°Р»Р»С‹"
-    category: "РњРѕР±С‹/РћРєРµР°РЅ"
-    base-price: 50.0
-    min-price: 10.0
-    elasticity: 75.0
-    recovery-rate: 15
-    max-stock: 150
-    min-stock: -75
-    scarcity-threshold: 15
-    max-multiplier: 5.5
-
-  ROTTEN_FLESH:
-    name: "&2Р“РЅРёР»Р°СЏ РїР»РѕС‚СЊ"
-    category: "РњРѕР±С‹"
-    base-price: 2.0
-    min-price: 0.2
-    elasticity: 250.0
-    recovery-rate: 200
-    max-stock: 3000
-    min-stock: -1500
-    scarcity-threshold: 300
-    max-multiplier: 2.0
-
-  LEATHER:
-    name: "&6РљРѕР¶Р°"
-    category: "РњРѕР±С‹"
-    base-price: 12.0
-    min-price: 2.0
-    elasticity: 140.0
-    recovery-rate: 40
-    max-stock: 400
-    min-stock: -200
-    scarcity-threshold: 40
-    max-multiplier: 4.0
-
-  FEATHER:
-    name: "&fРџРµСЂРѕ"
-    category: "РњРѕР±С‹"
-    base-price: 5.0
-    min-price: 1.0
-    elasticity: 170.0
-    recovery-rate: 60
-    max-stock: 600
-    min-stock: -300
-    scarcity-threshold: 60
-    max-multiplier: 3.0
-
-  SLIME_BALL:
-    name: "&aРЎР»РёР·СЊ"
-    category: "РњРѕР±С‹"
-    base-price: 35.0
-    min-price: 7.0
-    elasticity: 90.0
-    recovery-rate: 20
-    max-stock: 200
-    min-stock: -100
-    scarcity-threshold: 20
-    max-multiplier: 5.0
-
-  ENDER_PEARL:
-    name: "&5Р–РµРјС‡СѓРі РљСЂР°СЏ"
-    category: "РњРѕР±С‹/РљСЂР°Р№"
-    base-price: 60.0
-    min-price: 12.0
-    elasticity: 65.0
-    recovery-rate: 10
-    max-stock: 150
-    min-stock: -75
-    scarcity-threshold: 15
-    max-multiplier: 6.0
-
-  # ===== РЎРўР РћР™РњРђРўР•Р РРђР›Р« =====
-  COBBLESTONE:
-    name: "&7Р‘СѓР»С‹Р¶РЅРёРє"
-    category: "РЎС‚СЂРѕР№РјР°С‚РµСЂРёР°Р»С‹"
-    base-price: 1.0
-    min-price: 0.1
-    elasticity: 300.0
-    recovery-rate: 300
-    max-stock: 5000
-    min-stock: -2500
-    scarcity-threshold: 500
-    max-multiplier: 2.0
-
-  STONE:
-    name: "&7РљР°РјРµРЅСЊ"
-    category: "РЎС‚СЂРѕР№РјР°С‚РµСЂРёР°Р»С‹"
-    base-price: 1.5
-    min-price: 0.2
-    elasticity: 280.0
-    recovery-rate: 300
-    max-stock: 5000
-    min-stock: -2500
-    scarcity-threshold: 500
-    max-multiplier: 2.0
-
-  DEEPSLATE:
-    name: "&8Р“Р»СѓР±РёРЅРЅС‹Р№ СЃР»Р°РЅРµС†"
-    category: "РЎС‚СЂРѕР№РјР°С‚РµСЂРёР°Р»С‹"
-    base-price: 2.0
-    min-price: 0.3
-    elasticity: 250.0
-    recovery-rate: 200
-    max-stock: 3000
-    min-stock: -1500
-    scarcity-threshold: 300
-    max-multiplier: 2.5
-
-  OBSIDIAN:
-    name: "&5РћР±СЃРёРґРёР°РЅ"
-    category: "РЎС‚СЂРѕР№РјР°С‚РµСЂРёР°Р»С‹"
-    base-price: 35.0
-    min-price: 7.0
-    elasticity: 70.0
-    recovery-rate: 15
-    max-stock: 200
-    min-stock: -100
-    scarcity-threshold: 20
-    max-multiplier: 5.0
-
-  SAND:
-    name: "&eРџРµСЃРѕРє"
-    category: "РЎС‚СЂРѕР№РјР°С‚РµСЂРёР°Р»С‹"
-    base-price: 1.0
-    min-price: 0.1
-    elasticity: 290.0
-    recovery-rate: 300
-    max-stock: 5000
-    min-stock: -2500
-    scarcity-threshold: 500
-    max-multiplier: 2.0
-
-  GLASS:
-    name: "&fРЎС‚РµРєР»Рѕ"
-    category: "РЎС‚СЂРѕР№РјР°С‚РµСЂРёР°Р»С‹"
-    base-price: 2.5
-    min-price: 0.3
-    elasticity: 220.0
-    recovery-rate: 200
-    max-stock: 3000
-    min-stock: -1500
-    scarcity-threshold: 300
-    max-multiplier: 2.5
-
-  CLAY_BALL:
-    name: "&7Р“Р»РёРЅР°"
-    category: "РЎС‚СЂРѕР№РјР°С‚РµСЂРёР°Р»С‹"
-    base-price: 2.5
-    min-price: 0.3
-    elasticity: 230.0
-    recovery-rate: 200
-    max-stock: 3000
-    min-stock: -1500
-    scarcity-threshold: 300
-    max-multiplier: 2.5
-
-  BRICK:
-    name: "&cРљРёСЂРїРёС‡"
-    category: "РЎС‚СЂРѕР№РјР°С‚РµСЂРёР°Р»С‹"
-    base-price: 5.0
-    min-price: 1.0
-    elasticity: 180.0
-    recovery-rate: 100
-    max-stock: 1000
-    min-stock: -500
-    scarcity-threshold: 100
-    max-multiplier: 3.0
-
-  GRANITE:
-    name: "&cР“СЂР°РЅРёС‚"
-    category: "РЎС‚СЂРѕР№РјР°С‚РµСЂРёР°Р»С‹"
-    base-price: 1.5
-    min-price: 0.2
-    elasticity: 280.0
-    recovery-rate: 300
-    max-stock: 5000
-    min-stock: -2500
-    scarcity-threshold: 500
-    max-multiplier: 2.0
-
-  DIORITE:
-    name: "&fР”РёРѕСЂРёС‚"
-    category: "РЎС‚СЂРѕР№РјР°С‚РµСЂРёР°Р»С‹"
-    base-price: 1.5
-    min-price: 0.2
-    elasticity: 280.0
-    recovery-rate: 300
-    max-stock: 5000
-    min-stock: -2500
-    scarcity-threshold: 500
-    max-multiplier: 2.0
-
-  ANDESITE:
-    name: "&7РђРЅРґРµР·РёС‚"
-    category: "РЎС‚СЂРѕР№РјР°С‚РµСЂРёР°Р»С‹"
-    base-price: 1.5
-    min-price: 0.2
-    elasticity: 280.0
-    recovery-rate: 300
-    max-stock: 5000
-    min-stock: -2500
-    scarcity-threshold: 500
-    max-multiplier: 2.0
-
-  BASALT:
-    name: "&8Р‘Р°Р·Р°Р»СЊС‚"
-    category: "РЎС‚СЂРѕР№РјР°С‚РµСЂРёР°Р»С‹"
-    base-price: 2.0
-    min-price: 0.3
-    elasticity: 260.0
-    recovery-rate: 200
-    max-stock: 3000
-    min-stock: -1500
-    scarcity-threshold: 300
-    max-multiplier: 2.5
-
-  BLACKSTONE:
-    name: "&8Р§РµСЂРЅРёС‚"
-    category: "РЎС‚СЂРѕР№РјР°С‚РµСЂРёР°Р»С‹"
-    base-price: 2.5
-    min-price: 0.3
-    elasticity: 240.0
-    recovery-rate: 200
-    max-stock: 3000
-    min-stock: -1500
-    scarcity-threshold: 300
-    max-multiplier: 2.5
-
-  DIRT:
-    name: "&7Р—РµРјР»СЏ"
-    category: "РЎС‚СЂРѕР№РјР°С‚РµСЂРёР°Р»С‹"
-    base-price: 0.5
-    min-price: 0.1
-    elasticity: 350.0
-    recovery-rate: 400
-    max-stock: 8000
-    min-stock: -4000
-    scarcity-threshold: 800
-    max-multiplier: 1.5
-
-  COARSE_DIRT:
-    name: "&7Р“СЂСѓР±Р°СЏ Р·РµРјР»СЏ"
-    category: "РЎС‚СЂРѕР№РјР°С‚РµСЂРёР°Р»С‹"
-    base-price: 1.0
-    min-price: 0.1
-    elasticity: 300.0
-    recovery-rate: 300
-    max-stock: 5000
-    min-stock: -2500
-    scarcity-threshold: 500
-    max-multiplier: 2.0
-
-  GRASS_BLOCK:
-    name: "&aРўСЂР°РІСЏРЅРѕР№ Р±Р»РѕРє"
-    category: "РЎС‚СЂРѕР№РјР°С‚РµСЂРёР°Р»С‹"
-    base-price: 2.0
-    min-price: 0.3
-    elasticity: 250.0
-    recovery-rate: 200
-    max-stock: 3000
-    min-stock: -1500
-    scarcity-threshold: 300
-    max-multiplier: 2.5
-
-  GRAVEL:
-    name: "&7Р“СЂР°РІРёР№"
-    category: "РЎС‚СЂРѕР№РјР°С‚РµСЂРёР°Р»С‹"
-    base-price: 1.5
-    min-price: 0.2
-    elasticity: 280.0
-    recovery-rate: 300
-    max-stock: 5000
-    min-stock: -2500
-    scarcity-threshold: 500
-    max-multiplier: 2.0
-
-  SOUL_SAND:
-    name: "&4РџРµСЃРѕРє РґСѓС€"
-    category: "РЎС‚СЂРѕР№РјР°С‚РµСЂРёР°Р»С‹"
-    base-price: 8.0
-    min-price: 1.5
-    elasticity: 120.0
-    recovery-rate: 50
-    max-stock: 500
-    min-stock: -250
-    scarcity-threshold: 50
-    max-multiplier: 4.0
-
-  SOUL_SOIL:
-    name: "&4РџРѕС‡РІР° РґСѓС€"
-    category: "РЎС‚СЂРѕР№РјР°С‚РµСЂРёР°Р»С‹"
-    base-price: 8.0
-    min-price: 1.5
-    elasticity: 120.0
-    recovery-rate: 50
-    max-stock: 500
-    min-stock: -250
-    scarcity-threshold: 50
-    max-multiplier: 4.0
-
-  MUD:
-    name: "&7Р“СЂСЏР·СЊ"
-    category: "РЎС‚СЂРѕР№РјР°С‚РµСЂРёР°Р»С‹"
-    base-price: 2.0
-    min-price: 0.3
-    elasticity: 250.0
-    recovery-rate: 200
-    max-stock: 3000
-    min-stock: -1500
-    scarcity-threshold: 300
-    max-multiplier: 2.5
-
-  SNOW_BLOCK:
-    name: "&fРЎРЅРµР¶РЅС‹Р№ Р±Р»РѕРє"
-    category: "РЎС‚СЂРѕР№РјР°С‚РµСЂРёР°Р»С‹"
-    base-price: 1.0
-    min-price: 0.1
-    elasticity: 300.0
-    recovery-rate: 300
-    max-stock: 5000
-    min-stock: -2500
-    scarcity-threshold: 500
-    max-multiplier: 2.0
-
-  ICE:
-    name: "&bР›С‘Рґ"
-    category: "РЎС‚СЂРѕР№РјР°С‚РµСЂРёР°Р»С‹"
-    base-price: 5.0
-    min-price: 1.0
-    elasticity: 150.0
-    recovery-rate: 80
-    max-stock: 1000
-    min-stock: -500
-    scarcity-threshold: 100
-    max-multiplier: 3.0
-
-  PACKED_ICE:
-    name: "&bРџР»РѕС‚РЅС‹Р№ Р»С‘Рґ"
-    category: "РЎС‚СЂРѕР№РјР°С‚РµСЂРёР°Р»С‹"
-    base-price: 12.0
-    min-price: 2.0
-    elasticity: 100.0
-    recovery-rate: 40
-    max-stock: 500
-    min-stock: -250
-    scarcity-threshold: 50
-    max-multiplier: 4.0
-
-  BLUE_ICE:
-    name: "&9РЎРёРЅРёР№ Р»С‘Рґ"
-    category: "РЎС‚СЂРѕР№РјР°С‚РµСЂРёР°Р»С‹"
-    base-price: 30.0
-    min-price: 6.0
-    elasticity: 60.0
-    recovery-rate: 15
-    max-stock: 200
-    min-stock: -100
-    scarcity-threshold: 20
-    max-multiplier: 5.0
-
-  MOSS_BLOCK:
-    name: "&aР‘Р»РѕРє РјС…Р°"
-    category: "РЎС‚СЂРѕР№РјР°С‚РµСЂРёР°Р»С‹"
-    base-price: 3.0
-    min-price: 0.5
-    elasticity: 200.0
-    recovery-rate: 150
-    max-stock: 2000
-    min-stock: -1000
-    scarcity-threshold: 200
-    max-multiplier: 2.5
-
-  MUD_BRICKS:
-    name: "&7РљРёСЂРїРёС‡Рё РёР· РіСЂСЏР·Рё"
-    category: "РЎС‚СЂРѕР№РјР°С‚РµСЂРёР°Р»С‹"
-    base-price: 4.0
-    min-price: 0.8
-    elasticity: 180.0
-    recovery-rate: 100
-    max-stock: 1500
-    min-stock: -750
-    scarcity-threshold: 150
-    max-multiplier: 3.0
-
-  TERRACOTTA:
-    name: "&cРўРµСЂСЂР°РєРѕС‚Р°"
-    category: "РЎС‚СЂРѕР№РјР°С‚РµСЂРёР°Р»С‹"
-    base-price: 3.0
-    min-price: 0.5
-    elasticity: 200.0
-    recovery-rate: 150
-    max-stock: 2000
-    min-stock: -1000
-    scarcity-threshold: 200
-    max-multiplier: 2.5
-
-  # ===== Р”Р•Р Р•Р’Рћ =====
-  OAK_LOG:
-    name: "&6Р”СѓР±РѕРІРѕРµ Р±СЂРµРІРЅРѕ"
-    category: "Р”РµСЂРµРІРѕ"
-    base-price: 4.0
-    min-price: 0.5
-    elasticity: 180.0
-    recovery-rate: 100
-    max-stock: 1000
-    min-stock: -500
-    scarcity-threshold: 100
-    max-multiplier: 3.0
-
-  SPRUCE_LOG:
-    name: "&6Р•Р»РѕРІРѕРµ Р±СЂРµРІРЅРѕ"
-    category: "Р”РµСЂРµРІРѕ"
-    base-price: 4.0
-    min-price: 0.5
-    elasticity: 180.0
-    recovery-rate: 100
-    max-stock: 1000
-    min-stock: -500
-    scarcity-threshold: 100
-    max-multiplier: 3.0
-
-  BIRCH_LOG:
-    name: "&fР‘РµСЂС‘Р·РѕРІРѕРµ Р±СЂРµРІРЅРѕ"
-    category: "Р”РµСЂРµРІРѕ"
-    base-price: 4.0
-    min-price: 0.5
-    elasticity: 180.0
-    recovery-rate: 100
-    max-stock: 1000
-    min-stock: -500
-    scarcity-threshold: 100
-    max-multiplier: 3.0
-
-  JUNGLE_LOG:
-    name: "&aРўСЂРѕРїРёС‡РµСЃРєРѕРµ Р±СЂРµРІРЅРѕ"
-    category: "Р”РµСЂРµРІРѕ"
-    base-price: 5.0
-    min-price: 0.6
-    elasticity: 160.0
-    recovery-rate: 80
-    max-stock: 800
-    min-stock: -400
-    scarcity-threshold: 80
-    max-multiplier: 3.5
-
-  ACACIA_LOG:
-    name: "&6РђРєР°С†РёРµРІРѕРµ Р±СЂРµРІРЅРѕ"
-    category: "Р”РµСЂРµРІРѕ"
-    base-price: 5.0
-    min-price: 0.6
-    elasticity: 160.0
-    recovery-rate: 80
-    max-stock: 800
-    min-stock: -400
-    scarcity-threshold: 80
-    max-multiplier: 3.5
-
-  DARK_OAK_LOG:
-    name: "&8РўС‘РјРЅРѕРµ РґСѓР±РѕРІРѕРµ Р±СЂРµРІРЅРѕ"
-    category: "Р”РµСЂРµРІРѕ"
-    base-price: 6.0
-    min-price: 0.8
-    elasticity: 140.0
-    recovery-rate: 60
-    max-stock: 600
-    min-stock: -300
-    scarcity-threshold: 60
-    max-multiplier: 4.0
-
-  MANGROVE_LOG:
-    name: "&cРњР°РЅРіСЂРѕРІРѕРµ Р±СЂРµРІРЅРѕ"
-    category: "Р”РµСЂРµРІРѕ"
-    base-price: 7.0
-    min-price: 0.9
-    elasticity: 130.0
-    recovery-rate: 50
-    max-stock: 500
-    min-stock: -250
-    scarcity-threshold: 50
-    max-multiplier: 4.0
-
-  CHERRY_LOG:
-    name: "&dР’РёС€РЅС‘РІРѕРµ Р±СЂРµРІРЅРѕ"
-    category: "Р”РµСЂРµРІРѕ"
-    base-price: 8.0
-    min-price: 1.0
-    elasticity: 120.0
-    recovery-rate: 40
-    max-stock: 400
-    min-stock: -200
-    scarcity-threshold: 40
-    max-multiplier: 4.5
-
-  # ===== Р•Р”Рђ / Р¤Р•Р РњРђ =====
-  WHEAT:
-    name: "&eРџС€РµРЅРёС†Р°"
-    category: "Р•РґР°/С„РµСЂРјР°"
-    base-price: 5.0
-    min-price: 0.6
-    elasticity: 190.0
-    recovery-rate: 100
-    max-stock: 1000
-    min-stock: -500
-    scarcity-threshold: 100
-    max-multiplier: 2.5
-
-  BREAD:
-    name: "&6РҐР»РµР±"
-    category: "Р•РґР°/С„РµСЂРјР°"
-    base-price: 12.0
-    min-price: 2.0
-    elasticity: 140.0
-    recovery-rate: 40
-    max-stock: 400
-    min-stock: -200
-    scarcity-threshold: 40
-    max-multiplier: 3.5
-
-  CARROT:
-    name: "&6РњРѕСЂРєРѕРІСЊ"
-    category: "Р•РґР°/С„РµСЂРјР°"
-    base-price: 6.0
-    min-price: 0.8
-    elasticity: 170.0
-    recovery-rate: 80
-    max-stock: 800
-    min-stock: -400
-    scarcity-threshold: 80
-    max-multiplier: 3.0
-
-  POTATO:
-    name: "&eРљР°СЂС‚РѕС„РµР»СЊ"
-    category: "Р•РґР°/С„РµСЂРјР°"
-    base-price: 6.0
-    min-price: 0.8
-    elasticity: 170.0
-    recovery-rate: 80
-    max-stock: 800
-    min-stock: -400
-    scarcity-threshold: 80
-    max-multiplier: 3.0
-
-  BEETROOT:
-    name: "&cРЎРІС‘РєР»Р°"
-    category: "Р•РґР°/С„РµСЂРјР°"
-    base-price: 5.0
-    min-price: 0.6
-    elasticity: 190.0
-    recovery-rate: 100
-    max-stock: 1000
-    min-stock: -500
-    scarcity-threshold: 100
-    max-multiplier: 2.5
-
-  APPLE:
-    name: "&cРЇР±Р»РѕРєРѕ"
-    category: "Р•РґР°/С„РµСЂРјР°"
-    base-price: 8.0
-    min-price: 1.0
-    elasticity: 150.0
-    recovery-rate: 60
-    max-stock: 500
-    min-stock: -250
-    scarcity-threshold: 50
-    max-multiplier: 4.0
-
-  MELON_SLICE:
-    name: "&aР›РѕРјС‚РёРє Р°СЂР±СѓР·Р°"
-    category: "Р•РґР°/С„РµСЂРјР°"
-    base-price: 2.0
-    min-price: 0.2
-    elasticity: 220.0
-    recovery-rate: 200
-    max-stock: 2000
-    min-stock: -1000
-    scarcity-threshold: 200
-    max-multiplier: 2.0
-
-  PUMPKIN:
-    name: "&6РўС‹РєРІР°"
-    category: "Р•РґР°/С„РµСЂРјР°"
-    base-price: 8.0
-    min-price: 1.0
-    elasticity: 150.0
-    recovery-rate: 60
-    max-stock: 500
-    min-stock: -250
-    scarcity-threshold: 50
-    max-multiplier: 4.0
-
-  SUGAR_CANE:
-    name: "&aРЎР°С…Р°СЂРЅС‹Р№ С‚СЂРѕСЃС‚РЅРёРє"
-    category: "Р•РґР°/С„РµСЂРјР°"
-    base-price: 6.0
-    min-price: 0.8
-    elasticity: 170.0
-    recovery-rate: 80
-    max-stock: 800
-    min-stock: -400
-    scarcity-threshold: 80
-    max-multiplier: 3.0
-
-  BAMBOO:
-    name: "&aР‘Р°РјР±СѓРє"
-    category: "Р•РґР°/С„РµСЂРјР°"
-    base-price: 2.0
-    min-price: 0.2
-    elasticity: 230.0
-    recovery-rate: 200
-    max-stock: 2000
-    min-stock: -1000
-    scarcity-threshold: 200
-    max-multiplier: 2.0
-
-  CACTUS:
-    name: "&2РљР°РєС‚СѓСЃ"
-    category: "Р•РґР°/С„РµСЂРјР°"
-    base-price: 4.0
-    min-price: 0.5
-    elasticity: 190.0
-    recovery-rate: 100
-    max-stock: 1000
-    min-stock: -500
-    scarcity-threshold: 100
-    max-multiplier: 2.5
-
-  SWEET_BERRIES:
-    name: "&cРЎР»Р°РґРєРёРµ СЏРіРѕРґС‹"
-    category: "Р•РґР°/С„РµСЂРјР°"
-    base-price: 4.0
-    min-price: 0.5
-    elasticity: 200.0
-    recovery-rate: 100
-    max-stock: 1000
-    min-stock: -500
-    scarcity-threshold: 100
-    max-multiplier: 2.5
-
-  GLOW_BERRIES:
-    name: "&eРЎРІРµС‚СЏС‰РёРµСЃСЏ СЏРіРѕРґС‹"
-    category: "Р•РґР°/С„РµСЂРјР°"
-    base-price: 5.0
-    min-price: 0.6
-    elasticity: 180.0
-    recovery-rate: 80
-    max-stock: 800
-    min-stock: -400
-    scarcity-threshold: 80
-    max-multiplier: 3.0
-
-  # ===== Р”Р•РљРћР  =====
-  WHITE_WOOL:
-    name: "&fР‘РµР»Р°СЏ С€РµСЂСЃС‚СЊ"
-    category: "Р”РµРєРѕСЂ"
-    base-price: 6.0
-    min-price: 0.8
-    elasticity: 170.0
-    recovery-rate: 80
-    max-stock: 800
-    min-stock: -400
-    scarcity-threshold: 80
-    max-multiplier: 3.0
-
-  BLACK_WOOL:
-    name: "&8Р§С‘СЂРЅР°СЏ С€РµСЂСЃС‚СЊ"
-    category: "Р”РµРєРѕСЂ"
-    base-price: 7.0
-    min-price: 0.9
-    elasticity: 160.0
-    recovery-rate: 60
-    max-stock: 600
-    min-stock: -300
-    scarcity-threshold: 60
-    max-multiplier: 3.5
-
-  INK_SAC:
-    name: "&8Р§РµСЂРЅРёР»СЊРЅС‹Р№ РјРµС€РѕРє"
-    category: "Р”РµРєРѕСЂ"
-    base-price: 10.0
-    min-price: 1.5
-    elasticity: 140.0
-    recovery-rate: 50
-    max-stock: 500
-    min-stock: -250
-    scarcity-threshold: 50
-    max-multiplier: 4.0
-
-  GLOW_INK_SAC:
-    name: "&bРЎРІРµС‚СЏС‰РёР№СЃСЏ С‡РµСЂРЅРёР»СЊРЅС‹Р№ РјРµС€РѕРє"
-    category: "Р”РµРєРѕСЂ"
-    base-price: 30.0
-    min-price: 5.0
-    elasticity: 90.0
-    recovery-rate: 20
-    max-stock: 200
-    min-stock: -100
-    scarcity-threshold: 20
-    max-multiplier: 5.0
-
-  AMETHYST_SHARD:
-    name: "&dРћСЃРєРѕР»РѕРє Р°РјРµС‚РёСЃС‚Р°"
-    category: "РњР°РіРёСЏ"
-    base-price: 30.0
-    min-price: 5.0
-    elasticity: 90.0
-    recovery-rate: 20
-    max-stock: 200
-    min-stock: -100
-    scarcity-threshold: 20
-    max-multiplier: 5.0
-
-  EXPERIENCE_BOTTLE:
-    name: "&aРџСѓР·С‹СЂС‘Рє РѕРїС‹С‚Р°"
-    category: "РњР°РіРёСЏ"
-    base-price: 20.0
-    min-price: 3.0
-    elasticity: 110.0
-    recovery-rate: 30
-    max-stock: 300
-    min-stock: -150
-    scarcity-threshold: 30
-    max-multiplier: 4.5
-
+    material: REDSTONE
+    name: "§cРедстоун"
+    category: ores
+    base-price: 10
   LAPIS_LAZULI:
-    name: "&9Р›Р°Р·СѓСЂРёС‚"
-    category: "Р СѓРґС‹/СЃР»РёС‚РєРё"
-    base-price: 8.0
-    min-price: 2.0
-    elasticity: 120.0
-    recovery-rate: 30
-    max-stock: 300
-    min-stock: -150
-    scarcity-threshold: 50
-    max-multiplier: 4.0
+    material: LAPIS_LAZULI
+    name: "§9Лазурит"
+    category: ores
+    base-price: 8
+  QUARTZ:
+    material: QUARTZ
+    name: "§fНезер-кварц"
+    category: ores
+    base-price: 12
+  GLOWSTONE_DUST:
+    material: GLOWSTONE_DUST
+    name: "§eСветопыль"
+    category: ores
+    base-price: 15
+  ANCIENT_DEBRIS:
+    material: ANCIENT_DEBRIS
+    name: "§4Древние обломки"
+    category: ores
+    base-price: 2000
+  COPPER_INGOT:
+    material: COPPER_INGOT
+    name: "§6Медный слиток"
+    category: ores
+    base-price: 10
+  RAW_IRON:
+    material: RAW_IRON
+    name: "§fНеобработанное железо"
+    category: ores
+    base-price: 18
+  RAW_GOLD:
+    material: RAW_GOLD
+    name: "§eНеобработанное золото"
+    category: ores
+    base-price: 40
+  RAW_COPPER:
+    material: RAW_COPPER
+    name: "§6Необработанная медь"
+    category: ores
+    base-price: 8
 
-# Market 3.0: СЂРµР°Р»СЊРЅР°СЏ СЌРєРѕРЅРѕРјРёРєР°
-market2:
-  trends:
-    min-multiplier: 0.50     # -50% РІ РєСЂРёР·РёСЃРµ
-    max-multiplier: 2.00     # +100% РІ Р°Р¶РёРѕС‚Р°Р¶Рµ
-  events:
-    chance: 0.15             # 15% С€Р°РЅСЃ РЅР° СЃРѕР±С‹С‚РёРµ РєР°Р¶РґС‹Рµ 30 РјРёРЅ
-    duration-ms: 600000      # 10 РјРёРЅСѓС‚
-    max-concurrent: 3        # РњР°РєСЃРёРјСѓРј РѕРґРЅРѕРІСЂРµРјРµРЅРЅС‹С… СЃРѕР±С‹С‚РёР№
-  cycle:
-    chance: 0.05             # 5% С€Р°РЅСЃ РЅР° СЃРјРµРЅСѓ С†РёРєР»Р°
-    duration-ms: 1800000     # 30 РјРёРЅСѓС‚
-  trade-impact: 0.05        # РљР°Р¶РґС‹Р№ РїСЂРµРґРјРµС‚ РґРІРёРіР°РµС‚ С†РµРЅСѓ РЅР° 5%. 1 РїРѕРєСѓРїРєР° = +5% Рє С†РµРЅРµ
-  limited-rotation:
-    enabled: true
-    count: 2
-  recovery-multiplier: 1.0  # РњРЅРѕР¶РёС‚РµР»СЊ СЃРєРѕСЂРѕСЃС‚Рё РІРѕСЃСЃС‚Р°РЅРѕРІР»РµРЅРёСЏ
-  history:
-    min-volume-log: 16
-    max-entries: 100
-  flash-sale:
-    chance: 0.10             # 10% С€Р°РЅСЃ РєР°Р¶РґС‹Рµ 10 РјРёРЅСѓС‚
-    duration-ms: 300000      # 5 РјРёРЅСѓС‚
-  quest:
-    reward: 1000             # РќР°РіСЂР°РґР° Р·Р° РєРІРµСЃС‚
+  # ── ЕДА / ФЕРМА ──
+  BREAD:
+    material: BREAD
+    name: "§6Хлеб"
+    category: food
+    base-price: 12
+  APPLE:
+    material: APPLE
+    name: "§cЯблоко"
+    category: food
+    base-price: 8
+  CARROT:
+    material: CARROT
+    name: "§6Морковь"
+    category: food
+    base-price: 6
+  POTATO:
+    material: POTATO
+    name: "§eКартофель"
+    category: food
+    base-price: 6
+  WHEAT:
+    material: WHEAT
+    name: "§eПшеница"
+    category: food
+    base-price: 5
+  BEETROOT:
+    material: BEETROOT
+    name: "§cСвёкла"
+    category: food
+    base-price: 5
+  PUMPKIN:
+    material: PUMPKIN
+    name: "§6Тыква"
+    category: food
+    base-price: 8
+  MELON_SLICE:
+    material: MELON_SLICE
+    name: "§aЛомтик арбуза"
+    category: food
+    base-price: 2
+  SWEET_BERRIES:
+    material: SWEET_BERRIES
+    name: "§cСладкие ягоды"
+    category: food
+    base-price: 4
+  GLOW_BERRIES:
+    material: GLOW_BERRIES
+    name: "§eСветящиеся ягоды"
+    category: food
+    base-price: 5
+  CACTUS:
+    material: CACTUS
+    name: "§2Кактус"
+    category: food
+    base-price: 4
+  SUGAR_CANE:
+    material: SUGAR_CANE
+    name: "§aСахарный тростник"
+    category: food
+    base-price: 6
+  BAMBOO:
+    material: BAMBOO
+    name: "§aБамбук"
+    category: food
+    base-price: 2
+  COOKED_BEEF:
+    material: COOKED_BEEF
+    name: "§cСтейк"
+    category: food
+    base-price: 25
+  COOKED_PORKCHOP:
+    material: COOKED_PORKCHOP
+    name: "§cЖареная свинина"
+    category: food
+    base-price: 22
+  COOKED_CHICKEN:
+    material: COOKED_CHICKEN
+    name: "§cЖареная курица"
+    category: food
+    base-price: 18
+  GOLDEN_APPLE:
+    material: GOLDEN_APPLE
+    name: "§eЗолотое яблоко"
+    category: food
+    base-price: 80
+  ENCHANTED_GOLDEN_APPLE:
+    material: ENCHANTED_GOLDEN_APPLE
+    name: "§dЗачарованное золотое яблоко"
+    category: food
+    base-price: 1500
 
-# в•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђ
-# EXCELLENT ENCHANTS РРќРўР•Р“Р РђР¦РРЇ
-# в•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђв•ђ
-excellent-enchants:
-  enabled: true              # Р’РєР»СЋС‡РёС‚СЊ РёРЅС‚РµРіСЂР°С†РёСЋ СЃ ExcellentEnchants
-  # Р Р°СЂРёС‚РЅРѕСЃС‚Рё EE-РєРЅРёРі РїСЂРё РїРѕРєСѓРїРєРµ СЃР»СѓС‡Р°Р№РЅРѕР№ РєРЅРёРіРё
-  book-rarity-weights:
-    common: 40               # 40% С€Р°РЅСЃ РѕР±С‹С‡РЅРѕР№ РєРЅРёРіРё
-    uncommon: 30             # 30% РЅРµРѕР±С‹С‡РЅРѕР№
-    rare: 18                 # 18% СЂРµРґРєРѕР№
-    exotic: 9                # 9% СЌРєР·РѕС‚РёС‡РµСЃРєРѕР№
-    mythic: 3                # 3% РјРёС„РёС‡РµСЃРєРѕР№
-  # Р—Р°РјРµРЅР° РІР°РЅРёР»СЊРЅС‹С… РєРЅРёРі РЅР° EE-Р°РЅР°Р»РѕРіРё РїСЂРё РїРѕРєСѓРїРєРµ
-  replace-vanilla-books: true
-  # EE-РєРЅРёРіРё РІ РєР°С‚РµРіРѕСЂРёРё "РљРЅРёРіРё С‡Р°СЂ" СЂС‹РЅРєР°
-  show-in-rare-category: true
-  # Р’РµСЃР° EE-СЂР°СЂРёС‚РµС‚РѕРІ РґР»СЏ С†РµРЅС‹ РЅР° СЂС‹РЅРєРµ
-  rarity-price-multipliers:
-    common: 1.0
-    uncommon: 1.5
-    rare: 3.0
-    exotic: 7.0
-    mythic: 15.0
-  # РРЅС‚РµСЂРІР°Р» РѕР±РЅРѕРІР»РµРЅРёСЏ РєРµС€Р° EE-Р·Р°С‡Р°СЂРѕРІР°РЅРёР№ (С‚РёРє)
-  cache-refresh-interval: 36000  # 30 РјРёРЅСѓС‚
+  # ── ДЕРЕВО ──
+  OAK_LOG:
+    material: OAK_LOG
+    name: "§6Дубовое бревно"
+    category: wood
+    base-price: 4
+  SPRUCE_LOG:
+    material: SPRUCE_LOG
+    name: "§6Еловое бревно"
+    category: wood
+    base-price: 4
+  BIRCH_LOG:
+    material: BIRCH_LOG
+    name: "§fБерёзовое бревно"
+    category: wood
+    base-price: 4
+  JUNGLE_LOG:
+    material: JUNGLE_LOG
+    name: "§aТропическое бревно"
+    category: wood
+    base-price: 5
+  ACACIA_LOG:
+    material: ACACIA_LOG
+    name: "§6Акациевое бревно"
+    category: wood
+    base-price: 5
+  DARK_OAK_LOG:
+    material: DARK_OAK_LOG
+    name: "§8Тёмное дубовое бревно"
+    category: wood
+    base-price: 6
+  MANGROVE_LOG:
+    material: MANGROVE_LOG
+    name: "§cМангровое бревно"
+    category: wood
+    base-price: 7
+  CHERRY_LOG:
+    material: CHERRY_LOG
+    name: "§dВишнёвое бревно"
+    category: wood
+    base-price: 8
+
+  # ── СТРОЙМАТЕРИАЛЫ ──
+  STONE:
+    material: STONE
+    name: "§7Камень"
+    category: blocks
+    base-price: 1
+  COBBLESTONE:
+    material: COBBLESTONE
+    name: "§7Булыжник"
+    category: blocks
+    base-price: 1
+  SAND:
+    material: SAND
+    name: "§eПесок"
+    category: blocks
+    base-price: 1
+  GLASS:
+    material: GLASS
+    name: "§fСтекло"
+    category: blocks
+    base-price: 2
+  GRAVEL:
+    material: GRAVEL
+    name: "§7Гравий"
+    category: blocks
+    base-price: 1
+  CLAY_BALL:
+    material: CLAY_BALL
+    name: "§7Глина"
+    category: blocks
+    base-price: 2
+  BRICK:
+    material: BRICK
+    name: "§cКирпич"
+    category: blocks
+    base-price: 5
+  OBSIDIAN:
+    material: OBSIDIAN
+    name: "§5Обсидиан"
+    category: blocks
+    base-price: 35
+  GRANITE:
+    material: GRANITE
+    name: "§cГранит"
+    category: blocks
+    base-price: 1
+  DIORITE:
+    material: DIORITE
+    name: "§fДиорит"
+    category: blocks
+    base-price: 1
+  ANDESITE:
+    material: ANDESITE
+    name: "§7Андезит"
+    category: blocks
+    base-price: 1
+  DIRT:
+    material: DIRT
+    name: "§7Земля"
+    category: blocks
+    base-price: 1
+  GRASS_BLOCK:
+    material: GRASS_BLOCK
+    name: "§aТравяной блок"
+    category: blocks
+    base-price: 2
+  SNOW_BLOCK:
+    material: SNOW_BLOCK
+    name: "§fСнежный блок"
+    category: blocks
+    base-price: 1
+  ICE:
+    material: ICE
+    name: "§bЛёд"
+    category: blocks
+    base-price: 5
+  PACKED_ICE:
+    material: PACKED_ICE
+    name: "§bПлотный лёд"
+    category: blocks
+    base-price: 12
+  BLUE_ICE:
+    material: BLUE_ICE
+    name: "§9Синий лёд"
+    category: blocks
+    base-price: 30
+  MOSS_BLOCK:
+    material: MOSS_BLOCK
+    name: "§aБлок мха"
+    category: blocks
+    base-price: 3
+  BASALT:
+    material: BASALT
+    name: "§8Базальт"
+    category: blocks
+    base-price: 2
+  BLACKSTONE:
+    material: BLACKSTONE
+    name: "§8Чернокамень"
+    category: blocks
+    base-price: 2
+  SOUL_SAND:
+    material: SOUL_SAND
+    name: "§4Песок душ"
+    category: blocks
+    base-price: 8
+  SOUL_SOIL:
+    material: SOUL_SOIL
+    name: "§4Почва душ"
+    category: blocks
+    base-price: 8
+  TERRACOTTA:
+    material: TERRACOTTA
+    name: "§cТерракота"
+    category: blocks
+    base-price: 3
+
+  # ── ЛУТ МОБОВ ──
+  BONE:
+    material: BONE
+    name: "§fКость"
+    category: mobs
+    base-price: 3
+  STRING:
+    material: STRING
+    name: "§fНить"
+    category: mobs
+    base-price: 3
+  GUNPOWDER:
+    material: GUNPOWDER
+    name: "§8Порох"
+    category: mobs
+    base-price: 20
+  ROTTEN_FLESH:
+    material: ROTTEN_FLESH
+    name: "§2Гнилая плоть"
+    category: mobs
+    base-price: 2
+  SPIDER_EYE:
+    material: SPIDER_EYE
+    name: "§4Паучий глаз"
+    category: mobs
+    base-price: 15
+  LEATHER:
+    material: LEATHER
+    name: "§6Кожа"
+    category: mobs
+    base-price: 12
+  FEATHER:
+    material: FEATHER
+    name: "§fПеро"
+    category: mobs
+    base-price: 5
+  SLIME_BALL:
+    material: SLIME_BALL
+    name: "§aСлизь"
+    category: mobs
+    base-price: 35
+  ENDER_PEARL:
+    material: ENDER_PEARL
+    name: "§5Жемчуг Эндера"
+    category: mobs
+    base-price: 60
+  BLAZE_ROD:
+    material: BLAZE_ROD
+    name: "§6Огненный стержень"
+    category: mobs
+    base-price: 80
+  GHAST_TEAR:
+    material: GHAST_TEAR
+    name: "§fСлеза гаста"
+    category: mobs
+    base-price: 250
+  MAGMA_CREAM:
+    material: MAGMA_CREAM
+    name: "§6Сгусток магмы"
+    category: mobs
+    base-price: 40
+  PHANTOM_MEMBRANE:
+    material: PHANTOM_MEMBRANE
+    name: "§9Мембрана фантома"
+    category: mobs
+    base-price: 60
+  PRISMARINE_SHARD:
+    material: PRISMARINE_SHARD
+    name: "§bПризмариновый осколок"
+    category: mobs
+    base-price: 35
+  PRISMARINE_CRYSTALS:
+    material: PRISMARINE_CRYSTALS
+    name: "§bПризмариновый кристалл"
+    category: mobs
+    base-price: 50
+
+  # ── ДЕКОР ──
+  WHITE_WOOL:
+    material: WHITE_WOOL
+    name: "§fБелая шерсть"
+    category: decor
+    base-price: 6
+  BLACK_WOOL:
+    material: BLACK_WOOL
+    name: "§8Чёрная шерсть"
+    category: decor
+    base-price: 7
+  INK_SAC:
+    material: INK_SAC
+    name: "§8Чернильный мешок"
+    category: decor
+    base-price: 10
+  GLOW_INK_SAC:
+    material: GLOW_INK_SAC
+    name: "§bСветящийся чернильный мешок"
+    category: decor
+    base-price: 30
+  AMETHYST_SHARD:
+    material: AMETHYST_SHARD
+    name: "§dОсколок аметиста"
+    category: decor
+    base-price: 30
+  EXPERIENCE_BOTTLE:
+    material: EXPERIENCE_BOTTLE
+    name: "§aПузырёк опыта"
+    category: decor
+    base-price: 20
