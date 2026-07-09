@@ -30,27 +30,7 @@ public class VKCommandHandler {
         }
 
         if (cmd.equals("!помощь") || cmd.equals("!help") || cmd.equals("!клавиатура")) {
-            String help = "╔═══════════════════════════╗\n" +
-                    "║   🎮 CHRDK REBORN 🎮      ║\n" +
-                    "╚═══════════════════════════╝\n\n" +
-                    " ⛏ Смены:\n" +
-                    " !шахта — Шахтёрские смены\n" +
-                    " !смена / !shift — То же самое\n\n" +
-                    " 📊 Профиль:\n" +
-                    " !профиль - Твоя статистика\n" +
-                    " !рейтинг - Репутация\n" +
-                    " !топ - Лучшие игроки\n" +
-                    " !топреп - Богачи чата\n\n" +
-                    " 💰 Экономика:\n" +
-                    " !бонус - Ежедневный бонус\n" +
-                    " !сейф - Взлом сейфа\n" +
-                    " !промо <код> - Активировать код\n" +
-                    " !донат / !donate - Поддержка сервера\n\n" +
-                    " 🔧 Сервер:\n" +
-                    " !online - Онлайн\n" +
-                    " !status - Статус сервера\n" +
-                    " !меню - Главное меню\n" +
-                    " !помощь - Это сообщение";
+            String help = getVkHelpMessage(plugin);
             
             if (peer < 2000000000) {
                 plugin.getVkManager().sendKeyboard(peer, help, VKKeyboardBuilder.helpInlineKeyboard());
@@ -768,6 +748,36 @@ public class VKCommandHandler {
                 }
             }
         }
+    }
+
+    private static String getVkHelpMessage(VKChatPlugin plugin) {
+        if (plugin.getConfig().getBoolean("vk-help.enabled", true)) {
+            java.util.List<String> lines = plugin.getConfig().getStringList("vk-help.lines");
+            if (lines != null && !lines.isEmpty()) {
+                return String.join("\n", lines);
+            }
+        }
+        return "╔═══════════════════════════╗\n" +
+                "║   🎮 CHRDK REBORN 🎮      ║\n" +
+                "╚═══════════════════════════╝\n\n" +
+                " ⛏ Смены:\n" +
+                " !шахта — Шахтёрские смены\n" +
+                " !смена / !shift — То же самое\n\n" +
+                " 📊 Профиль:\n" +
+                " !профиль - Твоя статистика\n" +
+                " !рейтинг - Репутация\n" +
+                " !топ - Лучшие игроки\n" +
+                " !топреп - Богачи чата\n\n" +
+                " 💰 Экономика:\n" +
+                " !бонус - Ежедневный бонус\n" +
+                " !сейф - Взлом сейфа\n" +
+                " !промо <код> - Активировать код\n" +
+                " !донат / !donate - Поддержка сервера\n\n" +
+                " 🔧 Сервер:\n" +
+                " !online - Онлайн\n" +
+                " !status - Статус сервера\n" +
+                " !меню - Главное меню\n" +
+                " !помощь - Это сообщение";
     }
 
     private static void sendVkToMcLegacy(String name, String text) {
