@@ -112,8 +112,20 @@ public class VKChatBridge {
             var pdc = p.getPersistentDataContainer();
             var key = new org.bukkit.NamespacedKey("vkchat", "local_rep");
             int cur = pdc.getOrDefault(key, PersistentDataType.INTEGER, 0);
-            pdc.set(key, PersistentDataType.INTEGER, cur + amount);
+            int cap = getLocalRepCap();
+            int capped = Math.min(cur + amount, cap > 0 ? cap : Integer.MAX_VALUE);
+            pdc.set(key, PersistentDataType.INTEGER, capped);
         } catch (Exception ignored) {}
+    }
+
+    private static int getLocalRepCap() {
+        try {
+            org.bukkit.plugin.Plugin dp = org.bukkit.Bukkit.getPluginManager().getPlugin("VKChatDonate");
+            if (dp != null && dp.isEnabled()) {
+                return dp.getConfig().getInt("pass.local-rep-cap", 50000);
+            }
+        } catch (Exception ignored) {}
+        return 0;
     }
 
     public static boolean takeLocalReputation(Player p, int amount) {
