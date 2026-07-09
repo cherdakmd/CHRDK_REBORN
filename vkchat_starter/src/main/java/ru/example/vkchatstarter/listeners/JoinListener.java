@@ -205,11 +205,14 @@ public class JoinListener implements Listener {
             if (artPlugin != null && artPlugin.isEnabled()) {
                 ru.example.vkchatartifacts.VKChatArtifactsPlugin vka = (ru.example.vkchatartifacts.VKChatArtifactsPlugin) artPlugin;
                 int count = plugin.getConfig().getInt("settings.artifact-count", 2);
-                for (int i = 0; i < count; i++) {
+                int max = vka.getConfig().getInt("artifacts.max-artifacts", 5);
+                int current = vka.getArtifactListener().countArtifacts(p);
+                int toGive = Math.min(count, max - current);
+                for (int i = 0; i < toGive; i++) {
                     ItemStack art = ru.example.vkchatartifacts.items.ArtifactFactory.generateArtifact(vka, false);
                     if (art != null) p.getInventory().addItem(art);
                 }
-                p.sendMessage(ChatColor.GOLD + "✨ Ты получил " + count + " стартовых артефактов!");
+                if (toGive > 0) p.sendMessage(ChatColor.GOLD + "✨ Ты получил " + toGive + " стартовых артефактов!");
             }
         } catch (Exception ignored) {}
     }

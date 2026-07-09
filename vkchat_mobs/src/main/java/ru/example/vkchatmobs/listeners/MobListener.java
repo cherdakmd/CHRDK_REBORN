@@ -700,7 +700,6 @@ public class MobListener implements Listener {
         p.playSound(p.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1.0f, 1.2f);
 
         if (isRuneToken) {
-            // Начисление +250 репутации через addEffectiveRep (поддержка проходки)
             VKChatBridge.addEffectiveRep(p, 250);
             p.sendMessage("§a🔺 Вы использовали Древний Жетон Рун и получили §6+250 Репутации ВК§a!");
 
@@ -709,10 +708,24 @@ public class MobListener implements Listener {
             p.sendMessage("§d✨ Вы получили предмет экипировки: " + (rolled.getItemMeta() != null ? rolled.getItemMeta().getDisplayName() : rolled.getType().name()));
             p.getWorld().spawnParticle(Particle.PORTAL, p.getLocation().add(0, 1, 0), 30, 0.5, 0.5, 0.5, 0.1);
         } else {
+            ItemStack rolled = rollRandomArtifactItem();
+            if (rolled != null && rolled.hasItemMeta() && rolled.getItemMeta().getPersistentDataContainer().has(new NamespacedKey("vkchat_artifacts", "is_artifact"), PersistentDataType.INTEGER)) {
+                int max = 5;
+                int current = 0;
+                try {
+                    max = ru.example.vkchatartifacts.VKChatArtifactsPlugin.getInstance().getConfig().getInt("artifacts.max-artifacts", 5);
+                    current = ru.example.vkchatartifacts.VKChatArtifactsPlugin.getInstance().getArtifactListener().countArtifacts(p);
+                } catch (Exception ignored) {}
+                if (current >= max) {
+                    item.setAmount(item.getAmount() + 1); // вернуть шард
+                    p.sendMessage("§c☠ Лимит артефактов: " + current + "/" + max + ". Выбрось лишние!");
+                    return;
+                }
+            }
+
             VKChatBridge.addEffectiveRep(p, 300);
             p.sendMessage("§a🔺 Вы использовали Осколок Древнего Артефакта и получили §d+300 Репутации ВК§a!");
 
-            ItemStack rolled = rollRandomArtifactItem();
             safeGiveItem(p, rolled);
             p.sendMessage("§b✨ Вы получили древний артефакт/свиток: " + (rolled.getItemMeta() != null ? rolled.getItemMeta().getDisplayName() : rolled.getType().name()));
             p.getWorld().spawnParticle(Particle.SPELL_WITCH, p.getLocation().add(0, 1, 0), 30, 0.5, 0.5, 0.5, 0.1);
