@@ -54,7 +54,7 @@ public class MarketGui {
 
         inv.setItem(45, categoryItem(plugin, Material.COMPASS, "all", "§b📦 Все товары", "§7" + svc.getAll().size() + " товаров"));
         inv.setItem(49, item(plugin, Material.OAK_SIGN, "mkt_search", "§e🔍 Поиск", "§7Найти товар по названию"));
-        inv.setItem(53, item(plugin, Material.BARRIER, null, "§c✕ Закрыть"));
+        inv.setItem(53, item(plugin, Material.BARRIER, "mkt_close", "§c✕ Закрыть"));
 
         p.openInventory(inv);
     }

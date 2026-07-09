@@ -89,6 +89,12 @@ public class MarketListener implements Listener {
             return;
         }
 
+        // Закрыть
+        if (hasPdc(meta, "mkt_close")) {
+            p.closeInventory();
+            return;
+        }
+
         // Кастомное количество
         if (hasPdc(meta, "mkt_amount")) {
             amountPrompt.put(p.getUniqueId(), parsedCat);
