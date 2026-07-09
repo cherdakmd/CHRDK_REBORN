@@ -105,21 +105,21 @@ public final class MarketCategoryResolver {
         if (isRareShopItem(id)) return false;
         if (category.equals("limited")) return false;
 
-        String cfg = plugin.getConfig().getString("items." + id + ".category",
-                guessCategory(id)).toLowerCase();
+        // Используем эвристику по ID (config-категории могут быть повреждены кодировкой)
+        String guessed = guessCategory(id).toLowerCase();
 
-        if (category.equals("rare")) return cfg.contains("редкост") || id.contains("ENCHANTED_BOOK") || id.contains("ENCHANT");
+        if (category.equals("rare")) return guessed.contains("редкост") || id.contains("ENCHANTED_BOOK") || id.contains("ENCHANT");
         if (category.equals("all")) return true;
 
-        if (category.equals("ores"))    return cfg.contains("руд") || cfg.contains("слит") || id.contains("INGOT") || id.contains("ORE") || id.contains("DIAMOND") || id.contains("COPPER") || id.contains("EMERALD") || id.contains("SCRAP") || id.contains("DEBRIS");
-        if (category.equals("food"))    return cfg.contains("еда") || cfg.contains("ферм") || id.contains("BREAD") || id.contains("APPLE") || id.contains("CARROT") || id.contains("POTATO") || id.contains("WHEAT") || id.contains("PUMPKIN") || id.contains("MELON") || id.contains("BERRY") || id.contains("BEETROOT") || id.contains("SUGAR_CANE") || id.contains("BAMBOO") || id.contains("CACTUS");
-        if (category.equals("wood"))    return cfg.contains("дерев") || id.contains("LOG") || id.contains("WOOD");
-        if (category.equals("blocks"))  return cfg.contains("строй") || id.contains("STONE") || id.contains("SAND") || id.contains("GLASS") || id.contains("BRICK") || id.contains("BASALT") || id.contains("BLACKSTONE") || id.contains("OBSIDIAN") || id.contains("SLATE") || id.contains("CLAY") || id.contains("GRANITE") || id.contains("DIORITE") || id.contains("ANDESITE");
-        if (category.equals("earth"))   return id.contains("DIRT") || id.contains("GRASS") || id.contains("GRAVEL") || id.contains("MUD") || id.contains("MOSS") || id.contains("COARSE");
-        if (category.equals("ice"))     return id.contains("ICE") || id.contains("SNOW") || id.contains("POWDER");
+        if (category.equals("ores"))    return id.contains("INGOT") || id.contains("ORE") || id.contains("DIAMOND") || id.contains("COPPER") || id.contains("EMERALD") || id.contains("SCRAP") || id.contains("DEBRIS") || id.contains("COAL") || id.contains("REDSTONE") || id.contains("GLOWSTONE") || id.contains("QUARTZ") || id.contains("LAPIS") || id.contains("GOLD_") || id.contains("IRON_") || id.contains("RAW_");
+        if (category.equals("food"))    return id.contains("BREAD") || id.contains("APPLE") || id.contains("CARROT") || id.contains("POTATO") || id.contains("WHEAT") || id.contains("PUMPKIN") || id.contains("MELON") || id.contains("BERRY") || id.contains("BEETROOT") || id.contains("SUGAR_CANE") || id.contains("BAMBOO") || id.contains("CACTUS");
+        if (category.equals("wood"))    return id.contains("LOG") || id.contains("WOOD");
+        if (category.equals("blocks"))  return id.contains("STONE") || id.contains("SAND") || id.contains("GLASS") || id.contains("BRICK") || id.contains("BASALT") || id.contains("BLACKSTONE") || id.contains("OBSIDIAN") || id.contains("CLAY") || id.contains("GRANITE") || id.contains("DIORITE") || id.contains("ANDESITE") || id.contains("DIRT") || id.contains("GRASS") || id.contains("GRAVEL") || id.contains("MUD") || id.contains("MOSS") || id.contains("SNOW") || id.contains("ICE") || id.contains("TERRACOTTA");
+        if (category.equals("earth"))   return id.contains("DIRT") || id.contains("GRASS") || id.contains("GRAVEL") || id.contains("MUD") || id.contains("MOSS");
+        if (category.equals("ice"))     return id.contains("ICE") || id.contains("SNOW");
         if (category.equals("nether"))  return id.contains("SOUL") || id.contains("NETHERRACK") || id.contains("BLACKSTONE") || id.contains("BASALT");
-        if (category.equals("mob"))     return cfg.contains("мобы") || id.contains("BONE") || id.contains("STRING") || id.contains("GUNPOWDER") || id.contains("LEATHER") || id.contains("FEATHER") || id.contains("ROTTEN") || id.contains("SPIDER") || id.contains("SLIME") || id.contains("BLAZE") || id.contains("GHAST") || id.contains("MAGMA") || id.contains("PHANTOM") || id.contains("ENDER_PEARL");
-        if (category.equals("decor"))   return cfg.contains("декор") || id.contains("WOOL") || id.contains("DYE") || id.contains("INK") || id.contains("AMETHYST");
+        if (category.equals("mob"))     return id.contains("BONE") || id.contains("STRING") || id.contains("GUNPOWDER") || id.contains("LEATHER") || id.contains("FEATHER") || id.contains("ROTTEN") || id.contains("SPIDER") || id.contains("SLIME") || id.contains("BLAZE") || id.contains("GHAST") || id.contains("MAGMA") || id.contains("PHANTOM") || id.contains("ENDER_PEARL") || id.contains("PRISMARINE");
+        if (category.equals("decor"))   return id.contains("WOOL") || id.contains("DYE") || id.contains("INK") || id.contains("AMETHYST") || id.contains("EXPERIENCE_BOTTLE");
         if (category.equals("decor2"))  return id.contains("TERRACOTTA") || id.contains("MUD_BRICK");
 
         return true;
