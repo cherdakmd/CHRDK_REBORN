@@ -106,7 +106,9 @@ public class BroadcastManager implements Listener {
     public void announceRandom(List<String> messages, String player, String extra) {
         if (messages.isEmpty()) return;
         String msg = messages.get(rnd.nextInt(messages.size()));
-        msg = msg.replace("{player}", getStatus(Bukkit.getPlayer(player)) + " &r" + player);
+        Player p = Bukkit.getPlayer(player);
+        String status = p != null ? getStatus(p) : "офлайн";
+        msg = msg.replace("{player}", status + " &r" + player);
         if (extra != null) msg = msg.replace("{extra}", extra);
         broadcast(ChatColor.translateAlternateColorCodes('&', msg));
     }

@@ -88,6 +88,7 @@ public class NationShopGui {
         }
 
         int cost = 0;
+        if (!clicked.hasItemMeta()) return false;
         if (clicked.getItemMeta().getPersistentDataContainer().has(new NamespacedKey(plugin, "shop_item_type"), PersistentDataType.STRING)) {
             cost = 150;
         } else if (clicked.getItemMeta().getPersistentDataContainer().has(new NamespacedKey(plugin, "national_item"), PersistentDataType.STRING)) {
