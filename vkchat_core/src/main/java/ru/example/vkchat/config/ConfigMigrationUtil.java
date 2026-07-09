@@ -45,9 +45,8 @@ public class ConfigMigrationUtil {
         
         // Проверяем что нужно обновить
         boolean hasMissing = hasMissingKeys(userConfig, defConfig);
-        boolean hasObsolete = hasObsoleteKeys(userConfig, defConfig) || obsoleteKeys.length > 0;
         
-        if (!hasMissing && !hasObsolete) return;
+        if (!hasMissing) return;
         
         // Создаём бэкап
         try {
@@ -61,22 +60,15 @@ public class ConfigMigrationUtil {
             logger.warning("Не удалось создать бэкап: " + e.getMessage());
         }
         
-        // Добавляем недостающие ключи
+        // ── Миграция: ТОЛЬКО добавляем недостающие ключи ──
+        // Удаление ключей ОТКЛЮЧЕНО — оно опасное и ломает пользовательские конфиги.
+        // Принудительное удаление obsoleteKeys тоже отключено.
+        // Устаревшие ключи просто игнорируются кодом, удаление — через ручное редактирование.
+
         if (hasMissing) {
             userConfig.setDefaults(defConfig);
             userConfig.options().copyDefaults(true);
             logger.info(resourceName + ": добавлены недостающие ключи.");
-        }
-        
-        // Удаляем устаревшие ключи
-        if (hasObsolete) {
-            List<String> removed = removeObsoleteKeys(userConfig, defConfig, obsoleteKeys);
-            if (!removed.isEmpty()) {
-                logger.info(resourceName + ": удалено устаревших ключей: " + removed.size());
-                for (String key : removed) {
-                    logger.info("  - " + key);
-                }
-            }
         }
         
         // Сохраняем

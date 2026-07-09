@@ -108,7 +108,7 @@ public final class MarketCategoryResolver {
         String cfg = plugin.getConfig().getString("items." + id + ".category",
                 guessCategory(id)).toLowerCase();
 
-        if (category.equals("rare")) return cfg.contains("редкост") || id.contains("ENCHANT_BOOK");
+        if (category.equals("rare")) return cfg.contains("редкост") || id.contains("ENCHANTED_BOOK") || id.contains("ENCHANT");
         if (category.equals("all")) return true;
 
         if (category.equals("ores"))    return cfg.contains("руд") || cfg.contains("слит") || id.contains("INGOT") || id.contains("ORE") || id.contains("DIAMOND") || id.contains("COPPER") || id.contains("EMERALD") || id.contains("SCRAP") || id.contains("DEBRIS");
@@ -148,10 +148,18 @@ public final class MarketCategoryResolver {
      */
     public static List<String> getConfiguredItems(VKChatMarketPlugin plugin, String category) {
         List<String> result = new ArrayList<>();
-        if (plugin.getConfig().contains("items") && plugin.getConfig().getConfigurationSection("items") != null) {
-            for (String id : plugin.getConfig().getConfigurationSection("items").getKeys(false)) {
-                if (categoryMatches(plugin, id, category)) result.add(id);
-            }
+        org.bukkit.configuration.ConfigurationSection itemsSection = plugin.getConfig().getConfigurationSection("items");
+        if (itemsSection == null) {
+            plugin.getLogger().warning("Секция 'items' отсутствует в config.yml! Проверьте конфиг.");
+            return result;
+        }
+        java.util.Set<String> keys = itemsSection.getKeys(false);
+        if (keys.isEmpty()) {
+            plugin.getLogger().warning("Секция 'items' пуста! Проверьте конфиг.");
+            return result;
+        }
+        for (String id : keys) {
+            if (categoryMatches(plugin, id, category)) result.add(id);
         }
         return result;
     }
@@ -214,7 +222,6 @@ public final class MarketCategoryResolver {
     public static boolean isRareShopItem(String id) {
         return id.contains("TOTEM") || id.contains("ENCHANTED_GOLDEN_APPLE")
                 || id.contains("NETHERITE_INGOT") || id.contains("ECHO_SHARD")
-                || id.contains("ANCIENT_DEBRIS") || id.contains("NETHER_STAR")
-                || id.contains("HEART_OF_THE_SEA");
+                || id.contains("NETHER_STAR") || id.contains("HEART_OF_THE_SEA");
     }
 }
