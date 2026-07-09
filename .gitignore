@@ -19,3 +19,16 @@ Thumbs.db
 plugins_output/
 temp_jar/
 temp_jar.zip
+
+# Old copies and fixes
+*_refactored/
+*_refactored.tar.gz
+*_refactored.zip
+*_FIX_*/
+
+# External plugins
+TAB/
+
+# Archives
+*.tar.gz
+*.zip
