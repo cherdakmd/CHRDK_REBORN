@@ -18,6 +18,8 @@ import ru.example.vkchatgear.runes.RuneListener;
 import ru.example.vkchatgear.forge.ForgeLogger;
 import ru.example.vkchatgear.forge.SetBonusManager;
 import ru.example.vkchatgear.runes.RuneRegistry;
+import ru.example.vkchatgear.providers.GearMotdProvider;
+import ru.example.vkchat.api.MotdProviderRegistry;
 import ru.example.vkchat.util.VKChatBridge;
 
 import java.util.List;
@@ -116,7 +118,10 @@ public class VKChatGearPlugin extends JavaPlugin {
         }, 6000L, 6000L);
 
         startPassiveTasks();
-        
+
+        // Регистрация MOTD провайдера (без reflection)
+        MotdProviderRegistry.register(new GearMotdProvider(this));
+
         // Каждые 30 минут запускаем проверку магических событий на руны и кристаллы
         magicEventTaskId = getServer().getScheduler().runTaskTimer(this, () -> checkForMagicEvent(), 1200L, 36000L).getTaskId();
 

@@ -6,6 +6,8 @@ import org.bukkit.plugin.java.JavaPlugin;
 import ru.example.vkchatevents.managers.*;
 import ru.example.vkchatevents.tasks.*;
 import ru.example.vkchatevents.commands.*;
+import ru.example.vkchatevents.providers.EventsMotdProvider;
+import ru.example.vkchat.api.MotdProviderRegistry;
 
 /**
  * VKChatEvents v3.0 — система серверных событий
@@ -102,6 +104,9 @@ public class VKChatEventsPlugin extends JavaPlugin {
             getCommand("events").setExecutor(eventsCommand);
             getCommand("events").setTabCompleter(eventsCommand);
         }
+
+        // Регистрация MOTD провайдера (без reflection)
+        MotdProviderRegistry.register(new EventsMotdProvider(this));
 
         // Запуск задач
         int reminderSec = getConfig().getInt("reminders.interval", 600);

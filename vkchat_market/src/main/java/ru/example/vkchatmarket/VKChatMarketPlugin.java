@@ -7,6 +7,8 @@ import ru.example.vkchatmarket.commands.MarketCommand;
 import ru.example.vkchatmarket.gui.MarketGui;
 import ru.example.vkchatmarket.listener.MarketListener;
 import ru.example.vkchatmarket.service.MarketService;
+import ru.example.vkchatmarket.providers.MarketMotdProvider;
+import ru.example.vkchat.api.MotdProviderRegistry;
 
 import java.util.Map;
 import java.util.UUID;
@@ -31,6 +33,9 @@ public class VKChatMarketPlugin extends JavaPlugin {
 
         marketService = new MarketService(this);
         marketService.load();
+
+        // Регистрация MOTD провайдера (без reflection)
+        MotdProviderRegistry.register(new MarketMotdProvider(this));
 
         MarketListener listener = new MarketListener(this);
         getServer().getPluginManager().registerEvents(listener, this);
