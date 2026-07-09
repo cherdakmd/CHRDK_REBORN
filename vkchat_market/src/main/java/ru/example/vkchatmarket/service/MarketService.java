@@ -2,6 +2,8 @@ package ru.example.vkchatmarket.service;
 
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 import ru.example.vkchatmarket.VKChatMarketPlugin;
 import ru.example.vkchatmarket.model.MarketCategory;
 import ru.example.vkchatmarket.model.MarketEntry;
@@ -54,21 +56,29 @@ public class MarketService {
         return result;
     }
 
-    public List<MarketEntry> getAll() {
-        return new ArrayList<>(entries.values());
+    public List<MarketEntry> getAll() { return new ArrayList<>(entries.values()); }
+
+    public List<MarketEntry> search(String query) {
+        String q = query.toLowerCase().trim();
+        List<MarketEntry> result = new ArrayList<>();
+        for (MarketEntry e : entries.values()) {
+            String name = org.bukkit.ChatColor.stripColor(e.displayName()).toLowerCase();
+            if (name.contains(q) || e.id().toLowerCase().contains(q)) result.add(e);
+        }
+        return result;
     }
 
-    public int countItems(org.bukkit.entity.Player p, MarketEntry entry) {
+    public int countItems(Player p, MarketEntry entry) {
         int count = 0;
-        for (org.bukkit.inventory.ItemStack item : p.getInventory().getContents()) {
+        for (ItemStack item : p.getInventory().getContents()) {
             if (item != null && item.getType() == entry.material()) count += item.getAmount();
         }
         return count;
     }
 
-    public boolean takeItems(org.bukkit.entity.Player p, MarketEntry entry, int amount) {
+    public boolean takeItems(Player p, MarketEntry entry, int amount) {
         int remaining = amount;
-        for (org.bukkit.inventory.ItemStack item : p.getInventory().getContents()) {
+        for (ItemStack item : p.getInventory().getContents()) {
             if (remaining <= 0) break;
             if (item != null && item.getType() == entry.material()) {
                 int take = Math.min(item.getAmount(), remaining);
@@ -79,12 +89,35 @@ public class MarketService {
         return remaining <= 0;
     }
 
-    public void giveItems(org.bukkit.entity.Player p, MarketEntry entry, int amount) {
+    public void giveItems(Player p, MarketEntry entry, int amount) {
         int maxStack = entry.material().getMaxStackSize();
         while (amount > 0) {
             int give = Math.min(amount, maxStack);
-            p.getInventory().addItem(new org.bukkit.inventory.ItemStack(entry.material(), give));
+            Map<Integer, ItemStack> leftover = p.getInventory().addItem(new ItemStack(entry.material(), give));
+            if (!leftover.isEmpty()) {
+                for (ItemStack drop : leftover.values()) p.getWorld().dropItemNaturally(p.getLocation(), drop);
+            }
             amount -= give;
         }
+    }
+
+    public int sellAll(Player p, MarketCategory category, int vkId) {
+        List<MarketEntry> list = category == null ? getAll() : getByCategory(category);
+        int totalEarned = 0;
+        int itemsSold = 0;
+        for (MarketEntry entry : list) {
+            int owned = countItems(p, entry);
+            if (owned <= 0) continue;
+            int price = prices().getSellPrice(entry);
+            int earned = price * owned;
+            takeItems(p, entry, owned);
+            prices().recordSell(entry, owned);
+            totalEarned += earned;
+            itemsSold += owned;
+        }
+        if (totalEarned > 0) {
+            ru.example.vkchat.util.VKChatBridge.addPoints(vkId, totalEarned);
+        }
+        return totalEarned;
     }
 }

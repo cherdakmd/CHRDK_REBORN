@@ -6,8 +6,11 @@ config-version: 4
 settings:
   buy-spread: 0.20
   sell-spread: 0.10
-  # All prices scale: final = base * multiplier
   price-multiplier: 1.0
+  # Динамика: цены растут при покупках, падают при продажах
+  dynamic-pricing: true
+  max-dynamic-shift: 0.50
+  dynamic-elasticity: 50
 
 categories:
   ores:

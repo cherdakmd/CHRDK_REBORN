@@ -8,9 +8,15 @@ import ru.example.vkchatmarket.gui.MarketGui;
 import ru.example.vkchatmarket.listener.MarketListener;
 import ru.example.vkchatmarket.service.MarketService;
 
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+
 public class VKChatMarketPlugin extends JavaPlugin {
     private static VKChatMarketPlugin instance;
     private MarketService marketService;
+    private final Map<UUID, String> searchPrompt = new ConcurrentHashMap<>();
+    private final Map<UUID, String> customAmountPrompt = new ConcurrentHashMap<>();
 
     @Override
     public void onEnable() {
@@ -26,7 +32,8 @@ public class VKChatMarketPlugin extends JavaPlugin {
         marketService = new MarketService(this);
         marketService.load();
 
-        getServer().getPluginManager().registerEvents(new MarketListener(this), this);
+        MarketListener listener = new MarketListener(this);
+        getServer().getPluginManager().registerEvents(listener, this);
 
         MarketCommand marketCmd = new MarketCommand(this);
         if (getCommand("market") != null) {
@@ -34,7 +41,6 @@ public class VKChatMarketPlugin extends JavaPlugin {
             getCommand("market").setTabCompleter(marketCmd);
         }
 
-        // NPC interaction handler
         getServer().getPluginManager().registerEvents(new org.bukkit.event.Listener() {
             @org.bukkit.event.EventHandler
             public void onInteract(org.bukkit.event.player.PlayerInteractEntityEvent e) {
@@ -49,7 +55,7 @@ public class VKChatMarketPlugin extends JavaPlugin {
             }
         }, this);
 
-        getLogger().info("VKChatMarket v4.0 запущен! Товаров: " + marketService.getAll().size());
+        getLogger().info("VKChatMarket v4.1 запущен! Товаров: " + marketService.getAll().size());
     }
 
     @Override
@@ -60,4 +66,6 @@ public class VKChatMarketPlugin extends JavaPlugin {
 
     public static VKChatMarketPlugin getInstance() { return instance; }
     public MarketService getMarketService() { return marketService; }
+    public Map<UUID, String> getSearchPrompt() { return searchPrompt; }
+    public Map<UUID, String> getCustomAmountPrompt() { return customAmountPrompt; }
 }
