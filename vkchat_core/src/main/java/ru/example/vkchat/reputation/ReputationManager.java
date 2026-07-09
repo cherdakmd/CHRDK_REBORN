@@ -65,7 +65,7 @@ public class ReputationManager {
                     }
                 }
             } catch (SQLException e) {
-                e.printStackTrace();
+                plugin.getLogger().warning("Ошибка БД репутации: " + e.getMessage());
             }
         });
     }
@@ -79,7 +79,7 @@ public class ReputationManager {
                 return rs.getInt("points");
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            plugin.getLogger().warning("Ошибка БД репутации: " + e.getMessage());
         }
         return 0;
     }
@@ -102,7 +102,7 @@ public class ReputationManager {
                 int newPoints = getPoints(vkId);
                 plugin.getServer().getPluginManager().callEvent(new ru.example.vkchat.api.events.ReputationChangeEvent(vkId, newPoints + amount, newPoints));
             } catch (SQLException e) {
-                e.printStackTrace();
+                plugin.getLogger().warning("Ошибка БД репутации: " + e.getMessage());
             }
         });
     }
@@ -130,7 +130,7 @@ public class ReputationManager {
                 
                 plugin.getServer().getPluginManager().callEvent(new ru.example.vkchat.api.events.ReputationChangeEvent(vkId, oldPoints, newPoints));
             } catch (SQLException e) {
-                e.printStackTrace();
+                plugin.getLogger().warning("Ошибка БД репутации: " + e.getMessage());
             }
         });
     }
@@ -153,7 +153,7 @@ public class ReputationManager {
                 
                 plugin.getServer().getPluginManager().callEvent(new ru.example.vkchat.api.events.ReputationChangeEvent(vkId, oldPoints, amount));
             } catch (SQLException e) {
-                e.printStackTrace();
+                plugin.getLogger().warning("Ошибка БД репутации: " + e.getMessage());
             }
         });
     }
@@ -188,7 +188,7 @@ public class ReputationManager {
                 return true;
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            plugin.getLogger().warning("Ошибка БД репутации: " + e.getMessage());
         }
         return false;
     }
@@ -228,7 +228,7 @@ public class ReputationManager {
                 ps.executeUpdate();
                 plugin.getLogger().info("✓ Успешно создан промокод в БД: " + finalCode + " на " + reward + " репутации (" + uses + " использ.)");
             } catch (SQLException e) {
-                e.printStackTrace();
+                plugin.getLogger().warning("Ошибка БД репутации: " + e.getMessage());
             }
         });
     }
@@ -276,7 +276,7 @@ public class ReputationManager {
             return "✅ Успех! Промокод '" + code + "' успешно активирован! Начислено: +" + reward + " репутации ВК!";
             
         } catch (SQLException e) {
-            e.printStackTrace();
+            plugin.getLogger().warning("Ошибка БД репутации: " + e.getMessage());
             return "❌ Ошибка базы данных при активации промокода!";
         }
     }
@@ -290,7 +290,7 @@ public class ReputationManager {
                 scores.put(rs.getInt("vk_id"), rs.getInt("points"));
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            plugin.getLogger().warning("Ошибка БД репутации: " + e.getMessage());
         }
         
         List<Map.Entry<Integer, Integer>> list = new ArrayList<>(scores.entrySet());
@@ -318,7 +318,7 @@ public class ReputationManager {
                 return rs.getInt("rank") + 1;
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            plugin.getLogger().warning("Ошибка БД репутации: " + e.getMessage());
         }
         return 1;
     }
@@ -331,7 +331,7 @@ public class ReputationManager {
                 return rs.getInt("total");
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            plugin.getLogger().warning("Ошибка БД репутации: " + e.getMessage());
         }
         return 0;
     }
@@ -349,7 +349,7 @@ public class ReputationManager {
                 }
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            plugin.getLogger().warning("Ошибка БД репутации: " + e.getMessage());
         }
         return null;
     }

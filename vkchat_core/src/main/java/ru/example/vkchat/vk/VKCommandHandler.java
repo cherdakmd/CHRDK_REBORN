@@ -186,7 +186,7 @@ public class VKCommandHandler {
                     targetUuid = UUID.fromString(rs.getString("uuid"));
                 }
             } catch (Exception e) {
-                e.printStackTrace();
+                plugin.getLogger().warning("Ошибка ВК команды: " + e.getMessage());
             }
             
             if (targetUuid == null) {
@@ -234,7 +234,7 @@ public class VKCommandHandler {
                     joinTime = rs.getLong("reg_date");
                 }
             } catch (Exception e) {
-                e.printStackTrace();
+                plugin.getLogger().warning("Ошибка ВК команды: " + e.getMessage());
             }
             String regDate = joinTime > 0 ? new java.text.SimpleDateFormat("dd.MM.yyyy").format(new java.util.Date(joinTime)) : "Неизвестно";
             
@@ -344,7 +344,7 @@ public class VKCommandHandler {
                         targetUuid = java.util.UUID.fromString(rs.getString("uuid"));
                     }
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    plugin.getLogger().warning("Ошибка ВК команды: " + e.getMessage());
                 }
                 
                 if (targetUuid == null) {

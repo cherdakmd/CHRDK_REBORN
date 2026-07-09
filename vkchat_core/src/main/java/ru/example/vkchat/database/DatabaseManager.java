@@ -70,8 +70,7 @@ public class DatabaseManager {
             dataSource = new HikariDataSource(config);
             plugin.getLogger().info("Успешно инициализирован пул соединений " + (useMysql ? "MySQL" : "SQLite") + "!");
         } catch (Exception e) {
-            plugin.getLogger().severe("Не удалось подключиться к базе данных!");
-            e.printStackTrace();
+            plugin.getLogger().severe("Не удалось подключиться к базе данных: " + e.getMessage());
         }
     }
 
@@ -135,8 +134,7 @@ public class DatabaseManager {
                 s6.execute();
             }
         } catch (SQLException e) {
-            plugin.getLogger().severe("Ошибка при создании таблиц в БД!");
-            e.printStackTrace();
+            plugin.getLogger().severe("Ошибка при создании таблиц в БД: " + e.getMessage());
         }
     }
 

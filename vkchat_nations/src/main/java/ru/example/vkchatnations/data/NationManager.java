@@ -97,7 +97,7 @@ public class NationManager {
                 try {
                     playerNations.put(UUID.fromString(uuidStr), data.getString("players." + uuidStr));
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    plugin.getLogger().warning("Ошибка загрузки наций: " + e.getMessage());
                 }
             }
         }
@@ -109,7 +109,7 @@ public class NationManager {
                     nationLevels.put(nation, data.getInt("nations." + nation + ".level", 1));
                     nationExp.put(nation, data.getInt("nations." + nation + ".exp", 0));
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    plugin.getLogger().warning("Ошибка загрузки наций: " + e.getMessage());
                 }
             }
         }
@@ -152,7 +152,7 @@ public class NationManager {
                         nationClaims.put(key, new ChunkClaim(world, x, y, z, radius, UUID.fromString(ownerStr), claimNation, trusted, durability, level, explosionProt, noSpawnProt, fireProt, pvpProt, autoPay, extraRadius, claimName, hX, hY, hZ, hasH));
                     }
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    plugin.getLogger().warning("Ошибка загрузки наций: " + e.getMessage());
                 }
             }
         }

@@ -203,7 +203,7 @@ public class AuthManager {
                     }
                 }
             } catch (SQLException e) {
-                e.printStackTrace();
+                plugin.getLogger().warning("Ошибка БД авторизации: " + e.getMessage());
             }
         });
     }
@@ -589,7 +589,7 @@ public class AuthManager {
                 return rs.getString("password") != null;
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            plugin.getLogger().warning("Ошибка БД авторизации: " + e.getMessage());
         }
         return false;
     }
@@ -608,7 +608,7 @@ public class AuthManager {
                 ps.setString(4, player.getUniqueId().toString());
                 ps.executeUpdate();
             } catch (SQLException e) {
-                e.printStackTrace();
+                plugin.getLogger().warning("Ошибка БД авторизации: " + e.getMessage());
             }
         });
         
@@ -668,7 +668,7 @@ public class AuthManager {
                 }
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            plugin.getLogger().warning("Ошибка БД авторизации: " + e.getMessage());
         }
 
         // Неверный пароль
@@ -708,7 +708,7 @@ public class AuthManager {
                     ps.setString(3, player.getUniqueId().toString());
                     ps.executeUpdate();
                 } catch (SQLException e) {
-                    e.printStackTrace();
+                    plugin.getLogger().warning("Ошибка БД авторизации: " + e.getMessage());
                 }
             });
         }
@@ -727,7 +727,7 @@ public class AuthManager {
                 ps.setString(2, player.getUniqueId().toString());
                 ps.executeUpdate();
             } catch (SQLException e) {
-                e.printStackTrace();
+                plugin.getLogger().warning("Ошибка БД авторизации: " + e.getMessage());
             }
         });
     }

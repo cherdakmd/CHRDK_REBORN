@@ -87,7 +87,6 @@ public class ConfigManager {
             if (hasMissing) plugin.getLogger().info(resourceName + " автоматически обновлён: недостающие ключи добавлены.");
         } catch (IOException e) {
             plugin.getLogger().warning("Не удалось сохранить обновленный конфиг " + resourceName + ": " + e.getMessage());
-            e.printStackTrace();
         }
     }
 

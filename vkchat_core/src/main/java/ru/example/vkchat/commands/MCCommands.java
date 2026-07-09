@@ -650,7 +650,6 @@ public class MCCommands implements CommandExecutor, org.bukkit.command.TabComple
                         }
                     } catch (Exception e) {
                         sender.sendMessage("Ошибка при миграции: " + e.getMessage());
-                        e.printStackTrace();
                     }
                 });
             } else if (args[0].equalsIgnoreCase("wall")) {

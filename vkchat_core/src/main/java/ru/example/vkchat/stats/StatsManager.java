@@ -31,7 +31,7 @@ public class StatsManager {
                 totalJoins = rs.getInt("total"); // Примерно равно кол-ву уникальных игроков
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            plugin.getLogger().warning("Ошибка БД статистики: " + e.getMessage());
         }
     }
 
@@ -64,7 +64,7 @@ public class StatsManager {
             ps.setString(1, uuid.toString());
             ResultSet rs = ps.executeQuery();
             if (rs.next()) return rs.getInt(stat);
-        } catch (SQLException e) { e.printStackTrace(); }
+        } catch (SQLException e) { plugin.getLogger().warning("Ошибка запроса статистики: " + e.getMessage()); }
         return 0;
     }
 
@@ -79,7 +79,9 @@ public class StatsManager {
                 }
                 ps.setString(1, uuid.toString());
                 ps.executeUpdate();
-            } catch (SQLException e) { e.printStackTrace(); }
+        } catch (SQLException e) {
+            VKChatPlugin.getInstance().getLogger().warning("Ошибка загрузки статистики: " + e.getMessage());
+        }
         });
     }
 
@@ -113,7 +115,7 @@ public class StatsManager {
                 scores.put(uuidStr, score);
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            plugin.getLogger().warning("Ошибка БД статистики: " + e.getMessage());
         }
         
         List<Map.Entry<String, Double>> list = new ArrayList<>(scores.entrySet());
@@ -147,7 +149,7 @@ public class StatsManager {
                 return rs.getInt("rank") + 1;
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            plugin.getLogger().warning("Ошибка БД статистики: " + e.getMessage());
         }
         return 1;
     }
@@ -157,7 +159,7 @@ public class StatsManager {
             PreparedStatement ps = conn.prepareStatement("SELECT COUNT(*) as total FROM vkchat_stats");
             ResultSet rs = ps.executeQuery();
             if (rs.next()) return rs.getInt("total");
-        } catch (SQLException e) { e.printStackTrace(); }
+        } catch (SQLException e) { plugin.getLogger().warning("Ошибка запроса статистики: " + e.getMessage()); }
         return 0;
     }
 
