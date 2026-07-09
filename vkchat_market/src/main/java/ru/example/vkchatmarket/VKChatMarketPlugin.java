@@ -55,7 +55,26 @@ public class VKChatMarketPlugin extends JavaPlugin {
             }
         }, this);
 
-        getLogger().info("VKChatMarket v4.1 запущен! Товаров: " + marketService.getAll().size());
+        int eventInterval = getConfig().getInt("events.interval-minutes", 15) * 60 * 20;
+        getServer().getScheduler().runTaskTimer(this, () -> {
+            marketService.prices().tryStartRandomEvent();
+            if (marketService.prices().hasActiveEvent()) {
+                String name = marketService.prices().getActiveEventName();
+                long remaining = (marketService.prices().getActiveEventEnd() - System.currentTimeMillis()) / 1000;
+                for (org.bukkit.entity.Player pl : Bukkit.getOnlinePlayers()) {
+                    pl.sendMessage("§6§lБИРЖА §8▸ " + name + " §7(§e" + (remaining / 60) + " мин.§7)");
+                }
+            }
+            // Check expired
+            if (!marketService.prices().hasActiveEvent() && marketService.prices().getActiveEventName() != null) {
+                for (org.bukkit.entity.Player pl : Bukkit.getOnlinePlayers()) {
+                    pl.sendMessage("§6§lБИРЖА §8▸ §7Событие завершилось. Цены вернулись в норму.");
+                }
+                marketService.prices().clearEvent();
+            }
+        }, 200L, eventInterval);
+
+        getLogger().info("VKChatMarket v4.2 запущен! Товаров: " + marketService.getAll().size());
     }
 
     @Override

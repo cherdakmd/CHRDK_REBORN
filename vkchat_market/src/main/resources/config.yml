@@ -469,3 +469,65 @@ items:
     name: "§aПузырёк опыта"
     category: decor
     base-price: 20
+
+# ==========================================
+# ЭКОНОМИЧЕСКИЕ СОБЫТИЯ
+# ==========================================
+events:
+  enabled: true
+  interval-minutes: 15
+  chance: 0.20
+  max-duration-minutes: 10
+  list:
+    boom:
+      name: "📈 Экономический Бум"
+      description: "Все товары дорожают! Выгодно продавать."
+      buy-mult: 1.30
+      sell-mult: 1.20
+    crash:
+      name: "📉 Обвал Рынка"
+      description: "Паника на бирже! Цены рухнули — выгодно покупать."
+      buy-mult: 0.70
+      sell-mult: 0.60
+    ore_rush:
+      name: "⛏ Золотая Лихорадка"
+      description: "Руды и слитки взлетели в цене!"
+      category: ores
+      buy-mult: 1.50
+      sell-mult: 1.40
+    ore_glut:
+      name: "🪨 Затоваривание Руды"
+      description: "Шахты завалили рынок рудой."
+      category: ores
+      buy-mult: 0.60
+      sell-mult: 0.50
+    harvest:
+      name: "🌾 Сезон Урожая"
+      description: "Фермеры собрали рекордный урожай!"
+      category: food
+      buy-mult: 0.55
+      sell-mult: 0.45
+    famine:
+      name: "🍂 Голодные Времена"
+      description: "Неурожай! Еда на вес золота."
+      category: food
+      buy-mult: 1.60
+      sell-mult: 1.50
+    monster_hunt:
+      name: "⚔️ Сезон Охоты"
+      description: "Спрос на лут мобов вырос!"
+      category: mobs
+      buy-mult: 1.45
+      sell-mult: 1.35
+    lumber_boom:
+      name: "🪓 Лесной Бум"
+      description: "Строительный сезон — дерево в цене!"
+      category: wood
+      buy-mult: 1.40
+      sell-mult: 1.30
+    fire_sale:
+      name: "🔥 Пожар на Складе"
+      description: "Стройматериалы сгорели — дефицит!"
+      category: blocks
+      buy-mult: 1.50
+      sell-mult: 1.40

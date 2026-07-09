@@ -37,7 +37,9 @@ public class MarketGui {
                 "",
                 "§eБаланс: §f" + rep + " реп.",
                 "§bТоваров: §f" + svc.getAll().size(),
-                "§dДинамика цен: " + (plugin.getConfig().getBoolean("settings.dynamic-pricing", true) ? "§aВКЛ" : "§7ВЫКЛ")));
+                plugin.getMarketService().prices().hasActiveEvent()
+                    ? "§c⚡ " + plugin.getMarketService().prices().getActiveEventName()
+                    : "§7Рынок стабилен"));
 
         int[] catSlots = {20,21,22,23, 29,30,31,32};
         MarketCategory[] cats = MarketCategory.values();
