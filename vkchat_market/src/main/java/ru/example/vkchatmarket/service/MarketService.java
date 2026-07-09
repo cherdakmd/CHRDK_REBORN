@@ -108,7 +108,7 @@ public class MarketService {
         for (MarketEntry entry : list) {
             int owned = countItems(p, entry);
             if (owned <= 0) continue;
-            int price = prices().getSellPrice(entry);
+            int price = prices().getSellPrice(entry, p);
             int earned = price * owned;
             takeItems(p, entry, owned);
             prices().recordSell(entry, owned);

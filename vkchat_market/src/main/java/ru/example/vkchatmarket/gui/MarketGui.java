@@ -156,10 +156,11 @@ public class MarketGui {
         ItemMeta meta = item.getItemMeta();
         if (meta == null) return item;
 
-        int sellPrice = plugin.getMarketService().prices().getSellPrice(entry);
-        int buyPrice = plugin.getMarketService().prices().getBuyPrice(entry);
+        int sellPrice = plugin.getMarketService().prices().getSellPrice(entry, p);
+        int buyPrice = plugin.getMarketService().prices().getBuyPrice(entry, p);
         int owned = plugin.getMarketService().countItems(p, entry);
         String trend = plugin.getMarketService().prices().trendArrow(entry);
+        String donorTag = plugin.getMarketService().prices().donorTag(p);
 
         meta.setDisplayName("§r" + entry.displayName() + trend);
         List<String> lore = new ArrayList<>();
@@ -168,6 +169,11 @@ public class MarketGui {
         lore.add("§cПокупка: §f" + buyPrice + " реп. / шт.");
         lore.add("");
         lore.add("§7У тебя: §e" + owned + " шт.");
+        if (donorTag != null) {
+            double buyMult = plugin.getMarketService().prices().donorBuyMultVisible(p);
+            double sellMult = plugin.getMarketService().prices().donorSellMultVisible(p);
+            lore.add("§6⭐ " + donorTag + "§7: покупка §a−" + (int)((1.0 - buyMult) * 100) + "%§7, продажа §a+" + (int)((sellMult - 1.0) * 100) + "%");
+        }
         lore.add("");
         lore.add("§7§oЛКМ-продать | ПКМ-купить | СКМ-кол-во");
         meta.setLore(lore);

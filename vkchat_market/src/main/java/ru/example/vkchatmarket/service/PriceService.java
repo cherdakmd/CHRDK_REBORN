@@ -1,6 +1,8 @@
 package ru.example.vkchatmarket.service;
 
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.entity.Player;
+import ru.example.vkchat.util.DonateStatusResolver;
 import ru.example.vkchatmarket.VKChatMarketPlugin;
 import ru.example.vkchatmarket.model.MarketEntry;
 
@@ -15,6 +17,9 @@ public class PriceService {
     private String activeEventId;
     private String activeEventName;
     private long activeEventEnd;
+
+    private static final double[] BUY_DISCOUNTS = {0.90, 0.80, 0.65, 0.50, 0.35};
+    private static final double[] SELL_BONUSES   = {1.10, 1.20, 1.35, 1.50, 1.70};
 
     public PriceService(VKChatMarketPlugin plugin) {
         this.plugin = plugin;
@@ -42,12 +47,38 @@ public class PriceService {
         sellVolume.merge(entry.id(), amount, Integer::sum);
     }
 
-    public int getBuyPrice(MarketEntry entry) {
-        return (int) Math.round(entry.basePrice() * getMultiplier() * (1.0 + getBuySpread()) * dynamicFactor(entry, true) * eventFactor(entry, true));
+    public int getBuyPrice(MarketEntry entry, Player player) {
+        return (int) Math.round(entry.basePrice() * getMultiplier() * (1.0 + getBuySpread())
+                * dynamicFactor(entry, true) * eventFactor(entry, true) * donorBuyMult(player));
     }
 
-    public int getSellPrice(MarketEntry entry) {
-        return (int) Math.round(entry.basePrice() * getMultiplier() * (1.0 - getSellSpread()) * dynamicFactor(entry, false) * eventFactor(entry, false));
+    public int getSellPrice(MarketEntry entry, Player player) {
+        return (int) Math.round(entry.basePrice() * getMultiplier() * (1.0 - getSellSpread())
+                * dynamicFactor(entry, false) * eventFactor(entry, false) * donorSellMult(player));
+    }
+
+    private double donorBuyMult(Player player) {
+        int idx = DonateStatusResolver.getStatusIndex(player);
+        return idx >= 0 && idx < BUY_DISCOUNTS.length ? BUY_DISCOUNTS[idx] : 1.0;
+    }
+
+    private double donorSellMult(Player player) {
+        int idx = DonateStatusResolver.getStatusIndex(player);
+        return idx >= 0 && idx < SELL_BONUSES.length ? SELL_BONUSES[idx] : 1.0;
+    }
+
+    public String donorTag(Player player) {
+        int idx = DonateStatusResolver.getStatusIndex(player);
+        String[] tags = {"§bИскра", "§6Пламя", "§eЗвезда", "§5Легенда", "§dВластелин"};
+        return idx >= 0 && idx < tags.length ? tags[idx] : null;
+    }
+
+    public double donorBuyMultVisible(Player player) {
+        return donorBuyMult(player);
+    }
+
+    public double donorSellMultVisible(Player player) {
+        return donorSellMult(player);
     }
 
     private double dynamicFactor(MarketEntry entry, boolean isBuy) {

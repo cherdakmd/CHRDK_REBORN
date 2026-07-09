@@ -79,7 +79,7 @@ public class MarketListener implements Listener {
             int total = 0, count = 0;
             for (MarketEntry en : list) {
                 int owned = plugin.getMarketService().countItems(p, en);
-                if (owned > 0) { total += plugin.getMarketService().prices().getSellPrice(en) * owned; count += owned; }
+                if (owned > 0) { total += plugin.getMarketService().prices().getSellPrice(en, p) * owned; count += owned; }
             }
             if (count == 0) { p.sendMessage("§7Нет предметов для продажи."); return; }
             MarketGui.openSellAllConfirm(plugin, p, catKey, total, count);
@@ -151,7 +151,7 @@ public class MarketListener implements Listener {
         int vkId = VKChatBridge.getLinkedVkId(p);
 
         if ("buy".equals(mode)) {
-            int price = svc.prices().getBuyPrice(entry);
+            int price = svc.prices().getBuyPrice(entry, p);
             int total = price * amount;
             int rep = VKChatBridge.getReputation(vkId);
             if (rep < total) { p.sendMessage("§c❌ Нужно " + total + " реп. (у тебя " + rep + ")"); return; }
@@ -164,7 +164,7 @@ public class MarketListener implements Listener {
             int owned = svc.countItems(p, entry);
             int toSell = Math.min(amount, owned);
             if (toSell <= 0) { p.sendMessage("§c❌ Нет предметов!"); return; }
-            int price = svc.prices().getSellPrice(entry);
+            int price = svc.prices().getSellPrice(entry, p);
             int total = price * toSell;
             svc.takeItems(p, entry, toSell);
             VKChatBridge.addPoints(vkId, total);
