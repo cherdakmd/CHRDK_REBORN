@@ -20,8 +20,8 @@ public class MotdListener implements Listener {
             return;
         }
 
-        String line1 = plugin.getConfig().getString("motd.line-1", "&6&l★ CHRDK REBORN ★ &7» &fMMO-Выживание с ВК Ботом!");
-        String line2 = plugin.getConfig().getString("motd.line-2-default", "&eЗаходи и развивай своего персонажа!");
+        String line1 = plugin.getConfig().getString("motd.line-1", "&6&l✦ CHRDK REBORN ✦ &8▸ &fMMO-Выживание 1.16.5");
+        String line2 = plugin.getConfig().getString("motd.line-2-default", "&eАртефакты &8• &aГир &8• &dНации &8• &bРаботы &8• &cБоссы &8• &6Ивенты &8• &fВК БОТ");
         String defaultLine2 = line2;
 
         // 1. Проверяем активные мировые катаклизмы и аирдропы в vkchat_events
@@ -88,16 +88,9 @@ public class MotdListener implements Listener {
             } catch (Exception ignored) {}
         }
 
-        // 4. По умолчанию показываем самого богатого игрока беседы ВК
-        if (line2.equals(defaultLine2)) {
-            try {
-                String topRep = plugin.getReputationManager().getTopOnePlayerName();
-                if (topRep != null && !topRep.isEmpty()) {
-                    line2 = "&e🏆 Топ-Богач чата: &b" + topRep + " &eрепутации! Присоединяйся!";
-                }
-            } catch (Exception ignored) {}
-        }
-
+        // 4. Если ничего не активно — показываем конфигурационный дефолт со списком фич
+        // (line-2-default уже загружен выше, оставляем как есть)
+        
         String motd = ChatColor.translateAlternateColorCodes('&', line1 + "\n" + line2);
         e.setMotd(motd);
     }
