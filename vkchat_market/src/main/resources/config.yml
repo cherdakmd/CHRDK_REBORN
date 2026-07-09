@@ -31,6 +31,12 @@ categories:
   decor:
     name: "§d🎨 Декор"
     material: WHITE_WOOL
+  potions:
+    name: "§9🧪 Зелья и алхимия"
+    material: POTION
+  nether:
+    name: "§4🔥 Незер и Энд"
+    material: NETHERRACK
 
 items:
   # ── РУДЫ / СЛИТКИ ──
@@ -57,7 +63,7 @@ items:
   NETHERITE_SCRAP:
     material: NETHERITE_SCRAP
     name: "§cНезеритовый лом"
-    category: ores
+    category: nether
     base-price: 800
   COAL:
     material: COAL
@@ -77,12 +83,12 @@ items:
   QUARTZ:
     material: QUARTZ
     name: "§fНезер-кварц"
-    category: ores
+    category: nether
     base-price: 12
   GLOWSTONE_DUST:
     material: GLOWSTONE_DUST
     name: "§eСветопыль"
-    category: ores
+    category: nether
     base-price: 15
   ANCIENT_DEBRIS:
     material: ANCIENT_DEBRIS
@@ -194,12 +200,12 @@ items:
   GOLDEN_APPLE:
     material: GOLDEN_APPLE
     name: "§eЗолотое яблоко"
-    category: food
+    category: potions
     base-price: 80
   ENCHANTED_GOLDEN_APPLE:
     material: ENCHANTED_GOLDEN_APPLE
     name: "§dЗачарованное золотое яблоко"
-    category: food
+    category: potions
     base-price: 1500
 
   # ── ДЕРЕВО ──
@@ -338,22 +344,22 @@ items:
   BASALT:
     material: BASALT
     name: "§8Базальт"
-    category: blocks
+    category: nether
     base-price: 2
   BLACKSTONE:
     material: BLACKSTONE
     name: "§8Чернокамень"
-    category: blocks
+    category: nether
     base-price: 2
   SOUL_SAND:
     material: SOUL_SAND
     name: "§4Песок душ"
-    category: blocks
+    category: nether
     base-price: 8
   SOUL_SOIL:
     material: SOUL_SOIL
     name: "§4Почва душ"
-    category: blocks
+    category: nether
     base-price: 8
   TERRACOTTA:
     material: TERRACOTTA
@@ -405,22 +411,22 @@ items:
   ENDER_PEARL:
     material: ENDER_PEARL
     name: "§5Жемчуг Эндера"
-    category: mobs
+    category: nether
     base-price: 60
   BLAZE_ROD:
     material: BLAZE_ROD
     name: "§6Огненный стержень"
-    category: mobs
+    category: nether
     base-price: 80
   GHAST_TEAR:
     material: GHAST_TEAR
     name: "§fСлеза гаста"
-    category: mobs
+    category: nether
     base-price: 250
   MAGMA_CREAM:
     material: MAGMA_CREAM
     name: "§6Сгусток магмы"
-    category: mobs
+    category: nether
     base-price: 40
   PHANTOM_MEMBRANE:
     material: PHANTOM_MEMBRANE
@@ -430,12 +436,12 @@ items:
   PRISMARINE_SHARD:
     material: PRISMARINE_SHARD
     name: "§bПризмариновый осколок"
-    category: mobs
+    category: nether
     base-price: 35
   PRISMARINE_CRYSTALS:
     material: PRISMARINE_CRYSTALS
     name: "§bПризмариновый кристалл"
-    category: mobs
+    category: nether
     base-price: 50
 
   # ── ДЕКОР ──
@@ -467,7 +473,7 @@ items:
   EXPERIENCE_BOTTLE:
     material: EXPERIENCE_BOTTLE
     name: "§aПузырёк опыта"
-    category: decor
+    category: potions
     base-price: 20
 
 # ==========================================
@@ -504,7 +510,7 @@ events:
     harvest:
       name: "🌾 Сезон Урожая"
       description: "Фермеры собрали рекордный урожай!"
-      category: food
+      category: potions
       buy-mult: 0.55
       sell-mult: 0.45
     famine:

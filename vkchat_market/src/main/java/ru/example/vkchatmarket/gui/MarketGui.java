@@ -41,14 +41,14 @@ public class MarketGui {
                     ? "§c⚡ " + plugin.getMarketService().prices().getActiveEventName()
                     : "§7Рынок стабилен"));
 
-        int[] catSlots = {20,21,22,23, 29,30,31,32};
         MarketCategory[] cats = MarketCategory.values();
-        for (int i = 0; i < cats.length && i < catSlots.length; i++) {
+        for (int i = 0; i < cats.length; i++) {
             MarketCategory cat = cats[i];
             String key = cat.configKey();
             int count = svc.getByCategory(cat).size();
-            inv.setItem(catSlots[i], categoryItem(plugin,
-                    getCatIcon(cat), key, plugin.getConfig().getString("categories." + key + ".name", key),
+            int slot = 20 + i + (i >= 4 ? 5 : 0); // 20-23 row1, 29-32 row2
+            inv.setItem(slot, categoryItem(plugin, getCatIcon(cat), key,
+                    plugin.getConfig().getString("categories." + key + ".name", key),
                     "§7" + count + " товаров"));
         }
 
@@ -65,14 +65,14 @@ public class MarketGui {
         MarketCategory cat = MarketCategory.fromConfig(categoryKey);
 
         if (categoryKey.equals("all")) entries = svc.getAll();
-        else if (categoryKey.equals("search")) entries = new ArrayList<>(); // handled separately
         else if (cat != null) entries = svc.getByCategory(cat);
         else entries = svc.getAll();
 
         int pages = Math.max(1, (int) Math.ceil(entries.size() / (double) PAGE_SIZE));
         page = Math.max(0, Math.min(page, pages - 1));
 
-        String catName = getCategoryName(plugin, categoryKey);
+        String catName = categoryKey.equals("all") ? "Все товары"
+                : plugin.getConfig().getString("categories." + categoryKey + ".name", categoryKey);
 
         int rep = VKChatBridge.getLinkedVkId(p) != -1 ? VKChatBridge.getReputation(VKChatBridge.getLinkedVkId(p)) : 0;
 
@@ -84,8 +84,7 @@ public class MarketGui {
 
         inv.setItem(4, item(Material.GOLD_INGOT, "§eБаланс: §f" + rep + " реп.",
                 "§7ЛКМ — продать 1 | ПКМ — купить 1",
-                "§7Shift+ЛКМ — продать 64 | Shift+ПКМ — купить 16",
-                "§7Средняя кнопка — ввести количество"));
+                "§7Shift+ЛКМ — продать 64 | Shift+ПКМ — купить 16"));
 
         int start = page * PAGE_SIZE;
         int end = Math.min(entries.size(), start + PAGE_SIZE);
@@ -105,19 +104,17 @@ public class MarketGui {
     }
 
     public static void openSearchResults(VKChatMarketPlugin plugin, Player p, List<MarketEntry> results, String query) {
-        MarketService svc = plugin.getMarketService();
         int pages = Math.max(1, (int) Math.ceil(results.size() / (double) PAGE_SIZE));
-
         int rep = VKChatBridge.getLinkedVkId(p) != -1 ? VKChatBridge.getReputation(VKChatBridge.getLinkedVkId(p)) : 0;
 
         Inventory inv = Bukkit.createInventory(null, 54,
-                "§8▸ §6§lБИРЖА §8◂ §7Поиск: " + query + " §81/" + pages);
+                "§8▸ §6§lБИРЖА §8◂ §7Поиск: §f" + query + " §81/1");
 
         ItemStack bg = bg();
         for (int s : ITEM_SLOTS) inv.setItem(s, bg);
 
         inv.setItem(4, item(Material.GOLD_INGOT, "§eБаланс: §f" + rep + " реп.",
-                "§7Результаты поиска: " + results.size(),
+                "§7Результатов: §f" + results.size(),
                 "§7ЛКМ — продать | ПКМ — купить"));
 
         int end = Math.min(results.size(), PAGE_SIZE);
@@ -139,12 +136,17 @@ public class MarketGui {
 
         for (int i = 0; i < 27; i++) inv.setItem(i, bg());
 
-        inv.setItem(11, item(plugin, Material.EMERALD, "mkt_sellall_confirm§" + categoryKey,
-                "§a✓ Продать всё",
+        ItemStack confirm = new ItemStack(Material.EMERALD);
+        ItemMeta cm = confirm.getItemMeta();
+        cm.setDisplayName("§a✓ Продать всё");
+        cm.setLore(Arrays.asList(
                 "§7Предметов: §e" + itemCount,
                 "§7Выручка: §a" + totalRep + " реп.",
                 "",
                 "§e▶ Нажми для подтверждения"));
+        cm.getPersistentDataContainer().set(new NamespacedKey(plugin, "mkt_sellall_confirm"), PersistentDataType.STRING, categoryKey);
+        confirm.setItemMeta(cm);
+        inv.setItem(11, confirm);
 
         inv.setItem(15, categoryItem(plugin, Material.BARRIER, categoryKey, "§c✖ Отмена", "§7Вернуться назад"));
 
@@ -172,10 +174,10 @@ public class MarketGui {
         if (donorTag != null) {
             double buyMult = plugin.getMarketService().prices().donorBuyMultVisible(p);
             double sellMult = plugin.getMarketService().prices().donorSellMultVisible(p);
-            lore.add("§6⭐ " + donorTag + "§7: покупка §a−" + (int)((1.0 - buyMult) * 100) + "%§7, продажа §a+" + (int)((sellMult - 1.0) * 100) + "%");
+            lore.add("§6⭐ " + donorTag + "§7: покупка §a" + (int)((1.0 - buyMult) * 100) + "%§7, продажа §a+" + (int)((sellMult - 1.0) * 100) + "%");
         }
         lore.add("");
-        lore.add("§7§oЛКМ-продать | ПКМ-купить | СКМ-кол-во");
+        lore.add("§7§oЛКМ-продать | ПКМ-купить");
         meta.setLore(lore);
 
         meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "mkt_item"), PersistentDataType.STRING, entry.id());
@@ -206,12 +208,6 @@ public class MarketGui {
         return item;
     }
 
-    static String getCategoryName(VKChatMarketPlugin plugin, String key) {
-        if (key.equals("all")) return "Все товары";
-        if (key.equals("search")) return "Поиск";
-        return plugin.getConfig().getString("categories." + key + ".name", key);
-    }
-
     static Material getCatIcon(MarketCategory cat) {
         return switch (cat) {
             case ORES -> Material.IRON_INGOT;
@@ -220,6 +216,8 @@ public class MarketGui {
             case BLOCKS -> Material.STONE;
             case MOBS -> Material.BONE;
             case DECOR -> Material.WHITE_WOOL;
+            case POTIONS -> Material.POTION;
+            case NETHER -> Material.NETHERRACK;
         };
     }
 

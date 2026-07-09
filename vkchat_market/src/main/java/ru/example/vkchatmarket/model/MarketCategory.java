@@ -1,7 +1,7 @@
 package ru.example.vkchatmarket.model;
 
 public enum MarketCategory {
-    ORES, FOOD, WOOD, BLOCKS, MOBS, DECOR;
+    ORES, FOOD, WOOD, BLOCKS, MOBS, DECOR, POTIONS, NETHER;
 
     public String configKey() {
         return name().toLowerCase();
