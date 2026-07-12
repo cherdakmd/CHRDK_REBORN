@@ -60,6 +60,44 @@ public class MarketCommand implements CommandExecutor, TabCompleter {
                 }
                 return true;
             }
+            if (cat.equals("alert") || cat.equals("алерт")) {
+                if (args.length < 3) {
+                    p.sendMessage("§e/markет alert <id> <цена> §7— уведомить когда цена ≥");
+                    p.sendMessage("§e/markет alerts §7— мои алерты");
+                    p.sendMessage("§e/markет alert remove <id> §7— удалить алерт");
+                    return true;
+                }
+                String sub = args[1].toLowerCase();
+                if (sub.equals("remove") || sub.equals("удалить")) {
+                    if (args.length < 3) { p.sendMessage("§c/markет alert remove <id>"); return true; }
+                    plugin.getMarketService().prices().dynamics().removePriceAlert(p.getUniqueId(), args[2]);
+                    p.sendMessage("§a✓ Алерт на §f" + args[2] + " §aудалён.");
+                    return true;
+                }
+                if (sub.equals("list") || sub.equals("список") || sub.equals("alerts")) {
+                    var alerts = plugin.getMarketService().prices().dynamics().getPlayerAlerts(p.getUniqueId());
+                    if (alerts.isEmpty()) {
+                        p.sendMessage("§7Нет алертов.");
+                    } else {
+                        p.sendMessage("§6§l═══ АЛЕРТЫ ═══");
+                        for (var entry : alerts.entrySet()) {
+                            MarketEntry me = plugin.getMarketService().get(entry.getKey());
+                            String name = me != null ? me.displayName() : entry.getKey();
+                            p.sendMessage("§e" + name + " §7→ §f≥ " + entry.getValue() + " реп.");
+                        }
+                    }
+                    return true;
+                }
+                MarketEntry entry = plugin.getMarketService().get(args[1]);
+                if (entry == null) { p.sendMessage("§cТовар не найден: " + args[1]); return true; }
+                int targetPrice;
+                try { targetPrice = Integer.parseInt(args[2]); } catch (NumberFormatException e) {
+                    p.sendMessage("§cЦена — число!"); return true;
+                }
+                plugin.getMarketService().prices().dynamics().setPriceAlert(p.getUniqueId(), entry.id(), targetPrice);
+                p.sendMessage("§a✓ Алерт: §f" + entry.displayName() + " §7→ §e≥ " + targetPrice + " реп.");
+                return true;
+            }
             if (cat.equals("reload") || cat.equals("перезагрузить")) {
                 if (!sender.hasPermission("vkchat.market.admin")) {
                     sender.sendMessage("§cНет прав!");
@@ -99,7 +137,7 @@ public class MarketCommand implements CommandExecutor, TabCompleter {
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String label, String[] args) {
         if (args.length == 1) {
-            List<String> options = new ArrayList<>(Arrays.asList("menu", "меню", "sellall", "sell_all", "all", "все", "balance", "баланс"));
+            List<String> options = new ArrayList<>(Arrays.asList("menu", "меню", "sellall", "sell_all", "all", "все", "balance", "баланс", "alert", "алерт", "alerts"));
             if (sender.hasPermission("vkchat.market.admin")) {
                 options.addAll(Arrays.asList("reload", "stats"));
             }
@@ -108,6 +146,14 @@ public class MarketCommand implements CommandExecutor, TabCompleter {
             }
             String last = args[0].toLowerCase();
             return options.stream().filter(s -> s.startsWith(last)).collect(Collectors.toList());
+        }
+        if (args.length == 2 && (args[0].equalsIgnoreCase("alert") || args[0].equalsIgnoreCase("алерт"))) {
+            String last = args[1].toLowerCase();
+            List<String> ids = plugin.getMarketService().getAll().stream()
+                    .map(MarketEntry::id).filter(id -> id.startsWith(last)).collect(Collectors.toList());
+            ids.add("remove");
+            ids.add("list");
+            return ids;
         }
         return new ArrayList<>();
     }

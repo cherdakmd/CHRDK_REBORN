@@ -77,6 +77,7 @@ public class VKChatMarketPlugin extends JavaPlugin {
         int eventInterval = getConfig().getInt("events.interval-minutes", 15) * 60 * 20;
         getServer().getScheduler().runTaskTimer(this, () -> {
             marketService.prices().tryStartRandomEvent();
+            marketService.prices().tickDecay();
             if (marketService.prices().hasActiveEvent()) {
                 String name = marketService.prices().getActiveEventName();
                 long remaining = (marketService.prices().getActiveEventEnd() - System.currentTimeMillis()) / 1000;

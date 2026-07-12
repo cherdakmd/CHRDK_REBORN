@@ -15,6 +15,47 @@ settings:
   min-price: 1
   max-price: 10000
 
+# ═══ ДИНАМИКА И ВОЛАТИЛЬНОСТЬ ═══
+dynamics:
+  # Затухание объёма: старые сделки влияют меньше
+  decay-half-life-minutes: 30
+  max-history-minutes: 120
+  # Возврат к среднему (mean reversion): цены постепенно возвращаются к базовой
+  mean-reversion-rate: 0.05
+  # Моментум: тренд усиливает движение цен
+  momentum-factor: 0.15
+  momentum-price-impact: 0.10
+  # Bulk: крупные сделки сильнее двигают цену
+  bulk-base: 1.0
+  bulk-scale: 0.02
+  bulk-cap: 2.0
+  # Шум: случайные микро-колебания цен
+  noise-level: 0.02
+  # Асимметрия: продажа сильнее влияет чем покупка
+  buy-impact: 1.0
+  sell-impact: 1.2
+  # Whale: крупные сделки объявляются в чат
+  whale-threshold: 64
+  # Сезонные модификаторы (время суток)
+  seasonal:
+    enabled: false
+    hours:
+      morning: 0.95
+      afternoon: 1.0
+      evening: 1.05
+      night: 1.10
+  # Волатильность по категориям (>1 = сильнее колебания, <1 = стабильнее)
+  category-volatility:
+    ores: 1.2
+    food: 0.8
+    wood: 1.0
+    blocks: 0.9
+    stones: 0.7
+    mobs: 1.3
+    decor: 0.6
+    potions: 1.1
+    nether: 1.4
+
 categories:
   ores:
     name: "§c⛏ Руды/слитки"

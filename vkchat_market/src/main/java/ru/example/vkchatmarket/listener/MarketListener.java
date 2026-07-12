@@ -185,7 +185,7 @@ public class MarketListener implements Listener {
         int vkId = VKChatBridge.getLinkedVkId(p);
 
         if ("buy".equals(mode)) {
-            int price = svc.prices().getBuyPrice(entry, p);
+            int price = svc.prices().getBuyPrice(entry, p, amount);
             int total = price * amount;
             int rep = VKChatBridge.getReputation(vkId);
             if (rep < total) { p.sendMessage("§c❌ Нужно " + total + " реп. (у тебя " + rep + ")"); return; }
@@ -195,11 +195,15 @@ public class MarketListener implements Listener {
             p.sendMessage("§a✓ Куплено " + amount + "x §f" + entry.displayName() + " §aза §e" + total + " реп.");
             playSound(p, Sound.ENTITY_PLAYER_LEVELUP);
             logTrade(p, "BUY " + amount + "x " + entry.id(), total);
+            if (svc.prices().dynamics().isWhaleTrade(amount)) {
+                svc.prices().dynamics().announceWhaleTrade(p.getName(), entry, amount, true, total);
+            }
+            svc.prices().dynamics().checkPriceAlerts(entry, price);
         } else {
             int owned = svc.countItems(p, entry);
             int toSell = Math.min(amount, owned);
             if (toSell <= 0) { p.sendMessage("§c❌ Нет предметов!"); return; }
-            int price = svc.prices().getSellPrice(entry, p);
+            int price = svc.prices().getSellPrice(entry, p, toSell);
             int total = price * toSell;
             svc.takeItems(p, entry, toSell);
             VKChatBridge.addEffectiveRep(p, total);
@@ -207,6 +211,10 @@ public class MarketListener implements Listener {
             p.sendMessage("§a✓ Продано " + toSell + "x §f" + entry.displayName() + " §aза §e" + total + " реп.");
             playSound(p, Sound.ENTITY_EXPERIENCE_ORB_PICKUP);
             logTrade(p, "SELL " + toSell + "x " + entry.id(), total);
+            if (svc.prices().dynamics().isWhaleTrade(toSell)) {
+                svc.prices().dynamics().announceWhaleTrade(p.getName(), entry, toSell, false, total);
+            }
+            svc.prices().dynamics().checkPriceAlerts(entry, price);
         }
 
         reopen(p, catFromTitle);

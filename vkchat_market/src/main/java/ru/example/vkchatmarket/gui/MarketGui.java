@@ -252,15 +252,18 @@ public class MarketGui {
         ItemMeta meta = item.getItemMeta();
         if (meta == null) return item;
 
-        int sellPrice = plugin.getMarketService().prices().getSellPrice(entry, p);
-        int buyPrice = plugin.getMarketService().prices().getBuyPrice(entry, p);
+        var prices = plugin.getMarketService().prices();
+        var dynamics = prices.dynamics();
+        int sellPrice = prices.getSellPrice(entry, p);
+        int buyPrice = prices.getBuyPrice(entry, p);
         int owned = plugin.getMarketService().countItems(p, entry);
-        int maxBuyable = plugin.getMarketService().prices().getMaxBuyable(p, entry);
-        int maxSellable = plugin.getMarketService().prices().getMaxSellable(p, entry);
-        String trend = plugin.getMarketService().prices().trendArrow(entry);
-        String donorTag = plugin.getMarketService().prices().donorTag(p);
+        int maxBuyable = prices.getMaxBuyable(p, entry);
+        int maxSellable = prices.getMaxSellable(p, entry);
+        String trend = prices.trendArrow(entry);
+        String momentum = dynamics.getMomentumArrow(entry);
+        String donorTag = prices.donorTag(p);
 
-        meta.setDisplayName("§r" + entry.displayName() + trend);
+        meta.setDisplayName("§r" + entry.displayName() + trend + momentum);
         List<String> lore = new ArrayList<>();
         lore.add("");
         lore.add("§aПродажа: §f" + sellPrice + " реп. / шт.");
@@ -270,10 +273,14 @@ public class MarketGui {
         if (maxSellable > 0) lore.add("§7Макс. продать: §e" + maxSellable);
         if (maxBuyable > 0) lore.add("§7Макс. купить: §e" + maxBuyable);
         if (donorTag != null) {
-            double buyMult = plugin.getMarketService().prices().donorBuyMultVisible(p);
-            double sellMult = plugin.getMarketService().prices().donorSellMultVisible(p);
+            double buyMult = prices.donorBuyMultVisible(p);
+            double sellMult = prices.donorSellMultVisible(p);
             lore.add("§6⭐ " + donorTag + "§7: покупка §a" + (int)((1.0 - buyMult) * 100) + "%§7, продажа §a+" + (int)((sellMult - 1.0) * 100) + "%");
         }
+        lore.add("");
+        lore.add("§7Рынок: " + dynamics.getMarketHealthBar(entry) + " " + dynamics.getMarketHealthText(entry));
+        String sparkline = dynamics.getPriceSparkline(entry);
+        if (!sparkline.equals("§7─")) lore.add("§7Тренд: " + sparkline);
         lore.add("");
         lore.add("§7§oЛКМ-продать | ПКМ-купить");
         lore.add("§7§oПКМ+Shift-купить 16 | СКМ-ввести кол-во");

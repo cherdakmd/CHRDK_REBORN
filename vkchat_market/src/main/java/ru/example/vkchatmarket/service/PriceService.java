@@ -1,9 +1,11 @@
 package ru.example.vkchatmarket.service;
 
+import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import ru.example.vkchat.util.DonateStatusResolver;
 import ru.example.vkchatmarket.VKChatMarketPlugin;
+import ru.example.vkchatmarket.dynamics.MarketDynamics;
 import ru.example.vkchatmarket.model.MarketEntry;
 
 import java.util.*;
@@ -11,6 +13,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class PriceService {
     private final VKChatMarketPlugin plugin;
+    private final MarketDynamics dynamics;
     private final Map<String, Integer> buyVolume = new ConcurrentHashMap<>();
     private final Map<String, Integer> sellVolume = new ConcurrentHashMap<>();
     private final Random random = new Random();
@@ -25,7 +28,10 @@ public class PriceService {
 
     public PriceService(VKChatMarketPlugin plugin) {
         this.plugin = plugin;
+        this.dynamics = new MarketDynamics(plugin);
     }
+
+    public MarketDynamics dynamics() { return dynamics; }
 
     public double getMultiplier() {
         return plugin.getConfig().getDouble("settings.price-multiplier", 1.0);
@@ -50,22 +56,72 @@ public class PriceService {
     public void recordBuy(MarketEntry entry, int amount) {
         if (!plugin.getConfig().getBoolean("settings.dynamic-pricing", true)) return;
         buyVolume.merge(entry.id(), amount, Integer::sum);
+        dynamics.recordTrade(entry, amount, true);
     }
 
     public void recordSell(MarketEntry entry, int amount) {
         if (!plugin.getConfig().getBoolean("settings.dynamic-pricing", true)) return;
         sellVolume.merge(entry.id(), amount, Integer::sum);
+        dynamics.recordTrade(entry, amount, false);
     }
 
     public int getBuyPrice(MarketEntry entry, Player player) {
         double raw = entry.basePrice() * getMultiplier() * (1.0 + getBuySpread())
-                * dynamicFactor(entry, true) * eventFactor(entry, true) * donorBuyMult(player);
-        return clamp((int) Math.round(raw));
+                * dynamicFactor(entry, true)
+                * eventFactor(entry, true)
+                * donorBuyMult(player)
+                * dynamics.getCategoryVolatility(entry.category())
+                * dynamics.getMeanReversionFactor(entry)
+                * dynamics.getBulkMultiplier(1)
+                * dynamics.getNoise()
+                * dynamics.getAsymmetryFactor(true)
+                * dynamics.getSeasonalFactor();
+        int price = clamp((int) Math.round(raw));
+        dynamics.recordPrice(entry, price);
+        return price;
     }
 
     public int getSellPrice(MarketEntry entry, Player player) {
         double raw = entry.basePrice() * getMultiplier() * (1.0 - getSellSpread())
-                * dynamicFactor(entry, false) * eventFactor(entry, false) * donorSellMult(player);
+                * dynamicFactor(entry, false)
+                * eventFactor(entry, false)
+                * donorSellMult(player)
+                * dynamics.getCategoryVolatility(entry.category())
+                * dynamics.getMeanReversionFactor(entry)
+                * dynamics.getBulkMultiplier(1)
+                * dynamics.getNoise()
+                * dynamics.getAsymmetryFactor(false)
+                * dynamics.getSeasonalFactor();
+        int price = clamp((int) Math.round(raw));
+        dynamics.recordPrice(entry, price);
+        return price;
+    }
+
+    public int getBuyPrice(MarketEntry entry, Player player, int amount) {
+        double raw = entry.basePrice() * getMultiplier() * (1.0 + getBuySpread())
+                * dynamicFactor(entry, true)
+                * eventFactor(entry, true)
+                * donorBuyMult(player)
+                * dynamics.getCategoryVolatility(entry.category())
+                * dynamics.getMeanReversionFactor(entry)
+                * dynamics.getBulkMultiplier(amount)
+                * dynamics.getNoise()
+                * dynamics.getAsymmetryFactor(true)
+                * dynamics.getSeasonalFactor();
+        return clamp((int) Math.round(raw));
+    }
+
+    public int getSellPrice(MarketEntry entry, Player player, int amount) {
+        double raw = entry.basePrice() * getMultiplier() * (1.0 - getSellSpread())
+                * dynamicFactor(entry, false)
+                * eventFactor(entry, false)
+                * donorSellMult(player)
+                * dynamics.getCategoryVolatility(entry.category())
+                * dynamics.getMeanReversionFactor(entry)
+                * dynamics.getBulkMultiplier(amount)
+                * dynamics.getNoise()
+                * dynamics.getAsymmetryFactor(false)
+                * dynamics.getSeasonalFactor();
         return clamp((int) Math.round(raw));
     }
 
@@ -111,12 +167,12 @@ public class PriceService {
 
     private double dynamicFactor(MarketEntry entry, boolean isBuy) {
         if (!plugin.getConfig().getBoolean("settings.dynamic-pricing", true)) return 1.0;
-        int buys = buyVolume.getOrDefault(entry.id(), 0);
-        int sells = sellVolume.getOrDefault(entry.id(), 0);
-        int net = buys - sells;
+        double net = dynamics.getNetDecayedVolume(entry);
         double maxShift = plugin.getConfig().getDouble("settings.max-dynamic-shift", 0.50);
         int elasticity = plugin.getConfig().getInt("settings.dynamic-elasticity", 50);
-        double shift = Math.max(-maxShift, Math.min(maxShift, (double) net / elasticity));
+        double shift = Math.max(-maxShift, Math.min(maxShift, net / elasticity));
+        double momentumShift = dynamics.getMomentum(entry) * plugin.getConfig().getDouble("dynamics.momentum-price-impact", 0.1);
+        shift += isBuy ? momentumShift : -momentumShift;
         return isBuy ? 1.0 + shift : 1.0 - shift;
     }
 
@@ -130,13 +186,12 @@ public class PriceService {
     }
 
     public String trendArrow(MarketEntry entry) {
-        int buys = buyVolume.getOrDefault(entry.id(), 0);
-        int sells = sellVolume.getOrDefault(entry.id(), 0);
-        int net = buys - sells;
-        if (net > 20) return " §a▲";
-        if (net > 5)  return " §a▴";
-        if (net < -20) return " §c▼";
-        if (net < -5)  return " §c▾";
+        double net = dynamics.getNetDecayedVolume(entry);
+        double momentum = dynamics.getMomentum(entry);
+        if (net > 20 || momentum > 0.3) return " §a▲";
+        if (net > 5 || momentum > 0.1)  return " §a▴";
+        if (net < -20 || momentum < -0.3) return " §c▼";
+        if (net < -5 || momentum < -0.1)  return " §c▾";
         return " §7─";
     }
 
@@ -205,5 +260,9 @@ public class PriceService {
             result.put(entry.id(), Math.round(factor * 100.0) / 100.0);
         }
         return result;
+    }
+
+    public void tickDecay() {
+        dynamics.clearExpiredHistory();
     }
 }
