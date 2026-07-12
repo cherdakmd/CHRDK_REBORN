@@ -380,6 +380,7 @@ public class ShiftManager {
                 ItemMeta meta = item.getItemMeta();
                 if (meta != null) {
                     meta.setDisplayName("§6✦ Древний Жетон Рун");
+                    meta.setCustomModelData(48);
                     meta.setLore(java.util.Arrays.asList("§7Обменяйте в /runes на случайную руну", "§7Дроп из шахтёрских смен"));
                 }
                 item.setItemMeta(meta);
@@ -390,6 +391,7 @@ public class ShiftManager {
                 ItemMeta meta = item.getItemMeta();
                 if (meta != null) {
                     meta.setDisplayName("§5✦ Осколок Артефакта");
+                    meta.setCustomModelData(49);
                     meta.setLore(java.util.Arrays.asList("§7Обменяйте в /artifacts на артефакт", "§7Дроп из шахтёрских смен"));
                 }
                 item.setItemMeta(meta);
@@ -400,6 +402,7 @@ public class ShiftManager {
                 ItemMeta meta = item.getItemMeta();
                 if (meta != null) {
                     meta.setDisplayName("§e📜 Свиток Репутации");
+                    meta.setCustomModelData(60);
                     meta.setLore(java.util.Arrays.asList("§7ПКМ для получения +500 репутации ВК", "§7Дроп из шахтёрских смен"));
                 }
                 item.setItemMeta(meta);
@@ -410,6 +413,7 @@ public class ShiftManager {
                 ItemMeta meta = item.getItemMeta();
                 if (meta != null) {
                     meta.setDisplayName("§b⚡ Свиток Скорости");
+                    meta.setCustomModelData(80);
                     meta.setLore(java.util.Arrays.asList("§7ПКМ — Speed II на 30 минут", "§7Дроп из шахтёрских смен"));
                 }
                 item.setItemMeta(meta);

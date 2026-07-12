@@ -442,6 +442,7 @@ public class NationManager {
         ItemStack item = new ItemStack(Material.GOLD_BLOCK);
         ItemMeta meta = item.getItemMeta();
         meta.setDisplayName(ChatColor.YELLOW + "" + ChatColor.BOLD + "Малый блок привата (8 блоков)");
+        meta.setCustomModelData(80);
         List<String> lore = new ArrayList<>();
         lore.add(ChatColor.GRAY + "Радиус защиты: " + ChatColor.YELLOW + "8 блоков");
         lore.add(ChatColor.GRAY + "Тип блока: " + ChatColor.GOLD + "Золотой блок");
@@ -458,6 +459,7 @@ public class NationManager {
         ItemStack item = new ItemStack(Material.EMERALD_BLOCK);
         ItemMeta meta = item.getItemMeta();
         meta.setDisplayName(ChatColor.GREEN + "" + ChatColor.BOLD + "Средний блок привата (16 блоков)");
+        meta.setCustomModelData(80);
         List<String> lore = new ArrayList<>();
         lore.add(ChatColor.GRAY + "Радиус защиты: " + ChatColor.YELLOW + "16 блоков");
         lore.add(ChatColor.GRAY + "Тип блока: " + ChatColor.GREEN + "Изумрудный блок");
@@ -474,6 +476,7 @@ public class NationManager {
         ItemStack item = new ItemStack(Material.DIAMOND_BLOCK);
         ItemMeta meta = item.getItemMeta();
         meta.setDisplayName(ChatColor.AQUA + "" + ChatColor.BOLD + "Большой блок привата (32 блоков)");
+        meta.setCustomModelData(80);
         List<String> lore = new ArrayList<>();
         lore.add(ChatColor.GRAY + "Радиус защиты: " + ChatColor.YELLOW + "32 блоков");
         lore.add(ChatColor.GRAY + "Тип блока: " + ChatColor.AQUA + "Алмазный блок");

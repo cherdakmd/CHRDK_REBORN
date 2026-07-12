@@ -43,7 +43,24 @@ public class AuthListener implements Listener {
     public void onJoin(PlayerJoinEvent e) {
         Player p = e.getPlayer();
 
-        // ═══ 0. СИНХРОНИЗАЦИЯ СО СТАРЫМ AUTHMANAGER ═══
+        // ═══ 0. РЕСУРСПАК ═══
+        if (plugin.getConfig().getBoolean("resource-pack.enabled", false)) {
+            String url;
+            String hash;
+            if (plugin.getResourcePackServer() != null) {
+                url = plugin.getResourcePackServer().getUrl();
+                hash = plugin.getResourcePackServer().getHash();
+            } else {
+                url = plugin.getConfig().getString("resource-pack.url", "");
+                hash = plugin.getConfig().getString("resource-pack.hash", "");
+            }
+            if (url != null && !url.isEmpty() && hash != null && !hash.isEmpty()) {
+                byte[] hashBytes = hexToBytes(hash);
+                p.setResourcePack(url, hashBytes);
+            }
+        }
+
+        // ═══ 0.5. СИНХРОНИЗАЦИЯ СО СТАРЫМ AUTHMANAGER ═══
         plugin.getAuthManager().onJoin(p);
 
         // ═══ 1. СОЗДАЁМ СЕССИЮ ═══
@@ -308,5 +325,14 @@ public class AuthListener implements Listener {
 
     private boolean isAir(Material m) {
         return m == Material.AIR || m == Material.CAVE_AIR || m == Material.VOID_AIR;
+    }
+
+    private static byte[] hexToBytes(String hex) {
+        int len = hex.length();
+        byte[] data = new byte[len / 2];
+        for (int i = 0; i < len; i += 2) {
+            data[i / 2] = (byte) ((Character.digit(hex.charAt(i), 16) << 4) + Character.digit(hex.charAt(i + 1), 16));
+        }
+        return data;
     }
 }

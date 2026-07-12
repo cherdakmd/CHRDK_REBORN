@@ -59,7 +59,7 @@ public class ArtifactShopListener implements Listener {
                 "§7Гарантированный бафф V уровня",
                 "§7Без проклятий! Не выпадает при смерти!",
                 "§6Цена: §e11250 реп.",
-                "relic", 11250));
+                "relic", 11250, 5));
 
         // ═══ РАСХОДНИКИ (средний ряд) ═══
         inv.setItem(21, shopItem(plugin, Material.PAPER,
@@ -129,6 +129,10 @@ public class ArtifactShopListener implements Listener {
     }
 
     private static ItemStack shopItem(VKChatArtifactsPlugin plugin, Material mat, String name, String desc1, String price, String type, int cost) {
+        return shopItem(plugin, mat, name, desc1, price, type, cost, 0);
+    }
+
+    private static ItemStack shopItem(VKChatArtifactsPlugin plugin, Material mat, String name, String desc1, String price, String type, int cost, int customModelData) {
         ItemStack item = new ItemStack(mat);
         ItemMeta meta = item.getItemMeta();
         meta.setDisplayName(name);
@@ -139,6 +143,7 @@ public class ArtifactShopListener implements Listener {
         lore.add("");
         lore.add("§e▶ Нажми для покупки");
         meta.setLore(lore);
+        if (customModelData > 0) meta.setCustomModelData(customModelData);
         meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "buy_artifact_type"), PersistentDataType.STRING, type);
         meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "buy_artifact_cost"), PersistentDataType.INTEGER, cost);
         item.setItemMeta(meta);
@@ -146,6 +151,10 @@ public class ArtifactShopListener implements Listener {
     }
 
     private static ItemStack shopItem(VKChatArtifactsPlugin plugin, Material mat, String name, String desc1, String desc2, String price, String type, int cost) {
+        return shopItem(plugin, mat, name, desc1, desc2, price, type, cost, 0);
+    }
+
+    private static ItemStack shopItem(VKChatArtifactsPlugin plugin, Material mat, String name, String desc1, String desc2, String price, String type, int cost, int customModelData) {
         ItemStack item = new ItemStack(mat);
         ItemMeta meta = item.getItemMeta();
         meta.setDisplayName(name);
@@ -157,6 +166,7 @@ public class ArtifactShopListener implements Listener {
         lore.add("");
         lore.add("§e▶ Нажми для покупки");
         meta.setLore(lore);
+        if (customModelData > 0) meta.setCustomModelData(customModelData);
         meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "buy_artifact_type"), PersistentDataType.STRING, type);
         meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "buy_artifact_cost"), PersistentDataType.INTEGER, cost);
         item.setItemMeta(meta);

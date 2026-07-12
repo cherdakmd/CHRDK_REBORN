@@ -171,6 +171,12 @@ public class MobDropFactory {
             lore.add("§cВысочайшая ступень мастерства.");
         }
         meta.setLore(lore);
+        switch (tier) {
+            case "common": meta.setCustomModelData(50); break;
+            case "rare": meta.setCustomModelData(51); break;
+            case "legendary": meta.setCustomModelData(6); break;
+            case "ancient": meta.setCustomModelData(52); break;
+        }
         meta.getPersistentDataContainer().set(new NamespacedKey(gearPlugin, "crystal_tier"), PersistentDataType.STRING, tier);
         meta.getPersistentDataContainer().set(new NamespacedKey(gearPlugin, "crystal_name"), PersistentDataType.STRING, tierName);
         meta.getPersistentDataContainer().set(new NamespacedKey(gearPlugin, "crystal_price"), PersistentDataType.INTEGER, price);
@@ -182,6 +188,7 @@ public class MobDropFactory {
         ItemStack item = new ItemStack(Material.PAPER);
         ItemMeta meta = item.getItemMeta();
         meta.setDisplayName("§d§lСвиток Сохранения");
+        meta.setCustomModelData(54);
         List<String> lore = new ArrayList<>();
         lore.add("§7Защищает предмет от отката");
         lore.add("§7уровня заточки при неудаче!");

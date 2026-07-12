@@ -1,0 +1,230 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "minecraft:item/nether_star"
+  },
+  "overrides": [
+    {
+      "predicate": {
+        "custom_model_data": 1
+      },
+      "model": "item/artifact_common"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 2
+      },
+      "model": "item/artifact_rare"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 3
+      },
+      "model": "item/artifact_epic"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 4
+      },
+      "model": "item/artifact_legendary"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 5
+      },
+      "model": "item/artifact_mythic"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 6
+      },
+      "model": "item/crystal_legendary"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 10
+      },
+      "model": "item/rune_fire"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 11
+      },
+      "model": "item/rune_water"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 12
+      },
+      "model": "item/rune_earth"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 13
+      },
+      "model": "item/rune_air"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 14
+      },
+      "model": "item/rune_void"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 15
+      },
+      "model": "item/arcane_rune"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 16
+      },
+      "model": "item/darkness_rune"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 17
+      },
+      "model": "item/death_rune"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 18
+      },
+      "model": "item/earth_rune"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 19
+      },
+      "model": "item/farming_rune"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 20
+      },
+      "model": "item/fire_rune"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 21
+      },
+      "model": "item/flame_rune"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 22
+      },
+      "model": "item/fishing_rune"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 23
+      },
+      "model": "item/health_rune"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 24
+      },
+      "model": "item/ice_rune"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 25
+      },
+      "model": "item/iron_rune"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 26
+      },
+      "model": "item/light_rune"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 27
+      },
+      "model": "item/loot_rune"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 28
+      },
+      "model": "item/luck_rune"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 29
+      },
+      "model": "item/mining_rune"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 30
+      },
+      "model": "item/fusion_scroll"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 31
+      },
+      "model": "item/nature_rune"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 32
+      },
+      "model": "item/speed_rune"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 33
+      },
+      "model": "item/spirit_rune"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 34
+      },
+      "model": "item/stone_rune"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 35
+      },
+      "model": "item/strength_rune"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 36
+      },
+      "model": "item/thunder_rune"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 37
+      },
+      "model": "item/time_rune"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 38
+      },
+      "model": "item/water_rune"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 39
+      },
+      "model": "item/wind_rune"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 40
+      },
+      "model": "item/xp_rune"
+    }
+  ]
+}

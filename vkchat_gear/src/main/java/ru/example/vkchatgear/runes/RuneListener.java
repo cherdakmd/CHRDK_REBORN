@@ -68,6 +68,8 @@ public class RuneListener implements Listener {
                     rLore.add(ChatColor.GRAY + "чтобы наложить чары!");
                     rMeta.setLore(rLore);
                     rMeta.getPersistentDataContainer().set(new NamespacedKey(plugin, "rune_name"), PersistentDataType.STRING, name);
+                    Integer runeCmd = getRuneCustomModelData(id);
+                    if (runeCmd != null) rMeta.setCustomModelData(runeCmd);
                     rune.setItemMeta(rMeta);
                     
                     p.getInventory().addItem(rune).values().forEach(leftover -> p.getWorld().dropItemNaturally(p.getLocation(), leftover));
@@ -132,6 +134,8 @@ public class RuneListener implements Listener {
                     cLore.add("§7в инвентаре для его заточки!");
                     
                     cMeta.setLore(cLore);
+                    Integer crystalCmd = getCrystalCustomModelData(tier);
+                    if (crystalCmd != null) cMeta.setCustomModelData(crystalCmd);
                     cMeta.getPersistentDataContainer().set(new NamespacedKey(plugin, "crystal_tier"), PersistentDataType.STRING, tier);
                     cMeta.getPersistentDataContainer().set(new NamespacedKey(plugin, "crystal_name"), PersistentDataType.STRING, name);
                     crystal.setItemMeta(cMeta);
@@ -163,6 +167,7 @@ public class RuneListener implements Listener {
                     ItemStack scroll = new ItemStack(Material.PAPER);
                     ItemMeta sMeta = scroll.getItemMeta();
                     sMeta.setDisplayName("§d§lСвиток Сохранения");
+                    sMeta.setCustomModelData(54);
                     List<String> sLore = new ArrayList<>();
                     sLore.add("§7Защищает предмет от отката");
                     sLore.add("§7уровня заточки при неудаче!");
@@ -205,6 +210,7 @@ public class RuneListener implements Listener {
                     lore.add("§7будет §a100% успешным§7.");
                     lore.add("§8Расходуется автоматически.");
                     fMeta.setLore(lore);
+                    fMeta.setCustomModelData(30);
                     fMeta.getPersistentDataContainer().set(new NamespacedKey(plugin, "is_fusion_scroll"), PersistentDataType.INTEGER, 1);
                     scroll.setItemMeta(fMeta);
                     p.getInventory().addItem(scroll).values().forEach(leftover -> p.getWorld().dropItemNaturally(p.getLocation(), leftover));
@@ -476,6 +482,54 @@ public class RuneListener implements Listener {
             case "Рефлексы Паука": return "spider_reflexes";
             case "Магматический Шаг": return "magma_walker";
             case "Метеоритный Дождь": return "meteor_shower";
+            default: return null;
+        }
+    }
+    
+    private static Integer getRuneCustomModelData(String id) {
+        if (id == null) return null;
+        switch (id) {
+            case "blood_rune": case "chaos_rune": return 10;
+            case "frost_rune": return 11;
+            case "poison_rune": return 12;
+            case "lightning_rune": case "holy_rune": return 13;
+            case "shadow_rune": case "void_rune": return 14;
+            case "arcane_rune": return 15;
+            case "darkness_rune": return 16;
+            case "death_rune": return 17;
+            case "earth_rune": return 18;
+            case "farming_rune": return 19;
+            case "fire_rune": return 20;
+            case "flame_rune": return 21;
+            case "fishing_rune": return 22;
+            case "health_rune": return 23;
+            case "ice_rune": return 24;
+            case "iron_rune": return 25;
+            case "light_rune": return 26;
+            case "loot_rune": return 27;
+            case "luck_rune": return 28;
+            case "mining_rune": return 29;
+            case "nature_rune": return 31;
+            case "speed_rune": return 32;
+            case "spirit_rune": return 33;
+            case "stone_rune": return 34;
+            case "strength_rune": return 35;
+            case "thunder_rune": return 36;
+            case "time_rune": return 37;
+            case "water_rune": return 38;
+            case "wind_rune": return 39;
+            case "xp_rune": return 40;
+            default: return null;
+        }
+    }
+    
+    private static Integer getCrystalCustomModelData(String tier) {
+        if (tier == null) return null;
+        switch (tier) {
+            case "common": return 50;
+            case "rare": return 51;
+            case "legendary": return 6;
+            case "ancient": return 52;
             default: return null;
         }
     }

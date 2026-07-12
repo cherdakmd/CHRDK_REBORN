@@ -1,0 +1,20 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "minecraft:item/honey_bottle"
+  },
+  "overrides": [
+    {
+      "predicate": {
+        "custom_model_data": 69
+      },
+      "model": "item/pagan_brew"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 70
+      },
+      "model": "item/imperial_cup"
+    }
+  ]
+}

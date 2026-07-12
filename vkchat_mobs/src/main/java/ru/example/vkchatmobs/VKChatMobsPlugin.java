@@ -192,6 +192,7 @@ public class VKChatMobsPlugin extends JavaPlugin {
         ItemMeta meta = item.getItemMeta();
         String setName = plugin.getConfig().getString("hardcore-mobs.rewards.set-fragment-names." + set, set);
         meta.setDisplayName(ChatColor.GOLD + "Фрагмент сета: " + setName);
+        meta.setCustomModelData(59);
         meta.setLore(Arrays.asList(ChatColor.GRAY + "Трофей элитной охоты.", ChatColor.GRAY + "Используется при ковке брони в VKChatGear."));
         meta.getPersistentDataContainer().set(new NamespacedKey(gear, "set_fragment"), PersistentDataType.STRING, set);
         item.setItemMeta(meta);

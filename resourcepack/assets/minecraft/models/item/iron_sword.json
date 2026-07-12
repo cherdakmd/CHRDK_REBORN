@@ -1,0 +1,20 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "minecraft:item/iron_sword"
+  },
+  "overrides": [
+    {
+      "predicate": {
+        "custom_model_data": 64
+      },
+      "model": "item/kgb_dagger"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 65
+      },
+      "model": "item/imperial_saber"
+    }
+  ]
+}

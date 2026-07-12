@@ -818,6 +818,7 @@ public class WrathManager implements Listener {
                                 ItemStack scroll = new ItemStack(Material.PAPER);
                                 ItemMeta sMeta = scroll.getItemMeta();
                                 sMeta.setDisplayName("§d§lСвиток Сохранения");
+                                sMeta.setCustomModelData(54);
                                 sMeta.getPersistentDataContainer().set(new NamespacedKey(gearPlugin, "safety_scroll_price"), PersistentDataType.INTEGER, 1500);
                                 scroll.setItemMeta(sMeta);
                                 scroll.setAmount(3);
@@ -1009,10 +1010,12 @@ public class WrathManager implements Listener {
         ItemStack item = new ItemStack(Material.GOLD_NUGGET);
         ItemMeta meta = item.getItemMeta();
         meta.setDisplayName("§6§lДревний Жетон Рун");
+        meta.setCustomModelData(48);
         java.util.List<String> lore = new java.util.ArrayList<>();
         lore.add("§7Редкий трофей, добытый в тяжелом бою.");
         lore.add("§eИспользование (ПКМ): +250 репутации ВК + случайная руна/кристалл!");
         meta.setLore(lore);
+        meta.getPersistentDataContainer().set(new org.bukkit.NamespacedKey(plugin, "is_rune_token"), org.bukkit.persistence.PersistentDataType.BYTE, (byte) 1);
         item.setItemMeta(meta);
         return item;
     }
@@ -1021,10 +1024,12 @@ public class WrathManager implements Listener {
         ItemStack item = new ItemStack(Material.PRISMARINE_SHARD);
         ItemMeta meta = item.getItemMeta();
         meta.setDisplayName("§d§lОсколок Древнего Артефакта");
+        meta.setCustomModelData(49);
         java.util.List<String> lore = new java.util.ArrayList<>();
         lore.add("§7Реликт забытой эпохи.");
         lore.add("§eИспользование (ПКМ): +500 репутации ВК + шанс легендарной руны!");
         meta.setLore(lore);
+        meta.getPersistentDataContainer().set(new org.bukkit.NamespacedKey(plugin, "is_artifact_shard"), org.bukkit.persistence.PersistentDataType.BYTE, (byte) 1);
         item.setItemMeta(meta);
         return item;
     }

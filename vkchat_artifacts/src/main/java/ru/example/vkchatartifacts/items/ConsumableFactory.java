@@ -30,7 +30,7 @@ public class ConsumableFactory {
         lore.add(ChatColor.AQUA + "▶ Возьмите свиток в правую руку и нажмите ПКМ");
         
         meta.setLore(lore);
-
+        meta.setCustomModelData(40);
         meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "is_consumable"), PersistentDataType.STRING, "CLEANSE");
         
         item.setItemMeta(meta);
@@ -52,7 +52,7 @@ public class ConsumableFactory {
         lore.add(ChatColor.DARK_GRAY + "Нужно держать в любой руке.");
         
         meta.setLore(lore);
-
+        meta.setCustomModelData(41);
         meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "is_consumable"), PersistentDataType.STRING, "REVIVE");
         
         item.setItemMeta(meta);
@@ -73,7 +73,7 @@ public class ConsumableFactory {
         lore.add(ChatColor.AQUA + "▶ Нажмите ПКМ, чтобы активировать.");
         
         meta.setLore(lore);
-
+        meta.setCustomModelData(42);
         meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "is_consumable"), PersistentDataType.STRING, "ESCAPE");
         
         item.setItemMeta(meta);
@@ -94,6 +94,7 @@ public class ConsumableFactory {
         lore.add(ChatColor.AQUA + "▶ Нажмите ПКМ, чтобы активировать.");
         
         meta.setLore(lore);
+        meta.setCustomModelData(43);
         meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "is_consumable"), PersistentDataType.STRING, "ENCHANTMENT_SCROLL");
         
         item.setItemMeta(meta);
@@ -114,6 +115,7 @@ public class ConsumableFactory {
         lore.add(ChatColor.AQUA + "▶ Возьмите набор в правую руку и нажмите ПКМ");
         
         meta.setLore(lore);
+        meta.setCustomModelData(44);
         meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "is_consumable"), PersistentDataType.STRING, "REPAIR_KIT");
         
         item.setItemMeta(meta);
@@ -135,6 +137,7 @@ public class ConsumableFactory {
         lore.add(ChatColor.AQUA + "▶ Возьмите руну в правую руку и нажмите ПКМ");
         
         meta.setLore(lore);
+        meta.setCustomModelData(45);
         meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "is_consumable"), PersistentDataType.STRING, "EXCHANGE_RUNE");
         
         item.setItemMeta(meta);
@@ -156,6 +159,7 @@ public class ConsumableFactory {
         lore.add(ChatColor.AQUA + "▶ Возьмите тотем в правую руку и нажмите ПКМ");
         
         meta.setLore(lore);
+        meta.setCustomModelData(46);
         meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "is_consumable"), PersistentDataType.STRING, "FORTIFICATION_TOTEM");
         
         item.setItemMeta(meta);
@@ -177,6 +181,7 @@ public class ConsumableFactory {
         lore.add(ChatColor.AQUA + "▶ Возьмите антидот в правую руку и нажмите ПКМ");
         
         meta.setLore(lore);
+        meta.setCustomModelData(47);
         meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "is_consumable"), PersistentDataType.STRING, "DECAY_ANTIPODE");
         
         item.setItemMeta(meta);

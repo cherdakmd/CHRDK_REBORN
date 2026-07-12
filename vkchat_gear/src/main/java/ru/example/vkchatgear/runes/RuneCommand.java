@@ -145,6 +145,7 @@ public class RuneCommand implements CommandExecutor, TabCompleter {
         lore.add("§eЦена: §b" + price + " реп. ВК");
         lore.add("§8Нажмите, чтобы купить");
         meta.setLore(lore);
+        meta.setCustomModelData(30);
         meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "fusion_scroll_price"), PersistentDataType.INTEGER, price);
         item.setItemMeta(meta);
         inv.setItem(slot, item);
@@ -156,6 +157,7 @@ public class RuneCommand implements CommandExecutor, TabCompleter {
         ItemStack item = new ItemStack(Material.PAPER);
         ItemMeta meta = item.getItemMeta();
         meta.setDisplayName("§d§l" + name);
+        meta.setCustomModelData(54);
         
         List<String> lore = new ArrayList<>();
         lore.add("§7Защищает предмет от отката");
@@ -240,12 +242,24 @@ public class RuneCommand implements CommandExecutor, TabCompleter {
         lore.add("§8Нажмите, чтобы купить");
         
         meta.setLore(lore);
+        Integer crystalCmd = getCrystalCustomModelData(tier);
+        if (crystalCmd != null) meta.setCustomModelData(crystalCmd);
         meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "crystal_tier"), PersistentDataType.STRING, tier);
         meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "crystal_price"), PersistentDataType.INTEGER, price);
         meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "crystal_name"), PersistentDataType.STRING, name);
         item.setItemMeta(meta);
         
         inv.setItem(slot, item);
+    }
+    
+    private static Integer getCrystalCustomModelData(String tier) {
+        switch (tier) {
+            case "common": return 50;
+            case "rare": return 51;
+            case "legendary": return 6;
+            case "ancient": return 52;
+            default: return null;
+        }
     }
 
     private void addRune(Inventory inv, int slot, String name, String id) {
@@ -289,9 +303,47 @@ public class RuneCommand implements CommandExecutor, TabCompleter {
         meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "rune_id"), PersistentDataType.STRING, id);
         meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "rune_price"), PersistentDataType.INTEGER, price);
         meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "rune_name"), PersistentDataType.STRING, name);
+        Integer runeCmd = getRuneCustomModelData(id);
+        if (runeCmd != null) meta.setCustomModelData(runeCmd);
         item.setItemMeta(meta);
         
         inv.setItem(slot, item);
+    }
+    
+    private static Integer getRuneCustomModelData(String id) {
+        switch (id) {
+            case "blood_rune": case "chaos_rune": return 10;
+            case "frost_rune": return 11;
+            case "poison_rune": return 12;
+            case "lightning_rune": case "holy_rune": return 13;
+            case "shadow_rune": case "void_rune": return 14;
+            case "arcane_rune": return 15;
+            case "darkness_rune": return 16;
+            case "death_rune": return 17;
+            case "earth_rune": return 18;
+            case "farming_rune": return 19;
+            case "fire_rune": return 20;
+            case "flame_rune": return 21;
+            case "fishing_rune": return 22;
+            case "health_rune": return 23;
+            case "ice_rune": return 24;
+            case "iron_rune": return 25;
+            case "light_rune": return 26;
+            case "loot_rune": return 27;
+            case "luck_rune": return 28;
+            case "mining_rune": return 29;
+            case "nature_rune": return 31;
+            case "speed_rune": return 32;
+            case "spirit_rune": return 33;
+            case "stone_rune": return 34;
+            case "strength_rune": return 35;
+            case "thunder_rune": return 36;
+            case "time_rune": return 37;
+            case "water_rune": return 38;
+            case "wind_rune": return 39;
+            case "xp_rune": return 40;
+            default: return null;
+        }
     }
 
     @Override

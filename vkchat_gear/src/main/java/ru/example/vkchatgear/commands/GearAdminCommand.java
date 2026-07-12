@@ -81,6 +81,7 @@ public class GearAdminCommand implements CommandExecutor, TabCompleter {
             ItemMeta meta = fragment.getItemMeta();
             String setName = plugin.getConfig().getString("sets." + setKey + ".name", setKey);
             meta.setDisplayName(ChatColor.GOLD + "Фрагмент сета: " + setName);
+            meta.setCustomModelData(59);
             java.util.List<String> lore = new java.util.ArrayList<>();
             lore.add(ChatColor.GRAY + "Используется при ковке брони.");
             lore.add(ChatColor.GRAY + "Сетовые части больше не роллятся случайно.");

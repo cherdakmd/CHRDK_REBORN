@@ -223,6 +223,7 @@ public class ForgeCommand implements CommandExecutor, Listener, TabCompleter {
                 ChatColor.YELLOW + "Цена: " + price + " реп. ВК",
                 ChatColor.DARK_GRAY + "Клик — купить");
         ItemMeta meta = it.getItemMeta();
+        if (type.equals("perfect")) meta.setCustomModelData(30);
         meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "forge_scroll_shop_type"), PersistentDataType.STRING, type);
         meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "forge_scroll_shop_price"), PersistentDataType.INTEGER, price);
         it.setItemMeta(meta);
@@ -676,6 +677,14 @@ public class ForgeCommand implements CommandExecutor, Listener, TabCompleter {
         ItemMeta meta = it.getItemMeta();
         meta.setDisplayName(name);
         meta.setLore(Arrays.asList(lore, "§8Расходуется автоматически в /forge."));
+        switch (type) {
+            case "chance_25": meta.setCustomModelData(55); break;
+            case "chance_50": meta.setCustomModelData(56); break;
+            case "perfect": meta.setCustomModelData(30); break;
+            case "protect_all": meta.setCustomModelData(62); break;
+            case "anti_defect": meta.setCustomModelData(57); break;
+            case "discount": meta.setCustomModelData(58); break;
+        }
         meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "forge_scroll_type"), PersistentDataType.STRING, type);
         if (type.equals("perfect")) meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "is_fusion_scroll"), PersistentDataType.INTEGER, 1);
         it.setItemMeta(meta);

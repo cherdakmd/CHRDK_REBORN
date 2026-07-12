@@ -18,6 +18,7 @@ import ru.example.vkchat.moderation.WarnManager;
 import ru.example.vkchat.database.DatabaseManager;
 import ru.example.vkchat.hardcore.BleedingTask;
 import ru.example.vkchat.auth.MembershipManager;
+import ru.example.vkchat.resourcepack.ResourcePackServer;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -38,6 +39,7 @@ public class VKChatPlugin extends JavaPlugin {
     private WarnManager warnManager;
     private DatabaseManager databaseManager;
     private MembershipManager membershipManager;
+    private ResourcePackServer resourcePackServer;
 
     private boolean vaultEnabled = false;
 
@@ -83,6 +85,13 @@ public class VKChatPlugin extends JavaPlugin {
         startTasks();
         vkLongPollManager.start();
         vkLongPollManager.sendToMainChat("✅ Сервер запущен!");
+
+        // ═══ РЕСУРСПАК — встроенный HTTP-сервер ═══
+        if (getConfig().getBoolean("resource-pack.enabled", false) && getConfig().getBoolean("resource-pack.auto-url", false)) {
+            int rpPort = getConfig().getInt("resource-pack.port", 8088);
+            resourcePackServer = new ResourcePackServer(this, rpPort);
+            resourcePackServer.start();
+        }
 
         coreManagers.getAuthManager().startSessionTimeoutTask();
     }
@@ -194,6 +203,8 @@ public class VKChatPlugin extends JavaPlugin {
         HandlerList.unregisterAll(this);
         Bukkit.getScheduler().cancelTasks(this);
 
+        if (resourcePackServer != null) resourcePackServer.stop();
+
         getLogger().info("=========================================");
         getLogger().info("VKChat 2.0.7 остановлен!");
         getLogger().info("СОЗДАНО ДЛЯ https://vk.com/chrdk_reborn и https://t.me/cherdakmd");
@@ -258,6 +269,10 @@ public class VKChatPlugin extends JavaPlugin {
 
     public MembershipManager getMembershipManager() {
         return membershipManager;
+    }
+
+    public ResourcePackServer getResourcePackServer() {
+        return resourcePackServer;
     }
 
     public ru.example.vkchat.auth.SessionManager getSessionManager() {

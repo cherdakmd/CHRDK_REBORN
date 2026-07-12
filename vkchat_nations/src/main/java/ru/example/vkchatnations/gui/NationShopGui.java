@@ -150,79 +150,79 @@ public class NationShopGui {
 
     private void addNationalShopItems(Inventory inv, String nation, int s1, int s2, int s3) {
         if (nation.equals("soviet_light")) {
-            inv.setItem(s1, createNationalItem(Material.IRON_PICKAXE, "☭ Кирка Пятилетки", "soviet_pickaxe", 250,
+            inv.setItem(s1, createNationalItem(Material.IRON_PICKAXE, "☭ Кирка Пятилетки", "soviet_pickaxe", 250, 60,
                     "&eПассивный эффект: &aИндустриализация",
                     "&7Позволяет ломать блоки руды",
                     "&7на 15% быстрее обычного."));
-            inv.setItem(s2, createNationalItem(Material.BOOK, "📕 Манифест Пролетариата", "soviet_manifesto", 250,
+            inv.setItem(s2, createNationalItem(Material.BOOK, "📕 Манифест Пролетариата", "soviet_manifesto", 250, 61,
                     "&eАктивное свойство (ПКМ): &aГолос Труда",
                     "&7Дарует эффект Силы I всем союзникам",
                     "&7в радиусе 8 блоков на 30 сек. Кд 1 мин."));
-            inv.setItem(s3, createNationalItem(Material.QUARTZ, "⚙️ Индустриальный Кристалл", "soviet_crystal", 250,
+            inv.setItem(s3, createNationalItem(Material.QUARTZ, "⚙️ Индустриальный Кристалл", "soviet_crystal", 250, 62,
                     "&eАктивное свойство (ПКМ): &aУдарный План",
                     "&7Дарует эффект Спешки II на 1 минуту.",
                     "&7Перезарядка: 2 минуты."));
         } else if (nation.equals("soviet_dark")) {
-            inv.setItem(s1, createNationalItem(Material.LEATHER_HELMET, "🕶 Тактические Очки Чека", "kgb_glasses", 250,
+            inv.setItem(s1, createNationalItem(Material.LEATHER_HELMET, "🕶 Тактические Очки Чека", "kgb_glasses", 250, 63,
                     "&eПассивный эффект: &aТепловизор",
                     "&7Дарует постоянное Ночное Зрение",
                     "&7при ношении данного шлема."));
-            inv.setItem(s2, createNationalItem(Material.IRON_SWORD, "🗡️ Кинжал Смерша", "kgb_dagger", 250,
+            inv.setItem(s2, createNationalItem(Material.IRON_SWORD, "🗡️ Кинжал Смерша", "kgb_dagger", 250, 64,
                     "&eПассивный эффект: &aТихая Ликвидация",
                     "&7Удары по противникам со спины",
                     "&7накладывают Иссушение I на 5 сек."));
-            inv.setItem(s3, createNationalItem(Material.GLASS_BOTTLE, "🧪 Сыворотка Скрытности", "kgb_serum", 250,
+            inv.setItem(s3, createNationalItem(Material.GLASS_BOTTLE, "🧪 Сыворотка Скрытности", "kgb_serum", 250, 66,
                     "&eАктивное свойство (ПКМ): &aМаскировка",
                     "&7Дарует Невидимость I и Скорость II",
                     "&7на 30 секунд. Кд 2 минуты."));
         } else if (nation.equals("pagan_light")) {
-            inv.setItem(s1, createNationalItem(Material.WOODEN_HOE, "🌿 Древесный Посох Ведунов", "pagan_staff", 250,
+            inv.setItem(s1, createNationalItem(Material.WOODEN_HOE, "🌿 Древесный Посох Ведунов", "pagan_staff", 250, 67,
                     "&eАктивное свойство (ПКМ): &aДыхание Леса",
                     "&7Мгновенно исцеляет вас на 4 HP.",
                     "&7Перезарядка: 30 секунд."));
-            inv.setItem(s2, createNationalItem(Material.FEATHER, "🪶 Оберег ветра Стрибога", "pagan_amulet", 250,
+            inv.setItem(s2, createNationalItem(Material.FEATHER, "🪶 Оберег ветра Стрибога", "pagan_amulet", 250, 68,
                     "&eАктивное свойство (ПКМ): &aПорыв Ветра",
                     "&7Резко запускает вас вперед и вверх",
                     "&7(двойной прыжок). Кд 15 секунд."));
-            inv.setItem(s3, createNationalItem(Material.HONEY_BOTTLE, "🏺 Целебный Отвар Лешего", "pagan_brew", 250,
+            inv.setItem(s3, createNationalItem(Material.HONEY_BOTTLE, "🏺 Целебный Отвар Лешего", "pagan_brew", 250, 69,
                     "&eАктивное свойство (ПКМ): &aЖивая Вода",
                     "&7Восполняет 10 HP и дает Регенерацию II",
                     "&7на 15 секунд. Кулдаун: 1 минута."));
         } else if (nation.equals("pagan_dark")) {
-            inv.setItem(s1, createNationalItem(Material.WITHER_SKELETON_SKULL, "💀 Оскверненный Идол Нави", "pagan_idol", 250,
+            inv.setItem(s1, createNationalItem(Material.WITHER_SKELETON_SKULL, "💀 Оскверненный Идол Нави", "pagan_idol", 250, 71,
                     "&eАктивное свойство (ПКМ): &aГнев Нави",
                     "&7Накладывает Иссушение II на всех врагов",
                     "&7в радиусе 6 блоков на 6с. Кд 1 мин."));
-            inv.setItem(s2, createNationalItem(Material.IRON_HOE, "🌾 Ритуальный Серп Жатвы", "pagan_sickle", 250,
+            inv.setItem(s2, createNationalItem(Material.IRON_HOE, "🌾 Ритуальный Серп Жатвы", "pagan_sickle", 250, 72,
                     "&eПассивный эффект: &aЖатва Душ",
                     "&7Каждое убийство монстра восполняет",
                     "&7вам 1 HP здоровья."));
-            inv.setItem(s3, createNationalItem(Material.DRAGON_BREATH, "🩸 Кровь Жертвенного Алтаря", "pagan_infusion", 250,
+            inv.setItem(s3, createNationalItem(Material.DRAGON_BREATH, "🩸 Кровь Жертвенного Алтаря", "pagan_infusion", 250, 73,
                     "&eАктивное свойство (ПКМ): &aКульт Ярости",
                     "&7Дает Силу II на 15 сек, но накладывает",
                     "&7Иссушение I на 5 сек. Кд 1 мин."));
         } else if (nation.equals("imperial_light")) {
-            inv.setItem(s1, createNationalItem(Material.BLAZE_ROD, "👑 Золотой Царский Скипетр", "imperial_scepter", 250,
+            inv.setItem(s1, createNationalItem(Material.BLAZE_ROD, "👑 Золотой Царский Скипетр", "imperial_scepter", 250, 74,
                     "&eАктивное свойство (ПКМ): &aВоля Монарха",
                     "&7Дарует Сопротивление II союзникам",
                     "&7в радиусе 8 блоков на 10с. Кд 1 мин."));
-            inv.setItem(s2, createNationalItem(Material.SHIELD, "🛡️ Богатырский Щит Святогора", "imperial_shield", 250,
+            inv.setItem(s2, createNationalItem(Material.SHIELD, "🛡️ Богатырский Щит Святогора", "imperial_shield", 250, 75,
                     "&eПассивный эффект: &aСтена Руси",
                     "&7Блокирует 50% входящего урона",
                     "&7при активной защите щитом."));
-            inv.setItem(s3, createNationalItem(Material.BREAD, "🍞 Царский Каравай Насыщения", "imperial_bread", 250,
+            inv.setItem(s3, createNationalItem(Material.BREAD, "🍞 Царский Каравай Насыщения", "imperial_bread", 250, 76,
                     "&eПассивный эффект: &aЦарская Сытость",
                     "&7Полное насыщение и сатурация на 2 мин."));
         } else if (nation.equals("imperial_dark")) {
-            inv.setItem(s1, createNationalItem(Material.IRON_SWORD, "🗡 Карающая Сабля Грозы", "imperial_saber", 250,
+            inv.setItem(s1, createNationalItem(Material.IRON_SWORD, "🗡 Карающая Сабля Грозы", "imperial_saber", 250, 65,
                     "&eПассивный эффект: &aСекущий Удар",
                     "&7Каждый удар имеет 25% шанс вызвать",
                     "&7кровотечение (эффект яда) на 4 сек."));
-            inv.setItem(s2, createNationalItem(Material.IRON_NUGGET, "⛓️ Кандалы Тайного Сыска", "imperial_shackles", 250,
+            inv.setItem(s2, createNationalItem(Material.IRON_NUGGET, "⛓️ Кандалы Тайного Сыска", "imperial_shackles", 250, 77,
                     "&eАктивное свойство (ПКМ): &aВзять под стражу",
                     "&7Накладывает Замедление V на цель в руке",
                     "&7на 3 секунды. Кулдаун 45 сек."));
-            inv.setItem(s3, createNationalItem(Material.HONEY_BOTTLE, "🍷 Золотой Кубок Грозного", "imperial_cup", 250,
+            inv.setItem(s3, createNationalItem(Material.HONEY_BOTTLE, "🍷 Золотой Кубок Грозного", "imperial_cup", 250, 70,
                     "&eАктивное свойство (ПКМ): &aЦарский Гнев",
                     "&7Дарует Силу III на 10 секунд, но накладывает",
                     "&7Медлительность I на 5 секунд. Кд 1 мин."));
@@ -230,6 +230,10 @@ public class NationShopGui {
     }
 
     private ItemStack createNationalItem(Material mat, String name, String itemId, int cost, String... desc) {
+        return createNationalItem(mat, name, itemId, cost, 0, desc);
+    }
+
+    private ItemStack createNationalItem(Material mat, String name, String itemId, int cost, int customModelData, String... desc) {
         ItemStack item = new ItemStack(mat);
         ItemMeta meta = item.getItemMeta();
         meta.setDisplayName(ChatColor.GOLD + name);
@@ -243,6 +247,7 @@ public class NationShopGui {
         lore.add(ChatColor.YELLOW + "▶ Кликните, чтобы приобрести ◀");
 
         meta.setLore(lore);
+        if (customModelData > 0) meta.setCustomModelData(customModelData);
         meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "national_item"), PersistentDataType.STRING, itemId);
         item.setItemMeta(meta);
         return item;

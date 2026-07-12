@@ -1,0 +1,56 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "minecraft:item/paper"
+  },
+  "overrides": [
+    {
+      "predicate": {
+        "custom_model_data": 40
+      },
+      "model": "item/scroll_cleanse"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 54
+      },
+      "model": "item/scroll_safety"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 55
+      },
+      "model": "item/scroll_chance25"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 56
+      },
+      "model": "item/scroll_chance50"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 57
+      },
+      "model": "item/scroll_steel"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 58
+      },
+      "model": "item/scroll_discount"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 59
+      },
+      "model": "item/set_fragment"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 60
+      },
+      "model": "item/scroll_rep"
+    }
+  ]
+}

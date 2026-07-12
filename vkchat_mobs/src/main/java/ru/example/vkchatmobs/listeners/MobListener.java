@@ -106,6 +106,7 @@ public class MobListener implements Listener {
         lore.add("");
         lore.add("§8[Нажмите ПКМ в руке для активации]");
         meta.setLore(lore);
+        meta.setCustomModelData(48);
         meta.getPersistentDataContainer().set(new NamespacedKey(VKChatMobsPlugin.getInstance(), "is_rune_token"), PersistentDataType.INTEGER, 1);
         item.setItemMeta(meta);
         return item;
@@ -125,6 +126,7 @@ public class MobListener implements Listener {
         lore.add("");
         lore.add("§8[Нажмите ПКМ в руке для активации]");
         meta.setLore(lore);
+        meta.setCustomModelData(49);
         meta.getPersistentDataContainer().set(new NamespacedKey(VKChatMobsPlugin.getInstance(), "is_artifact_shard"), PersistentDataType.INTEGER, 1);
         item.setItemMeta(meta);
         return item;

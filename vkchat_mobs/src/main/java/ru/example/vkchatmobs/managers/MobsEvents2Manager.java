@@ -306,8 +306,8 @@ public class MobsEvents2Manager implements Listener {
         if (gear == null) return new ItemStack(Material.DIAMOND, 2);
         ItemStack it = new ItemStack(Material.PAPER);
         ItemMeta meta = it.getItemMeta();
-        if ("anti_defect".equals(type)) { meta.setDisplayName("§aСвиток Чистой Стали"); meta.setLore(Arrays.asList("§7Защищает от дефекта при следующей перековке.", "§8Трофей рейда.")); }
-        else { meta.setDisplayName("§dСвиток Поддува Горна"); meta.setLore(Arrays.asList("§7+25% к следующему слиянию редкости.", "§8Трофей рейда.")); }
+        if ("anti_defect".equals(type)) { meta.setDisplayName("§aСвиток Чистой Стали"); meta.setCustomModelData(57); meta.setLore(Arrays.asList("§7Защищает от дефекта при следующей перековке.", "§8Трофей рейда.")); }
+        else { meta.setDisplayName("§dСвиток Поддува Горна"); meta.setCustomModelData(55); meta.setLore(Arrays.asList("§7+25% к следующему слиянию редкости.", "§8Трофей рейда.")); }
         meta.getPersistentDataContainer().set(new NamespacedKey(gear, "forge_scroll_type"), PersistentDataType.STRING, type);
         it.setItemMeta(meta);
         return it;

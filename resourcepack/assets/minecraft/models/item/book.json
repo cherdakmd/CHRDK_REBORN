@@ -1,0 +1,20 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "minecraft:item/book"
+  },
+  "overrides": [
+    {
+      "predicate": {
+        "custom_model_data": 43
+      },
+      "model": "item/scroll_enchant"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 61
+      },
+      "model": "item/soviet_manifesto"
+    }
+  ]
+}

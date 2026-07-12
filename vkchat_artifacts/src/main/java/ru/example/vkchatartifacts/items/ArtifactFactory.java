@@ -164,6 +164,11 @@ public class ArtifactFactory {
         
         meta.setLore(lore);
         
+        if (isMythic) meta.setCustomModelData(5);
+        else if (level == 3) meta.setCustomModelData(3);
+        else if (level == 2) meta.setCustomModelData(2);
+        else meta.setCustomModelData(1);
+        
         meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "is_artifact"), PersistentDataType.INTEGER, 1);
         meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "buff_type"), PersistentDataType.STRING, buff);
         meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "buff_level"), PersistentDataType.INTEGER, level);
@@ -282,6 +287,15 @@ public class ArtifactFactory {
         }
 
         meta.setLore(lore);
+        
+        switch (rarity) {
+            case "mythic": meta.setCustomModelData(5); break;
+            case "legendary": meta.setCustomModelData(4); break;
+            case "epic": meta.setCustomModelData(3); break;
+            case "rare": meta.setCustomModelData(2); break;
+            default: meta.setCustomModelData(1); break;
+        }
+        
         meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "is_artifact"), PersistentDataType.INTEGER, 1);
         meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "buff_type"), PersistentDataType.STRING, buff);
         meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "buff_level"), PersistentDataType.INTEGER, level);
