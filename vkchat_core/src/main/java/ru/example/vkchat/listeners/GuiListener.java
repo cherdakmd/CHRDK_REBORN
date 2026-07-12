@@ -217,6 +217,7 @@ public class GuiListener implements Listener {
             case 33: openNewbieMenu(p); break;
             case 34: break;
             case 41: p.closeInventory(); p.sendMessage(ChatColor.GOLD + "⛏ Шахтёрские смены: !шахта, !смена, !shift — в ЛС бота ВК"); p.sendMessage(ChatColor.YELLOW + "Донат: !донат / !donate — в ЛС бота ВК"); break;
+            case 49: p.closeInventory(); break;
         }
     }
 

@@ -116,7 +116,7 @@ public class MarketService {
             itemsSold += owned;
         }
         if (totalEarned > 0) {
-            ru.example.vkchat.util.VKChatBridge.addPoints(vkId, totalEarned);
+            ru.example.vkchat.util.VKChatBridge.addEffectiveRep(p, totalEarned);
         }
         return totalEarned;
     }

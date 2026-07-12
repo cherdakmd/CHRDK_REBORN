@@ -166,7 +166,7 @@ public class MarketListener implements Listener {
             int price = svc.prices().getSellPrice(entry, p);
             int total = price * toSell;
             svc.takeItems(p, entry, toSell);
-            VKChatBridge.addPoints(vkId, total);
+            VKChatBridge.addEffectiveRep(p, total);
             svc.prices().recordSell(entry, toSell);
             p.sendMessage("§a✓ Продано " + toSell + "x §f" + entry.displayName() + " §aза §e" + total + " реп.");
             p.playSound(p.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1f, 1f);
@@ -250,7 +250,7 @@ public class MarketListener implements Listener {
 
     private String parseCategoryFromTitle(String title) {
         if (!title.contains("◂ §7")) return "all";
-        String part = title.substring(title.indexOf("◂ §7") + 5);
+        String part = title.substring(title.indexOf("◂ §7") + 4);
         if (part.contains(" §8")) part = part.substring(0, part.indexOf(" §8"));
         String trimmed = org.bukkit.ChatColor.stripColor(part).trim();
         if (trimmed.equals("Меню") || trimmed.isEmpty()) return "all";
