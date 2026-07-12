@@ -15,6 +15,7 @@ import ru.example.vkchatmarket.model.MarketEntry;
 import ru.example.vkchatmarket.service.MarketService;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class MarketGui {
 
@@ -26,6 +27,8 @@ public class MarketGui {
 
     public static void openMainMenu(VKChatMarketPlugin plugin, Player p) {
         Inventory inv = Bukkit.createInventory(null, 54, "§8▸ §6§lБИРЖА §8◂ §7Меню");
+        plugin.getGuiState().set(p.getUniqueId(), "all", 0, null);
+
         ItemStack bg = bg();
         for (int i = 0; i < 54; i++) inv.setItem(i, bg);
 
@@ -46,10 +49,31 @@ public class MarketGui {
             MarketCategory cat = cats[i];
             String key = cat.configKey();
             int count = svc.getByCategory(cat).size();
-            int slot = 20 + i + (i >= 4 ? 5 : 0); // 20-23 row1, 29-32 row2
-            inv.setItem(slot, categoryItem(plugin, getCatIcon(cat), key,
+            int slot = 20 + i + (i >= 4 ? 5 : 0);
+            inv.setItem(slot, categoryItem(plugin, cat.icon(), key,
                     plugin.getConfig().getString("categories." + key + ".name", key),
                     "§7" + count + " товаров"));
+        }
+
+        // Favorites
+        var favorites = plugin.getGuiState().get(p.getUniqueId());
+        NamespacedKey favKey = new NamespacedKey(plugin, "mkt_fav");
+        Set<String> favIds = new HashSet<>();
+        if (p.getPersistentDataContainer().has(favKey, PersistentDataType.STRING)) {
+            String favStr = p.getPersistentDataContainer().get(favKey, PersistentDataType.STRING);
+            if (favStr != null && !favStr.isEmpty()) {
+                favIds.addAll(Arrays.asList(favStr.split(",")));
+            }
+        }
+        if (!favIds.isEmpty()) {
+            int slot = 28;
+            for (String favId : favIds) {
+                if (slot > 34) break;
+                MarketEntry favEntry = svc.get(favId);
+                if (favEntry != null) {
+                    inv.setItem(slot++, tradeItem(plugin, favEntry, p));
+                }
+            }
         }
 
         inv.setItem(45, categoryItem(plugin, Material.COMPASS, "all", "§b📦 Все товары", "§7" + svc.getAll().size() + " товаров"));
@@ -70,6 +94,7 @@ public class MarketGui {
 
         int pages = Math.max(1, (int) Math.ceil(entries.size() / (double) PAGE_SIZE));
         page = Math.max(0, Math.min(page, pages - 1));
+        plugin.getGuiState().set(p.getUniqueId(), categoryKey, page, null);
 
         String catName = categoryKey.equals("all") ? "Все товары"
                 : plugin.getConfig().getString("categories." + categoryKey + ".name", categoryKey);
@@ -95,20 +120,30 @@ public class MarketGui {
         ItemStack navGlass = navBg();
         for (int i = 45; i < 54; i++) inv.setItem(i, navGlass);
         inv.setItem(45, categoryItem(plugin, Material.COMPASS, "menu", "§f🏠 Меню", "§7К категориям"));
-        inv.setItem(47, item(plugin, Material.HOPPER, "mkt_sellall", "§a♻ Продать всё", "§7Продать все предметы", "§7из этой категории"));
+
+        if (pages > 1) {
+            if (page > 0) inv.setItem(46, item(plugin, Material.ARROW, "mkt_prev", "§f◀ Назад"));
+            if (page < pages - 1) inv.setItem(47, item(plugin, Material.ARROW, "mkt_next", "§f▶ Вперёд"));
+        }
+
+        inv.setItem(48, item(plugin, Material.HOPPER, "mkt_sellall", "§a♻ Продать всё", "§7Продать все предметы", "§7из этой категории"));
         inv.setItem(49, item(plugin, Material.OAK_SIGN, "mkt_search", "§e🔍 Поиск", "§7Искать по названию"));
-        inv.setItem(51, item(plugin, Material.ANVIL, "mkt_amount", "§b✎ Кол-во", "§7Ввести точное", "§7количество"));
+        inv.setItem(50, item(plugin, Material.ANVIL, "mkt_amount", "§b✎ Кол-во", "§7Ввести точное", "§7количество"));
+        inv.setItem(51, item(plugin, Material.NETHER_STAR, "mkt_sellall_all", "§c💰 Продать ВСЁ", "§7Продать все предметы", "§7изо всех категорий"));
         inv.setItem(53, categoryItem(plugin, Material.COMPASS, "all", "§b📦 Все", "§7Без категории"));
 
         p.openInventory(inv);
     }
 
-    public static void openSearchResults(VKChatMarketPlugin plugin, Player p, List<MarketEntry> results, String query) {
+    public static void openSearchResults(VKChatMarketPlugin plugin, Player p, List<MarketEntry> results, String query, int page) {
         int pages = Math.max(1, (int) Math.ceil(results.size() / (double) PAGE_SIZE));
+        page = Math.max(0, Math.min(page, pages - 1));
+        plugin.getGuiState().set(p.getUniqueId(), "search", page, query);
+
         int rep = VKChatBridge.getLinkedVkId(p) != -1 ? VKChatBridge.getReputation(VKChatBridge.getLinkedVkId(p)) : 0;
 
         Inventory inv = Bukkit.createInventory(null, 54,
-                "§8▸ §6§lБИРЖА §8◂ §7Поиск: §f" + query + " §81/1");
+                "§8▸ §6§lБИРЖА §8◂ §7Поиск: §f" + query + " §8" + (page+1) + "/" + pages);
 
         ItemStack bg = bg();
         for (int s : ITEM_SLOTS) inv.setItem(s, bg);
@@ -117,18 +152,29 @@ public class MarketGui {
                 "§7Результатов: §f" + results.size(),
                 "§7ЛКМ — продать | ПКМ — купить"));
 
-        int end = Math.min(results.size(), PAGE_SIZE);
-        for (int i = 0; i < end; i++) {
-            inv.setItem(ITEM_SLOTS[i], tradeItem(plugin, results.get(i), p));
+        int start = page * PAGE_SIZE;
+        int end = Math.min(results.size(), start + PAGE_SIZE);
+        for (int i = start, slot = 0; i < end; i++) {
+            inv.setItem(ITEM_SLOTS[slot++], tradeItem(plugin, results.get(i), p));
         }
 
         ItemStack navGlass = navBg();
         for (int i = 45; i < 54; i++) inv.setItem(i, navGlass);
         inv.setItem(45, categoryItem(plugin, Material.COMPASS, "menu", "§f🏠 Меню", "§7К категориям"));
+
+        if (pages > 1) {
+            if (page > 0) inv.setItem(46, item(plugin, Material.ARROW, "mkt_prev", "§f◀ Назад"));
+            if (page < pages - 1) inv.setItem(47, item(plugin, Material.ARROW, "mkt_next", "§f▶ Вперёд"));
+        }
+
         inv.setItem(49, item(plugin, Material.OAK_SIGN, "mkt_search", "§e🔍 Новый поиск", "§7Искать заново"));
         inv.setItem(53, categoryItem(plugin, Material.COMPASS, "all", "§b📦 Все", "§7Без категории"));
 
         p.openInventory(inv);
+    }
+
+    public static void openSearchResults(VKChatMarketPlugin plugin, Player p, List<MarketEntry> results, String query) {
+        openSearchResults(plugin, p, results, query, 0);
     }
 
     public static void openSellAllConfirm(VKChatMarketPlugin plugin, Player p, String categoryKey, int totalRep, int itemCount) {
@@ -153,6 +199,54 @@ public class MarketGui {
         p.openInventory(inv);
     }
 
+    public static void openSellAllPreview(VKChatMarketPlugin plugin, Player p, String categoryKey) {
+        MarketService svc = plugin.getMarketService();
+        Map<String, Integer> breakdown = svc.getCategoryBreakdown(p);
+
+        Inventory inv = Bukkit.createInventory(null, 27, "§8▸ §6§lБИРЖА §8◂ §cПродажа всех");
+
+        for (int i = 0; i < 27; i++) inv.setItem(i, bg());
+
+        int totalItems = 0;
+        int totalRep = 0;
+        int slot = 10;
+        for (var entry : breakdown.entrySet()) {
+            if (slot > 16) break;
+            String catKey = entry.getKey();
+            int count = entry.getValue();
+            MarketCategory cat = MarketCategory.fromConfig(catKey);
+            String catName = plugin.getConfig().getString("categories." + catKey + ".name", catKey);
+
+            int catRep = 0;
+            if (cat != null) {
+                for (MarketEntry me : svc.getByCategory(cat)) {
+                    int owned = svc.countItems(p, me);
+                    if (owned > 0) catRep += svc.prices().getSellPrice(me, p) * owned;
+                }
+            }
+
+            ItemStack item = new ItemStack(cat != null ? cat.icon() : Material.PAPER);
+            ItemMeta meta = item.getItemMeta();
+            meta.setDisplayName(catName);
+            meta.setLore(Arrays.asList(
+                    "§7Предметов: §e" + count,
+                    "§7Выручка: §a" + catRep + " реп."));
+            meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "mkt_sellall_confirm"), PersistentDataType.STRING, catKey);
+            item.setItemMeta(meta);
+            inv.setItem(slot++, item);
+
+            totalItems += count;
+            totalRep += catRep;
+        }
+
+        inv.setItem(4, item(Material.EMERALD_BLOCK, "§aИтого: §e" + totalRep + " реп. §7за §f" + totalItems + " §7шт.",
+                "", "§e▶ Нажми на категорию для продажи"));
+
+        inv.setItem(22, categoryItem(plugin, Material.BARRIER, categoryKey, "§c✖ Отмена", "§7Вернуться назад"));
+
+        p.openInventory(inv);
+    }
+
     static ItemStack tradeItem(VKChatMarketPlugin plugin, MarketEntry entry, Player p) {
         ItemStack item = new ItemStack(entry.material());
         ItemMeta meta = item.getItemMeta();
@@ -161,6 +255,8 @@ public class MarketGui {
         int sellPrice = plugin.getMarketService().prices().getSellPrice(entry, p);
         int buyPrice = plugin.getMarketService().prices().getBuyPrice(entry, p);
         int owned = plugin.getMarketService().countItems(p, entry);
+        int maxBuyable = plugin.getMarketService().prices().getMaxBuyable(p, entry);
+        int maxSellable = plugin.getMarketService().prices().getMaxSellable(p, entry);
         String trend = plugin.getMarketService().prices().trendArrow(entry);
         String donorTag = plugin.getMarketService().prices().donorTag(p);
 
@@ -171,6 +267,8 @@ public class MarketGui {
         lore.add("§cПокупка: §f" + buyPrice + " реп. / шт.");
         lore.add("");
         lore.add("§7У тебя: §e" + owned + " шт.");
+        if (maxSellable > 0) lore.add("§7Макс. продать: §e" + maxSellable);
+        if (maxBuyable > 0) lore.add("§7Макс. купить: §e" + maxBuyable);
         if (donorTag != null) {
             double buyMult = plugin.getMarketService().prices().donorBuyMultVisible(p);
             double sellMult = plugin.getMarketService().prices().donorSellMultVisible(p);
@@ -178,6 +276,7 @@ public class MarketGui {
         }
         lore.add("");
         lore.add("§7§oЛКМ-продать | ПКМ-купить");
+        lore.add("§7§oПКМ+Shift-купить 16 | СКМ-ввести кол-во");
         meta.setLore(lore);
 
         meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "mkt_item"), PersistentDataType.STRING, entry.id());
@@ -208,18 +307,7 @@ public class MarketGui {
         return item;
     }
 
-    static Material getCatIcon(MarketCategory cat) {
-        return switch (cat) {
-            case ORES -> Material.IRON_INGOT;
-            case FOOD -> Material.BREAD;
-            case WOOD -> Material.OAK_LOG;
-            case BLOCKS -> Material.STONE;
-            case MOBS -> Material.BONE;
-            case DECOR -> Material.WHITE_WOOL;
-            case POTIONS -> Material.POTION;
-            case NETHER -> Material.NETHERRACK;
-        };
-    }
+    static Material getCatIcon(MarketCategory cat) { return cat.icon(); }
 
     static ItemStack item(Material mat, String name, String... lore) {
         ItemStack i = new ItemStack(mat);

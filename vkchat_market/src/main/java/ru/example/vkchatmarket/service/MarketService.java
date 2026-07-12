@@ -4,7 +4,9 @@ import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 import ru.example.vkchatmarket.VKChatMarketPlugin;
+import ru.example.vkchatmarket.log.TransactionLog;
 import ru.example.vkchatmarket.model.MarketCategory;
 import ru.example.vkchatmarket.model.MarketEntry;
 
@@ -14,11 +16,14 @@ public class MarketService {
     private final VKChatMarketPlugin plugin;
     private final PriceService priceService;
     private final Map<String, MarketEntry> entries = new LinkedHashMap<>();
+    private TransactionLog transactionLog;
 
     public MarketService(VKChatMarketPlugin plugin) {
         this.plugin = plugin;
         this.priceService = new PriceService(plugin);
     }
+
+    public void setTransactionLog(TransactionLog log) { this.transactionLog = log; }
 
     public PriceService prices() { return priceService; }
 
@@ -101,7 +106,7 @@ public class MarketService {
         }
     }
 
-    public int sellAll(Player p, MarketCategory category, int vkId) {
+    public int sellAll(Player p, MarketCategory category) {
         List<MarketEntry> list = category == null ? getAll() : getByCategory(category);
         int totalEarned = 0;
         int itemsSold = 0;
@@ -114,10 +119,27 @@ public class MarketService {
             prices().recordSell(entry, owned);
             totalEarned += earned;
             itemsSold += owned;
+            if (transactionLog != null) {
+                transactionLog.log(p, "SELL_ALL", entry.id(), owned, price, "cat=" + (category != null ? category.configKey() : "all"));
+            }
         }
         if (totalEarned > 0) {
             ru.example.vkchat.util.VKChatBridge.addEffectiveRep(p, totalEarned);
         }
         return totalEarned;
+    }
+
+    public Map<String, Integer> getCategoryBreakdown(Player p) {
+        Map<String, Integer> breakdown = new LinkedHashMap<>();
+        for (MarketCategory cat : MarketCategory.values()) {
+            int total = 0;
+            for (MarketEntry entry : getByCategory(cat)) {
+                total += countItems(p, entry);
+            }
+            if (total > 0) {
+                breakdown.put(cat.configKey(), total);
+            }
+        }
+        return breakdown;
     }
 }

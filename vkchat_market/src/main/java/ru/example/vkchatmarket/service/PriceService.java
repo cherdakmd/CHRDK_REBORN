@@ -13,10 +13,12 @@ public class PriceService {
     private final VKChatMarketPlugin plugin;
     private final Map<String, Integer> buyVolume = new ConcurrentHashMap<>();
     private final Map<String, Integer> sellVolume = new ConcurrentHashMap<>();
+    private final Random random = new Random();
 
     private String activeEventId;
     private String activeEventName;
     private long activeEventEnd;
+    private boolean eventExpiredNotified = true;
 
     private static final double[] BUY_DISCOUNTS = {0.90, 0.80, 0.65, 0.50, 0.35};
     private static final double[] SELL_BONUSES   = {1.10, 1.20, 1.35, 1.50, 1.70};
@@ -37,6 +39,14 @@ public class PriceService {
         return plugin.getConfig().getDouble("settings.sell-spread", 0.10);
     }
 
+    public int getMinPrice() {
+        return plugin.getConfig().getInt("settings.min-price", 1);
+    }
+
+    public int getMaxPrice() {
+        return plugin.getConfig().getInt("settings.max-price", 10000);
+    }
+
     public void recordBuy(MarketEntry entry, int amount) {
         if (!plugin.getConfig().getBoolean("settings.dynamic-pricing", true)) return;
         buyVolume.merge(entry.id(), amount, Integer::sum);
@@ -48,13 +58,31 @@ public class PriceService {
     }
 
     public int getBuyPrice(MarketEntry entry, Player player) {
-        return (int) Math.round(entry.basePrice() * getMultiplier() * (1.0 + getBuySpread())
-                * dynamicFactor(entry, true) * eventFactor(entry, true) * donorBuyMult(player));
+        double raw = entry.basePrice() * getMultiplier() * (1.0 + getBuySpread())
+                * dynamicFactor(entry, true) * eventFactor(entry, true) * donorBuyMult(player);
+        return clamp((int) Math.round(raw));
     }
 
     public int getSellPrice(MarketEntry entry, Player player) {
-        return (int) Math.round(entry.basePrice() * getMultiplier() * (1.0 - getSellSpread())
-                * dynamicFactor(entry, false) * eventFactor(entry, false) * donorSellMult(player));
+        double raw = entry.basePrice() * getMultiplier() * (1.0 - getSellSpread())
+                * dynamicFactor(entry, false) * eventFactor(entry, false) * donorSellMult(player);
+        return clamp((int) Math.round(raw));
+    }
+
+    public int getMaxBuyable(Player player, MarketEntry entry) {
+        int price = getBuyPrice(entry, player);
+        if (price <= 0) return 64;
+        int vkId = ru.example.vkchat.util.VKChatBridge.getLinkedVkId(player);
+        int rep = vkId != -1 ? ru.example.vkchat.util.VKChatBridge.getReputation(vkId) : 0;
+        return Math.min(64, rep / price);
+    }
+
+    public int getMaxSellable(Player player, MarketEntry entry) {
+        return Math.min(64, plugin.getMarketService().countItems(player, entry));
+    }
+
+    private int clamp(int price) {
+        return Math.max(getMinPrice(), Math.min(getMaxPrice(), price));
     }
 
     private double donorBuyMult(Player player) {
@@ -112,10 +140,21 @@ public class PriceService {
         return " §7─";
     }
 
+    public Map<String, Integer> getBuyVolumes() { return Collections.unmodifiableMap(buyVolume); }
+    public Map<String, Integer> getSellVolumes() { return Collections.unmodifiableMap(sellVolume); }
+
     // ═══ СОБЫТИЯ ═══
 
     public boolean hasActiveEvent() {
         return activeEventId != null && System.currentTimeMillis() <= activeEventEnd;
+    }
+
+    public boolean isEventExpiredJustNow() {
+        if (activeEventId != null && !eventExpiredNotified && System.currentTimeMillis() > activeEventEnd) {
+            eventExpiredNotified = true;
+            return true;
+        }
+        return false;
     }
 
     public String getActiveEventName() { return activeEventName; }
@@ -127,13 +166,13 @@ public class PriceService {
         if (hasActiveEvent()) return;
 
         double chance = plugin.getConfig().getDouble("events.chance", 0.20);
-        if (Math.random() > chance) return;
+        if (random.nextDouble() > chance) return;
 
         ConfigurationSection list = plugin.getConfig().getConfigurationSection("events.list");
         if (list == null) return;
         List<String> keys = new ArrayList<>(list.getKeys(false));
         if (keys.isEmpty()) return;
-        String id = keys.get(new Random().nextInt(keys.size()));
+        String id = keys.get(random.nextInt(keys.size()));
         ConfigurationSection sec = list.getConfigurationSection(id);
         if (sec == null) return;
 
@@ -141,11 +180,30 @@ public class PriceService {
         activeEventName = sec.getString("name", id);
         int durationMin = plugin.getConfig().getInt("events.max-duration-minutes", 10);
         activeEventEnd = System.currentTimeMillis() + durationMin * 60_000L;
+        eventExpiredNotified = false;
+    }
+
+    public void forceStartEvent(String id, String name) {
+        activeEventId = id;
+        activeEventName = name;
+        int durationMin = plugin.getConfig().getInt("events.max-duration-minutes", 10);
+        activeEventEnd = System.currentTimeMillis() + durationMin * 60_000L;
+        eventExpiredNotified = false;
     }
 
     public void clearEvent() {
         activeEventId = null;
         activeEventName = null;
         activeEventEnd = 0;
+        eventExpiredNotified = true;
+    }
+
+    public Map<String, Double> getAllDynamicFactors() {
+        Map<String, Double> result = new LinkedHashMap<>();
+        for (MarketEntry entry : plugin.getMarketService().getAll()) {
+            double factor = 1.0 + dynamicFactor(entry, true);
+            result.put(entry.id(), Math.round(factor * 100.0) / 100.0);
+        }
+        return result;
     }
 }

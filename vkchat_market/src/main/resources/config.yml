@@ -1,7 +1,7 @@
 # ==========================================
-# MARKET v4.0 — Clean Rewrite
+# MARKET v4.3 — 25 Improvements
 # ==========================================
-config-version: 4
+config-version: 5
 
 settings:
   buy-spread: 0.20
@@ -11,6 +11,9 @@ settings:
   dynamic-pricing: true
   max-dynamic-shift: 0.50
   dynamic-elasticity: 50
+  # Границы цен (защита от 0/отрицательных)
+  min-price: 1
+  max-price: 10000
 
 categories:
   ores:

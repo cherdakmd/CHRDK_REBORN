@@ -3,22 +3,25 @@ package ru.example.vkchatmarket;
 import org.bukkit.Bukkit;
 import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.java.JavaPlugin;
+import ru.example.vkchatmarket.commands.MarketAdminCommand;
 import ru.example.vkchatmarket.commands.MarketCommand;
 import ru.example.vkchatmarket.gui.MarketGui;
+import ru.example.vkchatmarket.gui.PlayerGuiState;
 import ru.example.vkchatmarket.listener.MarketListener;
+import ru.example.vkchatmarket.log.TransactionLog;
+import ru.example.vkchatmarket.prompt.PlayerPromptService;
 import ru.example.vkchatmarket.service.MarketService;
 import ru.example.vkchatmarket.providers.MarketMotdProvider;
 import ru.example.vkchat.api.MotdProviderRegistry;
 
-import java.util.Map;
-import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
+import java.io.File;
 
 public class VKChatMarketPlugin extends JavaPlugin {
     private static VKChatMarketPlugin instance;
     private MarketService marketService;
-    private final Map<UUID, String> searchPrompt = new ConcurrentHashMap<>();
-    private final Map<UUID, String> customAmountPrompt = new ConcurrentHashMap<>();
+    private PlayerPromptService promptService;
+    private PlayerGuiState guiState;
+    private TransactionLog transactionLog;
 
     @Override
     public void onEnable() {
@@ -31,10 +34,15 @@ public class VKChatMarketPlugin extends JavaPlugin {
             return;
         }
 
+        promptService = new PlayerPromptService();
+        guiState = new PlayerGuiState();
+        transactionLog = new TransactionLog(new File(getDataFolder(), "transactions"));
+        transactionLog.logSystem("Server started");
+
         marketService = new MarketService(this);
+        marketService.setTransactionLog(transactionLog);
         marketService.load();
 
-        // Регистрация MOTD провайдера (без reflection)
         MotdProviderRegistry.register(new MarketMotdProvider(this));
 
         MarketListener listener = new MarketListener(this);
@@ -44,6 +52,12 @@ public class VKChatMarketPlugin extends JavaPlugin {
         if (getCommand("market") != null) {
             getCommand("market").setExecutor(marketCmd);
             getCommand("market").setTabCompleter(marketCmd);
+        }
+
+        MarketAdminCommand adminCmd = new MarketAdminCommand(this);
+        if (getCommand("mkta") != null) {
+            getCommand("mkta").setExecutor(adminCmd);
+            getCommand("mkta").setTabCompleter(adminCmd);
         }
 
         getServer().getPluginManager().registerEvents(new org.bukkit.event.Listener() {
@@ -70,26 +84,26 @@ public class VKChatMarketPlugin extends JavaPlugin {
                     pl.sendMessage("§6§lБИРЖА §8▸ " + name + " §7(§e" + (remaining / 60) + " мин.§7)");
                 }
             }
-            // Check expired
-            if (!marketService.prices().hasActiveEvent() && marketService.prices().getActiveEventName() != null) {
+            if (marketService.prices().isEventExpiredJustNow()) {
                 for (org.bukkit.entity.Player pl : Bukkit.getOnlinePlayers()) {
                     pl.sendMessage("§6§lБИРЖА §8▸ §7Событие завершилось. Цены вернулись в норму.");
                 }
-                marketService.prices().clearEvent();
             }
         }, 200L, eventInterval);
 
-        getLogger().info("VKChatMarket v4.2 запущен! Товаров: " + marketService.getAll().size());
+        getLogger().info("VKChatMarket v3.2.0 запущен! Товаров: " + marketService.getAll().size());
     }
 
     @Override
     public void onDisable() {
+        if (transactionLog != null) transactionLog.logSystem("Server stopped");
         HandlerList.unregisterAll(this);
         Bukkit.getScheduler().cancelTasks(this);
     }
 
     public static VKChatMarketPlugin getInstance() { return instance; }
     public MarketService getMarketService() { return marketService; }
-    public Map<UUID, String> getSearchPrompt() { return searchPrompt; }
-    public Map<UUID, String> getCustomAmountPrompt() { return customAmountPrompt; }
+    public PlayerPromptService getPromptService() { return promptService; }
+    public PlayerGuiState getGuiState() { return guiState; }
+    public TransactionLog getTransactionLog() { return transactionLog; }
 }
