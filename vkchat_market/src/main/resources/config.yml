@@ -25,6 +25,9 @@ categories:
   blocks:
     name: "§7🧱 Стройматериалы"
     material: STONE
+  stones:
+    name: "§8🪨 Камни"
+    material: COBBLESTONE
   mobs:
     name: "§5☠ Лут мобов"
     material: BONE
@@ -251,16 +254,6 @@ items:
     base-price: 8
 
   # ── СТРОЙМАТЕРИАЛЫ ──
-  STONE:
-    material: STONE
-    name: "§7Камень"
-    category: blocks
-    base-price: 1
-  COBBLESTONE:
-    material: COBBLESTONE
-    name: "§7Булыжник"
-    category: blocks
-    base-price: 1
   SAND:
     material: SAND
     name: "§eПесок"
@@ -291,21 +284,6 @@ items:
     name: "§5Обсидиан"
     category: blocks
     base-price: 35
-  GRANITE:
-    material: GRANITE
-    name: "§cГранит"
-    category: blocks
-    base-price: 1
-  DIORITE:
-    material: DIORITE
-    name: "§fДиорит"
-    category: blocks
-    base-price: 1
-  ANDESITE:
-    material: ANDESITE
-    name: "§7Андезит"
-    category: blocks
-    base-price: 1
   DIRT:
     material: DIRT
     name: "§7Земля"
@@ -341,16 +319,6 @@ items:
     name: "§aБлок мха"
     category: blocks
     base-price: 3
-  BASALT:
-    material: BASALT
-    name: "§8Базальт"
-    category: nether
-    base-price: 2
-  BLACKSTONE:
-    material: BLACKSTONE
-    name: "§8Чернокамень"
-    category: nether
-    base-price: 2
   SOUL_SAND:
     material: SOUL_SAND
     name: "§4Песок душ"
@@ -476,6 +444,78 @@ items:
     category: potions
     base-price: 20
 
+  # ── КАМНИ ──
+  STONE:
+    material: STONE
+    name: "§7Камень"
+    category: stones
+    base-price: 1
+  COBBLESTONE:
+    material: COBBLESTONE
+    name: "§7Булыжник"
+    category: stones
+    base-price: 1
+  GRANITE:
+    material: GRANITE
+    name: "§cГранит"
+    category: stones
+    base-price: 1
+  DIORITE:
+    material: DIORITE
+    name: "§fДиорит"
+    category: stones
+    base-price: 1
+  ANDESITE:
+    material: ANDESITE
+    name: "§7Андезит"
+    category: stones
+    base-price: 1
+  DEEPSLATE:
+    material: DEEPSLATE
+    name: "§8Глубинный сланец"
+    category: stones
+    base-price: 2
+  COBBLED_DEEPSLATE:
+    material: COBBLED_DEEPSLATE
+    name: "§8Булыжный глубинец"
+    category: stones
+    base-price: 2
+  CALCITE:
+    material: CALCITE
+    name: "§fКальцит"
+    category: stones
+    base-price: 3
+  TUFF:
+    material: TUFF
+    name: "§8Туф"
+    category: stones
+    base-price: 2
+  DRIPSTONE_BLOCK:
+    material: DRIPSTONE_BLOCK
+    name: "§7Капельник"
+    category: stones
+    base-price: 4
+  BASALT:
+    material: BASALT
+    name: "§8Базальт"
+    category: stones
+    base-price: 2
+  SMOOTH_BASALT:
+    material: SMOOTH_BASALT
+    name: "§8Гладкий базальт"
+    category: stones
+    base-price: 2
+  BLACKSTONE:
+    material: BLACKSTONE
+    name: "§8Чернокамень"
+    category: stones
+    base-price: 2
+  END_STONE:
+    material: END_STONE
+    name: "§eКамень Энда"
+    category: stones
+    base-price: 5
+
 # ==========================================
 # ЭКОНОМИЧЕСКИЕ СОБЫТИЯ
 # ==========================================
@@ -537,3 +577,9 @@ events:
       category: blocks
       buy-mult: 1.50
       sell-mult: 1.40
+    stone_quarry:
+      name: "⛏ Каменоломня"
+      description: "Открыли залежи — камень дешевеет!"
+      category: stones
+      buy-mult: 0.65
+      sell-mult: 0.55
