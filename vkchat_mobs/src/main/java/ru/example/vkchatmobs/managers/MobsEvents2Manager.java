@@ -313,7 +313,7 @@ public class MobsEvents2Manager implements Listener {
         return it;
     }
 
-    private void giveRep(Player p, int rep) { VKChatBridge.addPoints(VKChatBridge.getLinkedVkId(p), rep); }
+    private void giveRep(Player p, int rep) { VKChatBridge.addEffectiveRep(p, rep); }
     private void safeGive(Player p, ItemStack item) { if (item == null) return; p.getInventory().addItem(item).values().forEach(left -> p.getWorld().dropItemNaturally(p.getLocation(), left)); }
 
     private void announce(String msg) {

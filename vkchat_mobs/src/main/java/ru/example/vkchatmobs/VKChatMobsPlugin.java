@@ -18,6 +18,7 @@ import ru.example.vkchatmobs.listeners.MobListener;
 import ru.example.vkchatmobs.managers.HardcoreMobManager;
 import ru.example.vkchatmobs.managers.MobsEvents2Manager;
 import ru.example.vkchatmobs.managers.MobStormManager;
+import ru.example.vkchatmobs.enhancements.MobEnhancements;
 import ru.example.vkchatmobs.tracking.CooldownManager;
 
 import java.util.ArrayList;
@@ -46,6 +47,7 @@ public class VKChatMobsPlugin extends JavaPlugin {
     private BossAbilityRegistry bossAbilityRegistry;
     private MobDropFactory mobDropFactory;
     private CooldownManager cooldownManager;
+    private MobEnhancements mobEnhancements;
     private static final Random random = new Random();
 
     private void migrateConfigDefaults() {
@@ -93,6 +95,7 @@ public class VKChatMobsPlugin extends JavaPlugin {
 
         // --- Фаза 6: Новые компоненты ---
         cooldownManager = new CooldownManager();
+        mobEnhancements = new MobEnhancements(this);
         mobDropFactory = new MobDropFactory(this);
         bossAbilityRegistry = new BossAbilityRegistry(this);
 
@@ -133,6 +136,7 @@ public class VKChatMobsPlugin extends JavaPlugin {
         getServer().getScheduler().runTaskTimer(this, () -> {
             long now = System.currentTimeMillis();
             listener.cleanupMaps(now);
+            mobEnhancements.cleanup();
         }, 6000L, 6000L);
 
         getLogger().info("VKChatMobs v3.2.0 (Hardcore RPG Mobs + Осады + Контракты + Шторм + BossRegistry) успешно запущен!");
@@ -180,6 +184,10 @@ public class VKChatMobsPlugin extends JavaPlugin {
 
     public CooldownManager getCooldownManager() {
         return cooldownManager;
+    }
+
+    public MobEnhancements getMobEnhancements() {
+        return mobEnhancements;
     }
 
     public static ItemStack createSetFragment(VKChatMobsPlugin plugin) {

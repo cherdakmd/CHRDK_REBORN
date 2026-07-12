@@ -139,6 +139,7 @@ public class ContractManager {
         if (completed >= 15 || hunter >= 30) available.add(ContractType.SLAYER);
         if (completed >= 20 || hunter >= 35) available.add(ContractType.BOSS_HUNTER);
         if (completed >= 12 || hunter >= 25) available.add(ContractType.ELEMENT_MASTER);
+        if (completed >= 28 || hunter >= 42) available.add(ContractType.ARCHETYPE_SLAYER);
         if (completed >= 30 || hunter >= 45) available.add(ContractType.STORM_BREAKER);
         if (completed >= 22 || hunter >= 38) available.add(ContractType.VOID_CLEANSER);
         if (completed >= 18 || hunter >= 30) available.add(ContractType.SIEGE_DEFENDER);
@@ -203,6 +204,9 @@ public class ContractManager {
             String contractElement = p.getPersistentDataContainer().getOrDefault(contractElementKey, PersistentDataType.STRING, "");
             if (element.equalsIgnoreCase(contractElement)) qualifies = true;
         } else if (contract == ContractType.SLAYER) qualifies = true; // Убийство любого моба засчитывается
+        else if (contract == ContractType.ARCHETYPE_SLAYER && mob != null) {
+            if (mob.getPersistentDataContainer().has(new NamespacedKey(plugin, "hardcore_archetype"), PersistentDataType.STRING)) qualifies = true;
+        }
         else if (contract == ContractType.BOSS_HUNTER && isMiniBoss) qualifies = true;
         else if (contract == ContractType.STORM_BREAKER && mob != null) {
             if (mob.getPersistentDataContainer().has(new NamespacedKey(plugin, "from_mob_storm"), PersistentDataType.INTEGER)) qualifies = true;

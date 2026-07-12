@@ -127,7 +127,7 @@ public class MobCommand implements CommandExecutor, Listener, TabCompleter {
     private boolean handleAdmin(CommandSender sender, String[] args) {
         if (!sender.hasPermission("vkchatmobs.admin")) { sender.sendMessage(ChatColor.RED + "Нет прав vkchatmobs.admin"); return true; }
         String sub = args[0].toLowerCase();
-        if (sub.equals("reload")) { plugin.reloadConfig(); sender.sendMessage(ChatColor.GREEN + "VKChatMobs config перезагружен."); return true; }
+        if (sub.equals("reload")) { plugin.reloadConfig(); if (plugin.getHardcoreMobManager() != null) plugin.getHardcoreMobManager().reloadRegistries(); sender.sendMessage(ChatColor.GREEN + "VKChatMobs config + registries перезагружены."); return true; }
         if (sub.equals("stop")) { if (plugin.getEvents2Manager() != null) plugin.getEvents2Manager().stopAllThreats(); sender.sendMessage(ChatColor.GREEN + "Mobs/Events 2.0 угрозы остановлены."); return true; }
         if (sub.equals("list") || sub.equals("debug")) {
             int elites = plugin.getHardcoreMobManager() != null ? plugin.getHardcoreMobManager().getActiveEliteCount() : 0;
@@ -232,7 +232,16 @@ public class MobCommand implements CommandExecutor, Listener, TabCompleter {
             }
         } else if (args.length == 4) {
             String sub = args[0].toLowerCase();
-            if (sub.equals("give")) {
+            if (sub.equals("spawn")) {
+                completions.addAll(Arrays.asList("fire", "frost", "poison", "storm", "dark", "light", "void", "nature", "ice", "blood", "wind", "earth", "crystal"));
+            } else if (sub.equals("give")) {
+                for (Player online : Bukkit.getOnlinePlayers()) {
+                    completions.add(online.getName());
+                }
+            }
+        } else if (args.length == 5) {
+            String sub = args[0].toLowerCase();
+            if (sub.equals("spawn")) {
                 for (Player online : Bukkit.getOnlinePlayers()) {
                     completions.add(online.getName());
                 }

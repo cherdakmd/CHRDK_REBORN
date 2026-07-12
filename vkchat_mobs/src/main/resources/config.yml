@@ -735,3 +735,43 @@ qol:
     track-deaths: true
     track-drops: true
     show-daily-summary: true
+
+# ==========================================
+# ENHANCEMENTS v4.5 (Улучшения мобов)
+# ==========================================
+enhancements:
+  # Enchantment Looting: бонус к луту и репутации
+  looting:
+    enabled: true
+    bonus-per-level: 1
+    rep-multiplier-per-level: 0.05
+  # Звуки способностей элитных мобов
+  ability-sounds: true
+  # Анимация смерти элитных мобов (частицы + звуки)
+  death-animation: true
+  # Kill streak: бонус к репутации за серии убийств
+  kill-streak:
+    enabled: true
+    bonus-per-kill: 0.02
+    max-bonus: 0.50
+  # Уведомление о спавне элитных мобов
+  elite-spawn-notify: true
+  elite-notify-radius: 100
+  # Полоса здоровья босса
+  boss-health-bar: true
+  # Объявление волн осады
+  siege-wave-announce: true
+  # Contract streak: бонус за серию контрактов без пропусков
+  contract-streak:
+    enabled: true
+    bonus-per-streak: 0.05
+    max-bonus: 0.50
+  # Энциклопедия мобов: отслеживание убитых типов
+  encyclopedia:
+    enabled: false
+  # Индикаторы урона (частицы при большом уроне)
+  damage-indicators: false
+  # Объявление редких дропов в чат
+  rare-drop-announce: true
+  # Прогресс контракта в action bar
+  contract-progress-bar: true
