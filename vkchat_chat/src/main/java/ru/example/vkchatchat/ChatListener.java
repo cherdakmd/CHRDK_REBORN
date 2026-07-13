@@ -65,9 +65,10 @@ public class ChatListener implements Listener {
             String formatted = ChatColor.translateAlternateColorCodes('&',
                     ts + prefix + "&r &7" + name + "&7: " + color + msg);
             int radius = plugin.getConfig().getInt("channels.local.radius", 100);
+            double radiusSq = radius * (double) radius;
             for (Player r : Bukkit.getOnlinePlayers()) {
                 if (r.getWorld().equals(p.getWorld())
-                        && r.getLocation().distance(p.getLocation()) <= radius) {
+                        && r.getLocation().distanceSquared(p.getLocation()) <= radiusSq) {
                     if (!isIgnoredBy(r, p)) r.sendMessage(formatted);
                 }
             }

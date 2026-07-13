@@ -14,16 +14,15 @@ import ru.example.vkchat.VKChatPlugin;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class TabManager implements Listener {
     private final VKChatChatPlugin plugin;
     private final Map<UUID, String> playerTeams = new ConcurrentHashMap<>();
     private volatile int statsIndex = 0;
     private final String[] statsLines = new String[4];
-    private final Random rnd = new Random();
 
     public TabManager(VKChatChatPlugin plugin) {
         this.plugin = plugin;
@@ -74,7 +73,7 @@ public class TabManager implements Listener {
                     : generateJoins();
         }
 
-        String msg = pool.get(rnd.nextInt(pool.size()));
+        String msg = pool.get(ThreadLocalRandom.current().nextInt(pool.size()));
         msg = ChatColor.translateAlternateColorCodes('&',
                 msg.replace("{prefix}", prefix).replace("{player}", p.getName()));
         if (plugin.getConfig().getBoolean("broadcasts.vk-join-quit", true))
@@ -94,7 +93,7 @@ public class TabManager implements Listener {
             pool = isDonator ? generateQuitDonator() : generateQuits();
         }
 
-        String msg = pool.get(rnd.nextInt(pool.size()));
+        String msg = pool.get(ThreadLocalRandom.current().nextInt(pool.size()));
         msg = ChatColor.translateAlternateColorCodes('&',
                 msg.replace("{prefix}", prefix).replace("{player}", p.getName()));
         if (plugin.getConfig().getBoolean("broadcasts.vk-join-quit", true))

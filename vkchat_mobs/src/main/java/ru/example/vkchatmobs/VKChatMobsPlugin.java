@@ -24,7 +24,6 @@ import ru.example.vkchatmobs.tracking.CooldownManager;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Random;
 
 /**
  * VKChatMobsPlugin — главный класс плагина мобов.
@@ -48,7 +47,6 @@ public class VKChatMobsPlugin extends JavaPlugin {
     private MobDropFactory mobDropFactory;
     private CooldownManager cooldownManager;
     private MobEnhancements mobEnhancements;
-    private static final Random random = new Random();
 
     private void migrateConfigDefaults() {
         try {
@@ -195,7 +193,7 @@ public class VKChatMobsPlugin extends JavaPlugin {
         if (gear == null) return null;
         List<String> sets = new ArrayList<>(plugin.getConfig().getStringList("hardcore-mobs.rewards.set-fragments"));
         if (sets.isEmpty()) sets.addAll(Arrays.asList("bogatyr", "sokol", "volhv", "koshchey", "tankist", "udarnik"));
-        String set = sets.get(random.nextInt(sets.size()));
+        String set = sets.get(java.util.concurrent.ThreadLocalRandom.current().nextInt(sets.size()));
         ItemStack item = new ItemStack(Material.PAPER);
         ItemMeta meta = item.getItemMeta();
         String setName = plugin.getConfig().getString("hardcore-mobs.rewards.set-fragment-names." + set, set);

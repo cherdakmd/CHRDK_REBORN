@@ -70,7 +70,8 @@ public class NationCommand implements CommandExecutor, TabCompleter {
                 p.sendMessage(ChatColor.GOLD + "=== Приваты ===");
                 for (java.util.Map.Entry<String, ChunkClaim> e : plugin.getNationManager().getNationClaims().entrySet()) {
                     ChunkClaim c = e.getValue();
-                    p.sendMessage(ChatColor.GRAY + "  " + c.getName() + " — " + Bukkit.getOfflinePlayer(c.getOwner()).getName()
+                    String ownerN = Bukkit.getOfflinePlayer(c.getOwner()).getName();
+                    p.sendMessage(ChatColor.GRAY + "  " + c.getName() + " — " + (ownerN != null ? ownerN : c.getOwner().toString().substring(0, 8))
                             + " | " + c.getWorldName() + " " + c.getX() + "," + c.getZ() + " | lvl " + c.getLevel() + " dur " + c.getDurability());
                 }
                 return true;
@@ -397,7 +398,11 @@ public class NationCommand implements CommandExecutor, TabCompleter {
                 p.sendMessage(org.bukkit.ChatColor.RED + "Использование: /nation untrust <ник>");
                 return true;
             }
-            org.bukkit.OfflinePlayer target = org.bukkit.Bukkit.getOfflinePlayer(args[1]);
+            org.bukkit.OfflinePlayer target = ru.example.vkchat.util.UUIDResolver.resolve(args[1]);
+            if (target == null) {
+                p.sendMessage(org.bukkit.ChatColor.RED + "Игрок " + args[1] + " не найден.");
+                return true;
+            }
             ru.example.vkchatnations.data.ChunkClaim claim = plugin.getNationManager().getClaimAt(p.getLocation());
             if (claim != null && claim.getOwner().equals(p.getUniqueId())) {
                 claim.removeTrusted(target.getUniqueId());

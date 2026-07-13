@@ -73,7 +73,7 @@ public class DonateManager {
     private int lastProcessedId = 0;
     private boolean vkAnnounceWarningLogged = false;
     private BossBar fundraiserBar;
-    private double fundraiserCollected = 0;
+    private long fundraiserCollected = 0;
     private final Set<UUID> fundraiserHidden = new HashSet<>();
 
     // FIX #7: Длительность из конфига
@@ -169,7 +169,7 @@ public class DonateManager {
         }
         dataCfg = YamlConfiguration.loadConfiguration(dataFile);
         lastProcessedId = dataCfg.getInt("last_id", 0);
-        fundraiserCollected = dataCfg.getDouble("fundraiser_collected", 0);
+        fundraiserCollected = (long) dataCfg.getDouble("fundraiser_collected", 0);
 
         ConfigurationSection donatedSec = dataCfg.getConfigurationSection("donated");
         if (donatedSec != null) {
@@ -181,18 +181,22 @@ public class DonateManager {
         // Старые данные мигрируются в pass_data.yml через PassManager
     }
 
+    private final Object saveLock = new Object();
+
     private void saveData() {
-        dataCfg.set("last_id", lastProcessedId);
-        dataCfg.set("fundraiser_collected", fundraiserCollected);
-        for (Map.Entry<String, Double> e : totalDonated.entrySet()) {
-            dataCfg.set("donated." + e.getKey(), e.getValue());
-        }
-        // PASS_FIX #1: pass_holders удалены из этого файла
-        dataCfg.set("pass_holders", null);
-        try {
-            dataCfg.save(dataFile);
-        } catch (IOException e) {
-            plugin.getLogger().warning("Ошибка сохранения donations.yml: " + e.getMessage());
+        synchronized (saveLock) {
+            dataCfg.set("last_id", lastProcessedId);
+            dataCfg.set("fundraiser_collected", fundraiserCollected);
+            for (Map.Entry<String, Double> e : totalDonated.entrySet()) {
+                dataCfg.set("donated." + e.getKey(), e.getValue());
+            }
+            // PASS_FIX #1: pass_holders удалены из этого файла
+            dataCfg.set("pass_holders", null);
+            try {
+                dataCfg.save(dataFile);
+            } catch (IOException e) {
+                plugin.getLogger().warning("Ошибка сохранения donations.yml: " + e.getMessage());
+            }
         }
     }
 
@@ -269,8 +273,8 @@ public class DonateManager {
             return;
         }
 
-        OfflinePlayer offPlayer = Bukkit.getOfflinePlayer(nick);
-        if (!offPlayer.hasPlayedBefore()) {
+        OfflinePlayer offPlayer = ru.example.vkchat.util.UUIDResolver.resolve(nick);
+        if (offPlayer == null) {
             plugin.getLogger().info("Донат #" + txId + " — игрок " + nick + " не найден");
             appendDonateLog("FAILED", nick, "player not found", amountRub);
             return;
@@ -360,8 +364,8 @@ public class DonateManager {
     }
 
     private void processRepPurchase(int txId, double amountRub, String nick) {
-        OfflinePlayer offPlayer = Bukkit.getOfflinePlayer(nick);
-        if (!offPlayer.hasPlayedBefore()) {
+        OfflinePlayer offPlayer = ru.example.vkchat.util.UUIDResolver.resolve(nick);
+        if (offPlayer == null) {
             plugin.getLogger().info("Донат #" + txId + " — игрок " + nick + " не найден");
             return;
         }
@@ -599,14 +603,14 @@ public class DonateManager {
                 "&d💰 Сбор: &f{collected}₽ &7/ &f{goal}₽ &a({percent}%)");
         double pct = goal > 0 ? Math.min(100, (fundraiserCollected / goal) * 100) : 0;
         return ChatColor.translateAlternateColorCodes('&', template
-                .replace("{collected}", String.format("%.0f", fundraiserCollected))
+                .replace("{collected}", String.valueOf(fundraiserCollected))
                 .replace("{goal}", String.format("%.0f", goal))
                 .replace("{percent}", String.format("%.0f", pct)));
     }
 
     private void updateFundraiser(double amount) {
         if (fundraiserBar == null) return;
-        fundraiserCollected += amount;
+        fundraiserCollected += (long) amount;
         double goal = plugin.getConfig().getDouble("fundraiser.goal", 10000);
         fundraiserBar.setTitle(formatFundraiserTitle(goal));
         fundraiserBar.setProgress(Math.min(1.0, fundraiserCollected / goal));
@@ -768,8 +772,8 @@ public class DonateManager {
     }
 
     public void removePass(String name) {
-        @SuppressWarnings("deprecation")
-        OfflinePlayer off = Bukkit.getOfflinePlayer(name);
+        org.bukkit.OfflinePlayer off = ru.example.vkchat.util.UUIDResolver.resolve(name);
+        if (off == null) return;
         plugin.getPassManager().removePass(off);
     }
 

@@ -85,12 +85,12 @@ public class MapGui implements Listener {
                         mat = Material.LIGHT_BLUE_STAINED_GLASS_PANE;
                         name = ChatColor.BLUE + "Доверенная территория";
                         lore.add(ChatColor.GRAY + "Уровень: " + claim.getLevel());
-                        lore.add(ChatColor.WHITE + "Владелец: " + Bukkit.getOfflinePlayer(claim.getOwner()).getName());
+                        lore.add(ChatColor.WHITE + "Владелец: " + safeName(claim.getOwner()));
                         lore.add(ChatColor.WHITE + "Колёсико: Телепорт (20 реп)");
                     } else if (pNation != null && pNation.equals(claim.getNation())) {
                         mat = Material.YELLOW_STAINED_GLASS_PANE;
                         name = ChatColor.YELLOW + "Территория союзника";
-                        lore.add(ChatColor.WHITE + "Владелец: " + Bukkit.getOfflinePlayer(claim.getOwner()).getName());
+                        lore.add(ChatColor.WHITE + "Владелец: " + safeName(claim.getOwner()));
                     } else {
                         mat = Material.RED_STAINED_GLASS_PANE;
                         name = ChatColor.RED + "Чужая территория";
@@ -188,5 +188,10 @@ public class MapGui implements Listener {
         Location target = new Location(c.getWorld(), (c.getX() << 4) + 8, c.getWorld().getHighestBlockYAt((c.getX() << 4) + 8, (c.getZ() << 4) + 8) + 1, (c.getZ() << 4) + 8);
         p.teleport(target);
         p.sendMessage(ChatColor.GREEN + "Вы телепортировались на приват! Списано 20 репутации.");
+    }
+
+    private static String safeName(java.util.UUID uuid) {
+        String n = Bukkit.getOfflinePlayer(uuid).getName();
+        return n != null ? n : uuid.toString().substring(0, 8);
     }
 }

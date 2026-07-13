@@ -53,15 +53,19 @@ public class BountyManager implements Listener {
         }
     }
 
+    private final Object saveLock = new Object();
+
     public void saveBounties() {
-        try {
-            FileConfiguration cfg = new YamlConfiguration();
-            for (Map.Entry<UUID, Integer> entry : bounties.entrySet()) {
-                cfg.set(entry.getKey().toString(), entry.getValue());
+        synchronized (saveLock) {
+            try {
+                FileConfiguration cfg = new YamlConfiguration();
+                for (Map.Entry<UUID, Integer> entry : bounties.entrySet()) {
+                    cfg.set(entry.getKey().toString(), entry.getValue());
+                }
+                cfg.save(dataFile);
+            } catch (IOException e) {
+                plugin.getLogger().log(Level.WARNING, "Ошибка сохранения bounties.yml: " + e.getMessage());
             }
-            cfg.save(dataFile);
-        } catch (IOException e) {
-            plugin.getLogger().log(Level.WARNING, "Ошибка сохранения bounties.yml: " + e.getMessage());
         }
     }
 
@@ -118,6 +122,12 @@ public class BountyManager implements Listener {
                 VKChatPlugin.getInstance().getApi().addReputation(killerVkId, reward);
                 String msg = "⚔ Наемник " + killer.getName() + " убил " + victim.getName() + " и забрал награду " + reward + " репутации!";
                 Bukkit.broadcastMessage(ChatColor.GREEN + msg);
+            } else {
+                // Killer unlinked — refund bounty to victim's orderer or keep it pending
+                bounties.put(victim.getUniqueId(), reward);
+                saveBounties();
+                String msg = "⚔ " + killer.getName() + " убил " + victim.getName() + ", но не привязал ВК — награда " + reward + " реп. сохранена.";
+                Bukkit.broadcastMessage(ChatColor.YELLOW + msg);
             }
         }
     }

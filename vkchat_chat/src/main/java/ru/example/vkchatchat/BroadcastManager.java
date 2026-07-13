@@ -13,16 +13,15 @@ import ru.example.vkchat.VKChatPlugin;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * Менеджер анонсов: смерти, убийства, ранги, интеграции с плагинами
  */
 public class BroadcastManager implements Listener {
     private final VKChatChatPlugin plugin;
-    private final Random rnd = new Random();
     private final ConcurrentHashMap<UUID, Integer> lastJobLevel = new ConcurrentHashMap<>();
 
     public BroadcastManager(VKChatChatPlugin plugin) {
@@ -46,7 +45,7 @@ public class BroadcastManager implements Listener {
             String kStatus = getStatus(killer);
             List<String> msgs = plugin.getConfig().getStringList("broadcasts.kill-messages");
             if (msgs.isEmpty()) msgs = generateKillMsgs();
-            String msg = msgs.get(rnd.nextInt(msgs.size()));
+            String msg = msgs.get(ThreadLocalRandom.current().nextInt(msgs.size()));
             msg = msg.replace("{killer}", kStatus + " &r" + killer.getName())
                      .replace("{victim}", vkStatus + " &r" + victim.getName());
             if (!msg.contains("{cause}")) msg += " &8[" + cause + "]";
@@ -55,7 +54,7 @@ public class BroadcastManager implements Listener {
         } else {
             List<String> msgs = plugin.getConfig().getStringList("broadcasts.death-messages");
             if (msgs.isEmpty()) msgs = generateDeathMsgs();
-            String msg = msgs.get(rnd.nextInt(msgs.size()));
+            String msg = msgs.get(ThreadLocalRandom.current().nextInt(msgs.size()));
             msg = msg.replace("{player}", vkStatus + " &r" + victim.getName());
             if (!msg.contains("{cause}")) msg += " &8[" + cause + "]";
             else msg = msg.replace("{cause}", cause);
@@ -84,7 +83,7 @@ public class BroadcastManager implements Listener {
             if (totalLvl > prev && prev > 0) {
                 List<String> msgs = plugin.getConfig().getStringList("broadcasts.job-level-messages");
                 if (msgs.isEmpty()) msgs = generateJobMsgs();
-                String msg = msgs.get(rnd.nextInt(msgs.size()));
+                String msg = msgs.get(ThreadLocalRandom.current().nextInt(msgs.size()));
                 msg = msg.replace("{player}", getStatus(p) + " &r" + p.getName())
                          .replace("{level}", String.valueOf(totalLvl));
                 broadcast(ChatColor.translateAlternateColorCodes('&', msg));
@@ -105,7 +104,7 @@ public class BroadcastManager implements Listener {
      */
     public void announceRandom(List<String> messages, String player, String extra) {
         if (messages.isEmpty()) return;
-        String msg = messages.get(rnd.nextInt(messages.size()));
+        String msg = messages.get(ThreadLocalRandom.current().nextInt(messages.size()));
         Player p = Bukkit.getPlayer(player);
         String status = p != null ? getStatus(p) : "офлайн";
         msg = msg.replace("{player}", status + " &r" + player);

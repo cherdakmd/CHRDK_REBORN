@@ -232,9 +232,8 @@ public class PassManager {
         passData = new YamlConfiguration();
 
         for (String name : oldNames) {
-            @SuppressWarnings("deprecation")
-            OfflinePlayer off = Bukkit.getOfflinePlayer(name);
-            if (off.getUniqueId() == null || !off.hasPlayedBefore()) {
+            OfflinePlayer off = ru.example.vkchat.util.UUIDResolver.resolve(name);
+            if (off == null) {
                 plugin.getLogger().warning("[Pass] Пропуск неизвестного игрока: " + name);
                 continue;
             }
@@ -256,25 +255,29 @@ public class PassManager {
         savePassData();
     }
 
+    private final Object saveLock = new Object();
+
     public void savePassData() {
-        passData.set("stats.total-purchased", totalPurchased);
-        passData.set("stats.total-converted", totalConverted);
-        passData.set("stats.total-expired", totalExpired);
+        synchronized (saveLock) {
+            passData.set("stats.total-purchased", totalPurchased);
+            passData.set("stats.total-converted", totalConverted);
+            passData.set("stats.total-expired", totalExpired);
 
-        for (Map.Entry<UUID, PassHolder> entry : passHolders.entrySet()) {
-            String path = "holders." + entry.getKey().toString();
-            PassHolder h = entry.getValue();
-            passData.set(path + ".last-name", h.getLastName());
-            passData.set(path + ".grant-date", h.getGrantDate());
-            passData.set(path + ".expiry-date", h.getExpiryDate());
-            passData.set(path + ".source", h.getSource());
-            passData.set(path + ".amount-paid", h.getAmountPaid());
-        }
+            for (Map.Entry<UUID, PassHolder> entry : passHolders.entrySet()) {
+                String path = "holders." + entry.getKey().toString();
+                PassHolder h = entry.getValue();
+                passData.set(path + ".last-name", h.getLastName());
+                passData.set(path + ".grant-date", h.getGrantDate());
+                passData.set(path + ".expiry-date", h.getExpiryDate());
+                passData.set(path + ".source", h.getSource());
+                passData.set(path + ".amount-paid", h.getAmountPaid());
+            }
 
-        try {
-            passData.save(passDataFile);
-        } catch (IOException e) {
-            plugin.getLogger().warning("[Pass] Ошибка сохранения pass_data.yml: " + e.getMessage());
+            try {
+                passData.save(passDataFile);
+            } catch (IOException e) {
+                plugin.getLogger().warning("[Pass] Ошибка сохранения pass_data.yml: " + e.getMessage());
+            }
         }
     }
 
@@ -403,9 +406,8 @@ public class PassManager {
      * Выдать проходку вручную (админ).
      */
     public boolean grantPassManually(String playerName) {
-        @SuppressWarnings("deprecation")
-        OfflinePlayer off = Bukkit.getOfflinePlayer(playerName);
-        if (!off.hasPlayedBefore() && off.getUniqueId() == null) {
+        org.bukkit.OfflinePlayer off = ru.example.vkchat.util.UUIDResolver.resolve(playerName);
+        if (off == null) {
             return false;
         }
         return grantPass(off, 0, "manual");

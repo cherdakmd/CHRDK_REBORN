@@ -1,15 +1,14 @@
 package ru.example.vkchat.vk;
 
 import ru.example.vkchat.VKChatPlugin;
-import java.util.Random;
 import java.util.List;
 import java.util.Arrays;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class GamesManager {
     private final VKChatPlugin plugin;
     private int currentSafeCode;
     private int safeReward;
-    private Random random = new Random();
     private List<String> jokes = Arrays.asList(
         "Почему крипер не ходит на вечеринки? Потому что он сразу взрывается!",
         "Что сказал Эндермен Стиву? Ничего, он просто украл твой блок и ушел.",
@@ -26,8 +25,8 @@ public class GamesManager {
     }
 
     public void generateNewSafe() {
-        currentSafeCode = random.nextInt(900) + 100; // 100 to 999
-        safeReward = random.nextInt(50) + 50; // 50 to 100 репутации
+        currentSafeCode = ThreadLocalRandom.current().nextInt(900) + 100; // 100 to 999
+        safeReward = ThreadLocalRandom.current().nextInt(50) + 50; // 50 to 100 репутации
     }
 
     public void trySafe(int vkId, int code, int peer) {
@@ -47,6 +46,6 @@ public class GamesManager {
     }
 
     public String getRandomJoke() {
-        return jokes.get(random.nextInt(jokes.size()));
+        return jokes.get(ThreadLocalRandom.current().nextInt(jokes.size()));
     }
 }

@@ -329,7 +329,7 @@ public class DonateCommand implements CommandExecutor, TabCompleter {
             }
             case "remove" -> {
                 if (args.length < 3) { sender.sendMessage(ChatColor.RED + "/donate pass remove <ник>"); return; }
-                pm.removePass(org.bukkit.Bukkit.getOfflinePlayer(args[2]));
+                pm.removePass(ru.example.vkchat.util.UUIDResolver.resolve(args[2]));
                 sender.sendMessage(ChatColor.GREEN + "✅ Проходка отозвана: " + args[2]);
             }
             case "stats" -> sender.sendMessage(pm.getAnalyticsFormatted());

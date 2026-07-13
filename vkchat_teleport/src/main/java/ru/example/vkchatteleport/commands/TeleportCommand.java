@@ -20,8 +20,8 @@ import ru.example.vkchat.VKChatPlugin;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 import java.util.UUID;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 
 public class TeleportCommand implements CommandExecutor, TabCompleter {
@@ -185,15 +185,14 @@ public class TeleportCommand implements CommandExecutor, TabCompleter {
     // Donate-утилиты вынесены в DonateTierHelper
 
     private Location findSafeLocation(Player p) {
-        Random r = new Random();
         int minX = plugin.getConfig().getInt("teleportation.rtp.min-x", -5000);
         int maxX = plugin.getConfig().getInt("teleportation.rtp.max-x", 5000);
         int minZ = plugin.getConfig().getInt("teleportation.rtp.min-z", -5000);
         int maxZ = plugin.getConfig().getInt("teleportation.rtp.max-z", 5000);
 
         for (int attempts = 0; attempts < 25; attempts++) {
-            int x = r.nextInt(maxX - minX + 1) + minX;
-            int z = r.nextInt(maxZ - minZ + 1) + minZ;
+            int x = ThreadLocalRandom.current().nextInt(maxX - minX + 1) + minX;
+            int z = ThreadLocalRandom.current().nextInt(maxZ - minZ + 1) + minZ;
             int y = p.getWorld().getHighestBlockYAt(x, z);
 
             if (y <= 0) continue;

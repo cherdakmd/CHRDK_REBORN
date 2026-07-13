@@ -7,6 +7,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.java.JavaPlugin;
+import ru.example.vkchatgear.VKChatGearPlugin;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -110,6 +111,7 @@ public class SetBonusManager {
 
         for (ItemStack armor : p.getInventory().getArmorContents()) {
             if (armor == null || !armor.hasItemMeta()) continue;
+            if (!((VKChatGearPlugin) plugin).getGearManager().isLegalSetPiece(armor)) continue;
             String set = armor.getItemMeta().getPersistentDataContainer()
                     .get(setKey, PersistentDataType.STRING);
             if (set == null) continue;
@@ -184,6 +186,7 @@ public class SetBonusManager {
         Set<String> pieceTypes = new HashSet<>();
         for (ItemStack armor : p.getInventory().getArmorContents()) {
             if (armor != null && armor.hasItemMeta()) {
+                if (!((VKChatGearPlugin) plugin).getGearManager().isLegalSetPiece(armor)) continue;
                 String set = armor.getItemMeta().getPersistentDataContainer()
                         .get(setKey, PersistentDataType.STRING);
                 if (setName.equalsIgnoreCase(set)) {

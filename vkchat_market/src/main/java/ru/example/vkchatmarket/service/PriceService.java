@@ -10,13 +10,13 @@ import ru.example.vkchatmarket.model.MarketEntry;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class PriceService {
     private final VKChatMarketPlugin plugin;
     private final MarketDynamics dynamics;
     private final Map<String, Integer> buyVolume = new ConcurrentHashMap<>();
     private final Map<String, Integer> sellVolume = new ConcurrentHashMap<>();
-    private final Random random = new Random();
 
     private String activeEventId;
     private String activeEventName;
@@ -221,13 +221,13 @@ public class PriceService {
         if (hasActiveEvent()) return;
 
         double chance = plugin.getConfig().getDouble("events.chance", 0.20);
-        if (random.nextDouble() > chance) return;
+        if (ThreadLocalRandom.current().nextDouble() > chance) return;
 
         ConfigurationSection list = plugin.getConfig().getConfigurationSection("events.list");
         if (list == null) return;
         List<String> keys = new ArrayList<>(list.getKeys(false));
         if (keys.isEmpty()) return;
-        String id = keys.get(random.nextInt(keys.size()));
+        String id = keys.get(ThreadLocalRandom.current().nextInt(keys.size()));
         ConfigurationSection sec = list.getConfigurationSection(id);
         if (sec == null) return;
 

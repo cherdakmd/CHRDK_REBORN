@@ -60,8 +60,8 @@ public class AuthListener implements Listener {
             }
         }
 
-        // ═══ 0.5. СИНХРОНИЗАЦИЯ СО СТАРЫМ AUTHMANAGER ═══
-        plugin.getAuthManager().onJoin(p);
+        // ═══ 0.5. IP AUTO-LOGIN CHECK ═══
+        boolean ipAutoLogin = plugin.getAuthManager().onJoin(p);
 
         // ═══ 1. СОЗДАЁМ СЕССИЮ ═══
         SessionManager.PlayerSession session = plugin.getSessionManager().createSession(p);
@@ -72,6 +72,19 @@ public class AuthListener implements Listener {
         if (vkId != -1) {
             // ВК ПРИВЯЗАН
             session.vkId = vkId;
+
+            // Если IP auto-login сработал — пропускаем 2FA
+            if (ipAutoLogin) {
+                p.sendMessage(plugin.getConfigManager().formatColor(plugin.getConfigManager().getMessage("auth_auto_login")));
+                authorizePlayer(p, session);
+                return;
+            }
+
+            // Если 2FA отключена игроком — пропускаем
+            if (plugin.getTwoFactorManager() != null && plugin.getTwoFactorManager().is2faDisabled(p.getUniqueId())) {
+                authorizePlayer(p, session);
+                return;
+            }
 
             // Проверяем членство в группе ВК
             if (plugin.getConfig().getBoolean("auth.link.require-membership", true)) {
@@ -251,7 +264,7 @@ public class AuthListener implements Listener {
         String cmd = e.getMessage().split(" ")[0].toLowerCase();
         // Разрешаем команды авторизации и привязки
         if (cmd.equals("/vklink") || cmd.equals("/register") || cmd.equals("/login") || cmd.equals("/2fa") ||
-            cmd.equals("/menu") || cmd.equals("/help") || cmd.equals("/vk")) return;
+            cmd.equals("/resend") || cmd.equals("/menu") || cmd.equals("/help") || cmd.equals("/vk")) return;
 
         if (!plugin.getAuthManager().isFullyAuthorized(e.getPlayer())) {
             e.setCancelled(true);

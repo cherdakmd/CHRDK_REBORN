@@ -263,7 +263,7 @@ public class SalvageCommand implements CommandExecutor, Listener, TabCompleter {
         }
 
         // Просчет Критического разбора (Джекпот, шанс 3% - удвоение!)
-        boolean isCrit = random.nextInt(100) < 3;
+        boolean isCrit = java.util.concurrent.ThreadLocalRandom.current().nextInt(100) < 3;
         if (isCrit) {
             totalFinalRep *= 2;
             totalFinalExp *= 2;

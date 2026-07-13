@@ -175,6 +175,30 @@ public class MCCommands implements CommandExecutor, org.bukkit.command.TabComple
         if (name.equals("2fa")) {
             if (!(sender instanceof Player)) return true;
             Player p = (Player) sender;
+
+            // /2fa on — включить 2FA
+            if (args.length == 1 && args[0].equalsIgnoreCase("on")) {
+                if (!plugin.getTwoFactorManager().isToggleAllowed()) {
+                    p.sendMessage(org.bukkit.ChatColor.RED + "❌ Администратор запретил отключение 2FA.");
+                    return true;
+                }
+                plugin.getTwoFactorManager().set2faEnabled(p.getUniqueId(), true);
+                p.sendMessage(org.bukkit.ChatColor.GREEN + "✅ 2FA включена. При следующем входе потребуется код.");
+                return true;
+            }
+
+            // /2fa off — отключить 2FA
+            if (args.length == 1 && args[0].equalsIgnoreCase("off")) {
+                if (!plugin.getTwoFactorManager().isToggleAllowed()) {
+                    p.sendMessage(org.bukkit.ChatColor.RED + "❌ Администратор запретил отключение 2FA.");
+                    return true;
+                }
+                plugin.getTwoFactorManager().set2faEnabled(p.getUniqueId(), false);
+                p.sendMessage(org.bukkit.ChatColor.GREEN + "✅ 2FA отключена. При следующем входе код не потребуется.");
+                return true;
+            }
+
+            // /2fa <код> — существующая логика
             if (!plugin.getAuthManager().isWaiting2fa(p)) {
                 p.sendMessage(org.bukkit.ChatColor.RED + "❌ Подтверждение не требуется. Войди: /login <пароль>");
                 return true;
@@ -200,9 +224,30 @@ public class MCCommands implements CommandExecutor, org.bukkit.command.TabComple
             } else if (result == TwoFactorManager.TwoFactorResult.LOCKED) {
                 p.sendMessage(org.bukkit.ChatColor.RED + "🔒 Слишком много попыток. Подожди 5 мин.");
             } else if (result == TwoFactorManager.TwoFactorResult.EXPIRED) {
-                p.sendMessage(org.bukkit.ChatColor.RED + "⏰ Код просрочен. Перезайди на сервер.");
+                p.sendMessage(org.bukkit.ChatColor.RED + "⏰ Код просрочен. Используй /resend для повторной отправки.");
             } else {
                 p.sendMessage(org.bukkit.ChatColor.RED + "❌ Нет активного кода. Перезайди на сервер.");
+            }
+            return true;
+        }
+
+        if (name.equals("resend")) {
+            if (!(sender instanceof Player)) return true;
+            Player p = (Player) sender;
+            if (!plugin.getAuthManager().isWaiting2fa(p)) {
+                p.sendMessage(org.bukkit.ChatColor.RED + "❌ Нет ожидающего кода. Сначала войди на сервер.");
+                return true;
+            }
+            int vkId = plugin.getAuthManager().getLinkedVkId(p);
+            if (vkId <= 0) {
+                p.sendMessage(org.bukkit.ChatColor.RED + "❌ ВК не привязан.");
+                return true;
+            }
+            boolean sent = plugin.getTwoFactorManager().trigger2fa(p, vkId);
+            if (sent) {
+                p.sendMessage(org.bukkit.ChatColor.GREEN + "✅ Код повторно отправлен в ЛС ВК!");
+            } else {
+                p.sendMessage(org.bukkit.ChatColor.RED + "❌ Не удалось отправить код. Попробуй позже.");
             }
             return true;
         }
@@ -414,7 +459,11 @@ public class MCCommands implements CommandExecutor, org.bukkit.command.TabComple
         if (name.equals("unmute")) {
             if (!sender.hasPermission("vkchat.admin")) return true;
             if (args.length < 1) return false;
-            org.bukkit.OfflinePlayer op = org.bukkit.Bukkit.getOfflinePlayer(args[0]);
+            org.bukkit.OfflinePlayer op = ru.example.vkchat.util.UUIDResolver.resolve(args[0]);
+            if (op == null) {
+                sender.sendMessage("Игрок " + args[0] + " не найден.");
+                return true;
+            }
             plugin.getChatManager().unmutePlayer(op.getUniqueId());
             sender.sendMessage("Игрок размучен.");
             return true;
@@ -483,11 +532,9 @@ public class MCCommands implements CommandExecutor, org.bukkit.command.TabComple
             try (Connection conn = plugin.getDatabaseManager().getConnection()) {
                 if (conn != null) {
                     UUID targetUuid = null;
-                    try (PreparedStatement lookup = conn.prepareStatement("SELECT uuid FROM vkchat_auth WHERE uuid = ?")) {
-                        org.bukkit.OfflinePlayer offline = org.bukkit.Bukkit.getOfflinePlayer(args[0]);
-                        if (offline != null && offline.hasPlayedBefore()) {
-                            targetUuid = offline.getUniqueId();
-                        }
+                    org.bukkit.OfflinePlayer offline = ru.example.vkchat.util.UUIDResolver.resolve(args[0]);
+                    if (offline != null) {
+                        targetUuid = offline.getUniqueId();
                     }
                     if (targetUuid == null) {
                         sender.sendMessage(org.bukkit.ChatColor.GRAY + "Игрок " + args[0] + " не найден.");
@@ -684,9 +731,8 @@ public class MCCommands implements CommandExecutor, org.bukkit.command.TabComple
                     } else {
                         final String targetName = args[1];
                         plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
-                            @SuppressWarnings("deprecation")
-                            org.bukkit.OfflinePlayer offline = plugin.getServer().getOfflinePlayer(targetName);
-                            if (offline != null && (offline.hasPlayedBefore() || offline.isOnline())) {
+                            org.bukkit.OfflinePlayer offline = ru.example.vkchat.util.UUIDResolver.resolve(targetName);
+                            if (offline != null) {
                                 plugin.getAuthManager().getLinkStorage().unlink(offline.getUniqueId());
                                 sender.sendMessage("✓ Оффлайн-игрок " + targetName + " успешно отвязан от ВКонтакте!");
                             } else {

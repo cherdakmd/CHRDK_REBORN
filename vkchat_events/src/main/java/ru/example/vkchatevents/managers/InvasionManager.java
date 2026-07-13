@@ -30,8 +30,8 @@ import ru.example.vkchat.VKChatPlugin;
 import ru.example.vkchatevents.VKChatEventsPlugin;
 import ru.example.vkchatevents.util.ClaimProtection;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class InvasionManager implements Listener {
@@ -44,7 +44,7 @@ public class InvasionManager implements Listener {
     private int maxRiftHp;
     private ArmorStand holo;
     private BukkitRunnable waveTask;
-    private List<Entity> spawnedMobs = new ArrayList<>();
+    private List<Entity> spawnedMobs = new CopyOnWriteArrayList<>();
 
     public InvasionManager(VKChatEventsPlugin plugin) {
         this.plugin = plugin;

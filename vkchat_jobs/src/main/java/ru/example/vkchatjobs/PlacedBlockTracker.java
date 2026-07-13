@@ -10,9 +10,11 @@ import org.bukkit.event.block.BlockPlaceEvent;
 
 import java.io.File;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Set;
 
 public class PlacedBlockTracker implements Listener {
+    private static final int MAX_TRACKED = 500000;
     private final VKChatJobsPlugin plugin;
     private final Set<String> placed = new HashSet<>();
     private final File file;
@@ -37,6 +39,27 @@ public class PlacedBlockTracker implements Listener {
         } catch (Exception e) {
             plugin.getLogger().warning("Не удалось сохранить placed_blocks.yml: " + e.getMessage());
         }
+    }
+
+    public void startAutoSave() {
+        plugin.getServer().getScheduler().runTaskTimerAsynchronously(plugin, this::pruneAndSave, 12000L, 12000L);
+    }
+
+    public void shutdown() {
+        save();
+    }
+
+    private void pruneAndSave() {
+        if (placed.size() > MAX_TRACKED) {
+            Iterator<String> it = placed.iterator();
+            int toRemove = placed.size() - MAX_TRACKED;
+            while (it.hasNext() && toRemove > 0) {
+                it.next();
+                it.remove();
+                toRemove--;
+            }
+        }
+        save();
     }
 
     @EventHandler

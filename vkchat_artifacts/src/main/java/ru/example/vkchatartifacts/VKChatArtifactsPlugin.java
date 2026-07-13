@@ -16,6 +16,7 @@ import ru.example.vkchatartifacts.bosses.BossManager;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class VKChatArtifactsPlugin extends JavaPlugin {
     private static VKChatArtifactsPlugin instance;
@@ -24,7 +25,6 @@ public class VKChatArtifactsPlugin extends JavaPlugin {
     private ArtifactListener artifactListener;
     private final Map<UUID, Long> airdropCooldowns = new ConcurrentHashMap<>();
     private final Map<Location, Long> activeChests = new ConcurrentHashMap<>();
-    private final Random rng = new Random();
     private final java.util.concurrent.atomic.AtomicLong totalArtifactsGenerated = new java.util.concurrent.atomic.AtomicLong(0);
     private final Map<UUID, Integer> playerArtifactCounts = new ConcurrentHashMap<>();
 
@@ -134,7 +134,7 @@ public class VKChatArtifactsPlugin extends JavaPlugin {
         }
         if (candidates.isEmpty()) return;
 
-        Player target = candidates.get(rng.nextInt(candidates.size()));
+        Player target = candidates.get(ThreadLocalRandom.current().nextInt(candidates.size()));
         airdropCooldowns.put(target.getUniqueId(), now);
 
         // Выбираем тир сундука
@@ -176,8 +176,8 @@ public class VKChatArtifactsPlugin extends JavaPlugin {
                     int min = Integer.parseInt(parts[1]);
                     int max = Integer.parseInt(parts[2]);
                     double chance = Double.parseDouble(parts[3]);
-                    if (rng.nextDouble() * 100 < chance) {
-                        int amount = min + rng.nextInt(Math.max(1, max - min + 1));
+                    if (ThreadLocalRandom.current().nextDouble() * 100 < chance) {
+                        int amount = min + ThreadLocalRandom.current().nextInt(Math.max(1, max - min + 1));
                         chest.getInventory().addItem(new ItemStack(mat, amount));
                     }
                 } catch (Exception ignored) {}
@@ -185,7 +185,7 @@ public class VKChatArtifactsPlugin extends JavaPlugin {
 
             // Добавляем случайный артефакт если есть шанс
             double artifactChance = getConfig().getDouble("alchemist-airdrop.artifact-chance", 15);
-            if (rng.nextDouble() * 100 < artifactChance) {
+            if (ThreadLocalRandom.current().nextDouble() * 100 < artifactChance) {
                 try {
                     ItemStack artifact = ru.example.vkchatartifacts.items.ArtifactFactory.generateArtifact(this, false);
                     if (artifact != null) chest.getInventory().addItem(artifact);
@@ -239,7 +239,7 @@ public class VKChatArtifactsPlugin extends JavaPlugin {
         ConfigurationSection tiers = getConfig().getConfigurationSection("alchemist-airdrop.tiers");
         if (tiers == null) return "common";
 
-        double roll = rng.nextDouble() * 100;
+        double roll = ThreadLocalRandom.current().nextDouble() * 100;
         double cumulative = 0;
         for (String key : tiers.getKeys(false)) {
             double chance = tiers.getDouble(key + ".chance", 100);

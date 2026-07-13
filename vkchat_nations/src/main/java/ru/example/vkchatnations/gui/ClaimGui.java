@@ -176,7 +176,8 @@ public class ClaimGui {
         infoLore.add(ChatColor.GRAY + "Текущая прочность: " + ChatColor.GREEN + claim.getDurability() + "/" + claim.getMaxDurability());
         infoLore.add(ChatColor.GRAY + "Уровень: " + ChunkClaim.getLevelColor(claim.getLevel()) + claim.getLevel() + " — " + ChunkClaim.getLevelName(claim.getLevel()));
         infoLore.add(ChatColor.GRAY + "Радиус защиты: " + ChatColor.YELLOW + claim.getRadius() + " блоков");
-        infoLore.add(ChatColor.GRAY + "Владелец: " + ChatColor.WHITE + Bukkit.getOfflinePlayer(claim.getOwner()).getName());
+        String ownerName = Bukkit.getOfflinePlayer(claim.getOwner()).getName();
+        infoLore.add(ChatColor.GRAY + "Владелец: " + ChatColor.WHITE + (ownerName != null ? ownerName : claim.getOwner().toString().substring(0, 8)));
         infoLore.add("");
         infoLore.add(ChatColor.GRAY + "Подсказка: Прочность падает ежедневно на -2 ед.");
         infoLore.add(ChatColor.GRAY + "Если прочность упадет до 0, приват разрушится,");

@@ -183,7 +183,11 @@ public class PassCommand implements CommandExecutor, TabCompleter {
             return;
         }
         @SuppressWarnings("deprecation")
-        org.bukkit.OfflinePlayer off = org.bukkit.Bukkit.getOfflinePlayer(args[1]);
+        org.bukkit.OfflinePlayer off = ru.example.vkchat.util.UUIDResolver.resolve(args[1]);
+        if (off == null) {
+            sender.sendMessage(ChatColor.RED + "Игрок " + args[1] + " не найден.");
+            return;
+        }
         plugin.getPassManager().removePass(off);
         sender.sendMessage(ChatColor.GREEN + "✅ Проходка отозвана: " + args[1]);
     }

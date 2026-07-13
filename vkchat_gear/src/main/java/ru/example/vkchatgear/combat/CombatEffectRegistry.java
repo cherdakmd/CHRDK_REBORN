@@ -404,7 +404,7 @@ public class CombatEffectRegistry {
     private void registerOffensiveRarityProcs() {
         // Грозовой Импульс / Воля Грозаа — 12% шанс
         offenseRarityProcs.add(new OffensiveRarityEntry(
-                new String[]{"Грозовой Импульс", "Воля Грозаа"}, 12,
+                new String[]{"Грозовой Импульс", "Воля Грозы"}, 12,
                 (ctx, attacker, target, weapon) -> {
                     double procDamage = 4.0 + Math.min(8.0, ctx.getEvent().getDamage() * 0.20);
                     target.getWorld().strikeLightningEffect(target.getLocation());

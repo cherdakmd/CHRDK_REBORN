@@ -19,6 +19,7 @@ import ru.example.vkchatgear.forge.ForgeLogger;
 import ru.example.vkchatgear.forge.SetBonusManager;
 import ru.example.vkchatgear.runes.RuneRegistry;
 import ru.example.vkchatgear.providers.GearMotdProvider;
+import ru.example.vkchatgear.enhancements.GearEnhancements;
 import ru.example.vkchat.api.MotdProviderRegistry;
 import ru.example.vkchat.util.VKChatBridge;
 
@@ -31,6 +32,7 @@ public class VKChatGearPlugin extends JavaPlugin {
     private SetBonusManager setBonusManager;
     private ForgeLogger forgeLogger;
     private RuneRegistry runeRegistry;
+    private GearEnhancements gearEnhancements;
     private int magicEventTaskId = -1;
 
     // Магические события
@@ -90,6 +92,7 @@ public class VKChatGearPlugin extends JavaPlugin {
         setBonusManager = new SetBonusManager(this);
         forgeLogger = new ForgeLogger(this);
         runeRegistry = new RuneRegistry(this);
+        gearEnhancements = new GearEnhancements(this);
         
         CombatListener combatListener = new CombatListener(this);
         getServer().getPluginManager().registerEvents(new CraftListener(this), this);
@@ -253,6 +256,11 @@ public class VKChatGearPlugin extends JavaPlugin {
                     }
                 }
 
+                // Проверка прочности оружия (Action Bar предупреждение)
+                if (gearEnhancements != null) {
+                    gearEnhancements.checkDurabilityWarning(p);
+                }
+
                 // Постоянно обновляем бонусы сетов: не зависит от движения игрока и не даёт "рывков" эффектов.
                 setBonusManager.applySetBonuses(p);
             }
@@ -273,11 +281,11 @@ public class VKChatGearPlugin extends JavaPlugin {
         }
         
         // Шанс 20% на новое событие каждые 30 минут
-        if (new java.util.Random().nextInt(100) >= 20) {
+        if (java.util.concurrent.ThreadLocalRandom.current().nextInt(100) >= 20) {
             return;
         }
         
-        int roll = new java.util.Random().nextInt(4);
+        int roll = java.util.concurrent.ThreadLocalRandom.current().nextInt(4);
         String msg = "";
         
         switch (roll) {
@@ -327,4 +335,5 @@ public class VKChatGearPlugin extends JavaPlugin {
     public SetBonusManager getSetBonusManager() { return setBonusManager; }
     public ForgeLogger getForgeLogger() { return forgeLogger; }
     public RuneRegistry getRuneRegistry() { return runeRegistry; }
+    public GearEnhancements getGearEnhancements() { return gearEnhancements; }
 }

@@ -7,10 +7,10 @@ import ru.example.vkchatmarket.model.MarketEntry;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class MarketDynamics {
     private final VKChatMarketPlugin plugin;
-    private final Random random = new Random();
 
     // Volume history with timestamps: itemId -> list of (timestamp, amount, isBuy)
     private final Map<String, List<TradeRecord>> volumeHistory = new ConcurrentHashMap<>();
@@ -132,7 +132,7 @@ public class MarketDynamics {
 
     public double getNoise() {
         double noiseLevel = getConfigDouble("dynamics.noise-level", 0.02);
-        return 1.0 + (random.nextGaussian() * noiseLevel);
+        return 1.0 + (ThreadLocalRandom.current().nextGaussian() * noiseLevel);
     }
 
     // ═══ АСИММЕТРИЯ ═══

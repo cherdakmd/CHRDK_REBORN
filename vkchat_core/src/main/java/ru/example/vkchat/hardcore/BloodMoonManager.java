@@ -6,11 +6,10 @@ import org.bukkit.World;
 import org.bukkit.scheduler.BukkitRunnable;
 import ru.example.vkchat.VKChatPlugin;
 
-import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class BloodMoonManager extends BukkitRunnable {
     private final VKChatPlugin plugin;
-    private final Random random = new Random();
     private boolean isBloodMoonActive = false;
     private boolean nightHandled = false;
 
@@ -32,7 +31,7 @@ public class BloodMoonManager extends BukkitRunnable {
             if (!nightHandled) {
                 nightHandled = true;
                 int chance = plugin.getConfigManager().getHardcoreConfig().getInt("hardcore.blood-moon.chance", 10);
-                if (random.nextInt(100) < chance) {
+                if (ThreadLocalRandom.current().nextInt(100) < chance) {
                     isBloodMoonActive = true;
                     String msg = "&4&lКРОВАВАЯ ЛУНА ВЗОШЛА! &cМонстры стали свирепее, но лут богаче!";
                     Bukkit.broadcastMessage(ChatColor.translateAlternateColorCodes('&', msg));

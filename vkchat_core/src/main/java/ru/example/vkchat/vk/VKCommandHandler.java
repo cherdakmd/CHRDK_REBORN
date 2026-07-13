@@ -513,31 +513,30 @@ public class VKCommandHandler {
             // Вход по коду 2FA из ВК
             if (args.length >= 2) {
                 String code = args[1];
-                if (plugin.getAuthManager().is2faCode(code)) {
-                    // Ищем UUID по коду
-                    java.util.UUID targetUuid = null;
-                    for (java.util.Map.Entry<java.util.UUID, String> entry : plugin.getAuthManager().getAwait2faEntries()) {
-                        if (entry.getValue().equals(code)) {
-                            targetUuid = entry.getKey();
-                            break;
-                        }
+                // Ищем UUID по коду в TwoFactorManager
+                java.util.UUID targetUuid = null;
+                for (java.util.Map.Entry<java.util.UUID, String> entry : plugin.getTwoFactorManager().getPendingCodeEntries()) {
+                    if (entry.getValue().equals(code)) {
+                        targetUuid = entry.getKey();
+                        break;
                     }
-                    if (targetUuid != null) {
-                        Player target = Bukkit.getPlayer(targetUuid);
-                        if (target != null) {
-                            int linkedVk = plugin.getAuthManager().getLinkedVkId(target);
-                            if (linkedVk == fromId) {
-                                plugin.getAuthManager().confirm2fa(targetUuid);
+                }
+                if (targetUuid != null) {
+                    Player target = Bukkit.getPlayer(targetUuid);
+                    if (target != null) {
+                        int linkedVk = plugin.getAuthManager().getLinkedVkId(target);
+                        if (linkedVk == fromId) {
+                            ru.example.vkchat.auth.TwoFactorManager.TwoFactorResult result = plugin.getTwoFactorManager().confirm2fa(targetUuid, code);
+                            if (result == ru.example.vkchat.auth.TwoFactorManager.TwoFactorResult.SUCCESS) {
+                                plugin.getAuthManager().setLoggedIn(targetUuid, true);
                                 plugin.getVkManager().sendMessage(peer, fromId, "✅ Вход подтверждён! Добро пожаловать в игру.");
                                 target.sendMessage(plugin.getConfigManager().formatColor(plugin.getConfigManager().getMessage("auth_2fa_success")));
                                 return;
                             }
                         }
                     }
-                    plugin.getVkManager().sendMessage(peer, fromId, "❌ Код не найден или не принадлежит вам.");
-                } else {
-                    plugin.getVkManager().sendMessage(peer, fromId, "❌ Неверный код 2FA.");
                 }
+                plugin.getVkManager().sendMessage(peer, fromId, "❌ Код не найден или не принадлежит вам.");
             } else {
                 plugin.getVkManager().sendMessage(peer, fromId, "Использование: !вход <код>");
             }
@@ -545,30 +544,29 @@ public class VKCommandHandler {
             // Подтверждение 2FA через кнопку
             if (args.length >= 2) {
                 String code = args[1];
-                if (plugin.getAuthManager().is2faCode(code)) {
-                    java.util.UUID targetUuid = null;
-                    for (java.util.Map.Entry<java.util.UUID, String> entry : plugin.getAuthManager().getAwait2faEntries()) {
-                        if (entry.getValue().equals(code)) {
-                            targetUuid = entry.getKey();
-                            break;
-                        }
+                java.util.UUID targetUuid = null;
+                for (java.util.Map.Entry<java.util.UUID, String> entry : plugin.getTwoFactorManager().getPendingCodeEntries()) {
+                    if (entry.getValue().equals(code)) {
+                        targetUuid = entry.getKey();
+                        break;
                     }
-                    if (targetUuid != null) {
-                        Player target = Bukkit.getPlayer(targetUuid);
-                        if (target != null) {
-                            int linkedVk = plugin.getAuthManager().getLinkedVkId(target);
-                            if (linkedVk == fromId) {
-                                plugin.getAuthManager().confirm2fa(targetUuid);
+                }
+                if (targetUuid != null) {
+                    Player target = Bukkit.getPlayer(targetUuid);
+                    if (target != null) {
+                        int linkedVk = plugin.getAuthManager().getLinkedVkId(target);
+                        if (linkedVk == fromId) {
+                            ru.example.vkchat.auth.TwoFactorManager.TwoFactorResult result = plugin.getTwoFactorManager().confirm2fa(targetUuid, code);
+                            if (result == ru.example.vkchat.auth.TwoFactorManager.TwoFactorResult.SUCCESS) {
+                                plugin.getAuthManager().setLoggedIn(targetUuid, true);
                                 plugin.getVkManager().sendMessage(peer, fromId, "✅ Вход подтверждён!");
                                 target.sendMessage(plugin.getConfigManager().formatColor(plugin.getConfigManager().getMessage("auth_2fa_success")));
                                 return;
                             }
                         }
                     }
-                    plugin.getVkManager().sendMessage(peer, fromId, "❌ Код не найден или не принадлежит вам.");
-                } else {
-                    plugin.getVkManager().sendMessage(peer, fromId, "❌ Неверный код.");
                 }
+                plugin.getVkManager().sendMessage(peer, fromId, "❌ Код не найден или не принадлежит вам.");
             }
         } else if (cmd.equals("!история") || cmd.equals("!history")) {
             // История входов
@@ -693,7 +691,11 @@ public class VKCommandHandler {
             java.util.regex.Matcher codeMatcher = java.util.regex.Pattern.compile("\\b\\d{4,6}\\b").matcher(text);
             while (codeMatcher.find()) {
                 String code = codeMatcher.group();
-                if (plugin.getAuthManager().isValidCode(code) || plugin.getAuthManager().is2faCode(code)) {
+                if (plugin.getAuthManager().isValidCode(code) || plugin.getTwoFactorManager().isWaiting2fa(
+                        plugin.getTwoFactorManager().getPendingCodeEntries().stream()
+                                .filter(e -> e.getValue().equals(code))
+                                .map(java.util.Map.Entry::getKey)
+                                .findFirst().orElse(null))) {
                     if (plugin.getConfig().getBoolean("vk.require-membership", true)) {
                         if (!plugin.getVkManager().isMemberOfGroupAndChat(fromId)) {
                             String failMsg = plugin.getConfigManager().getMessage("vk_req_fail")

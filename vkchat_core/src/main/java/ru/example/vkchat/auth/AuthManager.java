@@ -30,18 +30,13 @@ public class AuthManager {
     private final Map<String, Integer> codeToVk = new ConcurrentHashMap<>();
     private final Map<UUID, Long> joinTimes = new ConcurrentHashMap<>();
     private final Map<UUID, Boolean> loggedIn = new ConcurrentHashMap<>();
-    private final Map<UUID, String> await2fa = new ConcurrentHashMap<>();
-    private final Map<UUID, Long> await2faExpiry = new ConcurrentHashMap<>();      // 2FA код истекает через 5 минут
-    private final Map<UUID, Integer> await2faAttempts = new ConcurrentHashMap<>();  // Попытки ввода 2FA
     private final Map<UUID, Integer> failedAttempts = new ConcurrentHashMap<>();
     private final Map<UUID, Long> lockouts = new ConcurrentHashMap<>();
     private final Map<UUID, Long> lastActivity = new ConcurrentHashMap<>();
-    private final Map<UUID, Boolean> frozenAccounts = new ConcurrentHashMap<>();    // Замороженные аккаунты
-    private final Map<UUID, java.util.List<String>> loginHistory = new ConcurrentHashMap<>(); // История входов (потокобезопасная)
+    private final Map<UUID, Boolean> frozenAccounts = new ConcurrentHashMap<>();
+    private final Map<UUID, java.util.List<String>> loginHistory = new ConcurrentHashMap<>();
 
-    private static final long TWO_FA_EXPIRY_MS = 5 * 60 * 1000L; // 5 минут
-    private static final int MAX_2FA_ATTEMPTS = 5;
-    private static final long LOCKOUT_DURATION_MS = 5 * 60 * 1000L; // 5 минут
+    private static final long LOCKOUT_DURATION_MS = 5 * 60 * 1000L;
 
     public AuthManager(VKChatPlugin plugin) {
         this.plugin = plugin;
@@ -67,15 +62,6 @@ public class AuthManager {
     }
 
     /**
-     * Установить 2FA ожидание (для синхронизации с SessionManager)
-     */
-    public void setAwait2fa(UUID uuid, String code) {
-        await2fa.put(uuid, code);
-        await2faExpiry.put(uuid, System.currentTimeMillis() + TWO_FA_EXPIRY_MS);
-        await2faAttempts.put(uuid, 0);
-    }
-
-    /**
      * [FIX] Периодическая очистка неактивных данных для предотвращения утечки памяти
      */
     private void startCleanupTask() {
@@ -86,13 +72,9 @@ public class AuthManager {
 
     private void cleanupInactiveData() {
         long now = System.currentTimeMillis();
-        long maxInactive = 3600000; // 1 час
 
         // Очищаем lockouts которые истекли
         lockouts.entrySet().removeIf(e -> now - e.getValue() > LOCKOUT_DURATION_MS);
-
-        // Очищаем await2faExpiry которые истекли
-        await2faExpiry.entrySet().removeIf(e -> now - e.getValue() > TWO_FA_EXPIRY_MS);
 
         // Очищаем joinTimes для оффлайн игроков
         joinTimes.entrySet().removeIf(e -> {
@@ -108,18 +90,6 @@ public class AuthManager {
 
         // Очищаем lastActivity для оффлайн игроков
         lastActivity.entrySet().removeIf(e -> {
-            org.bukkit.entity.Player p = plugin.getServer().getPlayer(e.getKey());
-            return p == null || !p.isOnline();
-        });
-
-        // Очищаем await2fa для оффлайн игроков
-        await2fa.entrySet().removeIf(e -> {
-            org.bukkit.entity.Player p = plugin.getServer().getPlayer(e.getKey());
-            return p == null || !p.isOnline();
-        });
-
-        // Очищаем await2faAttempts для оффлайн игроков
-        await2faAttempts.entrySet().removeIf(e -> {
             org.bukkit.entity.Player p = plugin.getServer().getPlayer(e.getKey());
             return p == null || !p.isOnline();
         });
@@ -168,13 +138,17 @@ public class AuthManager {
         }, checkInterval, checkInterval);
     }
 
-    public void onJoin(Player player) {
+    /**
+     * Обработка входа игрока.
+     * @return true если IP auto-login сработал (IP совпал за 24ч)
+     */
+    public boolean onJoin(Player player) {
         joinTimes.put(player.getUniqueId(), System.currentTimeMillis());
         loggedIn.put(player.getUniqueId(), false);
         lastActivity.put(player.getUniqueId(), System.currentTimeMillis());
-        await2fa.remove(player.getUniqueId());
 
-        plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
+        // Проверяем IP auto-login синхронно (быстрый путь)
+        if (plugin.getConfig().getBoolean("auth.auto-login-ip", false)) {
             try (Connection conn = plugin.getDatabaseManager().getConnection()) {
                 PreparedStatement ps = conn.prepareStatement("SELECT * FROM vkchat_auth WHERE uuid = ?");
                 ps.setString(1, player.getUniqueId().toString());
@@ -191,21 +165,18 @@ public class AuthManager {
                         
                         boolean isLocalIp = currentIp.equals("127.0.0.1") || currentIp.equals("0:0:0:0:0:0:0:1") || currentIp.equalsIgnoreCase("localhost");
 
-                        // Стандартный авто-логин (работает только если IP не является локальным 127.0.0.1)
-                        if (!isLocalIp && plugin.getConfig().getBoolean("auth.auto-login-ip", false)) {
-                            if (savedIp != null && savedIp.equals(currentIp) && (System.currentTimeMillis() - ipTime) < 86400000L) {
-                                loggedIn.put(player.getUniqueId(), true);
-                                plugin.getServer().getScheduler().runTask(plugin, () -> {
-                                    player.sendMessage(plugin.getConfigManager().formatColor(plugin.getConfigManager().getMessage("auth_auto_login")));
-                                });
-                            }
+                        if (!isLocalIp && savedIp != null && savedIp.equals(currentIp) && (System.currentTimeMillis() - ipTime) < 86400000L) {
+                            loggedIn.put(player.getUniqueId(), true);
+                            return true;
                         }
                     }
                 }
             } catch (SQLException e) {
                 plugin.getLogger().warning("Ошибка БД авторизации: " + e.getMessage());
             }
-        });
+        }
+
+        return false;
     }
 
     public void onQuit(Player player) {
@@ -225,33 +196,29 @@ public class AuthManager {
 
     public boolean tryLink(int vkId, String code, int replyPeer) {
         if (!codeToVk.containsKey(code)) {
-            // Проверка на 2FA
-            for (Map.Entry<UUID, String> entry : await2fa.entrySet()) {
+            // Проверка на 2FA через TwoFactorManager
+            for (Map.Entry<UUID, String> entry : plugin.getTwoFactorManager().getPendingCodeEntries()) {
                 if (entry.getValue().equals(code)) {
-                    // Проверка истечения кода
-                    if (is2faExpired(entry.getKey())) {
-                        await2fa.remove(entry.getKey());
-                        await2faExpiry.remove(entry.getKey());
-                        plugin.getVkManager().sendMessage(replyPeer, "❌ Код 2FA истёк (действителен 5 минут). Зайдите на сервер заново для получения нового кода.");
-                        return false;
-                    }
-
-                    Player p = plugin.getServer().getPlayer(entry.getKey());
+                    UUID uuid = entry.getKey();
+                    Player p = plugin.getServer().getPlayer(uuid);
                     if (p != null) {
                         int linkedVk = getLinkedVkId(p);
                         if (linkedVk == vkId) {
-                            confirm2fa(entry.getKey());
-                            plugin.getVkManager().sendMessage(replyPeer, plugin.getConfigManager().formatColor(plugin.getConfigManager().getMessage("auth_2fa_success")));
-                            p.sendMessage(plugin.getConfigManager().formatColor(plugin.getConfigManager().getMessage("auth_2fa_success")));
-                            return true;
-                        } else {
-                            // Неверный VK ID —.increment attempts
-                            boolean locked = increment2faAttempts(entry.getKey());
-                            if (locked) {
+                            TwoFactorManager.TwoFactorResult result = plugin.getTwoFactorManager().confirm2fa(uuid, code);
+                            if (result == TwoFactorManager.TwoFactorResult.SUCCESS) {
+                                loggedIn.put(uuid, true);
+                                plugin.getVkManager().sendMessage(replyPeer, plugin.getConfigManager().formatColor(plugin.getConfigManager().getMessage("auth_2fa_success")));
+                                p.sendMessage(plugin.getConfigManager().formatColor(plugin.getConfigManager().getMessage("auth_2fa_success")));
+                                return true;
+                            } else if (result == TwoFactorManager.TwoFactorResult.LOCKED) {
                                 plugin.getVkManager().sendMessage(replyPeer, "🔒 Слишком много неудачных попыток! Аккаунт заблокирован на 5 минут.");
                             } else {
-                                int remaining = MAX_2FA_ATTEMPTS - await2faAttempts.getOrDefault(entry.getKey(), 0);
-                                plugin.getVkManager().sendMessage(replyPeer, "❌ Неверный код. Осталось попыток: " + remaining);
+                                int remaining = plugin.getTwoFactorManager().getRemainingAttempts(uuid);
+                                if (remaining > 0) {
+                                    plugin.getVkManager().sendMessage(replyPeer, "❌ Неверный код. Осталось попыток: " + remaining);
+                                } else {
+                                    plugin.getVkManager().sendMessage(replyPeer, "❌ Код неверный или истёк.");
+                                }
                             }
                         }
                     }
@@ -361,87 +328,14 @@ public class AuthManager {
     }
 
     public boolean isWaiting2fa(Player p) {
-        // Проверяем новую TwoFactorManager систему
-        if (plugin.getTwoFactorManager() != null && plugin.getTwoFactorManager().isWaiting2fa(p.getUniqueId())) {
-            return true;
-        }
-        // Fallback на старую систему
-        cleanupExpired2fa();
-        return await2fa.containsKey(p.getUniqueId()) && !is2faExpired(p.getUniqueId());
+        return plugin.getTwoFactorManager() != null && plugin.getTwoFactorManager().isWaiting2fa(p.getUniqueId());
     }
 
     public boolean isWaiting2fa(UUID uuid) {
-        // Проверяем новую TwoFactorManager систему
-        if (plugin.getTwoFactorManager() != null && plugin.getTwoFactorManager().isWaiting2fa(uuid)) {
-            return true;
-        }
-        // Fallback на старую систему
-        cleanupExpired2fa();
-        return await2fa.containsKey(uuid) && !is2faExpired(uuid);
+        return plugin.getTwoFactorManager() != null && plugin.getTwoFactorManager().isWaiting2fa(uuid);
     }
 
-    public String getPending2faCode(UUID uuid) {
-        if (is2faExpired(uuid)) {
-            await2fa.remove(uuid);
-            await2faExpiry.remove(uuid);
-            return null;
-        }
-        return await2fa.get(uuid);
-    }
-
-    public Iterable<Map.Entry<UUID, String>> getAwait2faEntries() {
-        cleanupExpired2fa();
-        return new ArrayList<>(await2fa.entrySet());
-    }
-
-    public void confirm2fa(UUID uuid) {
-        await2fa.remove(uuid);
-        await2faExpiry.remove(uuid);
-        await2faAttempts.remove(uuid);
-        loggedIn.put(uuid, true);
-        Player p = plugin.getServer().getPlayer(uuid);
-        if (p != null) {
-            saveIp(p);
-            addLoginHistory(uuid, p.getAddress().getAddress().getHostAddress());
-        }
-    }
-
-    // ==================== 2FA ИСТЕЧЕНИЕ И ОДНОРАЗОВОСТЬ ====================
-
-    /**
-     * Проверяет, истёк ли код 2FA (5 минут).
-     */
-    public boolean is2faExpired(UUID uuid) {
-        Long expiry = await2faExpiry.get(uuid);
-        if (expiry == null) return true; // Нет записи = истёк/не существует
-        return System.currentTimeMillis() > expiry;
-    }
-
-    /**
-     * Очищает истёкшие коды 2FA.
-     */
-    public void cleanupExpired2fa() {
-        long now = System.currentTimeMillis();
-        await2faExpiry.entrySet().removeIf(e -> now > e.getValue());
-        await2fa.entrySet().removeIf(e -> !await2faExpiry.containsKey(e.getKey()));
-    }
-
-    /**
-     * Увеличивает счётчик неудачных попыток 2FA.
-     * @return true если заблокирован (превышен лимит)
-     */
-    public boolean increment2faAttempts(UUID uuid) {
-        int attempts = await2faAttempts.getOrDefault(uuid, 0) + 1;
-        await2faAttempts.put(uuid, attempts);
-        if (attempts >= MAX_2FA_ATTEMPTS) {
-            await2fa.remove(uuid);
-            await2faExpiry.remove(uuid);
-            await2faAttempts.remove(uuid);
-            lockouts.put(uuid, System.currentTimeMillis() + LOCKOUT_DURATION_MS);
-            return true;
-        }
-        return false;
-    }
+    // ==================== 2FA (LEGACY REMOVED — all via TwoFactorManager) ====================
 
     /**
      * Проверяет, заблокирован ли аккаунт из-за неудачных попыток.
@@ -519,7 +413,7 @@ public class AuthManager {
 
     public boolean blockLoginByCode(String code) {
         UUID victimUuid = null;
-        for (Map.Entry<UUID, String> entry : await2fa.entrySet()) {
+        for (Map.Entry<UUID, String> entry : plugin.getTwoFactorManager().getPendingCodeEntries()) {
             if (entry.getValue().equals(code)) {
                 victimUuid = entry.getKey();
                 break;
@@ -527,9 +421,7 @@ public class AuthManager {
         }
         if (victimUuid != null) {
             final UUID fUuid = victimUuid;
-            await2fa.remove(victimUuid);
-            await2faExpiry.remove(victimUuid);
-            await2faAttempts.remove(victimUuid);
+            plugin.getTwoFactorManager().onPlayerQuit(victimUuid);
             
             // Кикаем игрока на главном потоке
             plugin.getServer().getScheduler().runTask(plugin, () -> {
@@ -545,10 +437,6 @@ public class AuthManager {
 
     public boolean isValidCode(String code) {
         return codeToVk.containsKey(code);
-    }
-    
-    public boolean is2faCode(String code) {
-        return await2fa.containsValue(code);
     }
     
     public int getLinkedVkId(UUID uuid) {

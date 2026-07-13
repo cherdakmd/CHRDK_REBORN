@@ -9,11 +9,10 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import ru.example.vkchat.VKChatPlugin;
 
-import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class QuizListener implements Listener {
     private final VKChatAnnouncerPlugin plugin;
-    private final Random random = new Random();
 
     private static volatile String activeQuestion = null;
     private static volatile String activeAnswer = null;
@@ -36,7 +35,7 @@ public class QuizListener implements Listener {
     }
 
     public static void askQuestion() {
-        int index = new Random().nextInt(QUESTIONS.length);
+        int index = ThreadLocalRandom.current().nextInt(QUESTIONS.length);
         activeQuestion = QUESTIONS[index][0];
         activeAnswer = QUESTIONS[index][1];
 

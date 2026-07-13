@@ -17,7 +17,7 @@ public class AuthTimerTask extends BukkitRunnable {
 
     @Override
     public void run() {
-        int timeLimit = plugin.getConfig().getInt("auth.link-time-limit", 60);
+        int timeLimit = plugin.getConfig().getInt("auth.link-time-limit", 180);
         
         for (Player p : Bukkit.getOnlinePlayers()) {
             if (!plugin.getAuthManager().isFullyAuthorized(p)) {
@@ -35,9 +35,9 @@ public class AuthTimerTask extends BukkitRunnable {
                 String subTitleMsg = "";
                 
                 if (plugin.getAuthManager().isWaiting2fa(p)) {
-                    stateMsg = "&cПодтверди вход в ВК!";
+                    stateMsg = "&cПодтверди вход в ВК! (/2fa <код> или /resend)";
                     titleMsg = "&c&lБЕЗОПАСНОСТЬ";
-                    subTitleMsg = "&fМы отправили код тебе в &bВК";
+                    subTitleMsg = "&fМы отправили код тебе в &bВК &f— /resend для повтора";
                 } else if (!plugin.getAuthManager().isLinked(p)) {
                     stateMsg = "&cПривяжи ВК или купи проходку!";
                     titleMsg = "&c&lАВТОРИЗАЦИЯ";

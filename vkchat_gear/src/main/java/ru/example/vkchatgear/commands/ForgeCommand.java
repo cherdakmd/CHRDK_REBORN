@@ -24,10 +24,10 @@ import ru.example.vkchatgear.VKChatGearPlugin;
 
 import org.bukkit.command.TabCompleter;
 import java.util.*;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class ForgeCommand implements CommandExecutor, Listener, TabCompleter {
     private final VKChatGearPlugin plugin;
-    private final Random random = new Random();
 
     private final String HUB_TITLE = "§8▸ §4§lКУЗНЯ §8◂ §7Меню";
     private final String FUSION_TITLE = "§8▸ §4§lКУЗНЯ §8◂ §dСлияние";
@@ -66,6 +66,38 @@ public class ForgeCommand implements CommandExecutor, Listener, TabCompleter {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+        if (args.length > 0 && args[0].equalsIgnoreCase("reload") && sender.hasPermission("vkchat.admin")) {
+            plugin.reloadConfig();
+            sender.sendMessage("§a§l⚙ §aКонфиг кузни перезагружен!");
+            return true;
+        }
+        if (args.length > 0 && args[0].equalsIgnoreCase("stats") && sender.hasPermission("vkchat.admin")) {
+            if (!(sender instanceof Player)) return true;
+            Player p = (Player) sender;
+            p.sendMessage("§8▸ §4§lСтатистика кузни §8◂");
+            p.sendMessage("§7Активных операций: §f" + pending.size());
+            p.sendMessage("§7Сетов: §f" + plugin.getSetBonusManager().getSetDefs().size());
+            if (plugin.getActiveMagicEventName() != null && System.currentTimeMillis() < plugin.getActiveMagicEventExpireTime()) {
+                long rem = (plugin.getActiveMagicEventExpireTime() - System.currentTimeMillis()) / 1000;
+                p.sendMessage("§7Маг. событие: §d" + plugin.getActiveMagicEventName() + " §7(" + rem + "с)");
+            } else {
+                p.sendMessage("§7Маг. событие: §7нет");
+            }
+            return true;
+        }
+        if (args.length > 0 && args[0].equalsIgnoreCase("schedule") && sender.hasPermission("vkchat.forge")) {
+            if (!(sender instanceof Player)) return true;
+            Player p = (Player) sender;
+            ru.example.vkchatgear.enhancements.GearEnhancements enhancements = plugin.getGearEnhancements();
+            if (enhancements != null) {
+                for (String line : enhancements.getMagicEventSchedule()) {
+                    p.sendMessage(line);
+                }
+            } else {
+                p.sendMessage("§7Модуль улучшений не загружен.");
+            }
+            return true;
+        }
         if (!(sender instanceof Player)) return true;
         openHub((Player) sender);
         return true;
@@ -389,8 +421,9 @@ public class ForgeCommand implements CommandExecutor, Listener, TabCompleter {
             return;
         }
         consumeRelevantScrolls(p, op);
-        boolean success = op.guaranteed || random.nextInt(100) < op.chance;
+        boolean success = op.guaranteed || ThreadLocalRandom.current().nextInt(100) < op.chance;
         log(p, "FUSION_START", op.summary.replace("§", "&"));
+        ru.example.vkchatgear.enhancements.GearEnhancements enhancements = plugin.getGearEnhancements();
         if (success) {
             ItemStack result = center.clone();
             applyRarity(result, op.targetRarity);
@@ -398,9 +431,15 @@ public class ForgeCommand implements CommandExecutor, Listener, TabCompleter {
             applyRarityProc(result, op.targetRarity);
             markLegacyIfNeeded(result);
             inv.setItem(20, null); inv.setItem(22, result); inv.setItem(24, null);
-            p.playSound(p.getLocation(), Sound.UI_TOAST_CHALLENGE_COMPLETE, 1f, 1f);
-            p.getWorld().spawnParticle(org.bukkit.Particle.ENCHANTMENT_TABLE, p.getLocation().add(0, 1, 0), 70, 0.7, 0.7, 0.7, 0.2);
-            announceIfNeeded(p, result, op.targetRarity);
+            if (enhancements != null) {
+                enhancements.playFusionSuccess(p);
+                enhancements.playFusionAnimation(p, true);
+                enhancements.announceNamedGear(p, result, op.targetRarity);
+            } else {
+                p.playSound(p.getLocation(), Sound.UI_TOAST_CHALLENGE_COMPLETE, 1f, 1f);
+                p.getWorld().spawnParticle(org.bukkit.Particle.ENCHANTMENT_TABLE, p.getLocation().add(0, 1, 0), 70, 0.7, 0.7, 0.7, 0.2);
+                announceIfNeeded(p, result, op.targetRarity);
+            }
             p.sendMessage(ChatColor.GOLD + "⭐ Успех! Редкость повышена до " + rarityDisplay(op.targetRarity));
             log(p, "FUSION_SUCCESS", itemName(result));
         } else {
@@ -413,7 +452,12 @@ public class ForgeCommand implements CommandExecutor, Listener, TabCompleter {
                 p.sendMessage(ChatColor.RED + "❌ Провал. Центральный предмет сохранён, катализаторы сгорели.");
                 log(p, "FUSION_FAIL", itemName(center));
             }
-            p.playSound(p.getLocation(), Sound.BLOCK_ANVIL_LAND, 1f, 0.7f);
+            if (enhancements != null) {
+                enhancements.playFusionFail(p);
+                enhancements.playFusionAnimation(p, false);
+            } else {
+                p.playSound(p.getLocation(), Sound.BLOCK_ANVIL_LAND, 1f, 0.7f);
+            }
         }
     }
 
@@ -442,13 +486,28 @@ public class ForgeCommand implements CommandExecutor, Listener, TabCompleter {
         ItemStack result = item.clone();
         maybeUpgradeEnchant(result);
         applyRarityProc(result, plugin.getGearManager().getRarityKey(result));
-        if (!op.antiDefect && random.nextInt(100) < plugin.getConfig().getInt("forge2.defects.chance-on-reforge", 22)) {
+        boolean defectAdded = false;
+        if (!op.antiDefect && ThreadLocalRandom.current().nextInt(100) < plugin.getConfig().getInt("forge2.defects.chance-on-reforge", 22)) {
             plugin.getGearManager().applyRandomDefect(result);
-            p.sendMessage(ChatColor.YELLOW + "⚠ Перековка оставила дефект.");
+            defectAdded = true;
         }
         inv.setItem(CENTER_SLOT, result);
-        p.playSound(p.getLocation(), Sound.BLOCK_ANVIL_USE, 1f, 1f);
-        p.sendMessage(ChatColor.GREEN + "🔥 Предмет перекован в реликтовой кузне.");
+        ru.example.vkchatgear.enhancements.GearEnhancements enhancements = plugin.getGearEnhancements();
+        if (enhancements != null) {
+            if (defectAdded) {
+                enhancements.playReforgeFail(p);
+            } else {
+                enhancements.playReforgeSuccess(p);
+                enhancements.playReforgeAnimation(p);
+            }
+        } else {
+            p.playSound(p.getLocation(), Sound.BLOCK_ANVIL_USE, 1f, 1f);
+        }
+        if (defectAdded) {
+            p.sendMessage(ChatColor.YELLOW + "⚠ Перековка оставила дефект.");
+        } else {
+            p.sendMessage(ChatColor.GREEN + "🔥 Предмет перекован в реликтовой кузне.");
+        }
         log(p, "REFORGE", itemName(result));
     }
 
@@ -815,7 +874,7 @@ public class ForgeCommand implements CommandExecutor, Listener, TabCompleter {
         List<String> pool = plugin.getConfig().getStringList("forge2.rarity-procs." + rarity);
         if (pool.isEmpty()) pool = defaultProcPool(rarity);
         if (pool.isEmpty()) return;
-        String proc = rebrandProc(pool.get(random.nextInt(pool.size())));
+        String proc = rebrandProc(pool.get(ThreadLocalRandom.current().nextInt(pool.size())));
         List<String> lore = meta.hasLore() ? meta.getLore() : new ArrayList<>();
         lore.removeIf(l -> ChatColor.stripColor(l).startsWith("Прок редкости:"));
         lore.add(ChatColor.DARK_PURPLE + "Прок редкости: " + ChatColor.translateAlternateColorCodes('&', proc));
@@ -969,6 +1028,14 @@ public class ForgeCommand implements CommandExecutor, Listener, TabCompleter {
 
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String label, String[] args) {
+        if (args.length == 1) {
+            List<String> completions = new ArrayList<>();
+            String prefix = args[0].toLowerCase();
+            if ("reload".startsWith(prefix) && sender.hasPermission("vkchat.admin")) completions.add("reload");
+            if ("stats".startsWith(prefix) && sender.hasPermission("vkchat.admin")) completions.add("stats");
+            if ("schedule".startsWith(prefix) && sender.hasPermission("vkchat.forge")) completions.add("schedule");
+            return completions;
+        }
         return Collections.emptyList();
     }
 }

@@ -21,8 +21,12 @@ commands:
     usage: /register <password>
     permission: vkchat.player
   2fa:
-    description: Ввести одноразовый код двухфакторной аутентификации (2FA)
-    usage: /2fa <код>
+    description: Ввести одноразовый код двухфакторной аутентификации (2FA) или включить/выключить 2FA
+    usage: /2fa <код|on|off>
+    permission: vkchat.player
+  resend:
+    description: Повторно отправить код 2FA в ЛС ВК
+    usage: /resend
     permission: vkchat.player
   login:
     description: Авторизоваться в игровом аккаунте

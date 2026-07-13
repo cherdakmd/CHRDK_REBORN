@@ -100,10 +100,10 @@ public class RuneCommand implements CommandExecutor, TabCompleter {
         addRune(inv, 42, "Рефлексы Паука", "spider_reflexes");
         addRune(inv, 43, "Магматический Шаг", "magma_walker");
         addRune(inv, 44, "Метеоритный Дождь", "meteor_shower");
-        addFusionScroll(inv, 53);
+        addFusionScroll(inv, 45);
 
         // ═══ 35 УНИКАЛЬНЫХ ИМЕНОВАННЫХ РУН ═══
-        // Атакующие руны (слот 45-49)
+        // Атакующие руны (слот 46-49)
         addRune(inv, 46, "❄️ Руна Мороза", "frost_rune");
         addRune(inv, 47, "⚡ Руна Молнии", "lightning_rune");
         addRune(inv, 48, "☠️ Руна Яда", "poison_rune");

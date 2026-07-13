@@ -56,7 +56,7 @@ public class ChunkClaim {
         this.trusted = new ArrayList<>();
         this.durability = 100;
         this.level = 1;
-        this.name = "Приват " + Bukkit.getOfflinePlayer(owner).getName();
+        this.name = "Приват " + safeName(owner);
     }
 
     public ChunkClaim(String worldName, int x, int y, int z, int radius, UUID owner, String nation, List<UUID> trusted, int durability, int level, boolean explosionProtection, boolean noSpawnProtection, boolean fireProtection, boolean pvpProtection, boolean autoPay, int extraRadius, String name, double homeX, double homeY, double homeZ, boolean hasHome) {
@@ -76,7 +76,7 @@ public class ChunkClaim {
         this.pvpProtection = pvpProtection;
         this.autoPay = autoPay;
         this.extraRadius = extraRadius;
-        this.name = name == null || name.isEmpty() ? "Приват " + Bukkit.getOfflinePlayer(owner).getName() : name;
+        this.name = name == null || name.isEmpty() ? "Приват " + safeName(owner) : name;
         this.homeX = homeX;
         this.homeY = homeY;
         this.homeZ = homeZ;
@@ -84,6 +84,11 @@ public class ChunkClaim {
     }
 
     public String getWorldName() { return worldName; }
+
+    private static String safeName(UUID uuid) {
+        String n = Bukkit.getOfflinePlayer(uuid).getName();
+        return n != null ? n : uuid.toString().substring(0, 8);
+    }
     public int getX() { return x; }
     public int getY() { return y; }
     public int getZ() { return z; }

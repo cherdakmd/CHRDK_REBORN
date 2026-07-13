@@ -13,11 +13,10 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import ru.example.vkchat.VKChatPlugin;
 
-import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class RandomSpawnListener implements Listener {
     private final VKChatPlugin plugin;
-    private final Random random = new Random();
 
     public RandomSpawnListener(VKChatPlugin plugin) {
         this.plugin = plugin;
@@ -64,8 +63,8 @@ public class RandomSpawnListener implements Listener {
         int maxZ = plugin.getConfig().getInt("random-spawn.max-z", 5000);
 
         for (int i = 0; i < 10; i++) { // Пробуем найти безопасную точку 10 раз
-            int x = random.nextInt(maxX - minX + 1) + minX;
-            int z = random.nextInt(maxZ - minZ + 1) + minZ;
+            int x = ThreadLocalRandom.current().nextInt(maxX - minX + 1) + minX;
+            int z = ThreadLocalRandom.current().nextInt(maxZ - minZ + 1) + minZ;
             int y = world.getHighestBlockYAt(x, z);
 
             Block b = world.getBlockAt(x, y - 1, z);

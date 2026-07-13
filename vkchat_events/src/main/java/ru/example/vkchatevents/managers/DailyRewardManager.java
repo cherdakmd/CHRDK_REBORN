@@ -41,7 +41,11 @@ public class DailyRewardManager implements Listener {
         int vkId = VKChatPlugin.getInstance().getApi().getLinkedVkId(p);
         if (vkId == -1 && !ru.example.vkchat.util.VKChatBridge.hasPass(p)) return "§c❌ Привяжи ВК!";
 
-        VKChatPlugin.getInstance().getApi().addReputation(vkId, baseReward);
+        if (vkId != -1) {
+            VKChatPlugin.getInstance().getApi().addReputation(vkId, baseReward);
+        } else {
+            ru.example.vkchat.util.VKChatBridge.addEffectiveRep(p, baseReward);
+        }
         return "§a🎁 Ежедневная награда: §e+" + baseReward + " реп!";
     }
 

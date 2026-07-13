@@ -17,12 +17,7 @@ public class MechanicsListener implements Listener {
         Player p = e.getPlayer();
         ItemStack tool = p.getInventory().getItemInMainHand();
         
-        // Полный запрет Шелкового Касания для предотвращения дюпов руды
-        if (tool != null && tool.hasItemMeta() && tool.getEnchantments().containsKey(org.bukkit.enchantments.Enchantment.SILK_TOUCH)) {
-            tool.removeEnchantment(org.bukkit.enchantments.Enchantment.SILK_TOUCH);
-            p.sendMessage(org.bukkit.ChatColor.RED + "⚠️ Шёлковое касание полностью запрещено на сервере для предотвращения дюпов руды!");
-            p.playSound(p.getLocation(), org.bukkit.Sound.ENTITY_ITEM_BREAK, 1f, 1f);
-        }
+        // Silk Touch разрешён — ничего не делаем
         
         if (tool != null && tool.hasItemMeta() && plugin.getGearManager().isGear(tool.getType())) {
             String name = tool.getType().name();
