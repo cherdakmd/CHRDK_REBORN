@@ -57,6 +57,8 @@ public class VKChatPlugin extends JavaPlugin {
         instance = this;
         ru.example.vkchat.util.VKChatBridge.init();
 
+        ru.example.vkchat.core.ConfigMigrationUtil.migrate(this, "config.yml");
+
         getLogger().info("=========================================");
         getLogger().info("VKChat 2.0.7 успешно запущен!");
         getLogger().info("СОЗДАНО ДЛЯ https://vk.com/chrdk_reborn и https://t.me/cherdakmd");

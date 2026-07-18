@@ -20,6 +20,7 @@ public class VKChatAuctionPlugin extends JavaPlugin {
     public void onEnable() {
         instance = this;
         saveDefaultConfig();
+        ru.example.vkchat.core.ConfigMigrationUtil.migrate(this, "config.yml");
 
         if (Bukkit.getPluginManager().getPlugin("VKChat") == null) {
             getLogger().severe("VKChat не найден! Модуль выключается.");

@@ -14,6 +14,7 @@ public class VKChatStreamsPlugin extends JavaPlugin {
     public void onEnable() {
         instance = this;
         saveDefaultConfig();
+        ru.example.vkchat.core.ConfigMigrationUtil.migrate(this, "config.yml");
         VKChatBridge.init();
 
         if (Bukkit.getPluginManager().getPlugin("VKChat") == null) {
