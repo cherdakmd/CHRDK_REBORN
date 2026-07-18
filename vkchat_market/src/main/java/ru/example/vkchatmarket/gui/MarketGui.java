@@ -324,7 +324,7 @@ public class MarketGui {
                 }
             }
 
-            inv.setItem(slot++, categoryItem(plugin, cat != null ? cat.icon() : Material.PAPER, catKey,
+            inv.setItem(slot++, sellAllCategoryItem(plugin, cat != null ? cat.icon() : Material.PAPER, catKey,
                     catName,
                     "§7Предметов: §e" + count,
                     "§7Выручка: §a" + catRep + " реп."));
@@ -396,6 +396,17 @@ public class MarketGui {
         List<String> l = new ArrayList<>(Arrays.asList(lore));
         meta.setLore(l);
         meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "mkt_cat"), PersistentDataType.STRING, catKey);
+        item.setItemMeta(meta);
+        return item;
+    }
+
+    static ItemStack sellAllCategoryItem(VKChatMarketPlugin plugin, Material mat, String catKey, String name, String... lore) {
+        ItemStack item = new ItemStack(mat);
+        ItemMeta meta = item.getItemMeta();
+        if (meta == null) return item;
+        meta.setDisplayName(name);
+        meta.setLore(new ArrayList<>(Arrays.asList(lore)));
+        meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "mkt_sellall_confirm"), PersistentDataType.STRING, catKey);
         item.setItemMeta(meta);
         return item;
     }

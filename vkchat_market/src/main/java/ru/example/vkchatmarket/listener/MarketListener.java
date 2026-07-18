@@ -76,6 +76,7 @@ public class MarketListener implements Listener {
 
         // Bulk cancel
         if (hasPdc(meta, "mkt_bulk_cancel")) {
+            plugin.getGuiState().clearPendingBulkTrade(p.getUniqueId());
             MarketGui.openMainMenu(plugin, p);
             playSound(p, Sound.UI_BUTTON_CLICK);
             return;
@@ -259,14 +260,26 @@ public class MarketListener implements Listener {
     }
 
     private void handleBulkTrade(Player p, String mode, MarketEntry entry, int amount, String catFromTitle) {
+        plugin.getGuiState().setPendingBulkTrade(p.getUniqueId(), mode, entry.id(), amount, catFromTitle);
         MarketGui.openBulkConfirm(plugin, p, mode, entry, amount);
         plugin.getGuiState().set(p.getUniqueId(), catFromTitle, plugin.getGuiState().get(p.getUniqueId()).page(), plugin.getGuiState().get(p.getUniqueId()).searchQuery());
     }
 
     private void handleBulkConfirm(Player p, String title) {
-        var state = plugin.getGuiState().get(p.getUniqueId());
         if (!checkAuth(p)) return;
-        MarketGui.openCategory(plugin, p, state.categoryKey(), state.page());
+        var pending = plugin.getGuiState().getPendingBulkTrade(p.getUniqueId());
+        plugin.getGuiState().clearPendingBulkTrade(p.getUniqueId());
+        if (pending == null) {
+            var state = plugin.getGuiState().get(p.getUniqueId());
+            MarketGui.openCategory(plugin, p, state.categoryKey(), state.page());
+            return;
+        }
+        MarketEntry entry = plugin.getMarketService().get(pending.itemId());
+        if (entry == null) {
+            MarketGui.openMainMenu(plugin, p);
+            return;
+        }
+        trade(p, pending.mode(), entry, pending.amount(), pending.categoryKey());
     }
 
     private void handleCartBuy(Player p) {

@@ -12,6 +12,22 @@ public class PlayerGuiState {
 
     public enum SortMode { PRICE, NAME, TREND }
 
+    private final Map<UUID, PendingBulkTrade> pendingBulkTrades = new ConcurrentHashMap<>();
+
+    public record PendingBulkTrade(String mode, String itemId, int amount, String categoryKey) {}
+
+    public void setPendingBulkTrade(UUID uuid, String mode, String itemId, int amount, String categoryKey) {
+        pendingBulkTrades.put(uuid, new PendingBulkTrade(mode, itemId, amount, categoryKey));
+    }
+
+    public PendingBulkTrade getPendingBulkTrade(UUID uuid) {
+        return pendingBulkTrades.get(uuid);
+    }
+
+    public void clearPendingBulkTrade(UUID uuid) {
+        pendingBulkTrades.remove(uuid);
+    }
+
     public void set(UUID uuid, String categoryKey, int page, String searchQuery) {
         GuiState old = states.getOrDefault(uuid, GuiState.DEFAULT);
         states.put(uuid, new GuiState(categoryKey, page, searchQuery, old.sortMode(), old.bulkMode()));
