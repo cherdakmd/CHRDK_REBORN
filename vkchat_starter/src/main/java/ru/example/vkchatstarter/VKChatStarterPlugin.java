@@ -3,7 +3,7 @@ package ru.example.vkchatstarter;
 import org.bukkit.Bukkit;
 import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.java.JavaPlugin;
-import ru.example.vkchat.config.ConfigMigrationUtil;
+import ru.example.vkchat.core.ConfigMigrationUtil;
 import ru.example.vkchatstarter.listeners.JoinListener;
 import ru.example.vkchatstarter.commands.QuestCommand;
 

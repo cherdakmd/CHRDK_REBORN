@@ -5,7 +5,7 @@ import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.java.JavaPlugin;
 import ru.example.vkchatteleport.commands.TeleportCommand;
 import ru.example.vkchatteleport.features.TeleportFeatures;
-import ru.example.vkchat.config.ConfigMigrationUtil;
+import ru.example.vkchat.core.ConfigMigrationUtil;
 import ru.example.vkchatteleport.listeners.TeleportListener;
 import ru.example.vkchatteleport.manager.TeleportManager;
 

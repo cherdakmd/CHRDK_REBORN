@@ -3,7 +3,7 @@ package ru.example.vkchatchat;
 import org.bukkit.Bukkit;
 import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.java.JavaPlugin;
-import ru.example.vkchat.config.ConfigMigrationUtil;
+import ru.example.vkchat.core.ConfigMigrationUtil;
 
 public class VKChatChatPlugin extends JavaPlugin {
     private static VKChatChatPlugin instance;

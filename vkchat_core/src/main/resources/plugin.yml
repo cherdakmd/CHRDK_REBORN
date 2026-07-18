@@ -103,6 +103,18 @@ commands:
     description: Посмотреть информацию о голосовании
     usage: /vote
     permission: vkchat.player
+  mute:
+    description: Заглушить игрока
+    usage: /mute <player> [время] [причина]
+    permission: vkchat.moderation.warn
+  unmute:
+    description: Разглушить игрока
+    usage: /unmute <player>
+    permission: vkchat.moderation.warn
+  ignore:
+    description: Игнорировать игрока
+    usage: /ignore <player>
+    permission: vkchat.player
   treasure:
     description: Охота за сокровищами
     usage: /treasure <start|compass>

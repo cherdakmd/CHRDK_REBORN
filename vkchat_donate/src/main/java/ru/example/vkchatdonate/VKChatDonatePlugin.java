@@ -2,12 +2,11 @@ package ru.example.vkchatdonate;
 
 import org.bukkit.Bukkit;
 import org.bukkit.event.EventHandler;
-import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 import ru.example.vkchat.api.events.VKPlayerLinkEvent;
-import ru.example.vkchat.config.ConfigMigrationUtil;
+import ru.example.vkchat.core.ConfigMigrationUtil;
 import ru.example.vkchatdonate.luckperms.LuckPermsHelper;
 import ru.example.vkchatdonate.pass.PassCommand;
 import ru.example.vkchatdonate.pass.PassManager;
@@ -113,7 +112,6 @@ public class VKChatDonatePlugin extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        HandlerList.unregisterAll((Listener) this);
         Bukkit.getScheduler().cancelTasks(this);
         if (passManager != null) passManager.shutdown();
         if (donateManager != null) donateManager.shutdown();

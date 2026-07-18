@@ -5,6 +5,8 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 
+import org.bukkit.plugin.java.JavaPlugin;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -74,6 +76,40 @@ public final class ConfigMigrationUtil {
      */
     public static void migrateDefaults(FileConfiguration config, File configFile, Logger logger) {
         migrateDefaults(config, configFile, null, logger);
+    }
+
+    /**
+     * Convenience method for JavaPlugin: migrate config defaults from bundled jar.
+     */
+    public static void migrate(JavaPlugin plugin, String configFileName) {
+        migrateDefaults(
+                plugin.getConfig(),
+                new File(plugin.getDataFolder(), configFileName),
+                plugin.getLogger()
+        );
+    }
+
+    /**
+     * Convenience method for JavaPlugin: force-overwrite specified keys from defaults,
+     * then merge remaining missing keys.
+     */
+    public static void migrate(JavaPlugin plugin, String configFileName, String[] forceKeys) {
+        FileConfiguration config = plugin.getConfig();
+        File configFile = new File(plugin.getDataFolder(), configFileName);
+        Logger logger = plugin.getLogger();
+
+        if (forceKeys != null) {
+            Configuration defaults = config.getDefaults();
+            if (defaults != null) {
+                for (String key : forceKeys) {
+                    if (defaults.isSet(key)) {
+                        config.set(key, defaults.get(key));
+                    }
+                }
+            }
+        }
+
+        migrateDefaults(config, configFile, logger);
     }
 
     /**

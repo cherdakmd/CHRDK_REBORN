@@ -13,7 +13,7 @@ import ru.example.vkchatartifacts.effects.BuffEffectRegistry;
 import ru.example.vkchatartifacts.listeners.ArtifactListener;
 import ru.example.vkchatartifacts.listeners.ConsumablesListener;
 import ru.example.vkchatartifacts.bosses.BossManager;
-import ru.example.vkchat.config.ConfigMigrationUtil;
+import ru.example.vkchat.core.ConfigMigrationUtil;
 import ru.example.vkchat.util.VKChatBridge;
 
 import org.bukkit.configuration.file.FileConfiguration;

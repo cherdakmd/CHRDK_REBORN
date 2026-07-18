@@ -7,7 +7,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import ru.example.vkchatoffline.data.StashManager;
 import ru.example.vkchatoffline.listeners.OfflineListener;
 import ru.example.vkchatoffline.managers.ShiftManager;
-import ru.example.vkchat.config.ConfigMigrationUtil;
+import ru.example.vkchat.core.ConfigMigrationUtil;
 
 public class VKChatOfflinePlugin extends JavaPlugin {
     private static VKChatOfflinePlugin instance;
