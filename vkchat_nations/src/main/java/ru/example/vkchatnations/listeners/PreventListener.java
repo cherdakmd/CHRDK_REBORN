@@ -15,16 +15,21 @@ import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.entity.EntityPickupItemEvent;
 import ru.example.vkchatnations.VKChatNationsPlugin;
 import ru.example.vkchatnations.data.ChunkClaim;
 import ru.example.vkchat.util.VKChatBridge;
 
+import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class PreventListener implements Listener {
     private final VKChatNationsPlugin plugin;
+    private final Set<UUID> notifiedPlayers = ConcurrentHashMap.newKeySet();
 
     public PreventListener(VKChatNationsPlugin plugin) { this.plugin = plugin; }
 
@@ -54,14 +59,13 @@ public class PreventListener implements Listener {
     }
 
     private void msgUnauthorized(Player p) {
-        if (System.currentTimeMillis() % 5000 < 200) {
-            p.sendMessage(ChatColor.RED + "━━━━━━━━━━━━━━━━━━━━━━━━━━");
-            p.sendMessage(ChatColor.YELLOW + "⚠ Ты не авторизован!");
-            p.sendMessage("");
-            p.sendMessage(ChatColor.WHITE + "1) " + ChatColor.AQUA + "/vklink" + ChatColor.GRAY + " — привязать ВК");
-            p.sendMessage(ChatColor.WHITE + "2) " + ChatColor.GOLD + "/donate info" + ChatColor.GRAY + " — купить проходку (500₽)");
-            p.sendMessage(ChatColor.RED + "━━━━━━━━━━━━━━━━━━━━━━━━━━");
-        }
+        if (!notifiedPlayers.add(p.getUniqueId())) return;
+        p.sendMessage(ChatColor.RED + "━━━━━━━━━━━━━━━━━━━━━━━━━━");
+        p.sendMessage(ChatColor.YELLOW + "⚠ Ты не авторизован!");
+        p.sendMessage("");
+        p.sendMessage(ChatColor.WHITE + "1) " + ChatColor.AQUA + "/vklink" + ChatColor.GRAY + " — привязать ВК (бесплатно)");
+        p.sendMessage(ChatColor.WHITE + "2) " + ChatColor.GOLD + "/donate info" + ChatColor.GRAY + " — купить проходку");
+        p.sendMessage(ChatColor.RED + "━━━━━━━━━━━━━━━━━━━━━━━━━━");
     }
 
     @EventHandler(priority = EventPriority.LOWEST)
@@ -169,5 +173,10 @@ public class PreventListener implements Listener {
     @EventHandler(priority = EventPriority.LOWEST)
     public void onDamageEntity(EntityDamageByEntityEvent e) {
         if (e.getDamager() instanceof Player p && (isUnauthorized(p) || isAwaitingNationSelection(p))) e.setCancelled(true);
+    }
+
+    @EventHandler
+    public void onQuit(PlayerQuitEvent e) {
+        notifiedPlayers.remove(e.getPlayer().getUniqueId());
     }
 }

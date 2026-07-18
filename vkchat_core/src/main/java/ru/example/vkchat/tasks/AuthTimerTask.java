@@ -39,9 +39,9 @@ public class AuthTimerTask extends BukkitRunnable {
                     titleMsg = "&c&lБЕЗОПАСНОСТЬ";
                     subTitleMsg = "&fМы отправили код тебе в &bВК &f— /resend для повтора";
                 } else if (!plugin.getAuthManager().isLinked(p)) {
-                    stateMsg = "&cПривяжи ВК или купи проходку!";
+                    stateMsg = "&cПривяжи ВК бесплатно или купи проходку!";
                     titleMsg = "&c&lАВТОРИЗАЦИЯ";
-                    subTitleMsg = "&f/vklink &fили &6/donate info";
+                    subTitleMsg = "&f/vklink &7(бесплатно) &fили &6/donate info";
                 } else if (!plugin.getAuthManager().isRegistered(p)) {
                     stateMsg = "&cЗарегистрируйся!";
                     titleMsg = "&c&lРЕГИСТРАЦИЯ";

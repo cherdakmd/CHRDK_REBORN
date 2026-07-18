@@ -111,7 +111,7 @@ public class AuthListener implements Listener {
             // ВК НЕ ПРИВЯЗАН — пускаем и показываем инструкцию
             p.sendMessage("§c⚠ Для игры нужна привязка ВК или проходка!");
             p.sendMessage("§7➊ Вступи в группу: §b" + plugin.getConfig().getString("vk.group-link", "https://vk.com/chrdk_reborn"));
-            p.sendMessage("§7➋ Введи §a/vklink §7— получишь код");
+            p.sendMessage("§7➋ Введи §a/vklink §7— получишь код §a(бесплатно)");
             p.sendMessage("§7➌ Отправь код в беседу ВК боту");
             p.sendMessage("");
             p.sendMessage("§6💡 Нет ВК?");
