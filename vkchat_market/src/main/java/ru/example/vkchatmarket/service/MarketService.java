@@ -1,9 +1,12 @@
 package ru.example.vkchatmarket.service;
 
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.persistence.PersistentDataType;
 import ru.example.vkchatmarket.VKChatMarketPlugin;
 import ru.example.vkchatmarket.log.TransactionLog;
 import ru.example.vkchatmarket.model.MarketCategory;
@@ -16,6 +19,7 @@ public class MarketService {
     private final VKChatMarketPlugin plugin;
     private final PriceService priceService;
     private final Map<String, MarketEntry> entries = new LinkedHashMap<>();
+    private final Map<String, String> setPieceMap = new HashMap<>();
     private TransactionLog transactionLog;
 
     public MarketService(VKChatMarketPlugin plugin) {
@@ -29,6 +33,7 @@ public class MarketService {
 
     public void load() {
         entries.clear();
+        setPieceMap.clear();
         ConfigurationSection items = plugin.getCategoriesConfig().getConfigurationSection("items");
         if (items == null) {
             plugin.getLogger().warning("Секция 'items' не найдена в categories.yml!");
@@ -48,7 +53,27 @@ public class MarketService {
             int basePrice = sec.getInt("base-price", 10);
             entries.put(id, new MarketEntry(id, material, name, category, basePrice));
         }
-        plugin.getLogger().info("Загружено товаров рынка: " + entries.size());
+        initSetPieceMap();
+        plugin.getLogger().info("Загружено товаров рынка: " + entries.size() + " (сетовых: " + setPieceMap.size() + ")");
+    }
+
+    private static final String[] SET_KEYS = {
+        "bogatyr", "leshy", "koshchey", "volhv", "sokol",
+        "proletarian", "udarnik", "cosmonaut", "tankist", "pioneer",
+        "red_cat", "dragon_slayer", "el_carpo", "shadow_monarch", "perun",
+        "chernobog", "gagarin",
+        "bone_armor", "shadow_blade", "ember_crown", "plague_mist", "starforged",
+        "slavic_mage", "soviet_engineer", "assassin_cloak"
+    };
+
+    private static final String[] PIECE_SUFFIXES = {"helmet", "chestplate", "leggings", "boots"};
+
+    private void initSetPieceMap() {
+        for (String setKey : SET_KEYS) {
+            for (String piece : PIECE_SUFFIXES) {
+                setPieceMap.put(setKey + "_" + piece, setKey);
+            }
+        }
     }
 
     public MarketEntry get(String id) { return entries.get(id); }
@@ -134,15 +159,40 @@ public class MarketService {
     }
 
     public void giveItems(Player p, MarketEntry entry, int amount) {
+        String setKey = setPieceMap.get(entry.id());
         int maxStack = entry.material().getMaxStackSize();
         while (amount > 0) {
             int give = Math.min(amount, maxStack);
-            Map<Integer, ItemStack> leftover = p.getInventory().addItem(new ItemStack(entry.material(), give));
-            if (!leftover.isEmpty()) {
-                for (ItemStack drop : leftover.values()) p.getWorld().dropItemNaturally(p.getLocation(), drop);
+            if (setKey != null) {
+                for (int i = 0; i < give; i++) {
+                    ItemStack item = createSetPiece(entry, setKey);
+                    Map<Integer, ItemStack> leftover = p.getInventory().addItem(item);
+                    if (!leftover.isEmpty()) {
+                        for (ItemStack drop : leftover.values()) p.getWorld().dropItemNaturally(p.getLocation(), drop);
+                    }
+                }
+            } else {
+                Map<Integer, ItemStack> leftover = p.getInventory().addItem(new ItemStack(entry.material(), give));
+                if (!leftover.isEmpty()) {
+                    for (ItemStack drop : leftover.values()) p.getWorld().dropItemNaturally(p.getLocation(), drop);
+                }
             }
             amount -= give;
         }
+    }
+
+    private ItemStack createSetPiece(MarketEntry entry, String setKey) {
+        ItemStack item = new ItemStack(entry.material(), 1);
+        ItemMeta meta = item.getItemMeta();
+        if (meta != null) {
+            meta.setDisplayName(entry.displayName());
+            NamespacedKey gearSetKey = new NamespacedKey(plugin, "gear_set");
+            NamespacedKey originKey = new NamespacedKey(plugin, "gear_set_origin");
+            meta.getPersistentDataContainer().set(gearSetKey, PersistentDataType.STRING, setKey);
+            meta.getPersistentDataContainer().set(originKey, PersistentDataType.STRING, "market");
+            item.setItemMeta(meta);
+        }
+        return item;
     }
 
     public int sellAll(Player p, MarketCategory category) {

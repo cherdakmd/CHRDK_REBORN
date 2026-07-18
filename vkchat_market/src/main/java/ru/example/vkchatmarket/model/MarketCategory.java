@@ -14,7 +14,8 @@ public enum MarketCategory {
     TOOLS(Material.DIAMOND_PICKAXE),
     DECOR(Material.WHITE_WOOL),
     POTIONS(Material.BREWING_STAND),
-    NETHER(Material.NETHERRACK);
+    NETHER(Material.NETHERRACK),
+    ARMOR_SETS(Material.NETHERITE_CHESTPLATE);
 
     private final Material icon;
 

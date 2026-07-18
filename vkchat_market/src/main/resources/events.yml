@@ -83,3 +83,15 @@ events:
       category: tools
       buy-mult: 0.60
       sell-mult: 0.50
+    armor_sets_hype:
+      name: "§6⚔ Наборы Доспехов в Цене"
+      description: "Раритетные наборы разлетаются!"
+      category: armor_sets
+      buy-mult: 1.50
+      sell-mult: 1.40
+    armor_sets_sale:
+      name: "§6💎 Скидка на Наборы Доспехов"
+      description: "Время собрать сет!"
+      category: armor_sets
+      buy-mult: 0.65
+      sell-mult: 0.55

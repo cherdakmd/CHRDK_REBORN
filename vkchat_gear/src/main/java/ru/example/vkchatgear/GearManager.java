@@ -303,7 +303,7 @@ public class GearManager {
             return plugin.getConfig().getBoolean("hardcore-forging.set-fragments.allow-legacy", false);
         }
         origin = origin.toLowerCase(Locale.ROOT);
-        if (origin.equals("fragment") || origin.equals("admin") || origin.equals("nation") || origin.equals("mob_drop") || origin.equals("offline_reward")) return true;
+        if (origin.equals("fragment") || origin.equals("admin") || origin.equals("nation") || origin.equals("mob_drop") || origin.equals("offline_reward") || origin.equals("market")) return true;
         if (origin.equals("legacy")) return plugin.getConfig().getBoolean("hardcore-forging.set-fragments.allow-legacy", false);
         return false;
     }

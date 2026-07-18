@@ -38,6 +38,9 @@ categories:
   nether:
     name: "§4🔥 Незер и Энд"
     material: NETHERRACK
+  armor_sets:
+    name: "§6⚔ Наборы Доспехов"
+    material: NETHERITE_CHESTPLATE
 
 items:
   # === РУДЫ И СЛИТКИ (17) ===
@@ -1088,3 +1091,642 @@ items:
     name: "§6Блок магмы"
     category: nether
     base-price: 8
+
+  # ═══════════════════════════════════════════════════
+  # НАБОРЫ ДОСПЕХОВ (25 сетов × 4 части = 100)
+  # ═══════════════════════════════════════════════════
+
+  # ── Славянские наборы ──
+
+  bogatyr_helmet:
+    material: NETHERITE_HELMET
+    name: "§aБогатырь Шлем"
+    category: armor_sets
+    set-key: bogatyr
+    base-price: 800
+  bogatyr_chestplate:
+    material: NETHERITE_CHESTPLATE
+    name: "§aБогатырь Кираса"
+    category: armor_sets
+    set-key: bogatyr
+    base-price: 1200
+  bogatyr_leggings:
+    material: NETHERITE_LEGGINGS
+    name: "§aБогатырь Поножи"
+    category: armor_sets
+    set-key: bogatyr
+    base-price: 1000
+  bogatyr_boots:
+    material: NETHERITE_BOOTS
+    name: "§aБогатырь Ботинки"
+    category: armor_sets
+    set-key: bogatyr
+    base-price: 880
+
+  leshy_helmet:
+    material: NETHERITE_HELMET
+    name: "§aЛеший Шлем"
+    category: armor_sets
+    set-key: leshy
+    base-price: 800
+  leshy_chestplate:
+    material: NETHERITE_CHESTPLATE
+    name: "§aЛеший Кираса"
+    category: armor_sets
+    set-key: leshy
+    base-price: 1200
+  leshy_leggings:
+    material: NETHERITE_LEGGINGS
+    name: "§aЛеший Поножи"
+    category: armor_sets
+    set-key: leshy
+    base-price: 1000
+  leshy_boots:
+    material: NETHERITE_BOOTS
+    name: "§aЛеший Ботинки"
+    category: armor_sets
+    set-key: leshy
+    base-price: 880
+
+  koshchey_helmet:
+    material: NETHERITE_HELMET
+    name: "§aБессмертный Шлем"
+    category: armor_sets
+    set-key: koshchey
+    base-price: 800
+  koshchey_chestplate:
+    material: NETHERITE_CHESTPLATE
+    name: "§aБессмертный Кираса"
+    category: armor_sets
+    set-key: koshchey
+    base-price: 1200
+  koshchey_leggings:
+    material: NETHERITE_LEGGINGS
+    name: "§aБессмертный Поножи"
+    category: armor_sets
+    set-key: koshchey
+    base-price: 1000
+  koshchey_boots:
+    material: NETHERITE_BOOTS
+    name: "§aБессмертный Ботинки"
+    category: armor_sets
+    set-key: koshchey
+    base-price: 880
+
+  volhv_helmet:
+    material: NETHERITE_HELMET
+    name: "§aВолхв Шлем"
+    category: armor_sets
+    set-key: volhv
+    base-price: 800
+  volhv_chestplate:
+    material: NETHERITE_CHESTPLATE
+    name: "§aВолхв Кираса"
+    category: armor_sets
+    set-key: volhv
+    base-price: 1200
+  volhv_leggings:
+    material: NETHERITE_LEGGINGS
+    name: "§aВолхв Поножи"
+    category: armor_sets
+    set-key: volhv
+    base-price: 1000
+  volhv_boots:
+    material: NETHERITE_BOOTS
+    name: "§aВолхв Ботинки"
+    category: armor_sets
+    set-key: volhv
+    base-price: 880
+
+  sokol_helmet:
+    material: NETHERITE_HELMET
+    name: "§aЯсный Сокол Шлем"
+    category: armor_sets
+    set-key: sokol
+    base-price: 800
+  sokol_chestplate:
+    material: NETHERITE_CHESTPLATE
+    name: "§aЯсный Сокол Кираса"
+    category: armor_sets
+    set-key: sokol
+    base-price: 1200
+  sokol_leggings:
+    material: NETHERITE_LEGGINGS
+    name: "§aЯсный Сокол Поножи"
+    category: armor_sets
+    set-key: sokol
+    base-price: 1000
+  sokol_boots:
+    material: NETHERITE_BOOTS
+    name: "§aЯсный Сокол Ботинки"
+    category: armor_sets
+    set-key: sokol
+    base-price: 880
+
+  # ── Советские наборы ──
+
+  proletarian_helmet:
+    material: NETHERITE_HELMET
+    name: "§cПролетарий Шлем"
+    category: armor_sets
+    set-key: proletarian
+    base-price: 800
+  proletarian_chestplate:
+    material: NETHERITE_CHESTPLATE
+    name: "§cПролетарий Кираса"
+    category: armor_sets
+    set-key: proletarian
+    base-price: 1200
+  proletarian_leggings:
+    material: NETHERITE_LEGGINGS
+    name: "§cПролетарий Поножи"
+    category: armor_sets
+    set-key: proletarian
+    base-price: 1000
+  proletarian_boots:
+    material: NETHERITE_BOOTS
+    name: "§cПролетарий Ботинки"
+    category: armor_sets
+    set-key: proletarian
+    base-price: 880
+
+  udarnik_helmet:
+    material: NETHERITE_HELMET
+    name: "§cУдарник Труда Шлем"
+    category: armor_sets
+    set-key: udarnik
+    base-price: 800
+  udarnik_chestplate:
+    material: NETHERITE_CHESTPLATE
+    name: "§cУдарник Труда Кираса"
+    category: armor_sets
+    set-key: udarnik
+    base-price: 1200
+  udarnik_leggings:
+    material: NETHERITE_LEGGINGS
+    name: "§cУдарник Труда Поножи"
+    category: armor_sets
+    set-key: udarnik
+    base-price: 1000
+  udarnik_boots:
+    material: NETHERITE_BOOTS
+    name: "§cУдарник Труда Ботинки"
+    category: armor_sets
+    set-key: udarnik
+    base-price: 880
+
+  cosmonaut_helmet:
+    material: NETHERITE_HELMET
+    name: "§cКосмонавт Шлем"
+    category: armor_sets
+    set-key: cosmonaut
+    base-price: 800
+  cosmonaut_chestplate:
+    material: NETHERITE_CHESTPLATE
+    name: "§cКосмонавт Кираса"
+    category: armor_sets
+    set-key: cosmonaut
+    base-price: 1200
+  cosmonaut_leggings:
+    material: NETHERITE_LEGGINGS
+    name: "§cКосмонавт Поножи"
+    category: armor_sets
+    set-key: cosmonaut
+    base-price: 1000
+  cosmonaut_boots:
+    material: NETHERITE_BOOTS
+    name: "§cКосмонавт Ботинки"
+    category: armor_sets
+    set-key: cosmonaut
+    base-price: 880
+
+  tankist_helmet:
+    material: NETHERITE_HELMET
+    name: "§cТанкист Шлем"
+    category: armor_sets
+    set-key: tankist
+    base-price: 800
+  tankist_chestplate:
+    material: NETHERITE_CHESTPLATE
+    name: "§cТанкист Кираса"
+    category: armor_sets
+    set-key: tankist
+    base-price: 1200
+  tankist_leggings:
+    material: NETHERITE_LEGGINGS
+    name: "§cТанкист Поножи"
+    category: armor_sets
+    set-key: tankist
+    base-price: 1000
+  tankist_boots:
+    material: NETHERITE_BOOTS
+    name: "§cТанкист Ботинки"
+    category: armor_sets
+    set-key: tankist
+    base-price: 880
+
+  pioneer_helmet:
+    material: NETHERITE_HELMET
+    name: "§cПионер Шлем"
+    category: armor_sets
+    set-key: pioneer
+    base-price: 800
+  pioneer_chestplate:
+    material: NETHERITE_CHESTPLATE
+    name: "§cПионер Кираса"
+    category: armor_sets
+    set-key: pioneer
+    base-price: 1200
+  pioneer_leggings:
+    material: NETHERITE_LEGGINGS
+    name: "§cПионер Поножи"
+    category: armor_sets
+    set-key: pioneer
+    base-price: 1000
+  pioneer_boots:
+    material: NETHERITE_BOOTS
+    name: "§cПионер Ботинки"
+    category: armor_sets
+    set-key: pioneer
+    base-price: 880
+
+  # ── Легендарные наборы ──
+
+  red_cat_helmet:
+    material: NETHERITE_HELMET
+    name: "§6РЫЖИЙ КОТ Шлем"
+    category: armor_sets
+    set-key: red_cat
+    base-price: 3000
+  red_cat_chestplate:
+    material: NETHERITE_CHESTPLATE
+    name: "§6РЫЖИЙ КОТ Кираса"
+    category: armor_sets
+    set-key: red_cat
+    base-price: 4500
+  red_cat_leggings:
+    material: NETHERITE_LEGGINGS
+    name: "§6РЫЖИЙ КОТ Поножи"
+    category: armor_sets
+    set-key: red_cat
+    base-price: 3750
+  red_cat_boots:
+    material: NETHERITE_BOOTS
+    name: "§6РЫЖИЙ КОТ Ботинки"
+    category: armor_sets
+    set-key: red_cat
+    base-price: 3300
+
+  dragon_slayer_helmet:
+    material: NETHERITE_HELMET
+    name: "§6Драконоборец Шлем"
+    category: armor_sets
+    set-key: dragon_slayer
+    base-price: 3000
+  dragon_slayer_chestplate:
+    material: NETHERITE_CHESTPLATE
+    name: "§6Драконоборец Кираса"
+    category: armor_sets
+    set-key: dragon_slayer
+    base-price: 4500
+  dragon_slayer_leggings:
+    material: NETHERITE_LEGGINGS
+    name: "§6Драконоборец Поножи"
+    category: armor_sets
+    set-key: dragon_slayer
+    base-price: 3750
+  dragon_slayer_boots:
+    material: NETHERITE_BOOTS
+    name: "§6Драконоборец Ботинки"
+    category: armor_sets
+    set-key: dragon_slayer
+    base-price: 3300
+
+  el_carpo_helmet:
+    material: NETHERITE_HELMET
+    name: "§6EL CARPO Шлем"
+    category: armor_sets
+    set-key: el_carpo
+    base-price: 3000
+  el_carpo_chestplate:
+    material: NETHERITE_CHESTPLATE
+    name: "§6EL CARPO Кираса"
+    category: armor_sets
+    set-key: el_carpo
+    base-price: 4500
+  el_carpo_leggings:
+    material: NETHERITE_LEGGINGS
+    name: "§6EL CARPO Поножи"
+    category: armor_sets
+    set-key: el_carpo
+    base-price: 3750
+  el_carpo_boots:
+    material: NETHERITE_BOOTS
+    name: "§6EL CARPO Ботинки"
+    category: armor_sets
+    set-key: el_carpo
+    base-price: 3300
+
+  shadow_monarch_helmet:
+    material: NETHERITE_HELMET
+    name: "§6Теневой Монарх Шлем"
+    category: armor_sets
+    set-key: shadow_monarch
+    base-price: 3000
+  shadow_monarch_chestplate:
+    material: NETHERITE_CHESTPLATE
+    name: "§6Теневой Монарх Кираса"
+    category: armor_sets
+    set-key: shadow_monarch
+    base-price: 4500
+  shadow_monarch_leggings:
+    material: NETHERITE_LEGGINGS
+    name: "§6Теневой Монарх Поножи"
+    category: armor_sets
+    set-key: shadow_monarch
+    base-price: 3750
+  shadow_monarch_boots:
+    material: NETHERITE_BOOTS
+    name: "§6Теневой Монарх Ботинки"
+    category: armor_sets
+    set-key: shadow_monarch
+    base-price: 3300
+
+  perun_helmet:
+    material: NETHERITE_HELMET
+    name: "§6Грозовой Доспех Шлем"
+    category: armor_sets
+    set-key: perun
+    base-price: 3000
+  perun_chestplate:
+    material: NETHERITE_CHESTPLATE
+    name: "§6Грозовой Доспех Кираса"
+    category: armor_sets
+    set-key: perun
+    base-price: 4500
+  perun_leggings:
+    material: NETHERITE_LEGGINGS
+    name: "§6Грозовой Доспех Поножи"
+    category: armor_sets
+    set-key: perun
+    base-price: 3750
+  perun_boots:
+    material: NETHERITE_BOOTS
+    name: "§6Грозовой Доспех Ботинки"
+    category: armor_sets
+    set-key: perun
+    base-price: 3300
+
+  chernobog_helmet:
+    material: NETHERITE_HELMET
+    name: "§6Чернобог Шлем"
+    category: armor_sets
+    set-key: chernobog
+    base-price: 3000
+  chernobog_chestplate:
+    material: NETHERITE_CHESTPLATE
+    name: "§6Чернобог Кираса"
+    category: armor_sets
+    set-key: chernobog
+    base-price: 4500
+  chernobog_leggings:
+    material: NETHERITE_LEGGINGS
+    name: "§6Чернобог Поножи"
+    category: armor_sets
+    set-key: chernobog
+    base-price: 3750
+  chernobog_boots:
+    material: NETHERITE_BOOTS
+    name: "§6Чернобог Ботинки"
+    category: armor_sets
+    set-key: chernobog
+    base-price: 3300
+
+  gagarin_helmet:
+    material: NETHERITE_HELMET
+    name: "§6Космонавт Гагарин Шлем"
+    category: armor_sets
+    set-key: gagarin
+    base-price: 3000
+  gagarin_chestplate:
+    material: NETHERITE_CHESTPLATE
+    name: "§6Космонавт Гагарин Кираса"
+    category: armor_sets
+    set-key: gagarin
+    base-price: 4500
+  gagarin_leggings:
+    material: NETHERITE_LEGGINGS
+    name: "§6Космонавт Гагарин Поножи"
+    category: armor_sets
+    set-key: gagarin
+    base-price: 3750
+  gagarin_boots:
+    material: NETHERITE_BOOTS
+    name: "§6Космонавт Гагарин Ботинки"
+    category: armor_sets
+    set-key: gagarin
+    base-price: 3300
+
+  # ── Мифические наборы ──
+
+  bone_armor_helmet:
+    material: NETHERITE_HELMET
+    name: "§5Костяной Доспех Шлем"
+    category: armor_sets
+    set-key: bone_armor
+    base-price: 2500
+  bone_armor_chestplate:
+    material: NETHERITE_CHESTPLATE
+    name: "§5Костяной Доспех Кираса"
+    category: armor_sets
+    set-key: bone_armor
+    base-price: 3750
+  bone_armor_leggings:
+    material: NETHERITE_LEGGINGS
+    name: "§5Костяной Доспех Поножи"
+    category: armor_sets
+    set-key: bone_armor
+    base-price: 3125
+  bone_armor_boots:
+    material: NETHERITE_BOOTS
+    name: "§5Костяной Доспех Ботинки"
+    category: armor_sets
+    set-key: bone_armor
+    base-price: 2750
+
+  shadow_blade_helmet:
+    material: NETHERITE_HELMET
+    name: "§5Клинок Тени Шлем"
+    category: armor_sets
+    set-key: shadow_blade
+    base-price: 2500
+  shadow_blade_chestplate:
+    material: NETHERITE_CHESTPLATE
+    name: "§5Клинок Тени Кираса"
+    category: armor_sets
+    set-key: shadow_blade
+    base-price: 3750
+  shadow_blade_leggings:
+    material: NETHERITE_LEGGINGS
+    name: "§5Клинок Тени Поножи"
+    category: armor_sets
+    set-key: shadow_blade
+    base-price: 3125
+  shadow_blade_boots:
+    material: NETHERITE_BOOTS
+    name: "§5Клинок Тени Ботинки"
+    category: armor_sets
+    set-key: shadow_blade
+    base-price: 2750
+
+  ember_crown_helmet:
+    material: NETHERITE_HELMET
+    name: "§5Пепельная Корона Шлем"
+    category: armor_sets
+    set-key: ember_crown
+    base-price: 2500
+  ember_crown_chestplate:
+    material: NETHERITE_CHESTPLATE
+    name: "§5Пепельная Корона Кираса"
+    category: armor_sets
+    set-key: ember_crown
+    base-price: 3750
+  ember_crown_leggings:
+    material: NETHERITE_LEGGINGS
+    name: "§5Пепельная Корона Поножи"
+    category: armor_sets
+    set-key: ember_crown
+    base-price: 3125
+  ember_crown_boots:
+    material: NETHERITE_BOOTS
+    name: "§5Пепельная Корона Ботинки"
+    category: armor_sets
+    set-key: ember_crown
+    base-price: 2750
+
+  plague_mist_helmet:
+    material: NETHERITE_HELMET
+    name: "§5Моровой Туман Шлем"
+    category: armor_sets
+    set-key: plague_mist
+    base-price: 2500
+  plague_mist_chestplate:
+    material: NETHERITE_CHESTPLATE
+    name: "§5Моровой Туман Кираса"
+    category: armor_sets
+    set-key: plague_mist
+    base-price: 3750
+  plague_mist_leggings:
+    material: NETHERITE_LEGGINGS
+    name: "§5Моровой Туман Поножи"
+    category: armor_sets
+    set-key: plague_mist
+    base-price: 3125
+  plague_mist_boots:
+    material: NETHERITE_BOOTS
+    name: "§5Моровой Туман Ботинки"
+    category: armor_sets
+    set-key: plague_mist
+    base-price: 2750
+
+  starforged_helmet:
+    material: NETHERITE_HELMET
+    name: "§5Звёздная Ковка Шлем"
+    category: armor_sets
+    set-key: starforged
+    base-price: 2500
+  starforged_chestplate:
+    material: NETHERITE_CHESTPLATE
+    name: "§5Звёздная Ковка Кираса"
+    category: armor_sets
+    set-key: starforged
+    base-price: 3750
+  starforged_leggings:
+    material: NETHERITE_LEGGINGS
+    name: "§5Звёздная Ковка Поножи"
+    category: armor_sets
+    set-key: starforged
+    base-price: 3125
+  starforged_boots:
+    material: NETHERITE_BOOTS
+    name: "§5Звёздная Ковка Ботинки"
+    category: armor_sets
+    set-key: starforged
+    base-price: 2750
+
+  # ── Дополнительные наборы ──
+
+  slavic_mage_helmet:
+    material: NETHERITE_HELMET
+    name: "§bСлавянский Волхв Шлем"
+    category: armor_sets
+    set-key: slavic_mage
+    base-price: 2000
+  slavic_mage_chestplate:
+    material: NETHERITE_CHESTPLATE
+    name: "§bСлавянский Волхв Кираса"
+    category: armor_sets
+    set-key: slavic_mage
+    base-price: 3000
+  slavic_mage_leggings:
+    material: NETHERITE_LEGGINGS
+    name: "§bСлавянский Волхв Поножи"
+    category: armor_sets
+    set-key: slavic_mage
+    base-price: 2500
+  slavic_mage_boots:
+    material: NETHERITE_BOOTS
+    name: "§bСлавянский Волхв Ботинки"
+    category: armor_sets
+    set-key: slavic_mage
+    base-price: 2200
+
+  soviet_engineer_helmet:
+    material: NETHERITE_HELMET
+    name: "§bИнженер Шлем"
+    category: armor_sets
+    set-key: soviet_engineer
+    base-price: 2000
+  soviet_engineer_chestplate:
+    material: NETHERITE_CHESTPLATE
+    name: "§bИнженер Кираса"
+    category: armor_sets
+    set-key: soviet_engineer
+    base-price: 3000
+  soviet_engineer_leggings:
+    material: NETHERITE_LEGGINGS
+    name: "§bИнженер Поножи"
+    category: armor_sets
+    set-key: soviet_engineer
+    base-price: 2500
+  soviet_engineer_boots:
+    material: NETHERITE_BOOTS
+    name: "§bИнженер Ботинки"
+    category: armor_sets
+    set-key: soviet_engineer
+    base-price: 2200
+
+  assassin_cloak_helmet:
+    material: NETHERITE_HELMET
+    name: "§bМантия Убийцы Шлем"
+    category: armor_sets
+    set-key: assassin_cloak
+    base-price: 2000
+  assassin_cloak_chestplate:
+    material: NETHERITE_CHESTPLATE
+    name: "§bМантия Убийцы Кираса"
+    category: armor_sets
+    set-key: assassin_cloak
+    base-price: 3000
+  assassin_cloak_leggings:
+    material: NETHERITE_LEGGINGS
+    name: "§bМантия Убийцы Поножи"
+    category: armor_sets
+    set-key: assassin_cloak
+    base-price: 2500
+  assassin_cloak_boots:
+    material: NETHERITE_BOOTS
+    name: "§bМантия Убийцы Ботинки"
+    category: armor_sets
+    set-key: assassin_cloak
+    base-price: 2200
