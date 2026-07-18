@@ -8,6 +8,10 @@ config-version: 4
 # Где получить: donatepay.ru → Мои кассы → Настройки → API
 api-token: "YOUR_DONATEPAY_TOKEN"
 
+# Ссылка на страницу доната (показывается в /donate info и сообщениях)
+# Оставь пустым чтобы скрыть
+donate-page-url: ""
+
 # Интервал проверки новых донатов (секунды)
 # Используется только если webhook.enabled=false
 poll-interval: 30

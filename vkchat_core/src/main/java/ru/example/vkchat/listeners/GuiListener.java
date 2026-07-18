@@ -211,7 +211,16 @@ public class GuiListener implements Listener {
             case 21: run(p, "market"); break;
             case 22: p.closeInventory(); p.sendMessage(ChatColor.AQUA + "Телепорты: /rtp, /sethome, /home, /tpa"); break;
             case 23: run(p, "salvage"); break;
-            case 24: p.closeInventory(); p.sendMessage(ChatColor.GOLD + "💰 Поддержать сервер: " + ChatColor.WHITE + "https://donatepay.ru/don/CHRDK"); p.sendMessage(ChatColor.GRAY + "5 статусов на 30 дней со скидками до -65%!"); p.sendMessage(ChatColor.YELLOW + "Подробнее: /donate info"); break;
+            case 24: {
+                p.closeInventory();
+                String url = plugin.getConfig().getString("donate-page-url", "");
+                if (!url.isEmpty()) {
+                    p.sendMessage(ChatColor.GOLD + "💰 Поддержать сервер: " + ChatColor.WHITE + url);
+                }
+                p.sendMessage(ChatColor.GRAY + "5 статусов на 30 дней со скидками до -65%!");
+                p.sendMessage(ChatColor.YELLOW + "Подробнее: /donate info");
+                break;
+            }
             case 31: openVkMenu(p); break;
             case 32: openHelpMenu(p); break;
             case 33: openNewbieMenu(p); break;

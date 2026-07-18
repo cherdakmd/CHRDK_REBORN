@@ -872,6 +872,12 @@ public class DonateManager {
                 .append(" §7| Конвертировано: §f").append(pm.getTotalConverted()).append("\n");
         sb.append("\n§7Всего донатеров: §f").append(getDonorCount());
         sb.append(" §7| Общая сумма: §f").append(String.format("%.0f", getTotalDonatedAll())).append("₽\n");
+
+        String pageUrl = plugin.getConfig().getString("donate-page-url", "");
+        if (!pageUrl.isEmpty()) {
+            sb.append("\n§e🔗 Донат-страница: §f").append(pageUrl).append("\n");
+        }
+
         return sb.toString();
     }
 
