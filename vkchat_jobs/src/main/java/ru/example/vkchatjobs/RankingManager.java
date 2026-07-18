@@ -2,9 +2,11 @@ package ru.example.vkchatjobs;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Material;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 
 import java.io.File;
 import java.io.IOException;
@@ -61,6 +63,10 @@ public class RankingManager {
     public void checkWeeklyReset() {
         String current = getWeekKey();
         if (!current.equals(lastResetWeek)) {
+            if (!weeklyRepEarned.isEmpty()) {
+                broadcastTop();
+                save();
+            }
             lastResetWeek = current;
             weeklyRepEarned.clear();
             plugin.getLogger().info("Еженедельный рейтинг сброшен.");
@@ -132,18 +138,35 @@ public class RankingManager {
     }
 
     private void giveRankRewards(List<UUID> sorted) {
-        int first = plugin.getConfig().getInt("ranking.rewards.1st", 300);
-        int second = plugin.getConfig().getInt("ranking.rewards.2nd", 200);
-        int third = plugin.getConfig().getInt("ranking.rewards.3rd", 100);
-        int[] rewards = {first, second, third};
-
         for (int i = 0; i < Math.min(3, sorted.size()); i++) {
             UUID uuid = sorted.get(i);
-            if (rewards[i] <= 0) continue;
             Player p = Bukkit.getPlayer(uuid);
-            if (p != null && p.isOnline()) {
-                rewardVkRep(p, rewards[i], "Топ-" + (i + 1) + " рейтинга профессий");
+            if (p == null || !p.isOnline()) continue;
+
+            String rankKey = String.valueOf(i + 1);
+
+            int repReward = plugin.getConfig().getInt("rank-rewards.weekly." + rankKey + ".reputation", -1);
+            if (repReward < 0) {
+                repReward = plugin.getConfig().getInt("ranking.rewards." + rankKey + "th",
+                        i == 0 ? 300 : i == 1 ? 200 : 100);
             }
+            if (repReward > 0) {
+                rewardVkRep(p, repReward, "Топ-" + rankKey + " рейтинга профессий");
+            }
+
+            if (!plugin.getConfig().getBoolean("rank-rewards.enabled", true)) continue;
+
+            String matName = plugin.getConfig().getString("rank-rewards.weekly." + rankKey + ".material", null);
+            int amount = plugin.getConfig().getInt("rank-rewards.weekly." + rankKey + ".amount", 1);
+            if (matName == null || matName.isEmpty()) continue;
+
+            try {
+                Material mat = Material.valueOf(matName.toUpperCase(java.util.Locale.ROOT));
+                java.util.Map<Integer, ItemStack> left = p.getInventory().addItem(new ItemStack(mat, Math.max(1, amount)));
+                left.values().forEach(item -> p.getWorld().dropItemNaturally(p.getLocation(), item));
+                p.sendMessage(ChatColor.GOLD + "🎁 Ранговая награда за топ-" + rankKey + ": " + mat.name() + " x" + amount);
+                p.playSound(p.getLocation(), org.bukkit.Sound.ENTITY_PLAYER_LEVELUP, 1f, 1.5f);
+            } catch (Exception ignored) {}
         }
     }
 
@@ -155,6 +178,17 @@ public class RankingManager {
 
     public int getWeeklyRep(UUID uuid) {
         return weeklyRepEarned.getOrDefault(uuid, 0);
+    }
+
+    public int getPlayerRank(UUID uuid) {
+        int myRep = weeklyRepEarned.getOrDefault(uuid, 0);
+        if (myRep <= 0) return -1;
+        List<UUID> sorted = new ArrayList<>(weeklyRepEarned.keySet());
+        sorted.sort((a, b) -> Integer.compare(weeklyRepEarned.getOrDefault(b, 0), weeklyRepEarned.getOrDefault(a, 0)));
+        for (int i = 0; i < sorted.size(); i++) {
+            if (sorted.get(i).equals(uuid)) return i + 1;
+        }
+        return -1;
     }
 
     private void rewardVkRep(Player p, int amount, String reason) {

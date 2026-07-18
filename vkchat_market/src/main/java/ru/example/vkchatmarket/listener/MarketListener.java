@@ -14,6 +14,7 @@ import org.bukkit.persistence.PersistentDataType;
 import ru.example.vkchat.util.VKChatBridge;
 import ru.example.vkchatmarket.VKChatMarketPlugin;
 import ru.example.vkchatmarket.gui.MarketGui;
+import ru.example.vkchatmarket.gui.PlayerGuiState;
 import ru.example.vkchatmarket.model.MarketCategory;
 import ru.example.vkchatmarket.model.MarketEntry;
 import ru.example.vkchatmarket.prompt.PlayerPromptService;
@@ -29,7 +30,6 @@ public class MarketListener implements Listener {
     private final NamespacedKey sellAllConfirmKey;
 
     private final Map<UUID, Long> tradeCooldown = new ConcurrentHashMap<>();
-    private final Map<UUID, List<String>> recentTrades = new ConcurrentHashMap<>();
     private static final long COOLDOWN_MS = 300;
     private static final int MAX_RECENT = 10;
 
@@ -52,7 +52,7 @@ public class MarketListener implements Listener {
         if (current == null || !current.hasItemMeta()) return;
         ItemMeta meta = current.getItemMeta();
 
-        // Sell all — confirm
+        // Sell all confirm
         if (meta.getPersistentDataContainer().has(sellAllConfirmKey, PersistentDataType.STRING)) {
             String catKeyVal = meta.getPersistentDataContainer().get(sellAllConfirmKey, PersistentDataType.STRING);
             MarketCategory mc = MarketCategory.fromConfig(catKeyVal);
@@ -61,11 +61,42 @@ public class MarketListener implements Listener {
             if (earned > 0) {
                 p.sendMessage("§a✓ Всё продано! Выручка: §e" + earned + " реп.");
                 playSound(p, Sound.ENTITY_PLAYER_LEVELUP);
-                logTrade(p, "SELL_ALL", earned);
             } else {
                 p.sendMessage("§7Нет предметов для продажи.");
             }
             MarketGui.openMainMenu(plugin, p);
+            return;
+        }
+
+        // Bulk confirm
+        if (hasPdc(meta, "mkt_bulk_confirm")) {
+            handleBulkConfirm(p, title);
+            return;
+        }
+
+        // Bulk cancel
+        if (hasPdc(meta, "mkt_bulk_cancel")) {
+            MarketGui.openMainMenu(plugin, p);
+            playSound(p, Sound.UI_BUTTON_CLICK);
+            return;
+        }
+
+        // Cart buy
+        if (hasPdc(meta, "mkt_cart_buy")) {
+            handleCartBuy(p);
+            return;
+        }
+
+        // Sort buttons
+        if (meta.getPersistentDataContainer().has(new NamespacedKey(plugin, "mkt_sort"), PersistentDataType.STRING)) {
+            String sortModeName = meta.getPersistentDataContainer().get(new NamespacedKey(plugin, "mkt_sort"), PersistentDataType.STRING);
+            try {
+                PlayerGuiState.SortMode mode = PlayerGuiState.SortMode.valueOf(sortModeName);
+                plugin.getGuiState().setSort(p.getUniqueId(), mode);
+                var state = plugin.getGuiState().get(p.getUniqueId());
+                MarketGui.openCategory(plugin, p, state.categoryKey(), state.page());
+                playSound(p, Sound.UI_BUTTON_CLICK);
+            } catch (Exception ignored) {}
             return;
         }
 
@@ -119,6 +150,7 @@ public class MarketListener implements Listener {
         if (hasPdc(meta, "mkt_search")) {
             p.closeInventory();
             p.sendMessage("§e🔍 Введи название предмета в чат (или 'отмена'):");
+            p.sendMessage("§7Префиксы: §eore:§7, §efood:§7, §earmor:§7 и т.д.");
             plugin.getPromptService().startSearch(p.getUniqueId());
             return;
         }
@@ -138,10 +170,47 @@ public class MarketListener implements Listener {
             return;
         }
 
+        // Stats
+        if (hasPdc(meta, "mkt_stats")) {
+            showStats(p);
+            return;
+        }
+
+        // Daily reward
+        if (hasPdc(meta, "mkt_daily")) {
+            handleDailyReward(p);
+            return;
+        }
+
+        // Profile
+        if (hasPdc(meta, "mkt_profile")) {
+            showProfile(p);
+            return;
+        }
+
+        // Cart (main menu)
+        if (meta.getPersistentDataContainer().has(new NamespacedKey(plugin, "mkt_cat"), PersistentDataType.STRING)) {
+            String catVal = meta.getPersistentDataContainer().get(new NamespacedKey(plugin, "mkt_cat"), PersistentDataType.STRING);
+            if ("mkt_cart".equals(catVal)) {
+                MarketGui.openCartView(plugin, p);
+                playSound(p, Sound.UI_BUTTON_CLICK);
+                return;
+            }
+        }
+
+        // Cart close
+        if (hasPdc(meta, "mkt_cart_close")) {
+            var state = plugin.getGuiState().get(p.getUniqueId());
+            MarketGui.openCategory(plugin, p, state.categoryKey(), state.page());
+            playSound(p, Sound.UI_BUTTON_CLICK);
+            return;
+        }
+
         // Category
         if (meta.getPersistentDataContainer().has(catKey, PersistentDataType.STRING)) {
             String cat = meta.getPersistentDataContainer().get(catKey, PersistentDataType.STRING);
             if ("menu".equals(cat)) { MarketGui.openMainMenu(plugin, p); playSound(p, Sound.UI_BUTTON_CLICK); return; }
+            if ("mkt_cart".equals(cat)) { MarketGui.openCartView(plugin, p); playSound(p, Sound.UI_BUTTON_CLICK); return; }
             MarketGui.openCategory(plugin, p, cat, 0);
             playSound(p, Sound.UI_BUTTON_CLICK);
             return;
@@ -164,10 +233,120 @@ public class MarketListener implements Listener {
             return;
         }
 
-        if (click == ClickType.LEFT)         trade(p, "sell", entry, 1, parsedCat);
-        else if (click == ClickType.SHIFT_LEFT)  trade(p, "sell", entry, 64, parsedCat);
-        else if (click == ClickType.RIGHT)       trade(p, "buy", entry, 1, parsedCat);
-        else if (click == ClickType.SHIFT_RIGHT) trade(p, "buy", entry, 16, parsedCat);
+        // Bulk confirm for large amounts
+        boolean bulk = plugin.getGuiState().get(p.getUniqueId()).bulkMode();
+        if (click == ClickType.SHIFT_LEFT) {
+            int amt = bulk ? 128 : 64;
+            if (amt > 32) { handleBulkTrade(p, "sell", entry, amt, parsedCat); return; }
+            trade(p, "sell", entry, amt, parsedCat);
+        } else if (click == ClickType.SHIFT_RIGHT) {
+            int amt = bulk ? 128 : 16;
+            if (amt > 32) { handleBulkTrade(p, "buy", entry, amt, parsedCat); return; }
+            trade(p, "buy", entry, amt, parsedCat);
+        } else if (click == ClickType.LEFT) {
+            trade(p, "sell", entry, 1, parsedCat);
+        } else if (click == ClickType.RIGHT) {
+            trade(p, "buy", entry, 1, parsedCat);
+        } else if (click == ClickType.DROP) {
+            addToCart(p, entry);
+        }
+    }
+
+    private void addToCart(Player p, MarketEntry entry) {
+        plugin.getGuiState().addToCart(p.getUniqueId(), entry.id(), 1);
+        p.sendMessage("§e🛒 Добавлено в корзину: §f" + entry.displayName());
+        playSound(p, Sound.ENTITY_ITEM_PICKUP);
+    }
+
+    private void handleBulkTrade(Player p, String mode, MarketEntry entry, int amount, String catFromTitle) {
+        MarketGui.openBulkConfirm(plugin, p, mode, entry, amount);
+        plugin.getGuiState().set(p.getUniqueId(), catFromTitle, plugin.getGuiState().get(p.getUniqueId()).page(), plugin.getGuiState().get(p.getUniqueId()).searchQuery());
+    }
+
+    private void handleBulkConfirm(Player p, String title) {
+        var state = plugin.getGuiState().get(p.getUniqueId());
+        if (!checkAuth(p)) return;
+        MarketGui.openCategory(plugin, p, state.categoryKey(), state.page());
+    }
+
+    private void handleCartBuy(Player p) {
+        if (!checkAuth(p)) return;
+        var cart = plugin.getGuiState().getCart(p.getUniqueId());
+        if (cart.isEmpty()) { p.sendMessage("§7Корзина пуста."); return; }
+
+        MarketService svc = plugin.getMarketService();
+        int totalSpent = 0;
+        int itemsBought = 0;
+        for (var ce : cart.entrySet()) {
+            MarketEntry entry = svc.get(ce.getKey());
+            if (entry == null) continue;
+            int amount = ce.getValue();
+            int price = svc.prices().getBuyPrice(entry, p, amount);
+            int total = price * amount;
+            int vkId = VKChatBridge.getLinkedVkId(p);
+            int rep = VKChatBridge.getReputation(vkId);
+            if (rep < total) {
+                p.sendMessage("§c❌ Недостаточно реп. для §f" + entry.displayName() + " §c(нужно " + total + ")");
+                continue;
+            }
+            VKChatBridge.takeReputation(vkId, total);
+            svc.giveItems(p, entry, amount);
+            svc.prices().recordBuy(entry, amount);
+            totalSpent += total;
+            itemsBought += amount;
+            p.sendMessage("§a✓ Куплено §f" + amount + "x §f" + entry.displayName());
+        }
+        plugin.getGuiState().clearCart(p.getUniqueId());
+        if (totalSpent > 0) {
+            p.sendMessage("§6Итого потрачено: §e" + totalSpent + " реп. §7за §f" + itemsBought + " §7шт.");
+            playSound(p, Sound.ENTITY_PLAYER_LEVELUP);
+        }
+        MarketGui.openMainMenu(plugin, p);
+    }
+
+    private void handleDailyReward(Player p) {
+        if (!checkAuth(p)) return;
+        long last = plugin.getGuiState().getLastDailyReward(p.getUniqueId());
+        long cooldown = plugin.getSettingsConfig().getInt("settings.daily-reward-cooldown-hours", 24) * 3600000L;
+        if (System.currentTimeMillis() - last < cooldown) {
+            long remaining = (cooldown - (System.currentTimeMillis() - last)) / 60000;
+            p.sendMessage("§c⏳ Бонус уже получен. Жди §e" + remaining + " §cмин.");
+            playSound(p, Sound.ENTITY_VILLAGER_NO);
+            return;
+        }
+        int amount = plugin.getSettingsConfig().getInt("settings.daily-reward-amount", 50);
+        VKChatBridge.addEffectiveRep(p, amount);
+        plugin.getGuiState().setLastDailyReward(p.getUniqueId(), System.currentTimeMillis());
+        p.sendMessage("§a✓ Дневной бонус: §e+" + amount + " реп.");
+        playSound(p, Sound.ENTITY_PLAYER_LEVELUP);
+        MarketGui.openMainMenu(plugin, p);
+    }
+
+    private void showStats(Player p) {
+        var svc = plugin.getMarketService();
+        var prices = svc.prices();
+        p.sendMessage("§6§l═══ СТАТИСТИКА БИРЖИ ═══");
+        p.sendMessage("§7Товаров: §f" + svc.getAll().size());
+        p.sendMessage("§7Категорий: §f" + MarketCategory.values().length);
+        p.sendMessage("§7Динамика: §f" + (plugin.getSettingsConfig().getBoolean("settings.dynamic-pricing", true) ? "вкл" : "выкл"));
+        p.sendMessage("§7Событие: " + (prices.hasActiveEvent() ? "§c" + prices.getActiveEventName() : "§7нет"));
+        p.sendMessage("§6§l═══════════════════");
+        p.closeInventory();
+    }
+
+    private void showProfile(Player p) {
+        int vkId = VKChatBridge.getLinkedVkId(p);
+        int rep = vkId != -1 ? VKChatBridge.getReputation(vkId) : 0;
+        String donorTag = plugin.getMarketService().prices().donorTag(p);
+        int loyalty = plugin.getGuiState().getLoyaltyCount(p.getUniqueId());
+        int cartSize = plugin.getGuiState().getCart(p.getUniqueId()).size();
+
+        p.sendMessage("§6§l═══ ПРОФИЛЬ ТРЕЙДЕРА ═══");
+        p.sendMessage("§7Баланс: §e" + rep + " реп." + (donorTag != null ? " §6⭐ " + donorTag : ""));
+        p.sendMessage("§7Лояльность: §f" + loyalty + " §7сделок подряд");
+        p.sendMessage("§7В корзине: §f" + cartSize + " §7товаров");
+        p.sendMessage("§6§l═══════════════════");
+        p.closeInventory();
     }
 
     private void handleCustomAmount(Player p, MarketEntry entry, String catFromTitle) {
@@ -184,17 +363,28 @@ public class MarketListener implements Listener {
         MarketService svc = plugin.getMarketService();
         int vkId = VKChatBridge.getLinkedVkId(p);
 
+        // Loyalty bonus
+        var state = plugin.getGuiState();
+        if ("sell".equals(mode)) {
+            state.incrementLoyalty(p.getUniqueId());
+        } else {
+            state.resetLoyalty(p.getUniqueId());
+        }
+
         if ("buy".equals(mode)) {
             int price = svc.prices().getBuyPrice(entry, p, amount);
             int total = price * amount;
             int rep = VKChatBridge.getReputation(vkId);
-            if (rep < total) { p.sendMessage("§c❌ Нужно " + total + " реп. (у тебя " + rep + ")"); return; }
+            if (rep < total) {
+                p.sendMessage("§c❌ Нужно " + total + " реп. (у тебя " + rep + ")");
+                playSound(p, Sound.ENTITY_VILLAGER_NO);
+                return;
+            }
             VKChatBridge.takeReputation(vkId, total);
             svc.giveItems(p, entry, amount);
             svc.prices().recordBuy(entry, amount);
             p.sendMessage("§a✓ Куплено " + amount + "x §f" + entry.displayName() + " §aза §e" + total + " реп.");
-            playSound(p, Sound.ENTITY_PLAYER_LEVELUP);
-            logTrade(p, "BUY " + amount + "x " + entry.id(), total);
+            playSound(p, Sound.ENTITY_VILLAGER_YES);
             if (svc.prices().dynamics().isWhaleTrade(amount)) {
                 svc.prices().dynamics().announceWhaleTrade(p.getName(), entry, amount, true, total);
             }
@@ -202,7 +392,11 @@ public class MarketListener implements Listener {
         } else {
             int owned = svc.countItems(p, entry);
             int toSell = Math.min(amount, owned);
-            if (toSell <= 0) { p.sendMessage("§c❌ Нет предметов!"); return; }
+            if (toSell <= 0) {
+                p.sendMessage("§c❌ Нет предметов!");
+                playSound(p, Sound.ENTITY_VILLAGER_NO);
+                return;
+            }
             int price = svc.prices().getSellPrice(entry, p, toSell);
             int total = price * toSell;
             svc.takeItems(p, entry, toSell);
@@ -210,7 +404,6 @@ public class MarketListener implements Listener {
             svc.prices().recordSell(entry, toSell);
             p.sendMessage("§a✓ Продано " + toSell + "x §f" + entry.displayName() + " §aза §e" + total + " реп.");
             playSound(p, Sound.ENTITY_EXPERIENCE_ORB_PICKUP);
-            logTrade(p, "SELL " + toSell + "x " + entry.id(), total);
             if (svc.prices().dynamics().isWhaleTrade(toSell)) {
                 svc.prices().dynamics().announceWhaleTrade(p.getName(), entry, toSell, false, total);
             }
@@ -232,7 +425,7 @@ public class MarketListener implements Listener {
         });
     }
 
-    // ═══ ЧАТ-ВВОД ═══
+    // === ЧАТ-ВВОД ===
 
     @EventHandler
     public void onChat(org.bukkit.event.player.AsyncPlayerChatEvent e) {
@@ -250,7 +443,12 @@ public class MarketListener implements Listener {
             }
             final String q = query;
             Bukkit.getScheduler().runTask(plugin, () -> {
-                List<MarketEntry> results = plugin.getMarketService().search(q);
+                List<MarketEntry> results;
+                if (q.contains(":")) {
+                    results = plugin.getMarketService().searchWithPrefix(q);
+                } else {
+                    results = plugin.getMarketService().search(q);
+                }
                 if (results.isEmpty()) {
                     p.sendMessage("§7Ничего не найдено: §f" + q);
                     MarketGui.openMainMenu(plugin, p);
@@ -273,7 +471,6 @@ public class MarketListener implements Listener {
                 return;
             }
 
-            // Custom buy/sell mode: prefix "-" for sell, "+" or none for buy
             String tradeMode = "buy";
             String amountStr = msg;
             if (msg.startsWith("-")) {
@@ -303,11 +500,10 @@ public class MarketListener implements Listener {
         }
     }
 
-    // ═══ ВСПОМОГАТЕЛЬНЫЕ ═══
+    // === ВСПОМОГАТЕЛЬНЫЕ ===
 
     private boolean checkAuth(Player p) {
-        int vkId = VKChatBridge.getLinkedVkId(p);
-        if (vkId == -1 && !VKChatBridge.hasPass(p)) {
+        if (!VKChatBridge.hasVkOrPass(p)) {
             p.sendMessage("§c❌ Привяжи ВК: /vklink");
             return false;
         }
@@ -328,15 +524,6 @@ public class MarketListener implements Listener {
         p.playSound(p.getLocation(), sound, 1f, 1f);
     }
 
-    private void logTrade(Player p, String action, int rep) {
-        List<String> trades = recentTrades.computeIfAbsent(p.getUniqueId(), k -> new ArrayList<>());
-        trades.add(0, action + " (" + rep + " реп.)");
-        if (trades.size() > MAX_RECENT) trades.remove(trades.size() - 1);
-        if (plugin.getTransactionLog() != null) {
-            plugin.getTransactionLog().log(p, action.split(" ")[0], action, 0, rep, null);
-        }
-    }
-
     private boolean hasPdc(ItemMeta meta, String key) {
         return meta.getPersistentDataContainer().has(new NamespacedKey(plugin, key), PersistentDataType.BYTE);
     }
@@ -349,12 +536,15 @@ public class MarketListener implements Listener {
         if (trimmed.equals("Меню") || trimmed.isEmpty()) return "all";
         for (MarketCategory cat : MarketCategory.values()) {
             String name = org.bukkit.ChatColor.stripColor(
-                    plugin.getConfig().getString("categories." + cat.configKey() + ".name", ""));
+                    plugin.getCategoriesConfig().getString("categories." + cat.configKey() + ".name", ""));
             if (trimmed.equalsIgnoreCase(name)) return cat.configKey();
         }
         if (trimmed.equals("Все товары")) return "all";
         if (trimmed.contains("Поиск")) return "all";
         if (trimmed.contains("Продажа всех")) return "all";
+        if (trimmed.contains("Сортировка")) return "all";
+        if (trimmed.contains("Корзина")) return "all";
+        if (trimmed.contains("Подтверждение")) return "all";
         return "all";
     }
 }

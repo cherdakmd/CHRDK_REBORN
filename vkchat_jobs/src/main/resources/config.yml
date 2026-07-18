@@ -65,6 +65,20 @@ specializations:
 rank-rewards:
   enabled: true
   items: {}
+  # Еженедельные награды за топ рейтинга профессий
+  weekly:
+    1:
+      material: NETHERITE_INGOT
+      amount: 3
+      reputation: 5000
+    2:
+      material: DIAMOND
+      amount: 2
+      reputation: 3000
+    3:
+      material: DIAMOND_BLOCK
+      amount: 1
+      reputation: 1000
 
 # Jobs 3.1: репутация ВК за действия профессий.
 # Без дневных/часовых лимитов. Баланс держится малой базой, уровнем профессии и антиабузом.

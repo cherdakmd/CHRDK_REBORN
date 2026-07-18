@@ -35,8 +35,27 @@ public class ArtifactCommand implements CommandExecutor, TabCompleter {
             showStatus(p);
             return true;
         }
+        if (args.length > 0 && args[0].equalsIgnoreCase("stats")) {
+            showStats(p);
+            return true;
+        }
         ArtifactShopListener.openShop(plugin, p);
         return true;
+    }
+
+    private void showStats(Player p) {
+        p.sendMessage(ChatColor.GOLD + "═══════════════════════════════");
+        p.sendMessage(ChatColor.GOLD + "  ✨ Статистика Артефактов");
+        p.sendMessage(ChatColor.GOLD + "═══════════════════════════════");
+        p.sendMessage(ChatColor.AQUA + "Всего артефактов создано: " + ChatColor.YELLOW + plugin.getTotalArtifactsGenerated());
+        p.sendMessage(ChatColor.RED + "Всего артефактов разрушено: " + ChatColor.YELLOW + plugin.getTotalArtifactsDisintegrated());
+        p.sendMessage(ChatColor.DARK_PURPLE + "Всего боссов убито: " + ChatColor.YELLOW + plugin.getTotalBossKills());
+        p.sendMessage("");
+        p.sendMessage(ChatColor.GREEN + "Твоя статистика:");
+        p.sendMessage(ChatColor.GRAY + "  Создано: " + ChatColor.YELLOW + plugin.getPlayerArtifactCount(p.getUniqueId()));
+        p.sendMessage(ChatColor.GRAY + "  Разрушено: " + ChatColor.YELLOW + plugin.getPlayerDisintegratedCount(p.getUniqueId()));
+        p.sendMessage(ChatColor.GRAY + "  Боссов убито: " + ChatColor.YELLOW + plugin.getPlayerBossKills(p.getUniqueId()));
+        p.sendMessage(ChatColor.GOLD + "═══════════════════════════════");
     }
 
     private void showStatus(Player p) {
@@ -84,7 +103,7 @@ public class ArtifactCommand implements CommandExecutor, TabCompleter {
         String last = args.length > 0 ? args[args.length - 1].toLowerCase() : "";
 
         if (args.length == 1) {
-            completions.addAll(Arrays.asList("status", "статус", "list"));
+            completions.addAll(Arrays.asList("status", "статус", "list", "stats"));
         }
 
         return completions.stream().filter(s -> last.isEmpty() || s.toLowerCase().startsWith(last)).collect(Collectors.toList());

@@ -1,0 +1,91 @@
+# ==========================================
+# КУЗНЯ 2.0 — мистическая MMO-кузня
+# ==========================================
+forge2:
+  cost:
+    power-rep-multiplier: 18      # Слияние: доп. репутация за силу предметов
+    rarity-rep-step: 350          # Слияние: доп. репутация за целевую редкость
+    reforge-power-rep: 12         # Перековка: доп. репутация за силу предмета
+  blacksmith:
+    max-chance-bonus: 10          # Максимальный бонус шанса от Jobs-Кузнеца
+  resources:
+    uncommon:
+      material: IRON_INGOT
+      amount: 16
+    rare:
+      material: GOLD_INGOT
+      amount: 16
+    epic:
+      material: DIAMOND
+      amount: 8
+    legendary:
+      material: NETHERITE_SCRAP
+      amount: 4
+    ancient:
+      material: NETHERITE_INGOT
+      amount: 2
+  scrolls:
+    chance_25:
+      price: 2500
+    chance_50:
+      price: 5500
+    perfect:
+      price: 12000
+    protect_all:
+      price: 9000
+    anti_defect:
+      price: 3500
+    discount:
+      price: 4000
+  defects:
+    chance-on-reforge: 22
+  repair:
+    base-rep-cost: 120
+    rep-per-damage-percent: 8
+    power-rep-multiplier: 8
+    base-material-amount: 2
+    percent-per-extra-material: 20
+    fragile-cost-multiplier: 1.35
+  artifacts:
+    sharpen:
+      rep-cost: 800        # Заточка: стоимость в реп. ВК
+      material-amount: 2    # Заточка: количество алмазов
+    reforge:
+      rep-cost: 1200       # Перековка: стоимость в реп. ВК
+      material-amount: 4    # Перековка: количество алмазов
+    fusion:
+      rep-cost: 2000       # Слияние: стоимость в реп. ВК
+      material-amount: 3    # Слияние: количество незеритовых ломтиков
+    essence:
+      rep-cost: 600        # Эссенция: стоимость в реп. ВК
+    bind:
+      rep-cost: 400        # Бинд: стоимость в реп. ВК
+    transmute:
+      rep-cost: 1500       # Трансмутация: стоимость в реп. ВК
+      material-amount: 1    # Трансмутация: количество алмазов
+    ritual:
+      rep-cost: 2500       # Ритуал: стоимость в реп. ВК
+      material-amount: 2    # Ритуал: количество алмазов
+  rarity-procs:
+    uncommon:
+      - "&aМалая искра"
+      - "&aЛёгкая сталь"
+    rare:
+      - "&9Искра удачи"
+      - "&9Стальная кожа"
+      - "&9Резкий удар"
+    epic:
+      - "&5Критический жар"
+      - "&5Оберег"
+      - "&5Развеивание"
+      - "&5Похищение Жизни"
+    legendary:
+      - "&6Грозовой Импульс"
+      - "&6Багровый Резонанс"
+      - "&6Астральный Барьер"
+      - "&6Пламенный Контур"
+    ancient:
+      - "&5Древнее Проклятие"
+      - "&5Бездна Хаоса"
+      - "&5Вечная Тьма"
+      - "&5Космический Удар"

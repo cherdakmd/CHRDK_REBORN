@@ -47,6 +47,10 @@ public class MobCommand implements CommandExecutor, Listener, TabCompleter {
             if (sub.equals("accept") || sub.equals("взять")) { acceptContract(p); return true; }
             if (sub.equals("status")) { displayStatus(p); return true; }
             if (sub.equals("stats") || sub.equals("статистика")) { displayStats(p); return true; }
+            if (sub.equals("bestiary") || sub.equals("бестиарий") || sub.equals("b")) {
+                new ru.example.vkchatmobs.bestiary.BestiaryGUI(plugin, p).openMainMenu();
+                return true;
+            }
         }
         openGui(p);
         return true;
@@ -92,11 +96,15 @@ public class MobCommand implements CommandExecutor, Listener, TabCompleter {
                 ChatColor.GRAY + "ВК-репутация, ванильный лут, Gear-награды.",
                 ChatColor.GRAY + "Фрагменты сетов, руны, осколки артефактов.",
                 ChatColor.GRAY + "Свитки Кузни 2.0 с рейдов."));
+        inv.setItem(33, button(Material.BOOK, "bestiary", ChatColor.GREEN + "Бестиарий",
+                ChatColor.GRAY + "Энциклопедия мобов: убийства, награды, milestones.",
+                ChatColor.GRAY + "Бонусы HP и урона за каждые N убийств."));
         inv.setItem(40, item(Material.BARRIER, ChatColor.RED + "Антифарм",
                 ChatColor.GRAY + "Спавнеры не дают редкие награды.",
                 ChatColor.GRAY + "Есть кулдауны, дневные лимиты и no-AFK логика."));
         inv.setItem(49, item(Material.PAPER, ChatColor.AQUA + "Команды",
                 ChatColor.YELLOW + "/mobs" + ChatColor.GRAY + " — это меню",
+                ChatColor.YELLOW + "/mobs bestiary" + ChatColor.GRAY + " — бестиарий",
                 ChatColor.YELLOW + "/mobs accept" + ChatColor.GRAY + " — взять контракт",
                 ChatColor.YELLOW + "/mobs status" + ChatColor.GRAY + " — текстовый статус"));
         p.openInventory(inv);
@@ -110,6 +118,10 @@ public class MobCommand implements CommandExecutor, Listener, TabCompleter {
         Player p = (Player) e.getWhoClicked();
         String action = e.getCurrentItem().getItemMeta().getPersistentDataContainer().get(new NamespacedKey(plugin, "mobs_gui_action"), PersistentDataType.STRING);
         if ("accept_contract".equals(action)) { acceptContract(p); Bukkit.getScheduler().runTask(plugin, () -> openGui(p)); }
+        if ("bestiary".equals(action)) {
+            p.closeInventory();
+            Bukkit.getScheduler().runTask(plugin, () -> new ru.example.vkchatmobs.bestiary.BestiaryGUI(plugin, p).openMainMenu());
+        }
     }
 
     private void acceptContract(Player p) {
@@ -215,7 +227,7 @@ public class MobCommand implements CommandExecutor, Listener, TabCompleter {
         String last = args.length > 0 ? args[args.length - 1].toLowerCase() : "";
 
         if (args.length == 1) {
-            completions.addAll(Arrays.asList("accept", "взять", "status", "stats", "статистика", "spawn", "list", "debug", "reload", "give", "contract", "stop", "threat"));
+            completions.addAll(Arrays.asList("accept", "взять", "status", "stats", "статистика", "spawn", "list", "debug", "reload", "give", "contract", "stop", "threat", "bestiary", "бестиарий", "b"));
         } else if (args.length == 2) {
             String sub = args[0].toLowerCase();
             if (sub.equals("spawn")) {

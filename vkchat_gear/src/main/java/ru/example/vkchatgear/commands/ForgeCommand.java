@@ -19,7 +19,7 @@ import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
-import ru.example.vkchat.VKChatPlugin;
+import ru.example.vkchat.util.VKChatBridge;
 import ru.example.vkchatgear.VKChatGearPlugin;
 
 import org.bukkit.command.TabCompleter;
@@ -36,6 +36,7 @@ public class ForgeCommand implements CommandExecutor, Listener, TabCompleter {
     private final String REPAIR_TITLE = "§8▸ §4§lКУЗНЯ §8◂ §aРемонт";
     private final String SCROLLS_TITLE = "§8▸ §4§lКУЗНЯ §8◂ §eСвитки";
     private final String RUNE_CLEANSING_TITLE = "§8▸ §4§lКУЗНЯ §8◂ §5Руны";
+    private final String ARTIFACTS_TITLE = "§8▸ §4§lКУЗНЯ §8◂ §dАртефакты";
 
     private static final int[] FUSION_SLOTS = {20, 22, 24};
     private static final int CENTER_SLOT = 22;
@@ -141,9 +142,15 @@ public class ForgeCommand implements CommandExecutor, Listener, TabCompleter {
                 "", "§e▶ Открыть"));
         inv.setItem(33, item(Material.PURPUR_BLOCK, "§5💀 Очищение рун",
                 "§7Снимает все кастомные чары с предмета",
-                "§7Цена: " + plugin.getConfig().getInt("rune-cleansing.cost", 500) + " реп + " +
-                        plugin.getConfig().getInt("rune-cleansing.material-amount", 1) + "x " +
-                        plugin.getConfig().getString("rune-cleansing.material", "DIAMOND_BLOCK"),
+                "§7Цена: " + plugin.getRuneMarketConfig().getInt("rune-cleansing.cost", 500) + " реп + " +
+                        plugin.getRuneMarketConfig().getInt("rune-cleansing.material-amount", 1) + "x " +
+                        plugin.getRuneMarketConfig().getString("rune-cleansing.material", "DIAMOND_BLOCK"),
+                "", "§e▶ Открыть"));
+
+        inv.setItem(35, item(Material.NETHER_STAR, "§d🔮 Артефакты",
+                "§7Мистические предметы силы",
+                "§7Надеваются в доп. руку",
+                "§7Макс. 5 активных",
                 "", "§e▶ Открыть"));
 
         inv.setItem(49, item(Material.BOOK, "§e📖 Правила",
@@ -239,16 +246,249 @@ public class ForgeCommand implements CommandExecutor, Listener, TabCompleter {
         inv.setItem(4, item(Material.PURPUR_BLOCK, ChatColor.DARK_PURPLE + "💀 Очищение рун",
                 ChatColor.GRAY + "Положи предмет с кастомными чарами в центральный слот.",
                 ChatColor.GRAY + "Удаляет ВСЕ кастомные чары с предмета.",
-                ChatColor.YELLOW + "Стоимость: " + plugin.getConfig().getInt("rune-cleansing.cost", 500) + " реп. ВК",
-                ChatColor.YELLOW + "Ресурс: " + plugin.getConfig().getInt("rune-cleansing.material-amount", 1) + "x " +
-                        plugin.getConfig().getString("rune-cleansing.material", "DIAMOND_BLOCK")));
+                ChatColor.YELLOW + "Стоимость: " + plugin.getRuneMarketConfig().getInt("rune-cleansing.cost", 500) + " реп. ВК",
+                ChatColor.YELLOW + "Ресурс: " + plugin.getRuneMarketConfig().getInt("rune-cleansing.material-amount", 1) + "x " +
+                        plugin.getRuneMarketConfig().getString("rune-cleansing.material", "DIAMOND_BLOCK")));
         inv.setItem(CONFIRM_SLOT, item(Material.OAK_SIGN, ChatColor.YELLOW + "🔍 Предпросмотр очищения рун"));
         nav(inv);
         p.openInventory(inv);
     }
 
+    private void openArtifacts(Player p) {
+        pending.remove(p.getUniqueId());
+        ru.example.vkchatgear.artifacts.ArtifactsManager mgr = plugin.getArtifactsManager();
+        Inventory inv = Bukkit.createInventory(null, 54, ARTIFACTS_TITLE);
+        fill(inv, Material.PURPLE_STAINED_GLASS_PANE);
+
+        int count = mgr != null ? mgr.getActiveArtifactCount(p) : 0;
+
+        inv.setItem(4, item(Material.NETHER_STAR, ChatColor.DARK_PURPLE + "🔮 Артефакты — Кузня",
+                ChatColor.GRAY + "Улучшайте и создавайте мистические артефакты.",
+                ChatColor.YELLOW + "Артефактов: " + count + " / 5"));
+
+        // Верхний ряд — основные операции
+        inv.setItem(11, item(Material.CRYING_OBSIDIAN, ChatColor.DARK_RED + "💔 Дезинтеграция",
+                ChatColor.GRAY + "Разобрать артефакт на материалы.",
+                ChatColor.GRAY + "Рунные жетоны, кристаллы, фрагменты.",
+                ChatColor.YELLOW + "Бесплатно", "", "§e▶ Открыть"));
+
+        inv.setItem(13, item(Material.EXPERIENCE_BOTTLE, ChatColor.AQUA + "💧 Эссенция артефакта",
+                ChatColor.GRAY + "Извлечь эссенцию артефакта.",
+                ChatColor.GRAY + "Жидкий предмет со статами.",
+                ChatColor.YELLOW + "Цена: 600 реп. ВК", "", "§e▶ Открыть"));
+
+        // Средний ряд — улучшение
+        inv.setItem(20, item(Material.ANVIL, ChatColor.GREEN + "⬆ Заточка артефакта",
+                ChatColor.GRAY + "Усилить все статы артефакта на +10%.",
+                ChatColor.GRAY + "Положи артефакт в центральный слот.",
+                ChatColor.YELLOW + "Цена: 800 реп. ВК + 2x алмазов",
+                "", "§e▶ Открыть"));
+
+        inv.setItem(22, item(Material.SMITHING_TABLE, ChatColor.RED + "🔄 Перековка артефакта",
+                ChatColor.GRAY + "Перебросить один случайный стат на другой.",
+                ChatColor.GRAY + "Может изменить тип стата (урон→защита и т.д.).",
+                ChatColor.YELLOW + "Цена: 1200 реп. ВК + 4x алмазов",
+                "", "§e▶ Открыть"));
+
+        inv.setItem(24, item(Material.NETHERITE_INGOT, ChatColor.GOLD + "⭐ Слияние артефактов",
+                ChatColor.GRAY + "3 артефакта одной редкости → 1 выше.",
+                ChatColor.GRAY + "Боковые катализаторы сгорают.",
+                ChatColor.YELLOW + "Цена: 2000 реп. ВК + 3x незеритовых ломтиков",
+                "", "§e▶ Открыть"));
+
+        // Нижний ряд — специальные операции
+        inv.setItem(29, item(Material.NAME_TAG, ChatColor.LIGHT_PURPLE + "🔒 Бинд артефакта",
+                ChatColor.GRAY + "Привязать артефакт к игроку.",
+                ChatColor.GRAY + "Нельзя выбросить/передать/положить в сундук.",
+                ChatColor.YELLOW + "Цена: 400 реп. ВК", "", "§e▶ Открыть"));
+
+        inv.setItem(31, item(Material.BREWING_STAND, ChatColor.YELLOW + "⚗ Трансмутация",
+                ChatColor.GRAY + "Преобразовать 1 стат артефакта",
+                ChatColor.GRAY + "в постоянный бонус оружия/брони.",
+                ChatColor.YELLOW + "Цена: 1500 реп. ВК + 1x алмазов",
+                "", "§e▶ Открыть"));
+
+        inv.setItem(33, item(Material.SOUL_CAMPFIRE, ChatColor.DARK_AQUA + "🕯 Артефакт-ритуал",
+                ChatColor.GRAY + "2 артефакта + руна =",
+                ChatColor.GRAY + "артефакт с зачарованной руной.",
+                ChatColor.YELLOW + "Цена: 2500 реп. ВК + 2x алмазов",
+                "", "§e▶ Открыть"));
+
+        // Правила — слот 49
+        inv.setItem(49, item(Material.BOOK, ChatColor.YELLOW + "📖 Правила",
+                ChatColor.GRAY + "• Заточка: +10% статов за уровень",
+                ChatColor.GRAY + "• Перековка: перераспределение статов",
+                ChatColor.GRAY + "• Слияние: 3 → 1 (повышение редкости)",
+                ChatColor.GRAY + "• Дезинтеграция: разбор на материалы",
+                ChatColor.GRAY + "• Эссенция: извлечение статов",
+                ChatColor.GRAY + "• Бинд: привязка к игроку",
+                ChatColor.GRAY + "• Трансмутация: стат → бонус снаряжения",
+                ChatColor.GRAY + "• Ритуал: 2 артефакта + руна = зачарование",
+                ChatColor.GRAY + "• Лимит: 5 артефактов"));
+
+        nav(inv);
+        p.openInventory(inv);
+    }
+
+    private void openArtifactSharpen(Player p) {
+        pending.remove(p.getUniqueId());
+        Inventory inv = Bukkit.createInventory(null, 54, "§8▸ §4§lКУЗНЯ §8◂ §aЗаточка Артефакта");
+        fill(inv, Material.GREEN_STAINED_GLASS_PANE);
+        inv.setItem(CENTER_SLOT, null);
+        inv.setItem(4, item(Material.ANVIL, ChatColor.GREEN + "⬆ Заточка Артефакта",
+                ChatColor.GRAY + "Положи артефакт в центральный слот.",
+                ChatColor.GRAY + "Каждый уровень: +10% ко всем статам.",
+                ChatColor.GRAY + "Максимум: +5 уровней (макс. 150% статов).",
+                ChatColor.YELLOW + "Цена: 800 реп. ВК + 2x DIAMOND"));
+        inv.setItem(CONFIRM_SLOT, item(Material.OAK_SIGN, ChatColor.YELLOW + "🔍 Предпросмотр заточки"));
+        nav(inv);
+        p.openInventory(inv);
+    }
+
+    private void openArtifactReforge(Player p) {
+        pending.remove(p.getUniqueId());
+        Inventory inv = Bukkit.createInventory(null, 54, "§8▸ §4§lКУЗНЯ §8◂ §cПерековка Артефакта");
+        fill(inv, Material.ORANGE_STAINED_GLASS_PANE);
+        inv.setItem(CENTER_SLOT, null);
+        inv.setItem(4, item(Material.SMITHING_TABLE, ChatColor.RED + "🔄 Перековка Артефакта",
+                ChatColor.GRAY + "Положи артефакт в центральный слот.",
+                ChatColor.GRAY + "Случайный стат будет перераспределён.",
+                ChatColor.GRAY + "Может изменить тип и значение стата.",
+                ChatColor.YELLOW + "Цена: 1200 реп. ВК + 4x DIAMOND"));
+        inv.setItem(CONFIRM_SLOT, item(Material.OAK_SIGN, ChatColor.YELLOW + "🔍 Предпросмотр перековки"));
+        nav(inv);
+        p.openInventory(inv);
+    }
+
+    private void openArtifactFusion(Player p) {
+        pending.remove(p.getUniqueId());
+        Inventory inv = Bukkit.createInventory(null, 54, "§8▸ §4§lКУЗНЯ §8◂ §6Слияние Артефактов");
+        fill(inv, Material.ORANGE_STAINED_GLASS_PANE);
+        for (int s : FUSION_SLOTS) inv.setItem(s, null);
+        inv.setItem(4, item(Material.NETHERITE_INGOT, ChatColor.GOLD + "⭐ Слияние Артефактов",
+                ChatColor.GRAY + "Положи 3 артефакта одной редкости.",
+                ChatColor.GRAY + "Слот 22 — цель, 20 и 24 — катализаторы.",
+                ChatColor.RED + "Катализаторы сгорят при успехе!",
+                ChatColor.YELLOW + "Цена: 2000 реп. ВК + 3x NETHERITE_SCRAP"));
+        inv.setItem(29, marker(Material.PURPLE_STAINED_GLASS_PANE, ChatColor.DARK_PURPLE + "Катализатор"));
+        inv.setItem(31, marker(Material.YELLOW_STAINED_GLASS_PANE, ChatColor.GOLD + "Цель"));
+        inv.setItem(33, marker(Material.PURPLE_STAINED_GLASS_PANE, ChatColor.DARK_PURPLE + "Катализатор"));
+        inv.setItem(CONFIRM_SLOT, item(Material.OAK_SIGN, ChatColor.YELLOW + "🔍 Предпросмотр слияния"));
+        nav(inv);
+        p.openInventory(inv);
+    }
+
+    // ═══════════════════════════════════════════
+    // АРТЕФАКТЫ — ДЕЗИНТЕГРАЦИЯ
+    // ═══════════════════════════════════════════
+
+    private void openArtifactDisintegrate(Player p) {
+        pending.remove(p.getUniqueId());
+        Inventory inv = Bukkit.createInventory(null, 54, "§8▸ §4§lКУЗНЯ §8◂ §4Дезинтеграция");
+        fill(inv, Material.RED_STAINED_GLASS_PANE);
+        inv.setItem(CENTER_SLOT, null);
+        inv.setItem(4, item(Material.CRYING_OBSIDIAN, ChatColor.DARK_RED + "💔 Дезинтеграция Артефакта",
+                ChatColor.GRAY + "Положи артефакт в центральный слот.",
+                ChatColor.GRAY + "Разобьёт на материалы по редкости:",
+                ChatColor.GRAY + "  Common: 2x Рунный жетон",
+                ChatColor.GRAY + "  Rare: 1x Кристалл + 3x Рунный жетон",
+                ChatColor.GRAY + "  Epic: 2x Кристалл + фрагмент сета",
+                ChatColor.GRAY + "  Legendary: 3x Кристалл + 2x фрагмента",
+                ChatColor.GRAY + "  Ancient: 5x Кристалл + 3x фрагмента",
+                ChatColor.GREEN + "Бесплатно!"));
+        inv.setItem(CONFIRM_SLOT, item(Material.OAK_SIGN, ChatColor.YELLOW + "🔍 Предпросмотр разбора"));
+        nav(inv);
+        p.openInventory(inv);
+    }
+
+    // ═══════════════════════════════════════════
+    // АРТЕФАКТЫ — ЭССЕНЦИЯ
+    // ═══════════════════════════════════════════
+
+    private void openArtifactEssence(Player p) {
+        pending.remove(p.getUniqueId());
+        Inventory inv = Bukkit.createInventory(null, 54, "§8▸ §4§lКУЗНЯ §8◂ §bЭссенция Артефакта");
+        fill(inv, Material.LIGHT_BLUE_STAINED_GLASS_PANE);
+        inv.setItem(CENTER_SLOT, null);
+        inv.setItem(4, item(Material.EXPERIENCE_BOTTLE, ChatColor.AQUA + "💧 Эссенция Артефакта",
+                ChatColor.GRAY + "Положи артефакт в центральный слот.",
+                ChatColor.GRAY + "Создаёт жидкую эссенцию со статами.",
+                ChatColor.GRAY + "Эссенцию можно использовать в кузнечных операциях.",
+                ChatColor.YELLOW + "Цена: 600 реп. ВК"));
+        inv.setItem(CONFIRM_SLOT, item(Material.OAK_SIGN, ChatColor.YELLOW + "🔍 Предпросмотр извлечения"));
+        nav(inv);
+        p.openInventory(inv);
+    }
+
+    // ═══════════════════════════════════════════
+    // АРТЕФАКТЫ — БИНД
+    // ═══════════════════════════════════════════
+
+    private void openArtifactBind(Player p) {
+        pending.remove(p.getUniqueId());
+        Inventory inv = Bukkit.createInventory(null, 54, "§8▸ §4§lКУЗНЯ §8◂ §5Бинд Артефакта");
+        fill(inv, Material.MAGENTA_STAINED_GLASS_PANE);
+        inv.setItem(CENTER_SLOT, null);
+        inv.setItem(4, item(Material.NAME_TAG, ChatColor.LIGHT_PURPLE + "🔒 Бинд Артефакта",
+                ChatColor.GRAY + "Положи артефакт в центральный слот.",
+                ChatColor.GRAY + "Привяжет артефакт к тебе.",
+                ChatColor.RED + "После бинда нельзя:",
+                ChatColor.RED + "  • Выбросить",
+                ChatColor.RED + "  • Передать другому игроку",
+                ChatColor.RED + "  • Положить в сундук/шалкер",
+                ChatColor.RED + "  • Положить в эндер-чест",
+                ChatColor.YELLOW + "Цена: 400 реп. ВК"));
+        inv.setItem(CONFIRM_SLOT, item(Material.OAK_SIGN, ChatColor.YELLOW + "🔍 Предпросмотр бинда"));
+        nav(inv);
+        p.openInventory(inv);
+    }
+
+    // ═══════════════════════════════════════════
+    // АРТЕФАКТЫ — ТРАНСМУТАЦИЯ
+    // ═══════════════════════════════════════════
+
+    private void openArtifactTransmute(Player p) {
+        pending.remove(p.getUniqueId());
+        Inventory inv = Bukkit.createInventory(null, 54, "§8▸ §4§lКУЗНЯ §8◂ §eТрансмутация");
+        fill(inv, Material.YELLOW_STAINED_GLASS_PANE);
+        inv.setItem(CENTER_SLOT, null);
+        inv.setItem(4, item(Material.BREWING_STAND, ChatColor.YELLOW + "⚗ Трансмутация Артефакта",
+                ChatColor.GRAY + "Положи артефакт в центральный слот.",
+                ChatColor.GRAY + "Выбери 1 стат для переноса на снаряжение.",
+                ChatColor.GRAY + "Бонус.apply к первому оружию/броне в инвентаре.",
+                ChatColor.RED + "⚠ Необратимо! Стат удалится из артефакта.",
+                ChatColor.YELLOW + "Цена: 1500 реп. ВК + 1x DIAMOND"));
+        inv.setItem(CONFIRM_SLOT, item(Material.OAK_SIGN, ChatColor.YELLOW + "🔍 Предпросмотр трансмутации"));
+        nav(inv);
+        p.openInventory(inv);
+    }
+
+    // ═══════════════════════════════════════════
+    // АРТЕФАКТЫ — РИТУАЛ
+    // ═══════════════════════════════════════════
+
+    private void openArtifactRitual(Player p) {
+        pending.remove(p.getUniqueId());
+        Inventory inv = Bukkit.createInventory(null, 54, "§8▸ §4§lКУЗНЯ §8◂ §3Артефакт-ритуал");
+        fill(inv, Material.CYAN_STAINED_GLASS_PANE);
+        for (int s : FUSION_SLOTS) inv.setItem(s, null);
+        inv.setItem(4, item(Material.SOUL_CAMPFIRE, ChatColor.DARK_AQUA + "🕯 Артефакт-ритуал",
+                ChatColor.GRAY + "Положи 2 артефакта одной редкости",
+                ChatColor.GRAY + "и 1 руну (из инвентаря) в слоты 20/22/24.",
+                ChatColor.GRAY + "Руна применяется как зачарование.",
+                ChatColor.GRAY + "Статы руны добавляются к статам артефакта.",
+                ChatColor.RED + "Руна сгорит при успехе!",
+                ChatColor.YELLOW + "Цена: 2500 реп. ВК + 2x DIAMOND"));
+        inv.setItem(29, marker(Material.PURPLE_STAINED_GLASS_PANE, ChatColor.DARK_PURPLE + "Артефакт"));
+        inv.setItem(31, marker(Material.CYAN_STAINED_GLASS_PANE, ChatColor.AQUA + "Руна"));
+        inv.setItem(33, marker(Material.PURPLE_STAINED_GLASS_PANE, ChatColor.DARK_PURPLE + "Артефакт"));
+        inv.setItem(CONFIRM_SLOT, item(Material.OAK_SIGN, ChatColor.YELLOW + "🔍 Предпросмотр ритуала"));
+        nav(inv);
+        p.openInventory(inv);
+    }
+
     private void addScrollShopItem(Inventory inv, int slot, String type, Material mat, String name, String desc) {
-        int price = plugin.getConfig().getInt("forge2.scrolls." + type + ".price", defaultScrollPrice(type));
+        int price = plugin.getForgeAdvancedConfig().getInt("forge2.scrolls." + type + ".price", defaultScrollPrice(type));
         ItemStack it = item(mat, ChatColor.translateAlternateColorCodes('&', name),
                 ChatColor.GRAY + desc,
                 "",
@@ -272,14 +512,26 @@ public class ForgeCommand implements CommandExecutor, Listener, TabCompleter {
         int raw = e.getRawSlot();
 
         if (raw >= top.getSize()) {
-            if ((title.equals(FUSION_TITLE) || title.equals(REFORGE_TITLE) || title.equals(CLEANSE_TITLE) || title.equals(REPAIR_TITLE)) && e.isShiftClick() && e.getCurrentItem() != null && plugin.getGearManager().isGear(e.getCurrentItem().getType())) {
-                int free = title.equals(FUSION_TITLE) ? firstFreeFusionSlot(top) : (isEmpty(top.getItem(CENTER_SLOT)) ? CENTER_SLOT : -1);
-                if (free != -1) {
-                    e.setCancelled(true);
-                    top.setItem(free, e.getCurrentItem().clone());
-                    e.getCurrentItem().setAmount(0);
-                    pending.remove(p.getUniqueId());
-                    resetConfirmButton(title, top);
+            boolean isArtifactGui = title.contains("Заточка Артефакта") || title.contains("Перековка Артефакта") || title.contains("Слияние Артефактов") || title.contains("Эссенция") || title.contains("Дезинтеграция") || title.contains("Бинд Артефакта") || title.contains("Трансмутация") || title.contains("Артефакт-ритуал");
+            boolean isGearGui = title.equals(FUSION_TITLE) || title.equals(REFORGE_TITLE) || title.equals(CLEANSE_TITLE) || title.equals(REPAIR_TITLE);
+            boolean canShift = isGearGui || isArtifactGui;
+            if (canShift && e.isShiftClick() && e.getCurrentItem() != null) {
+                boolean isGear = plugin.getGearManager().isGear(e.getCurrentItem().getType());
+                boolean isArt = ru.example.vkchatgear.artifacts.ArtifactsManager.isArtifact(e.getCurrentItem());
+                if (isGear || isArt) {
+                    int free;
+                    if (title.equals(FUSION_TITLE) || title.contains("Слияние Артефактов")) {
+                        free = firstFreeFusionSlot(top);
+                    } else {
+                        free = isEmpty(top.getItem(CENTER_SLOT)) ? CENTER_SLOT : -1;
+                    }
+                    if (free != -1) {
+                        e.setCancelled(true);
+                        top.setItem(free, e.getCurrentItem().clone());
+                        e.getCurrentItem().setAmount(0);
+                        pending.remove(p.getUniqueId());
+                        resetConfirmButton(title, top);
+                    }
                 }
             }
             e.setCancelled(true);
@@ -303,7 +555,20 @@ public class ForgeCommand implements CommandExecutor, Listener, TabCompleter {
             else if (raw == 29) openRepair(p);
             else if (raw == 31) openScrolls(p);
             else if (raw == 33) openRuneCleansing(p);
+            else if (raw == 35) openArtifacts(p);
             else if (raw == CLOSE_SLOT) p.closeInventory();
+            return;
+        }
+
+        if (title.equals(ARTIFACTS_TITLE)) {
+            if (raw == 11) { openArtifactDisintegrate(p); return; }
+            else if (raw == 13) { openArtifactEssence(p); return; }
+            else if (raw == 20) { openArtifactSharpen(p); return; }
+            else if (raw == 22) { openArtifactReforge(p); return; }
+            else if (raw == 24) { openArtifactFusion(p); return; }
+            else if (raw == 29) { openArtifactBind(p); return; }
+            else if (raw == 31) { openArtifactTransmute(p); return; }
+            else if (raw == 33) { openArtifactRitual(p); return; }
             return;
         }
 
@@ -321,6 +586,14 @@ public class ForgeCommand implements CommandExecutor, Listener, TabCompleter {
             else if (title.equals(CLEANSE_TITLE)) handleCleanseButton(p, top);
             else if (title.equals(REPAIR_TITLE)) handleRepairButton(p, top);
             else if (title.equals(RUNE_CLEANSING_TITLE)) handleRuneCleansingButton(p, top);
+            else if (title.contains("Заточка Артефакта")) handleArtifactSharpenButton(p, top);
+            else if (title.contains("Перековка Артефакта")) handleArtifactReforgeButton(p, top);
+            else if (title.contains("Слияние Артефактов")) handleArtifactFusionButton(p, top);
+            else if (title.contains("Дезинтеграция")) handleArtifactDisintegrateButton(p, top);
+            else if (title.contains("Эссенция")) handleArtifactEssenceButton(p, top);
+            else if (title.contains("Бинд Артефакта")) handleArtifactBindButton(p, top);
+            else if (title.contains("Трансмутация")) handleArtifactTransmuteButton(p, top);
+            else if (title.contains("Артефакт-ритуал")) handleArtifactRitualButton(p, top);
         }
     }
 
@@ -386,12 +659,12 @@ public class ForgeCommand implements CommandExecutor, Listener, TabCompleter {
         if (next.equals("ancient")) {
             baseCost = Math.max(baseCost, 5000);
         }
-        op.repCost = Math.max(1, baseCost + power * plugin.getConfig().getInt("forge2.cost.power-rep-multiplier", 18) + rarityIndex(next) * plugin.getConfig().getInt("forge2.cost.rarity-rep-step", 350));
+        op.repCost = Math.max(1, baseCost + power * plugin.getForgeAdvancedConfig().getInt("forge2.cost.power-rep-multiplier", 18) + rarityIndex(next) * plugin.getForgeAdvancedConfig().getInt("forge2.cost.rarity-rep-step", 350));
         op.materialCost = materialCostFor(next);
         op.materialAmount = materialAmountFor(next) + Math.max(0, power / 12);
         op.chance = plugin.getConfig().getInt("hardcore-forging.rarity-upgrade-chance." + next, defaultUpgradeChance(next));
         int bs = plugin.getGearManager().getBlacksmithLevel(p);
-        int jobBonus = Math.min(plugin.getConfig().getInt("forge2.blacksmith.max-chance-bonus", 10), bs / 5);
+        int jobBonus = Math.min(plugin.getForgeAdvancedConfig().getInt("forge2.blacksmith.max-chance-bonus", 10), bs / 5);
         op.chance += jobBonus;
         op.guaranteed = hasScroll(p, "perfect");
         if (!op.guaranteed) {
@@ -469,7 +742,7 @@ public class ForgeCommand implements CommandExecutor, Listener, TabCompleter {
         ItemStack item = getCenterGear(p, inv); if (item == null) return;
         op = new PendingOp(); op.action = "reforge";
         int power = itemPower(item);
-        op.repCost = plugin.getGearManager().getDiscountedCost(p, "hardcore-forging.reforge-cost", 650) + power * plugin.getConfig().getInt("forge2.cost.reforge-power-rep", 12);
+        op.repCost = plugin.getGearManager().getDiscountedCost(p, "hardcore-forging.reforge-cost", 650) + power * plugin.getForgeAdvancedConfig().getInt("forge2.cost.reforge-power-rep", 12);
         op.materialCost = Material.DIAMOND; op.materialAmount = 4 + power / 15;
         op.antiDefect = hasScroll(p, "anti_defect"); op.discountScroll = hasScroll(p, "discount");
         if (op.discountScroll) op.repCost = (int)Math.round(op.repCost * 0.75);
@@ -487,7 +760,7 @@ public class ForgeCommand implements CommandExecutor, Listener, TabCompleter {
         maybeUpgradeEnchant(result);
         applyRarityProc(result, plugin.getGearManager().getRarityKey(result));
         boolean defectAdded = false;
-        if (!op.antiDefect && ThreadLocalRandom.current().nextInt(100) < plugin.getConfig().getInt("forge2.defects.chance-on-reforge", 22)) {
+        if (!op.antiDefect && ThreadLocalRandom.current().nextInt(100) < plugin.getForgeAdvancedConfig().getInt("forge2.defects.chance-on-reforge", 22)) {
             plugin.getGearManager().applyRandomDefect(result);
             defectAdded = true;
         }
@@ -563,12 +836,12 @@ public class ForgeCommand implements CommandExecutor, Listener, TabCompleter {
         int percent = (int)Math.ceil((damage / (double)Math.max(1, max)) * 100.0);
         int power = itemPower(item);
         int base = plugin.getGearManager().getDiscountedCost(p, "forge2.repair.base-rep-cost", 120);
-        int perPercent = plugin.getConfig().getInt("forge2.repair.rep-per-damage-percent", 8);
-        int powerCost = plugin.getConfig().getInt("forge2.repair.power-rep-multiplier", 8);
+        int perPercent = plugin.getForgeAdvancedConfig().getInt("forge2.repair.rep-per-damage-percent", 8);
+        int powerCost = plugin.getForgeAdvancedConfig().getInt("forge2.repair.power-rep-multiplier", 8);
         preview.repCost = Math.max(1, base + percent * perPercent + power * powerCost);
-        if (plugin.getGearManager().hasDefect(item, "fragile")) preview.repCost = (int)Math.round(preview.repCost * plugin.getConfig().getDouble("forge2.repair.fragile-cost-multiplier", 1.35));
+        if (plugin.getGearManager().hasDefect(item, "fragile")) preview.repCost = (int)Math.round(preview.repCost * plugin.getForgeAdvancedConfig().getDouble("forge2.repair.fragile-cost-multiplier", 1.35));
         preview.materialCost = repairMaterialFor(item.getType());
-        preview.materialAmount = Math.max(1, plugin.getConfig().getInt("forge2.repair.base-material-amount", 2) + percent / plugin.getConfig().getInt("forge2.repair.percent-per-extra-material", 20));
+        preview.materialAmount = Math.max(1, plugin.getForgeAdvancedConfig().getInt("forge2.repair.base-material-amount", 2) + percent / plugin.getForgeAdvancedConfig().getInt("forge2.repair.percent-per-extra-material", 20));
         preview.discountScroll = hasScroll(p, "discount");
         if (preview.discountScroll) preview.repCost = (int)Math.round(preview.repCost * 0.75);
         preview.summary = ChatColor.GREEN + "Ремонт MMO-предмета\n" +
@@ -621,10 +894,10 @@ public class ForgeCommand implements CommandExecutor, Listener, TabCompleter {
         }
         op = new PendingOp();
         op.action = "rune_cleansing";
-        op.repCost = plugin.getConfig().getInt("rune-cleansing.cost", 500);
-        String matName = plugin.getConfig().getString("rune-cleansing.material", "DIAMOND_BLOCK");
+        op.repCost = plugin.getRuneMarketConfig().getInt("rune-cleansing.cost", 500);
+        String matName = plugin.getRuneMarketConfig().getString("rune-cleansing.material", "DIAMOND_BLOCK");
         try { op.materialCost = Material.valueOf(matName); } catch (Exception e) { op.materialCost = Material.DIAMOND_BLOCK; }
-        op.materialAmount = plugin.getConfig().getInt("rune-cleansing.material-amount", 1);
+        op.materialAmount = plugin.getRuneMarketConfig().getInt("rune-cleansing.material-amount", 1);
 
         List<String> enchantNames = new ArrayList<>();
         List<String> lore = item.getItemMeta().hasLore() ? item.getItemMeta().getLore() : new ArrayList<>();
@@ -632,7 +905,7 @@ public class ForgeCommand implements CommandExecutor, Listener, TabCompleter {
         for (String line : lore) {
             String stripped = ChatColor.stripColor(line).toLowerCase();
             for (String key : allCustom) {
-                String rawName = plugin.getConfig().getString("custom_enchants." + key + ".name", "");
+                String rawName = plugin.getEnchantsConfig().getString("custom_enchants." + key + ".name", "");
                 String cfg = ChatColor.stripColor(ChatColor.translateAlternateColorCodes('&', rawName)).toLowerCase();
                 if (!cfg.isEmpty() && stripped.contains(cfg.split(" ")[0].toLowerCase())) {
                     enchantNames.add(ChatColor.translateAlternateColorCodes('&', rawName));
@@ -670,17 +943,757 @@ public class ForgeCommand implements CommandExecutor, Listener, TabCompleter {
         log(p, "RUNE_CLEANSING", itemName(item));
     }
 
+    // ═══════════════════════════════════════════
+    // АРТЕФАКТЫ — ЗАТОЧКА
+    // ═══════════════════════════════════════════
+
+    private void handleArtifactSharpenButton(Player p, Inventory inv) {
+        PendingOp op = pending.get(p.getUniqueId());
+        if (op != null && op.action.equals("artifact_sharpen") && System.currentTimeMillis() - op.created < 30000L) {
+            executeArtifactSharpen(p, inv, op);
+            pending.remove(p.getUniqueId());
+            resetConfirmButton("Заточка Артефакта", inv);
+            return;
+        }
+        ItemStack item = getCenterItem(p, inv);
+        if (item == null || !ru.example.vkchatgear.artifacts.ArtifactsManager.isArtifact(item)) {
+            p.sendMessage(ChatColor.RED + "Положи артефакт в центральный слот.");
+            return;
+        }
+        int level = getArtifactLevel(item);
+        if (level >= 5) {
+            p.sendMessage(ChatColor.RED + "Артефакт уже максимального уровня заточки (5).");
+            return;
+        }
+
+        op = new PendingOp();
+        op.action = "artifact_sharpen";
+        op.repCost = plugin.getForgeAdvancedConfig().getInt("forge2.artifacts.sharpen.rep-cost", 800);
+        op.materialCost = Material.DIAMOND;
+        op.materialAmount = plugin.getForgeAdvancedConfig().getInt("forge2.artifacts.sharpen.material-amount", 2);
+
+        // Предпросмотр: покажем будущие статы
+        ru.example.vkchatgear.artifacts.ArtifactsManager mgr = plugin.getArtifactsManager();
+        ru.example.vkchatgear.artifacts.ArtifactComponent def = mgr != null ? mgr.getArtifactDef(item) : null;
+        String artName = item.getItemMeta().getDisplayName();
+        double multiplier = (level + 1) * 0.10; // +10% за уровень
+
+        StringBuilder statsPreview = new StringBuilder();
+        if (def != null) {
+            for (Map.Entry<String, Double> e : def.getStats().entrySet()) {
+                double newVal = e.getValue() * (1 + multiplier);
+                String statName = ru.example.vkchatgear.artifacts.ArtifactsManager.formatStatName(e.getKey());
+                statsPreview.append(ChatColor.GRAY + "  ").append(statName).append(": ")
+                        .append(ChatColor.GREEN + String.format("%.2f", e.getValue()))
+                        .append(ChatColor.YELLOW + " → ").append(ChatColor.GREEN + String.format("%.2f", newVal))
+                        .append("\n");
+            }
+        }
+
+        op.summary = ChatColor.GREEN + "⬆ Заточка Артефакта\n" +
+                ChatColor.AQUA + artName + "\n" +
+                ChatColor.GRAY + "Уровень: " + ChatColor.YELLOW + level + " → " + (level + 1) + "\n" +
+                ChatColor.GRAY + "Бонус: +" + (int)(multiplier * 100) + "% ко всем статам\n\n" +
+                statsPreview.toString() +
+                ChatColor.YELLOW + "Цена: " + op.repCost + " реп. ВК\n" +
+                ChatColor.YELLOW + "Ресурс: " + op.materialAmount + "x " + op.materialCost.name() + "\n" +
+                ChatColor.GRAY + "Кликни ещё раз для подтверждения.";
+        pending.put(p.getUniqueId(), op);
+        inv.setItem(CONFIRM_SLOT, item(Material.LIME_CONCRETE, ChatColor.GREEN + "✅ Подтвердить заточку", op.summary.split("\n")));
+        p.sendMessage(ChatColor.GREEN + "⬆ Предпросмотр заточки готов.");
+    }
+
+    private void executeArtifactSharpen(Player p, Inventory inv, PendingOp op) {
+        ItemStack item = getCenterItem(p, inv);
+        if (item == null || !ru.example.vkchatgear.artifacts.ArtifactsManager.isArtifact(item)) return;
+        if (!plugin.getGearManager().takeVkReputation(p, op.repCost, "заточка артефакта")) return;
+        if (!takeMaterial(p, op.materialCost, op.materialAmount)) {
+            p.sendMessage(ChatColor.RED + "Не хватает ресурса: " + op.materialAmount + "x " + op.materialCost.name());
+            return;
+        }
+        int level = incrementArtifactLevel(item);
+        ru.example.vkchatgear.artifacts.ArtifactsManager mgr = plugin.getArtifactsManager();
+        if (mgr != null) mgr.rebuildArtifactLore(item);
+
+        inv.setItem(CENTER_SLOT, item);
+        p.playSound(p.getLocation(), Sound.BLOCK_ANVIL_USE, 1f, 1.5f);
+        p.getWorld().spawnParticle(org.bukkit.Particle.VILLAGER_HAPPY, p.getLocation().add(0, 1, 0), 30, 0.5, 0.5, 0.5, 0.08);
+        p.sendMessage(ChatColor.GREEN + "⬆ Артефакт заточен до уровня " + level + "! +" + (level * 10) + "% ко всем статам.");
+        log(p, "ARTIFACT_SHARPEN", ru.example.vkchatgear.artifacts.ArtifactsManager.getArtifactId(item) + " level=" + level);
+    }
+
+    // ═══════════════════════════════════════════
+    // АРТЕФАКТЫ — ПЕРЕКОВКА
+    // ═══════════════════════════════════════════
+
+    private void handleArtifactReforgeButton(Player p, Inventory inv) {
+        PendingOp op = pending.get(p.getUniqueId());
+        if (op != null && op.action.equals("artifact_reforge") && System.currentTimeMillis() - op.created < 30000L) {
+            executeArtifactReforge(p, inv, op);
+            pending.remove(p.getUniqueId());
+            resetConfirmButton("Перековка Артефакта", inv);
+            return;
+        }
+        ItemStack item = getCenterItem(p, inv);
+        if (item == null || !ru.example.vkchatgear.artifacts.ArtifactsManager.isArtifact(item)) {
+            p.sendMessage(ChatColor.RED + "Положи артефакт в центральный слот.");
+            return;
+        }
+
+        op = new PendingOp();
+        op.action = "artifact_reforge";
+        op.repCost = plugin.getForgeAdvancedConfig().getInt("forge2.artifacts.reforge.rep-cost", 1200);
+        op.materialCost = Material.DIAMOND;
+        op.materialAmount = plugin.getForgeAdvancedConfig().getInt("forge2.artifacts.reforge.material-amount", 4);
+
+        ru.example.vkchatgear.artifacts.ArtifactsManager mgr = plugin.getArtifactsManager();
+        ru.example.vkchatgear.artifacts.ArtifactComponent def = mgr != null ? mgr.getArtifactDef(item) : null;
+        String artName = item.getItemMeta().getDisplayName();
+
+        // Покажем текущие статы
+        StringBuilder statsCurrent = new StringBuilder();
+        if (def != null) {
+            for (Map.Entry<String, Double> e : def.getStats().entrySet()) {
+                String statName = ru.example.vkchatgear.artifacts.ArtifactsManager.formatStatName(e.getKey());
+                statsCurrent.append(ChatColor.GRAY + "  ").append(statName).append(": ")
+                        .append(ChatColor.GREEN + String.format("%.2f", e.getValue())).append("\n");
+            }
+        }
+
+        op.summary = ChatColor.RED + "🔄 Перековка Артефакта\n" +
+                ChatColor.AQUA + artName + "\n\n" +
+                ChatColor.GRAY + "Текущие статы:\n" +
+                statsCurrent.toString() +
+                ChatColor.GRAY + "⚠ Случайный стат будет перераспределён!\n" +
+                ChatColor.YELLOW + "Цена: " + op.repCost + " реп. ВК\n" +
+                ChatColor.YELLOW + "Ресурс: " + op.materialAmount + "x " + op.materialCost.name() + "\n" +
+                ChatColor.GRAY + "Кликни ещё раз для подтверждения.";
+        pending.put(p.getUniqueId(), op);
+        inv.setItem(CONFIRM_SLOT, item(Material.LIME_CONCRETE, ChatColor.GREEN + "✅ Подтвердить перековку", op.summary.split("\n")));
+        p.sendMessage(ChatColor.RED + "🔄 Предпросмотр перековки готов.");
+    }
+
+    private void executeArtifactReforge(Player p, Inventory inv, PendingOp op) {
+        ItemStack item = getCenterItem(p, inv);
+        if (item == null || !ru.example.vkchatgear.artifacts.ArtifactsManager.isArtifact(item)) return;
+        if (!plugin.getGearManager().takeVkReputation(p, op.repCost, "перековка артефакта")) return;
+        if (!takeMaterial(p, op.materialCost, op.materialAmount)) {
+            p.sendMessage(ChatColor.RED + "Не хватает ресурса: " + op.materialAmount + "x " + op.materialCost.name());
+            return;
+        }
+        ru.example.vkchatgear.artifacts.ArtifactsManager mgr = plugin.getArtifactsManager();
+        if (mgr != null) mgr.reforgeArtifact(item);
+
+        inv.setItem(CENTER_SLOT, item);
+        p.playSound(p.getLocation(), Sound.BLOCK_ANVIL_USE, 1f, 0.75f);
+        p.getWorld().spawnParticle(org.bukkit.Particle.SMOKE_LARGE, p.getLocation().add(0, 1, 0), 40, 0.5, 0.5, 0.5, 0.05);
+        p.sendMessage(ChatColor.RED + "🔄 Артефакт перекован! Статы были перераспределены.");
+        log(p, "ARTIFACT_REFORGE", ru.example.vkchatgear.artifacts.ArtifactsManager.getArtifactId(item));
+    }
+
+    // ═══════════════════════════════════════════
+    // АРТЕФАКТЫ — СЛИЯНИЕ
+    // ═══════════════════════════════════════════
+
+    private void handleArtifactFusionButton(Player p, Inventory inv) {
+        PendingOp op = pending.get(p.getUniqueId());
+        if (op != null && op.action.equals("artifact_fusion") && System.currentTimeMillis() - op.created < 30000L) {
+            executeArtifactFusion(p, inv, op);
+            pending.remove(p.getUniqueId());
+            resetConfirmButton("Слияние Артефактов", inv);
+            return;
+        }
+        // Собираем артефакты из слотов 20, 22, 24
+        List<ItemStack> artifacts = new ArrayList<>();
+        for (int slot : new int[]{20, 22, 24}) {
+            ItemStack it = inv.getItem(slot);
+            if (it != null && ru.example.vkchatgear.artifacts.ArtifactsManager.isArtifact(it)) {
+                artifacts.add(it);
+            }
+        }
+        if (artifacts.size() < 3) {
+            p.sendMessage(ChatColor.RED + "Нужно 3 артефакта одной редкости для слияния!");
+            return;
+        }
+        // Проверяем редкость
+        String rarity = ru.example.vkchatgear.artifacts.ArtifactsManager.getArtifactRarity(artifacts.get(0));
+        for (ItemStack art : artifacts) {
+            String r = ru.example.vkchatgear.artifacts.ArtifactsManager.getArtifactRarity(art);
+            if (r == null || !r.equals(rarity)) {
+                p.sendMessage(ChatColor.RED + "Все артефакты должны быть одной редкости!");
+                return;
+            }
+        }
+        if (rarity == null || rarity.equals("ancient")) {
+            p.sendMessage(ChatColor.RED + "Невозможно слиять эти артефакты.");
+            return;
+        }
+
+        String nextRarity = nextArtifactRarity(rarity);
+        if (nextRarity == null) {
+            p.sendMessage(ChatColor.RED + "Артефакты максимальной редкости, слияние невозможно.");
+            return;
+        }
+
+        op = new PendingOp();
+        op.action = "artifact_fusion";
+        op.repCost = plugin.getForgeAdvancedConfig().getInt("forge2.artifacts.fusion.rep-cost", 2000);
+        op.materialCost = Material.NETHERITE_SCRAP;
+        op.materialAmount = plugin.getForgeAdvancedConfig().getInt("forge2.artifacts.fusion.material-amount", 3);
+
+        op.summary = ChatColor.GOLD + "⭐ Слияние Артефактов\n" +
+                ChatColor.GRAY + "Ингредиенты:\n" +
+                "  " + artifacts.get(0).getItemMeta().getDisplayName() + "\n" +
+                "  " + artifacts.get(1).getItemMeta().getDisplayName() + "\n" +
+                "  " + artifacts.get(2).getItemMeta().getDisplayName() + "\n" +
+                ChatColor.GRAY + "Редкость: " + rarityColorName(rarity) + " → " + rarityColorName(nextRarity) + "\n" +
+                ChatColor.RED + "⚠ Все 3 артефакта сгорят!\n" +
+                ChatColor.YELLOW + "Цена: " + op.repCost + " реп. ВК\n" +
+                ChatColor.YELLOW + "Ресурс: " + op.materialAmount + "x " + op.materialCost.name() + "\n" +
+                ChatColor.GRAY + "Кликни ещё раз для подтверждения.";
+        pending.put(p.getUniqueId(), op);
+        inv.setItem(CONFIRM_SLOT, item(Material.LIME_CONCRETE, ChatColor.GREEN + "✅ Подтвердить слияние", op.summary.split("\n")));
+        p.sendMessage(ChatColor.GOLD + "⭐ Предпросмотр слияния готов.");
+    }
+
+    private void executeArtifactFusion(Player p, Inventory inv, PendingOp op) {
+        List<ItemStack> artifacts = new ArrayList<>();
+        for (int slot : new int[]{20, 22, 24}) {
+            ItemStack it = inv.getItem(slot);
+            if (it != null && ru.example.vkchatgear.artifacts.ArtifactsManager.isArtifact(it)) {
+                artifacts.add(it);
+            }
+        }
+        if (artifacts.size() < 3) return;
+        if (!plugin.getGearManager().takeVkReputation(p, op.repCost, "слияние артефактов")) return;
+        if (!takeMaterial(p, op.materialCost, op.materialAmount)) {
+            p.sendMessage(ChatColor.RED + "Не хватает ресурса: " + op.materialAmount + "x " + op.materialCost.name());
+            return;
+        }
+        // Удаляем катализаторы
+        for (ItemStack art : artifacts) {
+            for (int slot : new int[]{20, 22, 24}) {
+                ItemStack it = inv.getItem(slot);
+                if (it != null && it.equals(art)) {
+                    inv.setItem(slot, null);
+                    break;
+                }
+            }
+        }
+        // Создаём новый артефакт следующей редкости
+        String oldRarity = ru.example.vkchatgear.artifacts.ArtifactsManager.getArtifactRarity(artifacts.get(0));
+        String newRarity = nextArtifactRarity(oldRarity);
+        ru.example.vkchatgear.artifacts.ArtifactsManager mgr = plugin.getArtifactsManager();
+        if (mgr != null) {
+            ItemStack result = mgr.createMergedArtifact(newRarity);
+            if (result != null) {
+                inv.setItem(22, result);
+                p.playSound(p.getLocation(), Sound.UI_TOAST_CHALLENGE_COMPLETE, 1f, 1.2f);
+                p.getWorld().spawnParticle(org.bukkit.Particle.EXPLOSION_HUGE, p.getLocation().add(0, 1, 0), 5, 0.5, 0.5, 0.5, 0.01);
+                p.sendMessage(ChatColor.GOLD + "⭐ Слияние успешно! Получен артефакт: " + result.getItemMeta().getDisplayName());
+                log(p, "ARTIFACT_FUSION", oldRarity + " -> " + newRarity);
+            }
+        }
+    }
+
+    // ═══════════════════════════════════════════
+    // АРТЕФАКТЫ — ДЕЗИНТЕГРАЦИЯ
+    // ═══════════════════════════════════════════
+
+    private void handleArtifactDisintegrateButton(Player p, Inventory inv) {
+        PendingOp op = pending.get(p.getUniqueId());
+        if (op != null && op.action.equals("artifact_disintegrate") && System.currentTimeMillis() - op.created < 30000L) {
+            executeArtifactDisintegrate(p, inv, op);
+            pending.remove(p.getUniqueId());
+            resetConfirmButton("Дезинтеграция", inv);
+            return;
+        }
+        ItemStack item = getCenterItem(p, inv);
+        if (item == null || !ru.example.vkchatgear.artifacts.ArtifactsManager.isArtifact(item)) {
+            p.sendMessage(ChatColor.RED + "Положи артефакт в центральный слот.");
+            return;
+        }
+        String rarity = ru.example.vkchatgear.artifacts.ArtifactsManager.getArtifactRarity(item);
+        String artName = item.getItemMeta().getDisplayName();
+
+        op = new PendingOp();
+        op.action = "artifact_disintegrate";
+        op.repCost = 0;
+
+        // Рассчитываем награду по редкости
+        int runeTokens = 0;
+        int crystals = 0;
+        int fragments = 0;
+        switch (rarity != null ? rarity : "common") {
+            case "ancient": runeTokens = 0; crystals = 5; fragments = 3; break;
+            case "legendary": runeTokens = 0; crystals = 3; fragments = 2; break;
+            case "epic": runeTokens = 0; crystals = 2; fragments = 1; break;
+            case "rare": runeTokens = 3; crystals = 1; fragments = 0; break;
+            default: runeTokens = 2; crystals = 0; fragments = 0; break;
+        }
+
+        StringBuilder rewards = new StringBuilder();
+        rewards.append(ChatColor.AQUA + artName + "\n");
+        rewards.append(ChatColor.GRAY + "Редкость: " + rarityColorName(rarity) + "\n\n");
+        rewards.append(ChatColor.YELLOW + "Награда:\n");
+        if (runeTokens > 0) rewards.append(ChatColor.GREEN + "  " + runeTokens + "x Рунный жетон\n");
+        if (crystals > 0) rewards.append(ChatColor.GREEN + "  " + crystals + "x Кристалл\n");
+        if (fragments > 0) rewards.append(ChatColor.GREEN + "  " + fragments + "x Фрагмент сета\n");
+        rewards.append(ChatColor.GREEN + "  Бесплатно!\n\n");
+        rewards.append(ChatColor.GRAY + "Кликни ещё раз для подтверждения.");
+
+        op.summary = rewards.toString();
+        op.materialAmount = runeTokens + crystals + fragments; // сохраняем для execute
+        op.chance = crystals; // переиспользуем поле для кристаллов
+        pending.put(p.getUniqueId(), op);
+        inv.setItem(CONFIRM_SLOT, item(Material.LIME_CONCRETE, ChatColor.GREEN + "✅ Подтвердить разбор", op.summary.split("\n")));
+        p.sendMessage(ChatColor.DARK_RED + "💔 Предпросмотр разбора готов.");
+    }
+
+    private void executeArtifactDisintegrate(Player p, Inventory inv, PendingOp op) {
+        ItemStack item = getCenterItem(p, inv);
+        if (item == null || !ru.example.vkchatgear.artifacts.ArtifactsManager.isArtifact(item)) return;
+
+        String rarity = ru.example.vkchatgear.artifacts.ArtifactsManager.getArtifactRarity(item);
+        int runeTokens = 0, crystals = 0, fragments = 0;
+        switch (rarity != null ? rarity : "common") {
+            case "ancient": crystals = 5; fragments = 3; break;
+            case "legendary": crystals = 3; fragments = 2; break;
+            case "epic": crystals = 2; fragments = 1; break;
+            case "rare": runeTokens = 3; crystals = 1; break;
+            default: runeTokens = 2; break;
+        }
+
+        // Выдаём награду
+        if (runeTokens > 0) giveMaterial(p, Material.NETHER_WART, runeTokens);
+        if (crystals > 0) giveMaterial(p, Material.PRISMARINE_SHARD, crystals);
+        if (fragments > 0) giveMaterial(p, Material.IRON_NUGGET, fragments);
+
+        inv.setItem(CENTER_SLOT, null);
+        p.playSound(p.getLocation(), Sound.BLOCK_ANVIL_DESTROY, 1f, 0.5f);
+        p.getWorld().spawnParticle(org.bukkit.Particle.SMOKE_LARGE, p.getLocation().add(0, 1, 0), 30, 0.5, 0.5, 0.5, 0.05);
+        p.sendMessage(ChatColor.DARK_RED + "💔 Артефакт разобран! Получено: " +
+                (runeTokens > 0 ? runeTokens + "x рунных жетонов, " : "") +
+                (crystals > 0 ? crystals + "x кристаллов, " : "") +
+                (fragments > 0 ? fragments + "x фрагментов" : ""));
+        log(p, "ARTIFACT_DISINTEGRATE", ru.example.vkchatgear.artifacts.ArtifactsManager.getArtifactId(item) + " rarity=" + rarity);
+    }
+
+    // ═══════════════════════════════════════════
+    // АРТЕФАКТЫ — ЭССЕНЦИЯ
+    // ═══════════════════════════════════════════
+
+    private void handleArtifactEssenceButton(Player p, Inventory inv) {
+        PendingOp op = pending.get(p.getUniqueId());
+        if (op != null && op.action.equals("artifact_essence") && System.currentTimeMillis() - op.created < 30000L) {
+            executeArtifactEssence(p, inv, op);
+            pending.remove(p.getUniqueId());
+            resetConfirmButton("Эссенция", inv);
+            return;
+        }
+        ItemStack item = getCenterItem(p, inv);
+        if (item == null || !ru.example.vkchatgear.artifacts.ArtifactsManager.isArtifact(item)) {
+            p.sendMessage(ChatColor.RED + "Положи артефакт в центральный слот.");
+            return;
+        }
+        ru.example.vkchatgear.artifacts.ArtifactsManager mgr = plugin.getArtifactsManager();
+        ru.example.vkchatgear.artifacts.ArtifactComponent def = mgr != null ? mgr.getArtifactDef(item) : null;
+        String artName = item.getItemMeta().getDisplayName();
+
+        op = new PendingOp();
+        op.action = "artifact_essence";
+        op.repCost = plugin.getForgeAdvancedConfig().getInt("forge2.artifacts.essence.rep-cost", 600);
+
+        StringBuilder stats = new StringBuilder();
+        if (def != null) {
+            for (Map.Entry<String, Double> e : def.getStats().entrySet()) {
+                String statName = ru.example.vkchatgear.artifacts.ArtifactsManager.formatStatName(e.getKey());
+                stats.append(ChatColor.GRAY + "  " + statName + ": " + ChatColor.GREEN + String.format("%.2f", e.getValue()) + "\n");
+            }
+        }
+
+        op.summary = ChatColor.AQUA + "💧 Эссенция: " + artName + "\n\n" +
+                ChatColor.GRAY + "Статы артефакта:\n" + stats.toString() + "\n" +
+                ChatColor.YELLOW + "Цена: " + op.repCost + " реп. ВК\n" +
+                ChatColor.GRAY + "Артефакт будет уничтожен.\n" +
+                ChatColor.GRAY + "Кликни ещё раз для подтверждения.";
+        pending.put(p.getUniqueId(), op);
+        inv.setItem(CONFIRM_SLOT, item(Material.LIME_CONCRETE, ChatColor.GREEN + "✅ Подтвердить извлечение", op.summary.split("\n")));
+        p.sendMessage(ChatColor.AQUA + "💧 Предпросмотр извлечения готов.");
+    }
+
+    private void executeArtifactEssence(Player p, Inventory inv, PendingOp op) {
+        ItemStack item = getCenterItem(p, inv);
+        if (item == null || !ru.example.vkchatgear.artifacts.ArtifactsManager.isArtifact(item)) return;
+        if (!plugin.getGearManager().takeVkReputation(p, op.repCost, "эссенция артефакта")) return;
+
+        ru.example.vkchatgear.artifacts.ArtifactsManager mgr = plugin.getArtifactsManager();
+        ru.example.vkchatgear.artifacts.ArtifactComponent def = mgr != null ? mgr.getArtifactDef(item) : null;
+        String rarity = ru.example.vkchatgear.artifacts.ArtifactsManager.getArtifactRarity(item);
+
+        // Создаём эссенцию
+        ItemStack essence = new ItemStack(Material.POTION);
+        ItemMeta meta = essence.getItemMeta();
+        ChatColor color = rarity != null ? ru.example.vkchatgear.artifacts.ArtifactsManager.rarityColor(rarity) : ChatColor.WHITE;
+        meta.setDisplayName(color + "💧 Эссенция: " + ChatColor.stripColor(item.getItemMeta().getDisplayName()));
+        List<String> lore = new ArrayList<>();
+        lore.add(ChatColor.GRAY + "Эссенция артефакта.");
+        if (def != null) {
+            for (Map.Entry<String, Double> e : def.getStats().entrySet()) {
+                String statName = ru.example.vkchatgear.artifacts.ArtifactsManager.formatStatName(e.getKey());
+                lore.add(ChatColor.GREEN + "+ " + statName + ": " + String.format("%.2f", e.getValue()));
+            }
+        }
+        lore.add("");
+        lore.add(ChatColor.DARK_GRAY + "Используется в операциях кузни.");
+        meta.setLore(lore);
+        meta.addItemFlags(ItemFlag.HIDE_POTION_EFFECTS);
+        meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "artifact_essence"), PersistentDataType.STRING, rarity != null ? rarity : "common");
+        essence.setItemMeta(meta);
+
+        inv.setItem(CENTER_SLOT, null);
+        p.getInventory().addItem(essence).values().forEach(left -> p.getWorld().dropItemNaturally(p.getLocation(), left));
+        p.playSound(p.getLocation(), Sound.ITEM_BOTTLE_FILL, 1f, 1.2f);
+        p.getWorld().spawnParticle(org.bukkit.Particle.WATER_SPLASH, p.getLocation().add(0, 1, 0), 20, 0.5, 0.5, 0.5, 0.1);
+        p.sendMessage(ChatColor.AQUA + "💧 Эссенция извлечена! Артефакт уничтожен.");
+        log(p, "ARTIFACT_ESSENCE", ru.example.vkchatgear.artifacts.ArtifactsManager.getArtifactId(item));
+    }
+
+    // ═══════════════════════════════════════════
+    // АРТЕФАКТЫ — БИНД
+    // ═══════════════════════════════════════════
+
+    private void handleArtifactBindButton(Player p, Inventory inv) {
+        PendingOp op = pending.get(p.getUniqueId());
+        if (op != null && op.action.equals("artifact_bind") && System.currentTimeMillis() - op.created < 30000L) {
+            executeArtifactBind(p, inv, op);
+            pending.remove(p.getUniqueId());
+            resetConfirmButton("Бинд Артефакта", inv);
+            return;
+        }
+        ItemStack item = getCenterItem(p, inv);
+        if (item == null || !ru.example.vkchatgear.artifacts.ArtifactsManager.isArtifact(item)) {
+            p.sendMessage(ChatColor.RED + "Положи артефакт в центральный слот.");
+            return;
+        }
+        NamespacedKey bindKey = new NamespacedKey(plugin, "artifact_bound");
+        if (item.hasItemMeta() && item.getItemMeta().getPersistentDataContainer().has(bindKey, PersistentDataType.STRING)) {
+            p.sendMessage(ChatColor.RED + "Этот артефакт уже привязан!");
+            return;
+        }
+
+        op = new PendingOp();
+        op.action = "artifact_bind";
+        op.repCost = plugin.getForgeAdvancedConfig().getInt("forge2.artifacts.bind.rep-cost", 400);
+        String artName = item.getItemMeta().getDisplayName();
+
+        op.summary = ChatColor.LIGHT_PURPLE + "🔒 Бинд: " + artName + "\n\n" +
+                ChatColor.GRAY + "Привязать к: " + ChatColor.YELLOW + p.getName() + "\n\n" +
+                ChatColor.RED + "После бинда:\n" +
+                ChatColor.RED + "  • Нельзя выбросить\n" +
+                ChatColor.RED + "  • Нельзя передать\n" +
+                ChatColor.RED + "  • Нельзя положить в сундук\n" +
+                ChatColor.RED + "  • Нельзя положить в эндер-чест\n\n" +
+                ChatColor.YELLOW + "Цена: " + op.repCost + " реп. ВК\n" +
+                ChatColor.GRAY + "Кликни ещё раз для подтверждения.";
+        pending.put(p.getUniqueId(), op);
+        inv.setItem(CONFIRM_SLOT, item(Material.LIME_CONCRETE, ChatColor.GREEN + "✅ Подтвердить бинд", op.summary.split("\n")));
+        p.sendMessage(ChatColor.LIGHT_PURPLE + "🔒 Предпросмотр бинда готов.");
+    }
+
+    private void executeArtifactBind(Player p, Inventory inv, PendingOp op) {
+        ItemStack item = getCenterItem(p, inv);
+        if (item == null || !ru.example.vkchatgear.artifacts.ArtifactsManager.isArtifact(item)) return;
+        if (!plugin.getGearManager().takeVkReputation(p, op.repCost, "бинд артефакта")) return;
+
+        NamespacedKey bindKey = new NamespacedKey(plugin, "artifact_bound");
+        ItemMeta meta = item.getItemMeta();
+        meta.getPersistentDataContainer().set(bindKey, PersistentDataType.STRING, p.getUniqueId().toString());
+        item.setItemMeta(meta);
+
+        inv.setItem(CENTER_SLOT, item);
+        p.playSound(p.getLocation(), Sound.BLOCK_ANVIL_USE, 1f, 1.5f);
+        p.getWorld().spawnParticle(org.bukkit.Particle.SMOKE_LARGE, p.getLocation().add(0, 1, 0), 20, 0.5, 0.5, 0.5, 0.05);
+        p.sendMessage(ChatColor.LIGHT_PURPLE + "🔒 Артефакт привязан к " + p.getName() + "!");
+        log(p, "ARTIFACT_BIND", ru.example.vkchatgear.artifacts.ArtifactsManager.getArtifactId(item));
+    }
+
+    // ═══════════════════════════════════════════
+    // АРТЕФАКТЫ — ТРАНСМУТАЦИЯ
+    // ═══════════════════════════════════════════
+
+    private void handleArtifactTransmuteButton(Player p, Inventory inv) {
+        PendingOp op = pending.get(p.getUniqueId());
+        if (op != null && op.action.equals("artifact_transmute") && System.currentTimeMillis() - op.created < 30000L) {
+            executeArtifactTransmute(p, inv, op);
+            pending.remove(p.getUniqueId());
+            resetConfirmButton("Трансмутация", inv);
+            return;
+        }
+        ItemStack item = getCenterItem(p, inv);
+        if (item == null || !ru.example.vkchatgear.artifacts.ArtifactsManager.isArtifact(item)) {
+            p.sendMessage(ChatColor.RED + "Положи артефакт в центральный слот.");
+            return;
+        }
+        ru.example.vkchatgear.artifacts.ArtifactsManager mgr = plugin.getArtifactsManager();
+        ru.example.vkchatgear.artifacts.ArtifactComponent def = mgr != null ? mgr.getArtifactDef(item) : null;
+        if (def == null || def.getStats().isEmpty()) {
+            p.sendMessage(ChatColor.RED + "У этого артефакта нет статов для трансмутации!");
+            return;
+        }
+        // Ищем первое оружие/броню в инвентаре
+        ItemStack gear = null;
+        for (ItemStack it : p.getInventory().getContents()) {
+            if (it != null && plugin.getGearManager().isGear(it.getType())) {
+                gear = it;
+                break;
+            }
+        }
+        if (gear == null) {
+            p.sendMessage(ChatColor.RED + "Нет оружия/брони в инвентаре для трансмутации!");
+            return;
+        }
+
+        // Выбираем первый стат для переноса
+        Map.Entry<String, Double> firstStat = def.getStats().entrySet().iterator().next();
+        String statName = ru.example.vkchatgear.artifacts.ArtifactsManager.formatStatName(firstStat.getKey());
+
+        op = new PendingOp();
+        op.action = "artifact_transmute";
+        op.repCost = plugin.getForgeAdvancedConfig().getInt("forge2.artifacts.transmute.rep-cost", 1500);
+        op.materialCost = Material.DIAMOND;
+        op.materialAmount = 1;
+
+        op.summary = ChatColor.YELLOW + "⚗ Трансмутация\n\n" +
+                ChatColor.AQUA + "Из: " + item.getItemMeta().getDisplayName() + "\n" +
+                ChatColor.GRAY + "  Стат: " + statName + ": " + String.format("%.2f", firstStat.getValue()) + "\n\n" +
+                ChatColor.GREEN + "В: " + gear.getItemMeta().getDisplayName() + "\n" +
+                ChatColor.GRAY + "  Бонус: +" + statName + "\n\n" +
+                ChatColor.RED + "⚠ Стат удалится из артефакта!\n" +
+                ChatColor.YELLOW + "Цена: " + op.repCost + " реп. ВК + 1x DIAMOND\n" +
+                ChatColor.GRAY + "Кликни ещё раз для подтверждения.";
+        pending.put(p.getUniqueId(), op);
+        inv.setItem(CONFIRM_SLOT, item(Material.LIME_CONCRETE, ChatColor.GREEN + "✅ Подтвердить трансмутацию", op.summary.split("\n")));
+        p.sendMessage(ChatColor.YELLOW + "⚗ Предпросмотр трансмутации готов.");
+    }
+
+    private void executeArtifactTransmute(Player p, Inventory inv, PendingOp op) {
+        ItemStack item = getCenterItem(p, inv);
+        if (item == null || !ru.example.vkchatgear.artifacts.ArtifactsManager.isArtifact(item)) return;
+        if (!plugin.getGearManager().takeVkReputation(p, op.repCost, "трансмутация артефакта")) return;
+        if (!takeMaterial(p, op.materialCost, op.materialAmount)) {
+            p.sendMessage(ChatColor.RED + "Не хватает ресурса: " + op.materialAmount + "x " + op.materialCost.name());
+            return;
+        }
+
+        ru.example.vkchatgear.artifacts.ArtifactsManager mgr = plugin.getArtifactsManager();
+        ru.example.vkchatgear.artifacts.ArtifactComponent def = mgr != null ? mgr.getArtifactDef(item) : null;
+        if (def == null || def.getStats().isEmpty()) return;
+
+        Map.Entry<String, Double> firstStat = def.getStats().entrySet().iterator().next();
+        String statKey = firstStat.getKey();
+        double statVal = firstStat.getValue();
+
+        // Находим оружие/броню
+        ItemStack gear = null;
+        for (ItemStack it : p.getInventory().getContents()) {
+            if (it != null && plugin.getGearManager().isGear(it.getType())) {
+                gear = it;
+                break;
+            }
+        }
+        if (gear == null) return;
+
+        // Добавляем стат к снаряжению через PDC
+        ItemMeta gearMeta = gear.getItemMeta();
+        NamespacedKey transmuteKey = new NamespacedKey(plugin, "transmuted_" + statKey);
+        double current = gearMeta.getPersistentDataContainer().getOrDefault(transmuteKey, PersistentDataType.DOUBLE, 0.0);
+        gearMeta.getPersistentDataContainer().set(transmuteKey, PersistentDataType.DOUBLE, current + statVal);
+        gear.setItemMeta(gearMeta);
+
+        // Удаляем стат из артефакта (пересобираем lore без этого стата)
+        // Просто помечаем стат как удалённый в PDC
+        NamespacedKey removedStatsKey = new NamespacedKey(plugin, "artifact_removed_stats");
+        ItemMeta artMeta = item.getItemMeta();
+        String removed = artMeta.getPersistentDataContainer().getOrDefault(removedStatsKey, PersistentDataType.STRING, "");
+        removed += (removed.isEmpty() ? "" : ",") + statKey;
+        artMeta.getPersistentDataContainer().set(removedStatsKey, PersistentDataType.STRING, removed);
+        item.setItemMeta(artMeta);
+        if (mgr != null) mgr.rebuildArtifactLore(item);
+
+        inv.setItem(CENTER_SLOT, item);
+        p.playSound(p.getLocation(), Sound.BLOCK_ENCHANTMENT_TABLE_USE, 1f, 1.2f);
+        p.getWorld().spawnParticle(org.bukkit.Particle.ENCHANTMENT_TABLE, p.getLocation().add(0, 1, 0), 30, 0.5, 0.5, 0.5, 0.1);
+        p.sendMessage(ChatColor.YELLOW + "⚗ Стат " + ru.example.vkchatgear.artifacts.ArtifactsManager.formatStatName(statKey) + " перенесён на " + gear.getItemMeta().getDisplayName() + "!");
+        log(p, "ARTIFACT_TRANSMUTE", ru.example.vkchatgear.artifacts.ArtifactsManager.getArtifactId(item) + " stat=" + statKey);
+    }
+
+    // ═══════════════════════════════════════════
+    // АРТЕФАКТЫ — РИТУАЛ
+    // ═══════════════════════════════════════════
+
+    private void handleArtifactRitualButton(Player p, Inventory inv) {
+        PendingOp op = pending.get(p.getUniqueId());
+        if (op != null && op.action.equals("artifact_ritual") && System.currentTimeMillis() - op.created < 30000L) {
+            executeArtifactRitual(p, inv, op);
+            pending.remove(p.getUniqueId());
+            resetConfirmButton("Артефакт-ритуал", inv);
+            return;
+        }
+        // Собираем артефакты из слотов 20 и 24, руну из слота 22
+        List<ItemStack> artifacts = new ArrayList<>();
+        for (int slot : new int[]{20, 24}) {
+            ItemStack it = inv.getItem(slot);
+            if (it != null && ru.example.vkchatgear.artifacts.ArtifactsManager.isArtifact(it)) {
+                artifacts.add(it);
+            }
+        }
+        ItemStack runeItem = inv.getItem(22);
+
+        if (artifacts.size() < 2) {
+            p.sendMessage(ChatColor.RED + "Положи 2 артефакта одной редкости в слоты 20 и 24!");
+            return;
+        }
+        if (runeItem == null || !isRuneItem(runeItem)) {
+            p.sendMessage(ChatColor.RED + "Положи руну в центральный слот (22)!");
+            return;
+        }
+        String rarity1 = ru.example.vkchatgear.artifacts.ArtifactsManager.getArtifactRarity(artifacts.get(0));
+        String rarity2 = ru.example.vkchatgear.artifacts.ArtifactsManager.getArtifactRarity(artifacts.get(1));
+        if (rarity1 == null || !rarity1.equals(rarity2)) {
+            p.sendMessage(ChatColor.RED + "Артефакты должны быть одной редкости!");
+            return;
+        }
+
+        op = new PendingOp();
+        op.action = "artifact_ritual";
+        op.repCost = plugin.getForgeAdvancedConfig().getInt("forge2.artifacts.ritual.rep-cost", 2500);
+        op.materialCost = Material.DIAMOND;
+        op.materialAmount = 2;
+
+        op.summary = ChatColor.DARK_AQUA + "🕯 Артефакт-ритуал\n\n" +
+                ChatColor.GRAY + "Ингредиенты:\n" +
+                "  " + artifacts.get(0).getItemMeta().getDisplayName() + "\n" +
+                "  " + artifacts.get(1).getItemMeta().getDisplayName() + "\n" +
+                "  " + runeItem.getItemMeta().getDisplayName() + "\n\n" +
+                ChatColor.GRAY + "Результат: артефакт с зачарованной руной.\n" +
+                ChatColor.RED + "Руна сгорит!\n" +
+                ChatColor.YELLOW + "Цена: " + op.repCost + " реп. ВК + 2x DIAMOND\n" +
+                ChatColor.GRAY + "Кликни ещё раз для подтверждения.";
+        pending.put(p.getUniqueId(), op);
+        inv.setItem(CONFIRM_SLOT, item(Material.LIME_CONCRETE, ChatColor.GREEN + "✅ Подтвердить ритуал", op.summary.split("\n")));
+        p.sendMessage(ChatColor.DARK_AQUA + "🕯 Предпросмотр ритуала готов.");
+    }
+
+    private void executeArtifactRitual(Player p, Inventory inv, PendingOp op) {
+        List<ItemStack> artifacts = new ArrayList<>();
+        for (int slot : new int[]{20, 24}) {
+            ItemStack it = inv.getItem(slot);
+            if (it != null && ru.example.vkchatgear.artifacts.ArtifactsManager.isArtifact(it)) {
+                artifacts.add(it);
+            }
+        }
+        ItemStack runeItem = inv.getItem(22);
+        if (artifacts.size() < 2 || runeItem == null) return;
+        if (!plugin.getGearManager().takeVkReputation(p, op.repCost, "артефакт-ритуал")) return;
+        if (!takeMaterial(p, op.materialCost, op.materialAmount)) {
+            p.sendMessage(ChatColor.RED + "Не хватает ресурса: " + op.materialAmount + "x " + op.materialCost.name());
+            return;
+        }
+
+        // Берём первый артефакт как основу
+        ItemStack base = artifacts.get(0).clone();
+        String runeName = runeItem.getItemMeta().getDisplayName();
+
+        // Добавляем имя руны в lore артефакта
+        ItemMeta baseMeta = base.getItemMeta();
+        List<String> lore = baseMeta.hasLore() ? new ArrayList<>(baseMeta.getLore()) : new ArrayList<>();
+        // Удаляем пустые строки в конце
+        while (!lore.isEmpty() && ChatColor.stripColor(lore.get(lore.size() - 1)).isEmpty()) lore.remove(lore.size() - 1);
+        lore.add("");
+        lore.add(ChatColor.DARK_PURPLE + "✦ " + runeName);
+        baseMeta.setLore(lore);
+        base.setItemMeta(baseMeta);
+
+        // Удаляем все предметы из слотов
+        for (int slot : new int[]{20, 22, 24}) inv.setItem(slot, null);
+        inv.setItem(22, base);
+
+        p.playSound(p.getLocation(), Sound.BLOCK_FIRE_AMBIENT, 1f, 1.5f);
+        p.getWorld().spawnParticle(org.bukkit.Particle.SOUL, p.getLocation().add(0, 1, 0), 30, 0.5, 0.5, 0.5, 0.1);
+        p.sendMessage(ChatColor.DARK_AQUA + "🕯 Ритуал завершён! Артефакт зачарован руной: " + runeName);
+        log(p, "ARTIFACT_RITUAL", ru.example.vkchatgear.artifacts.ArtifactsManager.getArtifactId(base) + " rune=" + runeName);
+    }
+
+    private boolean isRuneItem(ItemStack item) {
+        if (item == null || !item.hasItemMeta()) return false;
+        return item.getItemMeta().getPersistentDataContainer().has(new NamespacedKey(plugin, "rune_id"), PersistentDataType.STRING);
+    }
+
+    // ═══════════════════════════════════════════
+    // АРТЕФАКТЫ — УТИЛИТЫ
+    // ═══════════════════════════════════════════
+
+    private int getArtifactLevel(ItemStack item) {
+        if (item == null || !item.hasItemMeta()) return 0;
+        NamespacedKey key = new NamespacedKey(plugin, "artifact_level");
+        Integer lvl = item.getItemMeta().getPersistentDataContainer().get(key, PersistentDataType.INTEGER);
+        return lvl != null ? lvl : 0;
+    }
+
+    private int incrementArtifactLevel(ItemStack item) {
+        if (item == null || !item.hasItemMeta()) return 0;
+        NamespacedKey key = new NamespacedKey(plugin, "artifact_level");
+        ItemMeta meta = item.getItemMeta();
+        int lvl = meta.getPersistentDataContainer().getOrDefault(key, PersistentDataType.INTEGER, 0) + 1;
+        meta.getPersistentDataContainer().set(key, PersistentDataType.INTEGER, lvl);
+        item.setItemMeta(meta);
+        return lvl;
+    }
+
+    private String nextArtifactRarity(String current) {
+        switch (current) {
+            case "common": return "rare";
+            case "rare": return "epic";
+            case "epic": return "legendary";
+            case "legendary": return "ancient";
+            default: return null;
+        }
+    }
+
+    private String rarityColorName(String rarity) {
+        switch (rarity) {
+            case "ancient": return ChatColor.DARK_PURPLE + "Древний";
+            case "legendary": return ChatColor.GOLD + "Легендарный";
+            case "epic": return ChatColor.BLUE + "Эпический";
+            case "rare": return ChatColor.AQUA + "Редкий";
+            default: return ChatColor.WHITE + "Обычный";
+        }
+    }
+
     private void removeCustomEnchants(ItemStack item) {
         if (item == null || !item.hasItemMeta()) return;
         ItemMeta meta = item.getItemMeta();
-        if (!meta.hasLore()) return;
+
+        // Remove PDC tags for all custom enchants
+        if (plugin.getEnchantsConfig().getConfigurationSection("custom_enchants") != null) {
+            for (String key : plugin.getEnchantsConfig().getConfigurationSection("custom_enchants").getKeys(false)) {
+                NamespacedKey nk = new NamespacedKey(plugin, "custom_enchant_" + key);
+                if (meta.getPersistentDataContainer().has(nk, PersistentDataType.INTEGER)) {
+                    meta.getPersistentDataContainer().remove(nk);
+                }
+            }
+        }
+
+        // Remove lore lines for custom enchants
+        if (!meta.hasLore()) { item.setItemMeta(meta); return; }
         List<String> lore = meta.getLore();
         List<String> allCustom = plugin.getGearManager().getAvailableCustomEnchants(item.getType());
         List<String> toRemove = new ArrayList<>();
         for (String line : lore) {
             String stripped = ChatColor.stripColor(line).toLowerCase();
             for (String key : allCustom) {
-                String rawName = plugin.getConfig().getString("custom_enchants." + key + ".name", "");
+                String rawName = plugin.getEnchantsConfig().getString("custom_enchants." + key + ".name", "");
                 String cfg = ChatColor.stripColor(ChatColor.translateAlternateColorCodes('&', rawName)).toLowerCase();
                 if (!cfg.isEmpty() && stripped.contains(cfg.split(" ")[0].toLowerCase())) {
                     toRemove.add(line);
@@ -791,6 +1804,12 @@ public class ForgeCommand implements CommandExecutor, Listener, TabCompleter {
         return item;
     }
 
+    private ItemStack getCenterItem(Player p, Inventory inv) {
+        ItemStack item = inv.getItem(CENTER_SLOT);
+        if (isEmpty(item)) { p.sendMessage(ChatColor.RED + "Положи предмет в центральный слот."); return null; }
+        return item;
+    }
+
     private boolean isValidFusionItem(ItemStack item) {
         if (isEmpty(item) || !plugin.getGearManager().isGear(item.getType()) || !item.hasItemMeta()) return false;
         ItemMeta meta = item.getItemMeta();
@@ -835,8 +1854,14 @@ public class ForgeCommand implements CommandExecutor, Listener, TabCompleter {
         return true;
     }
 
+    private void giveMaterial(Player p, Material mat, int amount) {
+        if (amount <= 0) return;
+        ItemStack drop = new ItemStack(mat, amount);
+        p.getInventory().addItem(drop).values().forEach(left -> p.getWorld().dropItemNaturally(p.getLocation(), left));
+    }
+
     private Material materialCostFor(String targetRarity) {
-        String raw = plugin.getConfig().getString("forge2.resources." + targetRarity + ".material", null);
+        String raw = plugin.getForgeAdvancedConfig().getString("forge2.resources." + targetRarity + ".material", null);
         if (raw != null) try { return Material.valueOf(raw); } catch (Exception ignored) {}
         if (targetRarity.equals("ancient")) return Material.NETHERITE_INGOT;
         if (targetRarity.equals("legendary")) return Material.NETHERITE_SCRAP;
@@ -846,7 +1871,7 @@ public class ForgeCommand implements CommandExecutor, Listener, TabCompleter {
     }
 
     private int materialAmountFor(String targetRarity) {
-        int cfg = plugin.getConfig().getInt("forge2.resources." + targetRarity + ".amount", -1);
+        int cfg = plugin.getForgeAdvancedConfig().getInt("forge2.resources." + targetRarity + ".amount", -1);
         if (cfg > 0) return cfg;
         if (targetRarity.equals("ancient")) return 2;
         if (targetRarity.equals("legendary")) return 4;
@@ -871,7 +1896,7 @@ public class ForgeCommand implements CommandExecutor, Listener, TabCompleter {
     private void applyRarityProc(ItemStack item, String rarity) {
         if (item == null || !item.hasItemMeta()) return;
         ItemMeta meta = item.getItemMeta();
-        List<String> pool = plugin.getConfig().getStringList("forge2.rarity-procs." + rarity);
+        List<String> pool = plugin.getForgeAdvancedConfig().getStringList("forge2.rarity-procs." + rarity);
         if (pool.isEmpty()) pool = defaultProcPool(rarity);
         if (pool.isEmpty()) return;
         String proc = rebrandProc(pool.get(ThreadLocalRandom.current().nextInt(pool.size())));
@@ -921,7 +1946,7 @@ public class ForgeCommand implements CommandExecutor, Listener, TabCompleter {
         if (rarity.equals("ancient")) Bukkit.broadcastMessage(ChatColor.DARK_PURPLE + msg);
         else if (rarity.equals("legendary")) Bukkit.broadcastMessage(ChatColor.GOLD + msg);
         else Bukkit.broadcastMessage(ChatColor.LIGHT_PURPLE + msg);
-        try { VKChatPlugin.getInstance().getApi().sendToMainChat(msg); } catch (Exception ignored) {}
+        try { VKChatBridge.sendToMainChat(msg); } catch (Exception ignored) {}
     }
 
     /**
@@ -941,10 +1966,33 @@ public class ForgeCommand implements CommandExecutor, Listener, TabCompleter {
         else if (title.equals(CLEANSE_TITLE)) inv.setItem(CONFIRM_SLOT, item(Material.OAK_SIGN, ChatColor.YELLOW + "🔍 Предпросмотр очищения"));
         else if (title.equals(REPAIR_TITLE)) inv.setItem(CONFIRM_SLOT, item(Material.OAK_SIGN, ChatColor.YELLOW + "🔍 Предпросмотр ремонта"));
         else if (title.equals(RUNE_CLEANSING_TITLE)) inv.setItem(CONFIRM_SLOT, item(Material.OAK_SIGN, ChatColor.YELLOW + "🔍 Предпросмотр очищения рун"));
+        else if (title.contains("Заточка Артефакта")) inv.setItem(CONFIRM_SLOT, item(Material.OAK_SIGN, ChatColor.YELLOW + "🔍 Предпросмотр заточки"));
+        else if (title.contains("Перековка Артефакта")) inv.setItem(CONFIRM_SLOT, item(Material.OAK_SIGN, ChatColor.YELLOW + "🔍 Предпросмотр перековки"));
+        else if (title.contains("Слияние Артефактов")) inv.setItem(CONFIRM_SLOT, item(Material.OAK_SIGN, ChatColor.YELLOW + "🔍 Предпросмотр слияния"));
+        else if (title.contains("Дезинтеграция")) inv.setItem(CONFIRM_SLOT, item(Material.OAK_SIGN, ChatColor.YELLOW + "🔍 Предпросмотр разбора"));
+        else if (title.contains("Эссенция")) inv.setItem(CONFIRM_SLOT, item(Material.OAK_SIGN, ChatColor.YELLOW + "🔍 Предпросмотр извлечения"));
+        else if (title.contains("Бинд Артефакта")) inv.setItem(CONFIRM_SLOT, item(Material.OAK_SIGN, ChatColor.YELLOW + "🔍 Предпросмотр бинда"));
+        else if (title.contains("Трансмутация")) inv.setItem(CONFIRM_SLOT, item(Material.OAK_SIGN, ChatColor.YELLOW + "🔍 Предпросмотр трансмутации"));
+        else if (title.contains("Артефакт-ритуал")) inv.setItem(CONFIRM_SLOT, item(Material.OAK_SIGN, ChatColor.YELLOW + "🔍 Предпросмотр ритуала"));
     }
 
-    private boolean isForgeTitle(String title) { return title.equals(HUB_TITLE) || title.equals(FUSION_TITLE) || title.equals(REFORGE_TITLE) || title.equals(CLEANSE_TITLE) || title.equals(REPAIR_TITLE) || title.equals(SCROLLS_TITLE) || title.equals(RUNE_CLEANSING_TITLE); }
-    private boolean isWorkSlot(String title, int slot) { return title.equals(FUSION_TITLE) ? (slot == 20 || slot == 22 || slot == 24) : ((title.equals(REFORGE_TITLE) || title.equals(CLEANSE_TITLE) || title.equals(REPAIR_TITLE) || title.equals(RUNE_CLEANSING_TITLE)) && slot == CENTER_SLOT); }
+    private boolean isForgeTitle(String title) {
+        return title.equals(HUB_TITLE) || title.equals(FUSION_TITLE) || title.equals(REFORGE_TITLE) ||
+                title.equals(CLEANSE_TITLE) || title.equals(REPAIR_TITLE) || title.equals(SCROLLS_TITLE) ||
+                title.equals(RUNE_CLEANSING_TITLE) || title.equals(ARTIFACTS_TITLE) ||
+                title.contains("Заточка Артефакта") || title.contains("Перековка Артефакта") || title.contains("Слияние Артефактов") ||
+                title.contains("Дезинтеграция") || title.contains("Эссенция") || title.contains("Бинд Артефакта") ||
+                title.contains("Трансмутация") || title.contains("Артефакт-ритуал");
+    }
+    private boolean isWorkSlot(String title, int slot) {
+        if (title.equals(FUSION_TITLE)) return slot == 20 || slot == 22 || slot == 24;
+        if (title.contains("Слияние Артефактов")) return slot == 20 || slot == 22 || slot == 24;
+        if (title.contains("Артефакт-ритуал")) return slot == 20 || slot == 22 || slot == 24;
+        return (title.equals(REFORGE_TITLE) || title.equals(CLEANSE_TITLE) || title.equals(REPAIR_TITLE) ||
+                title.equals(RUNE_CLEANSING_TITLE) || title.contains("Заточка Артефакта") || title.contains("Перековка Артефакта") ||
+                title.contains("Дезинтеграция") || title.contains("Эссенция") || title.contains("Бинд Артефакта") ||
+                title.contains("Трансмутация")) && slot == CENTER_SLOT;
+    }
     private boolean isEmpty(ItemStack item) { return item == null || item.getType() == Material.AIR; }
     private int firstFreeFusionSlot(Inventory inv) { for (int s : FUSION_SLOTS) if (isEmpty(inv.getItem(s))) return s; return -1; }
 

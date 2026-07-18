@@ -11,6 +11,7 @@ import ru.example.vkchatartifacts.effects.BuffEffectRegistry;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class ArtifactFactory {
@@ -74,9 +75,13 @@ public class ArtifactFactory {
     };
 
     public static ItemStack generateArtifact(VKChatArtifactsPlugin plugin, boolean isMythic) {
+        return generateArtifact(plugin, isMythic, null);
+    }
+
+    public static ItemStack generateArtifact(VKChatArtifactsPlugin plugin, boolean isMythic, UUID playerUUID) {
         // Шанс на именованный артефакт (20%)
         if (ThreadLocalRandom.current().nextDouble() < 0.2) {
-            return generateNamedArtifact(plugin);
+            return generateNamedArtifact(plugin, playerUUID);
         }
 
         Material[] possibleMats = {Material.NETHER_STAR, Material.TOTEM_OF_UNDYING, Material.HEART_OF_THE_SEA, Material.DRAGON_BREATH, Material.GHAST_TEAR, Material.BLAZE_POWDER, Material.RABBIT_FOOT, Material.MAGMA_CREAM, Material.END_CRYSTAL, Material.CONDUIT, Material.SCUTE, Material.END_ROD, Material.CHORUS_FRUIT};
@@ -182,6 +187,9 @@ public class ArtifactFactory {
         
         item.setItemMeta(meta);
         plugin.incrementArtifactsGenerated();
+        if (playerUUID != null) {
+            plugin.incrementPlayerArtifactCount(playerUUID);
+        }
         return item;
     }
 
@@ -239,6 +247,10 @@ public class ArtifactFactory {
      * Генерация именованного артефакта из списка 35 штук
      */
     public static ItemStack generateNamedArtifact(VKChatArtifactsPlugin plugin) {
+        return generateNamedArtifact(plugin, null);
+    }
+
+    public static ItemStack generateNamedArtifact(VKChatArtifactsPlugin plugin, UUID playerUUID) {
         String[] artDef = NAMED_ARTIFACTS[ThreadLocalRandom.current().nextInt(NAMED_ARTIFACTS.length)];
         String name = artDef[0];
         Material mat = Material.valueOf(artDef[1]);
@@ -308,6 +320,9 @@ public class ArtifactFactory {
 
         item.setItemMeta(meta);
         plugin.incrementArtifactsGenerated();
+        if (playerUUID != null) {
+            plugin.incrementPlayerArtifactCount(playerUUID);
+        }
         return item;
     }
 

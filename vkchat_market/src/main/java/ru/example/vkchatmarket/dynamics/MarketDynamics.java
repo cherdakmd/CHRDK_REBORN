@@ -12,13 +12,9 @@ import java.util.concurrent.ThreadLocalRandom;
 public class MarketDynamics {
     private final VKChatMarketPlugin plugin;
 
-    // Volume history with timestamps: itemId -> list of (timestamp, amount, isBuy)
     private final Map<String, List<TradeRecord>> volumeHistory = new ConcurrentHashMap<>();
-    // Momentum: itemId -> current momentum (-1.0 to 1.0)
     private final Map<String, Double> momentum = new ConcurrentHashMap<>();
-    // Price history: itemId -> list of recent calculated prices
     private final Map<String, List<Double>> priceHistory = new ConcurrentHashMap<>();
-    // Price alerts: playerId -> (itemId -> targetPrice)
     private final Map<UUID, Map<String, Integer>> priceAlerts = new ConcurrentHashMap<>();
 
     private static final int MAX_HISTORY = 200;
@@ -27,8 +23,6 @@ public class MarketDynamics {
     public MarketDynamics(VKChatMarketPlugin plugin) {
         this.plugin = plugin;
     }
-
-    // ═══ ЗАПИСЬ СДЕЛОК ═══
 
     public void recordTrade(MarketEntry entry, int amount, boolean isBuy) {
         long now = System.currentTimeMillis();
@@ -41,15 +35,13 @@ public class MarketDynamics {
 
     private void updateMomentum(MarketEntry entry, int amount, boolean isBuy) {
         double oldMomentum = momentum.getOrDefault(entry.id(), 0.0);
-        double momentumFactor = getConfigDouble("dynamics.momentum-factor", 0.15);
+        double momentumFactor = plugin.getSettingsConfig().getDouble("dynamics.momentum-factor", 0.15);
         double direction = isBuy ? 1.0 : -1.0;
         double magnitude = Math.min(1.0, amount / 32.0);
         double newMomentum = oldMomentum * (1.0 - momentumFactor) + direction * magnitude * momentumFactor;
         newMomentum = Math.max(-1.0, Math.min(1.0, newMomentum));
         momentum.put(entry.id(), newMomentum);
     }
-
-    // ═══ DECAY ОБЪЁМА ═══
 
     public double getDecayedBuyVolume(MarketEntry entry) {
         return getDecayedVolume(entry, true);
@@ -63,7 +55,7 @@ public class MarketDynamics {
         List<TradeRecord> history = volumeHistory.getOrDefault(entry.id(), Collections.emptyList());
         if (history.isEmpty()) return 0;
 
-        double halfLife = getConfigDouble("dynamics.decay-half-life-minutes", 30) * 60_000;
+        double halfLife = plugin.getSettingsConfig().getDouble("dynamics.decay-half-life-minutes", 30) * 60_000;
         double now = System.currentTimeMillis();
         double total = 0;
 
@@ -80,30 +72,24 @@ public class MarketDynamics {
         return getDecayedBuyVolume(entry) - getDecayedSellVolume(entry);
     }
 
-    // ═══ MEAN REVERSION ═══
-
     public double getMeanReversionFactor(MarketEntry entry) {
-        double reversionRate = getConfigDouble("dynamics.mean-reversion-rate", 0.05);
+        double reversionRate = plugin.getSettingsConfig().getDouble("dynamics.mean-reversion-rate", 0.05);
         double net = getNetDecayedVolume(entry);
-        int elasticity = plugin.getConfig().getInt("settings.dynamic-elasticity", 50);
+        int elasticity = plugin.getSettingsConfig().getInt("settings.dynamic-elasticity", 50);
         double currentShift = net / elasticity;
         return 1.0 - (currentShift * reversionRate);
     }
 
-    // ═══ BULK MULTIPLIER ═══
-
     public double getBulkMultiplier(int amount) {
-        double baseMultiplier = getConfigDouble("dynamics.bulk-base", 1.0);
-        double bulkScale = getConfigDouble("dynamics.bulk-scale", 0.02);
-        double bulkCap = getConfigDouble("dynamics.bulk-cap", 2.0);
+        double baseMultiplier = plugin.getSettingsConfig().getDouble("dynamics.bulk-base", 1.0);
+        double bulkScale = plugin.getSettingsConfig().getDouble("dynamics.bulk-scale", 0.02);
+        double bulkCap = plugin.getSettingsConfig().getDouble("dynamics.bulk-cap", 2.0);
         double mult = baseMultiplier + (Math.log(Math.max(1, amount)) / Math.log(2)) * bulkScale;
         return Math.min(bulkCap, mult);
     }
 
-    // ═══ КАТЕГОРИАЛЬНАЯ ВОЛАТИЛЬНОСТЬ ═══
-
     public double getCategoryVolatility(MarketCategory category) {
-        ConfigurationSection sec = plugin.getConfig().getConfigurationSection("dynamics.category-volatility");
+        ConfigurationSection sec = plugin.getSettingsConfig().getConfigurationSection("dynamics.category-volatility");
         if (sec == null) return 1.0;
         return sec.getDouble(category.configKey(), 1.0);
     }
@@ -112,8 +98,6 @@ public class MarketDynamics {
         MarketEntry entry = plugin.getMarketService().get(itemId);
         return entry != null ? getCategoryVolatility(entry.category()) : 1.0;
     }
-
-    // ═══ МОМЕНТУМ ═══
 
     public double getMomentum(MarketEntry entry) {
         return momentum.getOrDefault(entry.id(), 0.0);
@@ -128,22 +112,16 @@ public class MarketDynamics {
         return "";
     }
 
-    // ═══ ШУМ ═══
-
     public double getNoise() {
-        double noiseLevel = getConfigDouble("dynamics.noise-level", 0.02);
+        double noiseLevel = plugin.getSettingsConfig().getDouble("dynamics.noise-level", 0.02);
         return 1.0 + (ThreadLocalRandom.current().nextGaussian() * noiseLevel);
     }
 
-    // ═══ АСИММЕТРИЯ ═══
-
     public double getAsymmetryFactor(boolean isBuy) {
-        double buyImpact = getConfigDouble("dynamics.buy-impact", 1.0);
-        double sellImpact = getConfigDouble("dynamics.sell-impact", 1.2);
+        double buyImpact = plugin.getSettingsConfig().getDouble("dynamics.buy-impact", 1.0);
+        double sellImpact = plugin.getSettingsConfig().getDouble("dynamics.sell-impact", 1.2);
         return isBuy ? buyImpact : sellImpact;
     }
-
-    // ═══ ЦЕНОВЫЕ АЛЕРТЫ ═══
 
     public void setPriceAlert(UUID playerId, String itemId, int targetPrice) {
         priceAlerts.computeIfAbsent(playerId, k -> new ConcurrentHashMap<>()).put(itemId, targetPrice);
@@ -174,8 +152,6 @@ public class MarketDynamics {
         return triggered;
     }
 
-    // ═══ ЗДОРОВЬЕ РЫНКА ═══
-
     public double getMarketHealth(MarketEntry entry) {
         double net = Math.abs(getNetDecayedVolume(entry));
         double momentumVal = Math.abs(getMomentum(entry));
@@ -203,10 +179,8 @@ public class MarketDynamics {
         return "§cКрах!";
     }
 
-    // ═══ WHALE DETECTION ═══
-
     public boolean isWhaleTrade(int amount) {
-        int threshold = getConfigInt("dynamics.whale-threshold", 64);
+        int threshold = plugin.getSettingsConfig().getInt("dynamics.whale-threshold", 64);
         return amount >= threshold;
     }
 
@@ -220,8 +194,6 @@ public class MarketDynamics {
             }
         }
     }
-
-    // ═══ ЦЕНОВАЯ ИСТОРИЯ ═══
 
     public void recordPrice(MarketEntry entry, int price) {
         List<Double> history = priceHistory.computeIfAbsent(entry.id(), k -> new ArrayList<>());
@@ -249,12 +221,37 @@ public class MarketDynamics {
         return sb.toString();
     }
 
-    // ═══ СЕЗОННЫЕ МОДИФИКАТОРЫ ═══
+    public double getCategoryTrend(MarketCategory category) {
+        double totalDelta = 0;
+        int count = 0;
+        for (MarketEntry entry : plugin.getMarketService().getByCategory(category)) {
+            List<Double> history = getPriceHistory(entry);
+            if (history.size() < 2) continue;
+            int last = history.size() - 1;
+            int first = Math.max(0, last - 10);
+            double delta = (history.get(last) - history.get(first)) / history.get(first);
+            totalDelta += delta;
+            count++;
+        }
+        return count > 0 ? totalDelta / count : 0.0;
+    }
+
+    public int[] getPriceRange(MarketEntry entry) {
+        List<Double> history = getPriceHistory(entry);
+        if (history.isEmpty()) return new int[]{entry.basePrice(), entry.basePrice()};
+        int min = Integer.MAX_VALUE, max = 0;
+        for (Double d : history) {
+            int v = (int) Math.round(d);
+            if (v < min) min = v;
+            if (v > max) max = v;
+        }
+        return new int[]{min, max};
+    }
 
     public double getSeasonalFactor() {
-        if (!plugin.getConfig().getBoolean("dynamics.seasonal.enabled", false)) return 1.0;
+        if (!plugin.getSettingsConfig().getBoolean("dynamics.seasonal.enabled", false)) return 1.0;
         int hour = java.time.LocalTime.now().getHour();
-        ConfigurationSection sec = plugin.getConfig().getConfigurationSection("dynamics.seasonal.hours");
+        ConfigurationSection sec = plugin.getSettingsConfig().getConfigurationSection("dynamics.seasonal.hours");
         if (sec == null) return 1.0;
         if (hour >= 6 && hour < 12) return sec.getDouble("morning", 1.0);
         if (hour >= 12 && hour < 18) return sec.getDouble("afternoon", 1.0);
@@ -262,18 +259,8 @@ public class MarketDynamics {
         return sec.getDouble("night", 1.0);
     }
 
-    // ═══ УТИЛИТЫ ═══
-
-    private double getConfigDouble(String path, double def) {
-        return plugin.getConfig().getDouble(path, def);
-    }
-
-    private int getConfigInt(String path, int def) {
-        return plugin.getConfig().getInt(path, def);
-    }
-
     public void clearExpiredHistory() {
-        long maxAge = getConfigInt("dynamics.max-history-minutes", 120) * 60_000L;
+        long maxAge = plugin.getSettingsConfig().getInt("dynamics.max-history-minutes", 120) * 60_000L;
         long now = System.currentTimeMillis();
         for (var entry : volumeHistory.entrySet()) {
             entry.getValue().removeIf(r -> now - r.timestamp > maxAge);

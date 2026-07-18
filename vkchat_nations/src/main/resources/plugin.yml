@@ -3,6 +3,7 @@ version: 3.2.0
 main: ru.example.vkchatnations.VKChatNationsPlugin
 api-version: "1.16"
 depend: [VKChat]
+softdepend: [VKChatDonate, VKChatGear]
 commands:
   nation:
     description: Открыть меню наций, прокачку мутаций, управление приватами и репутационный магазин

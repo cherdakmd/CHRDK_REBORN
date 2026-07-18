@@ -15,7 +15,8 @@ import org.bukkit.entity.Player;
 import ru.example.vkchatteleport.VKChatTeleportPlugin;
 import ru.example.vkchatteleport.util.DonateTierHelper;
 import ru.example.vkchatteleport.manager.TeleportManager;
-import ru.example.vkchat.VKChatPlugin;
+
+import ru.example.vkchat.util.VKChatBridge;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -46,8 +47,8 @@ public class TeleportCommand implements CommandExecutor, TabCompleter {
         }
         
         Player p = (Player) sender;
-        int vkId = VKChatPlugin.getInstance().getApi().getLinkedVkId(p);
-        if (vkId == -1 && !ru.example.vkchat.util.VKChatBridge.hasPass(p)) {
+        int vkId = VKChatBridge.getLinkedVkId(p);
+        if (!VKChatBridge.hasVkOrPass(p)) {
             p.sendMessage(ChatColor.RED + "❌ Для использования телепортации необходимо привязать ВКонтакте! Напишите: " + ChatColor.YELLOW + "/vklink");
             return true;
         }
@@ -123,7 +124,7 @@ public class TeleportCommand implements CommandExecutor, TabCompleter {
         }
 
         Location targetLoc = gateway.toLocation(p.getWorld());
-        int currentRep = VKChatPlugin.getInstance().getApi().getReputation(vkId);
+        int currentRep = VKChatBridge.getReputation(vkId);
         int cost = donateHelper.applyDiscount(p, gateway.getCost());
 
         if (currentRep < cost) {
@@ -146,7 +147,7 @@ public class TeleportCommand implements CommandExecutor, TabCompleter {
     // СЛУЧАЙНЫЙ ТЕЛЕПОРТ (/rtp)
     // ==========================================
     private void handleRtp(Player p, int vkId) {
-        int currentRep = VKChatPlugin.getInstance().getApi().getReputation(vkId);
+        int currentRep = VKChatBridge.getReputation(vkId);
         int cost = plugin.getConfig().getInt("teleportation.rtp.cost", 250);
         cost = Math.max(1, donateHelper.applyDiscount(p, cost));
 
@@ -279,6 +280,12 @@ public class TeleportCommand implements CommandExecutor, TabCompleter {
     // ==========================================
     private void handleHome(Player p, int vkId, String[] args) {
         Map<String, TeleportManager.HomeLocation> homes = plugin.getTeleportManager().getHomes(p.getUniqueId());
+
+        if (args.length > 0 && args[0].equalsIgnoreCase("list")) {
+            handleHomesList(p);
+            return;
+        }
+
         if (homes.isEmpty()) {
             p.sendMessage(ChatColor.RED + "❌ У вас нет установленных точек дома! Создайте дом с помощью " + ChatColor.YELLOW + "/sethome");
             return;
@@ -311,7 +318,7 @@ public class TeleportCommand implements CommandExecutor, TabCompleter {
             return;
         }
 
-        int currentRep = VKChatPlugin.getInstance().getApi().getReputation(vkId);
+        int currentRep = VKChatBridge.getReputation(vkId);
         int cost = plugin.getConfig().getInt("teleportation.home.cost", 250);
         cost = Math.max(1, donateHelper.applyDiscount(p, cost));
 
@@ -366,7 +373,8 @@ public class TeleportCommand implements CommandExecutor, TabCompleter {
             return;
         }
 
-        p.sendMessage(ChatColor.DARK_AQUA + "=== " + ChatColor.AQUA + "Ваши точки дома (" + homes.size() + "/" + plugin.getConfig().getInt("teleportation.home.max-homes", 3) + ")" + ChatColor.DARK_AQUA + " ===");
+        int maxHomes = donateHelper.getMaxHomes(p);
+        p.sendMessage(ChatColor.DARK_AQUA + "=== " + ChatColor.AQUA + "Ваши точки дома (" + homes.size() + "/" + maxHomes + ")" + ChatColor.DARK_AQUA + " ===");
         for (Map.Entry<String, TeleportManager.HomeLocation> entry : homes.entrySet()) {
             TeleportManager.HomeLocation loc = entry.getValue();
             p.sendMessage(ChatColor.GOLD + "• " + ChatColor.YELLOW + entry.getKey() + 
@@ -394,7 +402,47 @@ public class TeleportCommand implements CommandExecutor, TabCompleter {
             return;
         }
 
-        int currentRep = VKChatPlugin.getInstance().getApi().getReputation(vkId);
+        TeleportManager tm = plugin.getTeleportManager();
+
+        // Anti-abuse: TPA cooldown
+        if (!tm.canSendTpa(p.getUniqueId())) {
+            long remainingMs = tm.getTpaCooldownRemainingMs(p.getUniqueId());
+            long remainingSec = remainingMs / 1000;
+            p.sendMessage(ChatColor.RED + "⏳ Подождите " + ChatColor.GOLD + remainingSec + ChatColor.RED + " сек. перед следующим TPA запросом.");
+            return;
+        }
+
+        // Anti-abuse: TPA shield (spam protection)
+        if (tm.isTpaShielded(target.getUniqueId())) {
+            long shieldMs = tm.getTpaShieldRemainingMs(target.getUniqueId());
+            long shieldMin = shieldMs / 60000;
+            long shieldSec = (shieldMs % 60000) / 1000;
+            p.sendMessage(ChatColor.RED + "❌ " + ChatColor.GOLD + target.getName() + ChatColor.RED + " в режиме TPA-щита (антиспам).");
+            p.sendMessage(ChatColor.GRAY + "Осталось: " + ChatColor.GOLD + shieldMin + "м " + shieldSec + "с");
+            return;
+        }
+
+        // Anti-abuse: World restriction (unless admin)
+        if (!tm.isSameWorld(p, target) && !tm.isAdmin(p)) {
+            p.sendMessage(ChatColor.RED + "❌ Нельзя отправить TPA игроку в другом мире!");
+            return;
+        }
+
+        // Anti-abuse: Combat cooldown (sender)
+        if (tm.isInCombatCooldown(p.getUniqueId())) {
+            long combatMs = tm.getCombatCooldownRemainingMs(p.getUniqueId());
+            long combatSec = combatMs / 1000;
+            p.sendMessage(ChatColor.RED + "⏳ Вы недавно были в бою! Подождите " + ChatColor.GOLD + combatSec + ChatColor.RED + " сек.");
+            return;
+        }
+
+        // Anti-abuse: Combat cooldown (target)
+        if (tm.isInCombatCooldown(target.getUniqueId())) {
+            p.sendMessage(ChatColor.RED + "❌ " + ChatColor.GOLD + target.getName() + ChatColor.RED + " сейчас в бою и не может принимать TPA.");
+            return;
+        }
+
+        int currentRep = VKChatBridge.getReputation(vkId);
         int cost = plugin.getConfig().getInt("teleportation.tpa.cost", 250);
         cost = Math.max(1, donateHelper.applyDiscount(p, cost));
 
@@ -413,6 +461,12 @@ public class TeleportCommand implements CommandExecutor, TabCompleter {
 
         plugin.getTeleportManager().sendTpaRequest(p, target);
 
+        // Set TPA send cooldown
+        tm.setTpaCooldown(p.getUniqueId());
+
+        // Record incoming request for spam detection
+        tm.recordTpaRequestReceived(target.getUniqueId());
+
         p.sendMessage(ChatColor.GREEN + "✓ Запрос на телепортацию отправлен игроку " + ChatColor.YELLOW + target.getName() + ".");
         target.sendMessage(ChatColor.GOLD + "✉ " + ChatColor.YELLOW + p.getName() + " хочет телепортироваться к вам.");
         target.sendMessage(ChatColor.YELLOW + "Используйте " + ChatColor.GREEN + "/tpaccept" + ChatColor.YELLOW + " для подтверждения или " + ChatColor.RED + "/tpdeny" + ChatColor.YELLOW + " для отказа.");
@@ -424,9 +478,9 @@ public class TeleportCommand implements CommandExecutor, TabCompleter {
     // ==========================================
     private void handleTpAccept(Player p) {
         ru.example.vkchatteleport.manager.TeleportManager.TpaRequestInfo requestInfo =
-                plugin.getTeleportManager().getTpaRequestInfo(p.getUniqueId());
+                plugin.getTeleportManager().getTpaRequestInfoIfValid(p.getUniqueId());
         if (requestInfo == null) {
-            p.sendMessage(ChatColor.RED + "❌ У вас нет активных запросов на телепортацию.");
+            p.sendMessage(ChatColor.RED + "❌ У вас нет активных запросов на телепортацию (или запрос истёк).");
             return;
         }
 
@@ -437,7 +491,34 @@ public class TeleportCommand implements CommandExecutor, TabCompleter {
             return;
         }
 
-        int senderVk = VKChatPlugin.getInstance().getApi().getLinkedVkId(senderPlayer);
+        TeleportManager tm = plugin.getTeleportManager();
+
+        // Anti-abuse: World restriction on accept (unless admin)
+        if (!tm.isSameWorld(p, senderPlayer) && !tm.isAdmin(p)) {
+            p.sendMessage(ChatColor.RED + "❌ Нельзя принять TPA — отправитель в другом мире!");
+            senderPlayer.sendMessage(ChatColor.RED + "❌ " + p.getName() + " не может принять TPA — вы в разных мирах.");
+            plugin.getTeleportManager().clearTpaRequest(p.getUniqueId());
+            return;
+        }
+
+        // Anti-abuse: Combat cooldown check on accept
+        if (tm.isInCombatCooldown(p.getUniqueId())) {
+            long combatMs = tm.getCombatCooldownRemainingMs(p.getUniqueId());
+            long combatSec = combatMs / 1000;
+            p.sendMessage(ChatColor.RED + "⏳ Вы в бою! Подождите " + ChatColor.GOLD + combatSec + ChatColor.RED + " сек.");
+            plugin.getTeleportManager().clearTpaRequest(p.getUniqueId());
+            return;
+        }
+
+        if (tm.isInCombatCooldown(senderPlayer.getUniqueId())) {
+            long combatMs = tm.getCombatCooldownRemainingMs(senderPlayer.getUniqueId());
+            long combatSec = combatMs / 1000;
+            p.sendMessage(ChatColor.RED + "❌ " + ChatColor.GOLD + senderPlayer.getName() + ChatColor.RED + " в бою (осталось " + combatSec + " сек.).");
+            plugin.getTeleportManager().clearTpaRequest(p.getUniqueId());
+            return;
+        }
+
+        int senderVk = VKChatBridge.getLinkedVkId(senderPlayer);
         if (senderVk == -1) {
             p.sendMessage(ChatColor.RED + "❌ Отправитель не привязал ВКонтакте.");
             senderPlayer.sendMessage(ChatColor.RED + "❌ Ваш запрос был отменен — вы не привязали ВКонтакте!");
@@ -445,7 +526,7 @@ public class TeleportCommand implements CommandExecutor, TabCompleter {
             return;
         }
 
-        int senderRep = VKChatPlugin.getInstance().getApi().getReputation(senderVk);
+        int senderRep = VKChatBridge.getReputation(senderVk);
         int cost = (int) Math.ceil(senderRep * 0.02);
         if (cost < 10) cost = 10;
         cost = Math.min(senderRep, new DonateTierHelper(plugin).applyDiscount(senderPlayer, cost));
@@ -521,7 +602,47 @@ public class TeleportCommand implements CommandExecutor, TabCompleter {
             return;
         }
 
-        int currentRep = VKChatPlugin.getInstance().getApi().getReputation(vkId);
+        TeleportManager tm = plugin.getTeleportManager();
+
+        // Anti-abuse: TPA cooldown
+        if (!tm.canSendTpa(p.getUniqueId())) {
+            long remainingMs = tm.getTpaCooldownRemainingMs(p.getUniqueId());
+            long remainingSec = remainingMs / 1000;
+            p.sendMessage(ChatColor.RED + "⏳ Подождите " + ChatColor.GOLD + remainingSec + ChatColor.RED + " сек. перед следующим TPA запросом.");
+            return;
+        }
+
+        // Anti-abuse: TPA shield (spam protection)
+        if (tm.isTpaShielded(target.getUniqueId())) {
+            long shieldMs = tm.getTpaShieldRemainingMs(target.getUniqueId());
+            long shieldMin = shieldMs / 60000;
+            long shieldSec = (shieldMs % 60000) / 1000;
+            p.sendMessage(ChatColor.RED + "❌ " + ChatColor.GOLD + target.getName() + ChatColor.RED + " в режиме TPA-щита (антиспам).");
+            p.sendMessage(ChatColor.GRAY + "Осталось: " + ChatColor.GOLD + shieldMin + "м " + shieldSec + "с");
+            return;
+        }
+
+        // Anti-abuse: World restriction (unless admin)
+        if (!tm.isSameWorld(p, target) && !tm.isAdmin(p)) {
+            p.sendMessage(ChatColor.RED + "❌ Нельзя отправить TPA игроку в другом мире!");
+            return;
+        }
+
+        // Anti-abuse: Combat cooldown (sender)
+        if (tm.isInCombatCooldown(p.getUniqueId())) {
+            long combatMs = tm.getCombatCooldownRemainingMs(p.getUniqueId());
+            long combatSec = combatMs / 1000;
+            p.sendMessage(ChatColor.RED + "⏳ Вы недавно были в бою! Подождите " + ChatColor.GOLD + combatSec + ChatColor.RED + " сек.");
+            return;
+        }
+
+        // Anti-abuse: Combat cooldown (target)
+        if (tm.isInCombatCooldown(target.getUniqueId())) {
+            p.sendMessage(ChatColor.RED + "❌ " + ChatColor.GOLD + target.getName() + ChatColor.RED + " сейчас в бою и не может принимать TPA.");
+            return;
+        }
+
+        int currentRep = VKChatBridge.getReputation(vkId);
         int cost = plugin.getConfig().getInt("teleportation.tpahere.cost", 150);
         cost = Math.max(1, donateHelper.applyDiscount(p, cost));
 
@@ -540,6 +661,12 @@ public class TeleportCommand implements CommandExecutor, TabCompleter {
 
         plugin.getTeleportManager().sendTpaHereRequest(p, target);
 
+        // Set TPA send cooldown
+        tm.setTpaCooldown(p.getUniqueId());
+
+        // Record incoming request for spam detection
+        tm.recordTpaRequestReceived(target.getUniqueId());
+
         p.sendMessage(ChatColor.GREEN + "✓ Запрос на телепортацию к вам отправлен игроку " + ChatColor.YELLOW + target.getName() + ".");
         target.sendMessage(ChatColor.GOLD + "✉ " + ChatColor.YELLOW + p.getName() + " хочет телепортировать вас к себе.");
         target.sendMessage(ChatColor.YELLOW + "Используйте " + ChatColor.GREEN + "/tpaccept" + ChatColor.YELLOW + " для подтверждения или " + ChatColor.RED + "/tpdeny" + ChatColor.YELLOW + " для отказа.");
@@ -556,7 +683,7 @@ public class TeleportCommand implements CommandExecutor, TabCompleter {
             return;
         }
 
-        int currentRep = VKChatPlugin.getInstance().getApi().getReputation(vkId);
+        int currentRep = VKChatBridge.getReputation(vkId);
         int cost = plugin.getConfig().getInt("teleportation.back.cost", 50);
         cost = Math.max(1, donateHelper.applyDiscount(p, cost));
 
@@ -644,6 +771,7 @@ public class TeleportCommand implements CommandExecutor, TabCompleter {
                 completions.add(online.getName());
             }
         } else if (cmd.equals("home") && args.length == 1) {
+            completions.add("list");
             if (sender instanceof Player) {
                 Map<String, TeleportManager.HomeLocation> homes = plugin.getTeleportManager().getHomes(((Player) sender).getUniqueId());
                 completions.addAll(homes.keySet());

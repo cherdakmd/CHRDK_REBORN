@@ -3,7 +3,7 @@ version: 3.2.0
 main: ru.example.vkchatevents.VKChatEventsPlugin
 api-version: "1.16"
 depend: [VKChat]
-softdepend: [VKChatJobs]
+softdepend: [VKChatJobs, VKChatNations, VKChatMarket, VKChatGear]
 commands:
   events:
     description: Открыть интерактивный дашборд активных событий, квестов и заказов на сервере

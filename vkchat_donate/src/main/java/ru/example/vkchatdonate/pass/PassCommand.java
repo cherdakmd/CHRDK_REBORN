@@ -7,6 +7,8 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 import ru.example.vkchatdonate.VKChatDonatePlugin;
+import ru.example.vkchat.util.UUIDResolver;
+import ru.example.vkchat.util.VKChatBridge;
 
 import java.util.*;
 
@@ -183,7 +185,7 @@ public class PassCommand implements CommandExecutor, TabCompleter {
             return;
         }
         @SuppressWarnings("deprecation")
-        org.bukkit.OfflinePlayer off = ru.example.vkchat.util.UUIDResolver.resolve(args[1]);
+        org.bukkit.OfflinePlayer off = UUIDResolver.resolve(args[1]);
         if (off == null) {
             sender.sendMessage(ChatColor.RED + "Игрок " + args[1] + " не найден.");
             return;
@@ -202,7 +204,7 @@ public class PassCommand implements CommandExecutor, TabCompleter {
 
     private int getLinkedVkId(Player p) {
         try {
-            return ru.example.vkchat.VKChatPlugin.getInstance().getApi().getLinkedVkId(p);
+            return VKChatBridge.getLinkedVkId(p);
         } catch (Exception e) { return -1; }
     }
 

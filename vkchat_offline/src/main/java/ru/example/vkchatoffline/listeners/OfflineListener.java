@@ -4,7 +4,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.inventory.ItemStack;
-import ru.example.vkchat.VKChatPlugin;
+import ru.example.vkchat.util.VKChatBridge;
 import ru.example.vkchat.api.VKCommandEvent;
 import ru.example.vkchatoffline.VKChatOfflinePlugin;
 import ru.example.vkchatoffline.managers.Keyboards;
@@ -122,7 +122,7 @@ public class OfflineListener implements Listener {
             sendWithKb(vkId, "❌ Нет завершённых смен для получения наград.", Keyboards.shiftMenu());
             return;
         }
-        UUID uuid = VKChatPlugin.getInstance().getApi().getUuidByVkId(vkId);
+        UUID uuid = VKChatBridge.getUuidByVkId(vkId);
         if (uuid != null) {
             plugin.getStashManager().addItems(uuid, items);
         }
@@ -132,7 +132,7 @@ public class OfflineListener implements Listener {
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent e) {
         try {
-            int vkId = VKChatPlugin.getInstance().getApi().getLinkedVkId(e.getPlayer());
+            int vkId = VKChatBridge.getLinkedVkId(e.getPlayer());
             if (vkId != -1 && !plugin.getStashManager().isEmpty(e.getPlayer().getUniqueId())) {
                 e.getPlayer().sendMessage("§a⛏ У вас есть награды в тайнике! /stash");
             }
@@ -140,6 +140,6 @@ public class OfflineListener implements Listener {
     }
 
     private void sendWithKb(int vkId, String text, String kb) {
-        try { VKChatPlugin.getInstance().getApi().sendKeyboard(vkId, text, kb); } catch (Exception ignored) {}
+        try { VKChatBridge.sendKeyboard(vkId, text, kb); } catch (Exception ignored) {}
     }
 }

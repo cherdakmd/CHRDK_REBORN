@@ -104,6 +104,7 @@ public class MarketCommand implements CommandExecutor, TabCompleter {
                     return true;
                 }
                 plugin.reloadConfig();
+                plugin.reloadSubConfigs();
                 plugin.getMarketService().load();
                 sender.sendMessage("§a✓ Конфиг перезагружен. Товаров: " + plugin.getMarketService().getAll().size());
                 return true;
@@ -118,7 +119,7 @@ public class MarketCommand implements CommandExecutor, TabCompleter {
                 sender.sendMessage("§6§l═══ СТАТИСТИКА БИРЖИ ═══");
                 sender.sendMessage("§7Товаров: §f" + svc.getAll().size());
                 sender.sendMessage("§7Категорий: §f" + MarketCategory.values().length);
-                sender.sendMessage("§7Динамика: §f" + (plugin.getConfig().getBoolean("settings.dynamic-pricing", true) ? "вкл" : "выкл"));
+                sender.sendMessage("§7Динамика: §f" + (plugin.getSettingsConfig().getBoolean("settings.dynamic-pricing", true) ? "вкл" : "выкл"));
                 sender.sendMessage("§7Событие: " + (prices.hasActiveEvent() ? "§c" + prices.getActiveEventName() : "§7нет"));
                 sender.sendMessage("§6§l═══════════════════");
                 return true;

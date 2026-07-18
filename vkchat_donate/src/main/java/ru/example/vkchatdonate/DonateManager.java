@@ -10,10 +10,14 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
-import ru.example.vkchat.VKChatPlugin;
+import ru.example.vkchat.util.UUIDResolver;
+import ru.example.vkchat.util.VKChatBridge;
 import ru.example.vkchatdonate.api.DonatePayClient;
 import ru.example.vkchatdonate.luckperms.LuckPermsHelper;
+
+import java.util.logging.Level;
 import ru.example.vkchatdonate.pass.PassManager;
+import ru.example.vkchatdonate.webhook.WebhookServer;
 
 import java.io.File;
 import java.io.IOException;
@@ -82,6 +86,9 @@ public class DonateManager {
     // FIX #8: Синхронизация обработок
     private final Set<Integer> processingTxIds = Collections.newSetFromMap(new ConcurrentHashMap<>());
 
+    // Webhook server
+    private WebhookServer webhookServer;
+
     // ═══════════════════════════════════════
     // STATUSDEF — Immutable
     // ═══════════════════════════════════════
@@ -141,7 +148,12 @@ public class DonateManager {
         loadData();
         loadFundraiser();
         loadDonateLog();
-        startPolling();
+
+        if (plugin.getConfig().getBoolean("webhook.enabled", false)) {
+            startWebhookServer();
+        } else {
+            startPolling();
+        }
     }
 
     // ═══════════════════════════════════════
@@ -241,6 +253,38 @@ public class DonateManager {
         plugin.getLogger().info("Опрос DonatePay запущен (интервал: " + interval + "с)");
     }
 
+    private void startWebhookServer() {
+        String token = plugin.getConfig().getString("api-token", "");
+        if (token.isEmpty() || token.equals("YOUR_DONATEPAY_TOKEN")) {
+            plugin.getLogger().warning("DonatePay токен не настроен! /donate setup");
+            return;
+        }
+        int port = plugin.getConfig().getInt("webhook.port", 8080);
+        String secret = plugin.getConfig().getString("webhook.secret", "CHANGE_ME_TO_A_RANDOM_STRING");
+        try {
+            webhookServer = new WebhookServer(this, port, secret);
+            webhookServer.start();
+        } catch (Exception e) {
+            plugin.getLogger().log(Level.SEVERE, "[Webhook] Не удалось запустить сервер: " + e.getMessage(), e);
+        }
+    }
+
+    public void restartWebhookServer() {
+        stopWebhookServer();
+        if (plugin.getConfig().getBoolean("webhook.enabled", false)) {
+            startWebhookServer();
+        }
+    }
+
+    public void stopWebhookServer() {
+        if (webhookServer != null) {
+            webhookServer.stop();
+            webhookServer = null;
+        }
+    }
+
+    public VKChatDonatePlugin getPlugin() { return plugin; }
+
     private void pollDonations() {
         String token = plugin.getConfig().getString("api-token", "");
         List<DonatePayClient.DonateTransaction> transactions = apiClient.fetchTransactions(token, 10);
@@ -265,7 +309,7 @@ public class DonateManager {
     // ОБРАБОТКА ДОНАТОВ
     // ═══════════════════════════════════════
 
-    private void processDonation(int txId, double amountRub, String sender, String comment) {
+    public void processDonation(int txId, double amountRub, String sender, String comment) {
         String nick = extractNick(sender, comment);
         if (nick == null) {
             plugin.getLogger().info("Донат #" + txId + " (" + amountRub + "₽) — ник не извлечён из '" + sender + "'");
@@ -273,7 +317,7 @@ public class DonateManager {
             return;
         }
 
-        OfflinePlayer offPlayer = ru.example.vkchat.util.UUIDResolver.resolve(nick);
+        OfflinePlayer offPlayer = UUIDResolver.resolve(nick);
         if (offPlayer == null) {
             plugin.getLogger().info("Донат #" + txId + " — игрок " + nick + " не найден");
             appendDonateLog("FAILED", nick, "player not found", amountRub);
@@ -364,7 +408,7 @@ public class DonateManager {
     }
 
     private void processRepPurchase(int txId, double amountRub, String nick) {
-        OfflinePlayer offPlayer = ru.example.vkchat.util.UUIDResolver.resolve(nick);
+        OfflinePlayer offPlayer = UUIDResolver.resolve(nick);
         if (offPlayer == null) {
             plugin.getLogger().info("Донат #" + txId + " — игрок " + nick + " не найден");
             return;
@@ -374,7 +418,7 @@ public class DonateManager {
         int rep = (int) (amountRub * rate);
 
         Player p = offPlayer.getPlayer();
-        int vkId = p != null ? VKChatPlugin.getInstance().getApi().getLinkedVkId(p) : -1;
+        int vkId = p != null ? VKChatBridge.getLinkedVkId(p) : -1;
 
         // PASS_FIX #6: Если нет ВК — используем локальную репутацию
         if (vkId == -1 && p != null) {
@@ -387,7 +431,7 @@ public class DonateManager {
                 p.sendMessage(ChatColor.RED + "Привяжи ВК (/vklink) или купи проходку, чтобы получить репутацию за донат!");
             }
         } else if (vkId != -1) {
-            VKChatPlugin.getInstance().getApi().addReputation(vkId, rep);
+            VKChatBridge.addPoints(vkId, rep);
             if (p != null) {
                 p.sendMessage(ChatColor.GREEN + "✨ +" + rep + " репутации за донат (" + (int) amountRub + "₽)!");
             }
@@ -473,7 +517,7 @@ public class DonateManager {
                         "💰 {player} получил статус {status} за донат!");
             String vkMsg = formatMessage(vkTemplate, nick, status, amount);
             try {
-                VKChatPlugin.getInstance().getApi().sendToMainChat(vkMsg);
+                VKChatBridge.sendToMainChat(vkMsg);
             } catch (Exception e) {
                 if (!vkAnnounceWarningLogged) {
                     plugin.getLogger().warning("Ошибка отправки анонса в ВК: " + e.getMessage());
@@ -528,7 +572,7 @@ public class DonateManager {
         Player online = offPlayer.getPlayer();
         if (online == null) return false;
         try {
-            return VKChatPlugin.getInstance().getApi().getLinkedVkId(online) != -1;
+            return VKChatBridge.getLinkedVkId(online) != -1;
         } catch (Exception e) { return false; }
     }
 
@@ -772,7 +816,7 @@ public class DonateManager {
     }
 
     public void removePass(String name) {
-        org.bukkit.OfflinePlayer off = ru.example.vkchat.util.UUIDResolver.resolve(name);
+        org.bukkit.OfflinePlayer off = UUIDResolver.resolve(name);
         if (off == null) return;
         plugin.getPassManager().removePass(off);
     }
@@ -799,10 +843,15 @@ public class DonateManager {
     public String getSetupInfo() {
         String token = plugin.getConfig().getString("api-token", "");
         boolean configured = !token.isEmpty() && !token.equals("YOUR_DONATEPAY_TOKEN");
+        boolean webhookEnabled = plugin.getConfig().getBoolean("webhook.enabled", false);
         StringBuilder sb = new StringBuilder();
         sb.append("§6═══ ДОНАТ-СТАТУСЫ (DonatePay) ═══\n\n");
         sb.append("§7API: ").append(configured ? "§a✅ Настроен" : "§c❌ Не настроен").append("\n");
         sb.append("§7LP API: ").append(LuckPermsHelper.isAvailable() ? "§a✅" : "§c❌").append("\n");
+        sb.append("§7Режим: ").append(webhookEnabled ? "§aWebhook (мгновенно)" : "§ePolling (каждые 30с)").append("\n");
+        if (webhookEnabled) {
+            sb.append("§7Webhook порт: §f").append(plugin.getConfig().getInt("webhook.port", 8080)).append("\n");
+        }
         sb.append("§7Команда: §e/donate setup <API-токен>\n\n");
         sb.append("§7⚠ В ИМЕНИ отправителя укажите НИКНЕЙМ!\n");
         sb.append("§7Статусы действуют ").append(donationDurationSeconds / 86400)
@@ -827,6 +876,7 @@ public class DonateManager {
     }
 
     public void shutdown() {
+        stopWebhookServer();
         saveData();
         if (fundraiserBar != null) fundraiserBar.removeAll();
     }

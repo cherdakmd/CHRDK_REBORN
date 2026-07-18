@@ -3,24 +3,28 @@ package ru.example.vkchatchat;
 import org.bukkit.Bukkit;
 import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.java.JavaPlugin;
+import ru.example.vkchat.config.ConfigMigrationUtil;
 
 public class VKChatChatPlugin extends JavaPlugin {
     private static VKChatChatPlugin instance;
     private ChatListener chatListener;
     private TabManager tabManager;
     private BroadcastManager broadcastManager;
+    private WordFilter wordFilter;
 
     @Override
     public void onEnable() {
         instance = this;
         saveDefaultConfig();
-        ru.example.vkchat.config.ConfigMigrationUtil.migrate(this, "config.yml");
+        ConfigMigrationUtil.migrate(this, "config.yml");
 
         if (Bukkit.getPluginManager().getPlugin("VKChat") == null) {
             getLogger().severe("VKChat не найден!");
             getServer().getPluginManager().disablePlugin(this);
             return;
         }
+
+        wordFilter = new WordFilter(this);
 
         chatListener = new ChatListener(this);
         getServer().getPluginManager().registerEvents(chatListener, this);
@@ -35,17 +39,24 @@ public class VKChatChatPlugin extends JavaPlugin {
         getCommand("ignore").setExecutor(chatCmd); getCommand("ignore").setTabCompleter(chatCmd);
         getCommand("cc").setExecutor(chatCmd);
 
+        FilterCommand filterCmd = new FilterCommand(this);
+        getCommand("filter").setExecutor(filterCmd);
+        getCommand("filter").setTabCompleter(filterCmd);
+
         var chanSec = getConfig().getConfigurationSection("channels");
         getLogger().info("VKChatChat запущен! Каналов: " + (chanSec != null ? chanSec.getKeys(false).size() : 0));
+        getLogger().info("Фильтр чата: " + (wordFilter.isEnabled() ? "включён (" + wordFilter.getForbiddenWords().size() + " слов)" : "выключен"));
     }
 
     @Override
     public void onDisable() {
         HandlerList.unregisterAll(this);
         Bukkit.getScheduler().cancelTasks(this);
+        instance = null;
     }
 
     public static VKChatChatPlugin getInstance() { return instance; }
     public ChatListener getChatListener() { return chatListener; }
     public BroadcastManager getBroadcastManager() { return broadcastManager; }
+    public WordFilter getWordFilter() { return wordFilter; }
 }

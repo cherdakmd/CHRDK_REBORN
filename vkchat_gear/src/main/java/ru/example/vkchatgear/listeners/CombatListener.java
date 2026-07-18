@@ -2,6 +2,7 @@ package ru.example.vkchatgear.listeners;
 
 import org.bukkit.ChatColor;
 import org.bukkit.NamespacedKey;
+import org.bukkit.Particle;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -14,9 +15,12 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
+import ru.example.vkchat.util.VKChatBridge;
 import ru.example.vkchatgear.VKChatGearPlugin;
 import ru.example.vkchatgear.combat.CombatContext;
 import ru.example.vkchatgear.combat.CombatEffectRegistry;
+import ru.example.vkchatgear.artifacts.ArtifactComponent;
+import ru.example.vkchatgear.artifacts.ArtifactsManager;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -186,6 +190,14 @@ public class CombatListener implements Listener {
 
             // Атакующие сет-эффекты
             effectRegistry.processOffensiveSetEffects(ctx, attacker, target);
+
+            // Бонусы артефактов атакующего
+            processArtifactOffense(ctx, attacker, target);
+        }
+
+        // ─── 5. Защитные бонусы артефактов жертвы ───
+        if (ctx.isVictimPlayer() && ctx.isAttackerLiving()) {
+            processArtifactDefense(ctx, ctx.getVictim(), ctx.getAttackerEntity());
         }
     }
 
@@ -201,9 +213,9 @@ public class CombatListener implements Listener {
 
         Player victim = ctx.getVictim();
         try {
-            int vkId = ru.example.vkchat.VKChatPlugin.getInstance().getApi().getLinkedVkId(victim);
+            int vkId = VKChatBridge.getLinkedVkId(victim);
             if (vkId == -1) return;
-            int rep = ru.example.vkchat.VKChatPlugin.getInstance().getApi().getReputation(vkId);
+            int rep = VKChatBridge.getReputation(vkId);
             if (rep <= 100) return;
 
             double multiplier = 1.0 + (rep - 100) * 0.0005;
@@ -293,17 +305,121 @@ public class CombatListener implements Listener {
     }
 
     /**
-     * ActionBar: GearScore + урон + редкость.
+     * ActionBar: GearScore + урон + редкость + артефакты.
      */
     private void sendActionBar(Player attacker, ItemStack weapon, EntityDamageByEntityEvent e) {
         int gearScore = plugin.getGearManager().calculateGearScore(attacker);
         String rarityKey = plugin.getGearManager().getRarityKey(weapon);
+        ArtifactsManager artMgr = plugin.getArtifactsManager();
+        int artCount = artMgr != null ? artMgr.getActiveArtifactCount(attacker) : 0;
         String actionBar = ChatColor.GOLD + "⚔ GS: " + ChatColor.YELLOW + gearScore +
                 ChatColor.GRAY + " | " + ChatColor.RED + "DMG: " + ChatColor.WHITE +
                 String.format("%.1f", e.getFinalDamage()) +
-                ChatColor.GRAY + " | " + ChatColor.LIGHT_PURPLE + rarityKey.toUpperCase();
+                ChatColor.GRAY + " | " + ChatColor.LIGHT_PURPLE + rarityKey.toUpperCase() +
+                (artCount > 0 ? ChatColor.GRAY + " | " + ChatColor.DARK_PURPLE + "🔮" + artCount : "");
         attacker.spigot().sendMessage(net.md_5.bungee.api.ChatMessageType.ACTION_BAR,
                 net.md_5.bungee.api.chat.TextComponent.fromLegacyText(actionBar));
+    }
+
+    // ═══════════════════════════════════════
+    // АРТЕФАКТЫ — боевые бонусы
+    // ═══════════════════════════════════════
+
+    /**
+     * Атакующие бонусы артефактов: damage, crit_chance, crit_damage, lifesteal.
+     * Учитывает уровень заточки (+10% за уровень).
+     */
+    private void processArtifactOffense(CombatContext ctx, Player attacker, LivingEntity target) {
+        ArtifactsManager mgr = plugin.getArtifactsManager();
+        if (mgr == null) return;
+
+        double damageBonus = 0;
+        double critChance = 0;
+        double critDamage = 0;
+        double lifesteal = 0;
+
+        for (ItemStack art : mgr.getPlayerArtifacts(attacker)) {
+            ArtifactComponent def = mgr.getArtifactDef(art);
+            if (def == null) continue;
+            int level = getArtifactLevel(art);
+            double multiplier = 1.0 + level * 0.10;
+            for (var entry : def.getStats().entrySet()) {
+                double val = entry.getValue() * multiplier;
+                switch (entry.getKey()) {
+                    case "damage": damageBonus += val; break;
+                    case "crit_chance": critChance += val; break;
+                    case "crit_damage": critDamage += val; break;
+                    case "lifesteal": lifesteal += val; break;
+                }
+            }
+        }
+
+        EntityDamageByEntityEvent event = ctx.getEvent();
+
+        // Бонус урона
+        if (damageBonus > 0) {
+            event.setDamage(event.getDamage() * (1.0 + damageBonus));
+        }
+
+        // Критический удар
+        if (critChance > 0 && ThreadLocalRandom.current().nextDouble() < critChance) {
+            double mult = 1.5 + critDamage;
+            event.setDamage(event.getDamage() * mult);
+            attacker.getWorld().spawnParticle(Particle.CRIT, target.getLocation().add(0, 1, 0), 15, 0.5, 0.5, 0.5, 0.2);
+            attacker.sendMessage(ChatColor.RED + "★ Критический удар артефакта! x" + String.format("%.1f", mult));
+        }
+
+        // Вампиризм
+        if (lifesteal > 0) {
+            double healed = event.getDamage() * lifesteal;
+            double maxHp = attacker.getAttribute(org.bukkit.attribute.Attribute.GENERIC_MAX_HEALTH).getValue();
+            if (attacker.getHealth() < maxHp) {
+                attacker.setHealth(Math.min(attacker.getHealth() + healed, maxHp));
+                attacker.getWorld().spawnParticle(Particle.HEART, attacker.getLocation().add(0, 1.5, 0), 3, 0.3, 0.3, 0.3, 0.01);
+            }
+        }
+    }
+
+    /**
+     * Защитные бонусы артефактов: defense, health, regen.
+     * Учитывает уровень заточки (+10% за уровень).
+     */
+    private void processArtifactDefense(CombatContext ctx, Player victim, LivingEntity attacker) {
+        ArtifactsManager mgr = plugin.getArtifactsManager();
+        if (mgr == null) return;
+
+        double defenseBonus = 0;
+        double healthBonus = 0;
+
+        for (ItemStack art : mgr.getPlayerArtifacts(victim)) {
+            ArtifactComponent def = mgr.getArtifactDef(art);
+            if (def == null) continue;
+            int level = getArtifactLevel(art);
+            double multiplier = 1.0 + level * 0.10;
+            for (var entry : def.getStats().entrySet()) {
+                double val = entry.getValue() * multiplier;
+                switch (entry.getKey()) {
+                    case "defense": defenseBonus += val; break;
+                    case "health": healthBonus += val; break;
+                }
+            }
+        }
+
+        EntityDamageByEntityEvent event = ctx.getEvent();
+
+        // Снижение урона
+        if (defenseBonus > 0) {
+            event.setDamage(event.getDamage() * (1.0 - Math.min(defenseBonus, 0.40)));
+        }
+
+        // Бонус здоровья (пассивно применяется через ArtifactsManager.applyArtifactBonuses)
+    }
+
+    private int getArtifactLevel(ItemStack item) {
+        if (item == null || !item.hasItemMeta()) return 0;
+        NamespacedKey key = new NamespacedKey(plugin, "artifact_level");
+        Integer lvl = item.getItemMeta().getPersistentDataContainer().get(key, PersistentDataType.INTEGER);
+        return lvl != null ? lvl : 0;
     }
 
     // ═══════════════════════════════════════
@@ -320,7 +436,7 @@ public class CombatListener implements Listener {
         boolean hasWindGlide = false;
         for (ItemStack armor : p.getInventory().getArmorContents()) {
             if (armor != null && armor.hasItemMeta() && armor.getItemMeta().hasLore()) {
-                if (CombatContext.hasEnchant(armor.getItemMeta().getLore(), "Полет Ветра")) {
+                if (CombatContext.hasEnchant(armor.getItemMeta().getLore(), "Полет Ветра", plugin, armor.getItemMeta())) {
                     hasWindGlide = true;
                     break;
                 }

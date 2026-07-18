@@ -6,6 +6,7 @@ import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 import ru.example.vkchat.VKChatPlugin;
+import ru.example.vkchat.util.VKChatBridge;
 import ru.example.vkchatevents.VKChatEventsPlugin;
 
 public class ReminderTask extends BukkitRunnable {
@@ -41,7 +42,7 @@ public class ReminderTask extends BukkitRunnable {
         }
 
         if (hasReminders && Bukkit.getPluginManager().getPlugin("VKChat") != null) {
-            ru.example.vkchat.util.VKChatBridge.sendToMainChat(vkMessage.toString().trim());
+            VKChatBridge.sendToMainChat(vkMessage.toString().trim());
         }
     }
 

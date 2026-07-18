@@ -5,6 +5,7 @@ import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.java.JavaPlugin;
 import ru.example.vkchatteleport.commands.TeleportCommand;
 import ru.example.vkchatteleport.features.TeleportFeatures;
+import ru.example.vkchat.config.ConfigMigrationUtil;
 import ru.example.vkchatteleport.listeners.TeleportListener;
 import ru.example.vkchatteleport.manager.TeleportManager;
 
@@ -66,6 +67,7 @@ public class VKChatTeleportPlugin extends JavaPlugin {
     public void onDisable() {
         HandlerList.unregisterAll(this);
         Bukkit.getScheduler().cancelTasks(this);
+        instance = null;
     }
 
     private void migrateConfig() {
@@ -80,9 +82,15 @@ public class VKChatTeleportPlugin extends JavaPlugin {
             "teleportation.home.cooldown",
             "teleportation.tpa.cooldown",
             "teleportation.tpahere.cooldown",
-            "teleportation.back.cooldown"
+            "teleportation.back.cooldown",
+            "tpa.cooldown-seconds",
+            "tpa.request-expiry-seconds",
+            "tpa.spam-threshold",
+            "tpa.spam-window-minutes",
+            "tpa.shield-duration-minutes",
+            "tpa.combat-cooldown-seconds"
         };
-        ru.example.vkchat.config.ConfigMigrationUtil.migrate(this, "config.yml", forceKeys);
+        ConfigMigrationUtil.migrate(this, "config.yml", forceKeys);
     }
 
     public static VKChatTeleportPlugin getInstance() {

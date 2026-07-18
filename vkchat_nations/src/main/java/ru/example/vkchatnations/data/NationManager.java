@@ -13,7 +13,8 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
 import ru.example.vkchatnations.VKChatNationsPlugin;
-import ru.example.vkchat.VKChatPlugin;
+
+import ru.example.vkchat.util.VKChatBridge;
 
 import java.io.File;
 import java.io.IOException;
@@ -32,6 +33,7 @@ public class NationManager {
     private final Map<UUID, Set<String>> unlockedMutations = new ConcurrentHashMap<>();
     private final Map<String, Integer> nationExp = new ConcurrentHashMap<>();
     private final Map<String, Integer> nationLevels = new ConcurrentHashMap<>();
+    private final Map<UUID, Integer> playerContributions = new ConcurrentHashMap<>();
 
     // Ожидание ввода от игрока: переименование / добавление доверенного
     private final Map<UUID, ChunkClaim> renameQueue = new ConcurrentHashMap<>();
@@ -45,13 +47,15 @@ public class NationManager {
             for (ChunkClaim claim : nationClaims.values()) {
                 if (!claim.isAutoPayEnabled()) continue;
                 if (claim.getDurability() >= claim.getMaxDurability() * 0.2) continue;
-                int vkId = VKChatPlugin.getInstance().getApi().getLinkedVkId(claim.getOwner());
+                int vkId = VKChatBridge.getLinkedVkId(claim.getOwner());
                 if (vkId == -1) continue;
-                int rep = VKChatPlugin.getInstance().getApi().getReputation(vkId);
+                int rep = VKChatBridge.getReputation(vkId)
+
+;
                 int need = Math.min(claim.getMaxDurability() - claim.getDurability(), 50);
                 int cost = need / 2;
                 if (rep >= cost && cost > 0) {
-                    VKChatPlugin.getInstance().getApi().takeReputation(vkId, cost);
+                    VKChatBridge.takeReputation(vkId, cost);
                     claim.addDurability(need);
                     saveAll();
                     int fNeed = need;
@@ -167,6 +171,14 @@ public class NationManager {
                 } catch (Exception ignored) {}
             }
         }
+
+        if (data.contains("contributions")) {
+            for (String uuidStr : data.getConfigurationSection("contributions").getKeys(false)) {
+                try {
+                    playerContributions.put(UUID.fromString(uuidStr), data.getInt("contributions." + uuidStr));
+                } catch (Exception ignored) {}
+            }
+        }
     }
 
     // ═══ Ожидание ввода от игрока ═══
@@ -226,6 +238,10 @@ public class NationManager {
 
             for (Map.Entry<UUID, Set<String>> entry : unlockedMutations.entrySet()) {
                 out.set("mutations." + entry.getKey().toString(), new ArrayList<>(entry.getValue()));
+            }
+
+            for (Map.Entry<UUID, Integer> entry : playerContributions.entrySet()) {
+                out.set("contributions." + entry.getKey().toString(), entry.getValue());
             }
 
             // Atomic-ish save: first write temp, then replace real file. This avoids half-written YAML after crash/restart.
@@ -301,6 +317,7 @@ public class NationManager {
 
     public void removePlayerNation(UUID uuid) {
         playerNations.remove(uuid);
+        playerContributions.remove(uuid);
         unlockedMutations.remove(uuid); // Сбрасываем мутации игрока при смене нации
         Player p = Bukkit.getPlayer(uuid);
         if (p != null) {
@@ -361,6 +378,19 @@ public class NationManager {
             if (c.getOwner().equals(owner)) count++;
         }
         return count;
+    }
+
+    public void addContribution(UUID uuid, int amount) {
+        playerContributions.merge(uuid, amount, Integer::sum);
+        saveAll();
+    }
+
+    public int getContribution(UUID uuid) {
+        return playerContributions.getOrDefault(uuid, 0);
+    }
+
+    public Map<UUID, Integer> getPlayerContributions() {
+        return playerContributions;
     }
 
     public int getMaxClaimsFor(Player p) {
@@ -629,8 +659,6 @@ public class NationManager {
     }
 
     public void processDailyTaxes() {
-        ru.example.vkchat.api.VKChatAPI api = VKChatPlugin.getInstance().getApi();
-        
         // --- 1. ЕЖЕДНЕВНЫЙ СБОР НАЛОГОВ С ГРАЖДАН - УДАЛЕН ---
         
         // --- 2. АВТОПРОДЛЕНИЕ ЭНЕРГИИ ПРИВАТОВ - УДАЛЕНО ---
@@ -684,14 +712,14 @@ public class NationManager {
             for (UUID trustedId : claim.getTrusted()) {
                 Player tPlayer = Bukkit.getPlayer(trustedId);
                 if (tPlayer != null) {
-                    int vkid = api.getLinkedVkId(tPlayer);
-                    if (vkid != -1 && api.getReputation(vkid) >= 2) {
-                        api.takeReputation(vkid, 2);
+                    int vkid = VKChatBridge.getLinkedVkId(tPlayer);
+                    if (vkid != -1 && VKChatBridge.getReputation(vkid) >= 2) {
+                        VKChatBridge.takeReputation(vkid, 2);
 
                         Player ownerP = Bukkit.getPlayer(claim.getOwner());
                         if (ownerP != null) {
-                            int oVk = api.getLinkedVkId(ownerP);
-                            if (oVk != -1) api.addReputation(oVk, 2);
+                            int oVk = VKChatBridge.getLinkedVkId(ownerP);
+                            if (oVk != -1) VKChatBridge.addPoints(oVk, 2);
 
                             ownerP.sendMessage(ChatColor.YELLOW + "💰 " + tPlayer.getName() + " оплатил налог: 2 реп.");
                             tPlayer.sendMessage(ChatColor.GREEN + "✓ Налог оплачен: -2 реп.");

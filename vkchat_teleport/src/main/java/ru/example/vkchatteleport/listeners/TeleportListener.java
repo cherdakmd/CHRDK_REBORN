@@ -6,6 +6,7 @@ import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerBedEnterEvent;
@@ -57,6 +58,18 @@ public class TeleportListener implements Listener {
                     plugin.getTeleportManager().cancelActiveWarmup(p.getUniqueId(), true, "Вы получили урон!");
                 }
             }
+        }
+    }
+
+    @EventHandler
+    public void onPlayerDealDamage(EntityDamageByEntityEvent event) {
+        if (event.getDamager() instanceof Player) {
+            Player attacker = (Player) event.getDamager();
+            plugin.getTeleportManager().setCombatCooldown(attacker.getUniqueId());
+        }
+        if (event.getEntity() instanceof Player) {
+            Player victim = (Player) event.getEntity();
+            plugin.getTeleportManager().setCombatCooldown(victim.getUniqueId());
         }
     }
 

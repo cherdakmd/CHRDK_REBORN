@@ -12,7 +12,9 @@ import org.bukkit.entity.Player;
 import org.bukkit.persistence.PersistentDataType;
 import ru.example.vkchatnations.VKChatNationsPlugin;
 import ru.example.vkchatnations.data.ChunkClaim;
-import ru.example.vkchat.VKChatPlugin;
+import ru.example.vkchatnations.data.WarManager;
+import ru.example.vkchat.util.VKChatBridge;
+import ru.example.vkchat.util.UUIDResolver;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -157,19 +159,19 @@ public class NationCommand implements CommandExecutor, TabCompleter {
                 return true;
             }
 
-            int vkId = VKChatPlugin.getInstance().getApi().getLinkedVkId(p);
-            if (vkId == -1 && !ru.example.vkchat.util.VKChatBridge.hasPass(p)) {
+            int vkId = VKChatBridge.getLinkedVkId(p);
+            if (!VKChatBridge.hasVkOrPass(p)) {
                 p.sendMessage(ChatColor.RED + "Сначала привяжите ВКонтакте (/vklink), чтобы телепортироваться за репутацию!");
                 return true;
             }
 
             int cost = plugin.getConfig().getInt("claim.teleport-cost", 20);
-            if (VKChatPlugin.getInstance().getApi().getReputation(vkId) < cost) {
+            if (VKChatBridge.getReputation(vkId) < cost) {
                 p.sendMessage(ChatColor.RED + "Недостаточно репутации ВК! Требуется: " + cost);
                 return true;
             }
 
-            VKChatPlugin.getInstance().getApi().takeReputation(vkId, cost);
+            VKChatBridge.takeReputation(vkId, cost);
             tpCooldowns.put(p.getUniqueId(), System.currentTimeMillis());
             
             org.bukkit.World w = org.bukkit.Bukkit.getWorld(claim.getWorldName());
@@ -250,20 +252,20 @@ public class NationCommand implements CommandExecutor, TabCompleter {
                 return true;
             }
 
-            int vkId = VKChatPlugin.getInstance().getApi().getLinkedVkId(p);
-            if (vkId == -1 && !ru.example.vkchat.util.VKChatBridge.hasPass(p)) {
+            int vkId = VKChatBridge.getLinkedVkId(p);
+            if (!VKChatBridge.hasVkOrPass(p)) {
                 p.sendMessage(ChatColor.RED + "❌ Сначала привяжите ВКонтакте! (/vklink)");
                 return true;
             }
 
             int cost = plugin.getConfig().getInt("claim.teleport-cost", 20);
-            if (VKChatPlugin.getInstance().getApi().getReputation(vkId) < cost) {
+            if (VKChatBridge.getReputation(vkId) < cost) {
                 p.sendMessage(ChatColor.RED + "❌ Недостаточно репутации ВК! Требуется: " + cost + " реп.");
                 return true;
             }
 
             // Списываем репутацию и обновляем кулдаун
-            VKChatPlugin.getInstance().getApi().takeReputation(vkId, cost);
+            VKChatBridge.takeReputation(vkId, cost);
             tpCooldowns.put(p.getUniqueId(), System.currentTimeMillis());
 
             // Вычисляем безопасную точку приземления над блоком привата
@@ -285,14 +287,14 @@ public class NationCommand implements CommandExecutor, TabCompleter {
                 return true;
             }
 
-            int vkId = VKChatPlugin.getInstance().getApi().getLinkedVkId(p);
-            if (vkId == -1 && !ru.example.vkchat.util.VKChatBridge.hasPass(p)) {
+            int vkId = VKChatBridge.getLinkedVkId(p);
+            if (!VKChatBridge.hasVkOrPass(p)) {
                 p.sendMessage(ChatColor.RED + "❌ Сначала привяжите ВКонтакте (/vklink), чтобы изменить Нацию!");
                 return true;
             }
 
             int cost = 5000;
-            int rep = VKChatPlugin.getInstance().getApi().getReputation(vkId);
+            int rep = VKChatBridge.getReputation(vkId);
             if (rep < cost) {
                 p.sendMessage(ChatColor.RED + "❌ Смена нации/расы — это величайший ритуал, который стоит " + ChatColor.GOLD + cost + ChatColor.RED + " реп. ВК!");
                 p.sendMessage(ChatColor.GRAY + "Ваш баланс: " + ChatColor.YELLOW + rep + ChatColor.GRAY + " реп. ВК.");
@@ -300,7 +302,7 @@ public class NationCommand implements CommandExecutor, TabCompleter {
             }
 
             // Списываем репутацию
-            VKChatPlugin.getInstance().getApi().takeReputation(vkId, cost);
+            VKChatBridge.takeReputation(vkId, cost);
 
             // Удаляем все приваты игрока
             p.sendMessage(ChatColor.YELLOW + "⌛ Запуск очистки ваших приватизированных блоков...");
@@ -398,7 +400,7 @@ public class NationCommand implements CommandExecutor, TabCompleter {
                 p.sendMessage(org.bukkit.ChatColor.RED + "Использование: /nation untrust <ник>");
                 return true;
             }
-            org.bukkit.OfflinePlayer target = ru.example.vkchat.util.UUIDResolver.resolve(args[1]);
+            org.bukkit.OfflinePlayer target = UUIDResolver.resolve(args[1]);
             if (target == null) {
                 p.sendMessage(org.bukkit.ChatColor.RED + "Игрок " + args[1] + " не найден.");
                 return true;
@@ -414,8 +416,8 @@ public class NationCommand implements CommandExecutor, TabCompleter {
         }
 
         else if (action.equals("charge")) {
-            int vkId = VKChatPlugin.getInstance().getApi().getLinkedVkId(p);
-            if (vkId == -1 && !ru.example.vkchat.util.VKChatBridge.hasPass(p)) {
+            int vkId = VKChatBridge.getLinkedVkId(p);
+            if (!VKChatBridge.hasVkOrPass(p)) {
                 p.sendMessage(ChatColor.RED + "Сначала привяжи ВКонтакте (/vklink)!");
                 return true;
             }
@@ -435,13 +437,14 @@ public class NationCommand implements CommandExecutor, TabCompleter {
                 p.sendMessage(ChatColor.RED + "Вы не в нации!");
                 return true;
             }
-            int rep = VKChatPlugin.getInstance().getApi().getReputation(vkId);
+            int rep = VKChatBridge.getReputation(vkId);
             if (rep < amount) {
                 p.sendMessage(ChatColor.RED + "Недостаточно репутации! У вас: " + rep + " реп. ВК");
                 return true;
             }
-            VKChatPlugin.getInstance().getApi().takeReputation(vkId, amount);
+            VKChatBridge.takeReputation(vkId, amount);
             plugin.getNationManager().depositReputation(nation, amount);
+            plugin.getNationManager().addContribution(p.getUniqueId(), amount);
             plugin.getNationManager().addNationExp(nation, amount);
             p.sendMessage(ChatColor.GREEN + "✓ Вы пополнили казну нации на " + amount + " реп. ВК!");
             p.sendMessage(ChatColor.GRAY + "Баланс казны: " + ChatColor.YELLOW + plugin.getNationManager().getBank(nation) + " реп.");
@@ -453,21 +456,74 @@ public class NationCommand implements CommandExecutor, TabCompleter {
                 p.sendMessage(ChatColor.RED + "Вы не в нации!");
                 return true;
             }
-            String nationName = plugin.getNationManager().getNationNamePublic(nation);
+
+            String colorCode = plugin.getConfig().getString("nations." + nation + ".color", "&f");
+            String cc = ChatColor.translateAlternateColorCodes('&', colorCode);
+            String rawName = plugin.getNationManager().getNationNamePublic(nation);
+            String stripName = ChatColor.stripColor(ChatColor.translateAlternateColorCodes('&', rawName));
+
             int bank = plugin.getNationManager().getBank(nation);
-            int claimCount = 0;
-            int memberCount = plugin.getNationManager().getMemberCount(nation);
             int level = plugin.getNationManager().getNationLevel(nation);
-            for (java.util.Map.Entry<String, ru.example.vkchatnations.data.ChunkClaim> entry : plugin.getNationManager().getNationClaims().entrySet()) {
-                if (entry.getValue().getNation().equals(nation)) claimCount++;
+            int totalMembers = plugin.getNationManager().getMemberCount(nation);
+
+            int claimCount = 0;
+            for (ru.example.vkchatnations.data.ChunkClaim c : plugin.getNationManager().getNationClaims().values()) {
+                if (c.getNation().equals(nation)) claimCount++;
             }
-            p.sendMessage(ChatColor.GOLD + "=== " + nationName + ChatColor.GOLD + " ===");
-            p.sendMessage(ChatColor.YELLOW + "Уровень нации: " + ChatColor.GOLD + level);
-            p.sendMessage(ChatColor.YELLOW + "Участники: " + ChatColor.WHITE + memberCount);
-            p.sendMessage(ChatColor.YELLOW + "Приваты: " + ChatColor.WHITE + claimCount);
-            p.sendMessage(ChatColor.YELLOW + "Казна: " + ChatColor.WHITE + bank + " реп.");
-            p.sendMessage(ChatColor.YELLOW + "Прогресс: " + plugin.getNationManager().getNationProgressBar(nation));
-            p.sendMessage(ChatColor.YELLOW + "Рейтинг: " + ChatColor.WHITE + getNationRank(plugin, nation));
+
+            int onlineCount = 0;
+            for (Player online : Bukkit.getOnlinePlayers()) {
+                if (nation.equals(plugin.getNationManager().getPlayerNation(online))) onlineCount++;
+            }
+
+            List<String[]> activeWars = plugin.getWarManager().getActiveWarsFor(nation);
+            List<String> bonuses = plugin.getConfig().getStringList("nations." + nation + ".bonuses");
+            int contribution = plugin.getNationManager().getContribution(p.getUniqueId());
+            int rank = getNationRank(plugin, nation);
+
+            p.sendMessage("§8▸ " + cc + "§l" + stripName + " §8◂ §7Информация о нации");
+            p.sendMessage("§7─────────────────────────");
+            p.sendMessage("§8▸ §fУровень: " + cc + level + " " + plugin.getNationManager().getNationProgressBar(nation));
+            p.sendMessage("§8▸ §fУчастники: §a" + onlineCount + "§7/§f" + totalMembers + " §7онлайн");
+            p.sendMessage("§8▸ §fПриваты: §e" + claimCount);
+            p.sendMessage("§8▸ §fКазна: §6" + bank + " реп.");
+            p.sendMessage("§8▸ §fРейтинг: §b#" + rank);
+
+            if (activeWars.isEmpty()) {
+                p.sendMessage("§8▸ §fВойны: §7нет");
+            } else {
+                StringBuilder warLine = new StringBuilder("§8▸ §fВойны: ");
+                for (int i = 0; i < activeWars.size(); i++) {
+                    String[] wn = activeWars.get(i);
+                    String enemyId = wn[0].equals(nation) ? wn[1] : wn[0];
+                    String enemyName = plugin.getNationManager().getNationNamePublic(enemyId);
+                    long endTime = plugin.getWarManager().getWarEndTime(wn[0], wn[1]);
+                    long mins = (endTime - System.currentTimeMillis()) / 60000;
+                    if (i > 0) warLine.append("§7, ");
+                    warLine.append("§c⚔ ").append(ChatColor.stripColor(ChatColor.translateAlternateColorCodes('&', enemyName)))
+                            .append(" §7(").append(mins).append(" мин.)");
+                }
+                p.sendMessage(warLine.toString());
+            }
+
+            if (!bonuses.isEmpty()) {
+                StringBuilder bonusLine = new StringBuilder("§8▸ §fБонусы: ");
+                for (int i = 0; i < bonuses.size(); i++) {
+                    String[] parts = bonuses.get(i).split(";");
+                    if (parts.length == 2) {
+                        String effectName = formatEffectName(parts[0]);
+                        int lvl = Integer.parseInt(parts[1]);
+                        if (i > 0) bonusLine.append("§7, ");
+                        bonusLine.append("§b").append(effectName).append(" ").append(toRoman(lvl));
+                    }
+                }
+                p.sendMessage(bonusLine.toString());
+            } else {
+                p.sendMessage("§8▸ §fБонусы: §7нет");
+            }
+
+            p.sendMessage("§8▸ §fВаш вклад: §e" + contribution + " реп.");
+            p.sendMessage("§7─────────────────────────");
         }
 
         else if (action.equals("top")) {
@@ -528,18 +584,19 @@ public class NationCommand implements CommandExecutor, TabCompleter {
                 p.sendMessage(ChatColor.RED + "Минимальная сумма пожертвования: 1 реп.");
                 return true;
             }
-            int vkId = VKChatPlugin.getInstance().getApi().getLinkedVkId(p);
-            if (vkId == -1 && !ru.example.vkchat.util.VKChatBridge.hasPass(p)) {
+            int vkId = VKChatBridge.getLinkedVkId(p);
+            if (!VKChatBridge.hasVkOrPass(p)) {
                 p.sendMessage(ChatColor.RED + "Сначала привяжите ВКонтакте (/vklink)!");
                 return true;
             }
-            int rep = VKChatPlugin.getInstance().getApi().getReputation(vkId);
+            int rep = VKChatBridge.getReputation(vkId);
             if (rep < amount) {
                 p.sendMessage(ChatColor.RED + "Недостаточно репутации! У вас: " + rep + " реп. ВК");
                 return true;
             }
-            VKChatPlugin.getInstance().getApi().takeReputation(vkId, amount);
+            VKChatBridge.takeReputation(vkId, amount);
             plugin.getNationManager().depositReputation(nation, amount);
+            plugin.getNationManager().addContribution(p.getUniqueId(), amount);
             p.sendMessage(ChatColor.GREEN + "✓ Вы пожертвовали " + amount + " реп. ВК в казну нации!");
             p.sendMessage(ChatColor.GRAY + "Текущий баланс казны: " + ChatColor.YELLOW + plugin.getNationManager().getBank(nation) + " реп.");
             plugin.getNationManager().broadcastToNationWithPrefix(nation,
@@ -568,6 +625,61 @@ public class NationCommand implements CommandExecutor, TabCompleter {
             plugin.getNationManager().removePlayerNation(p.getUniqueId());
             p.sendMessage(ChatColor.YELLOW + "Вы покинули нацию! Теперь выберите новую через /nation");
             plugin.getGuiListener().openNationSelection(p);
+            return true;
+        }
+
+        else if (action.equals("war")) {
+            String nation = plugin.getNationManager().getPlayerNation(p);
+            if (nation == null) {
+                p.sendMessage(ChatColor.RED + "Вы не в нации!");
+                return true;
+            }
+
+            if (args.length < 2) {
+                p.sendMessage(ChatColor.GOLD + "=== Команды войны ===");
+                p.sendMessage(ChatColor.YELLOW + "/nation war declare <нация>" + ChatColor.GRAY + " — объявить войну (5000 реп.)");
+                p.sendMessage(ChatColor.YELLOW + "/nation war peace" + ChatColor.GRAY + " — заключить мир (2000 реп.)");
+                p.sendMessage(ChatColor.YELLOW + "/nation war status" + ChatColor.GRAY + " — текущие войны");
+                p.sendMessage(ChatColor.YELLOW + "/nation war all" + ChatColor.GRAY + " — все активные войны");
+                return true;
+            }
+
+            String warAction = args[1].toLowerCase();
+            WarManager warManager = plugin.getWarManager();
+
+            if (warAction.equals("declare")) {
+                if (args.length < 3) {
+                    p.sendMessage(ChatColor.RED + "Использование: /nation war declare <нация>");
+                    return true;
+                }
+
+                String targetNation = args[2].toLowerCase();
+                // Validate target nation exists
+                if (plugin.getConfig().getConfigurationSection("nations." + targetNation) == null) {
+                    p.sendMessage(ChatColor.RED + "Нация '" + targetNation + "' не найдена!");
+                    return true;
+                }
+
+                warManager.declareWar(p, nation, targetNation);
+                return true;
+            }
+
+            else if (warAction.equals("peace")) {
+                warManager.sueForPeace(p, nation);
+                return true;
+            }
+
+            else if (warAction.equals("status")) {
+                warManager.showWarStatus(p, nation);
+                return true;
+            }
+
+            else if (warAction.equals("all")) {
+                warManager.showAllWars(p);
+                return true;
+            }
+
+            p.sendMessage(ChatColor.RED + "Неизвестное действие. /nation war");
             return true;
         }
 
@@ -604,7 +716,7 @@ public class NationCommand implements CommandExecutor, TabCompleter {
                 "buyclaim", "buy", "feed", "feedclaim", "claim", "unclaim", "autoclaim",
                 "sethome", "home", "claims", "list", "tp", "teleport", "change", "reset",
                 "festival", "party", "trust", "untrust", "charge",
-                "info", "top", "leave", "members", "donate", "admin"
+                "info", "top", "leave", "members", "donate", "war", "admin"
             );
             completions.addAll(subs);
         } else if (args.length == 2) {
@@ -613,10 +725,54 @@ public class NationCommand implements CommandExecutor, TabCompleter {
                 for (Player online : Bukkit.getOnlinePlayers()) {
                     completions.add(online.getName());
                 }
+            } else if (sub.equals("war")) {
+                completions.addAll(java.util.Arrays.asList("declare", "peace", "status", "all"));
+            }
+        } else if (args.length == 3) {
+            String sub = args[0].toLowerCase();
+            if (sub.equals("war") && args[1].equalsIgnoreCase("declare")) {
+                // Add nation names for tab completion
+                if (plugin.getConfig().getConfigurationSection("nations") != null) {
+                    completions.addAll(plugin.getConfig().getConfigurationSection("nations").getKeys(false));
+                }
             }
         }
 
         return completions.stream().filter(s -> last.isEmpty() || s.toLowerCase().startsWith(last)).collect(Collectors.toList());
+    }
+
+    private String formatEffectName(String potionName) {
+        if (potionName == null) return "???";
+        switch (potionName) {
+            case "FAST_DIGGING": return "Спешка";
+            case "SPEED": return "Скорость";
+            case "INVISIBILITY": return "Невидимость";
+            case "REGENERATION": return "Регенерация";
+            case "INCREASE_DAMAGE": return "Сила";
+            case "DAMAGE_RESISTANCE": return "Сопротивление";
+            case "JUMP": return "Прыжки";
+            case "NIGHT_VISION": return "Ночное зрение";
+            case "WATER_BREATHING": return "Водное дыхание";
+            case "LUCK": return "Удача";
+            case "SLOW": return "Замедление";
+            case "WEAKNESS": return "Слабость";
+            case "POISON": return "Отравление";
+            case "SATURATION": return "Сытость";
+            case "GLOWING": return "Свечение";
+            case "HERO_OF_VILLAGE": return "Герой деревни";
+            default: return potionName;
+        }
+    }
+
+    private String toRoman(int num) {
+        switch (num) {
+            case 1: return "I";
+            case 2: return "II";
+            case 3: return "III";
+            case 4: return "IV";
+            case 5: return "V";
+            default: return String.valueOf(num);
+        }
     }
 
     private int getNationRank(VKChatNationsPlugin plugin, String nation) {

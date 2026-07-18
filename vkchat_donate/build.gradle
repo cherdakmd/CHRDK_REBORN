@@ -3,15 +3,16 @@ group = 'ru.example'
 
 repositories {
     mavenCentral()
+    maven { url = 'https://hub.spigotmc.org/nexus/content/repositories/snapshots/' }
     maven { url = 'https://oss.sonatype.org/content/repositories/snapshots' }
-    maven { url = 'https://repo.luckperms.me' }
+    maven { url = 'https://repo.luckperms.net/' }
 }
 
 dependencies {
-    compileOnly 'org.spigotmc:spigot-api:1.16.5-R0.1-SNAPSHOT'
+    compileOnly libs.spigot.api
     compileOnly project(':vkchat_core')
-    compileOnly 'net.luckperms:api:5.4'
-    implementation 'org.json:json:20230227'
+    compileOnly libs.luckperms.api
+    implementation libs.json
 }
 
 tasks.withType(JavaCompile) { options.encoding = 'UTF-8'; options.release = 17 }

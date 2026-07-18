@@ -7,6 +7,7 @@ import net.luckperms.api.node.Node;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
+import ru.example.vkchatdonate.VKChatDonatePlugin;
 
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -183,7 +184,9 @@ public final class LuckPermsHelper {
      * Fallback: dispatch LP command (для оффлайн-игроков где API не работает).
      */
     public static void dispatchCommand(String command) {
-        Bukkit.getScheduler().runTask(Bukkit.getPluginManager().getPlugin("VKChatDonate"), () ->
+        VKChatDonatePlugin instance = VKChatDonatePlugin.getInstance();
+        if (instance == null) return;
+        Bukkit.getScheduler().runTask(instance, () ->
                 Bukkit.dispatchCommand(Bukkit.getConsoleSender(), command));
     }
 }

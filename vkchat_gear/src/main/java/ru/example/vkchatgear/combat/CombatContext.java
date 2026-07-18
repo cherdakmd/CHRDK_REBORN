@@ -15,6 +15,7 @@ import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
+import ru.example.vkchatgear.GearManager;
 import ru.example.vkchatgear.VKChatGearPlugin;
 
 import java.util.List;
@@ -192,6 +193,20 @@ public class CombatContext {
             if (ChatColor.stripColor(line).contains(name)) return true;
         }
         return false;
+    }
+
+    /**
+     * PDC-aware enchant detection: checks PersistentDataContainer first,
+     * then falls back to lore-based detection for backward compatibility.
+     */
+    public static boolean hasEnchant(List<String> lore, String name, VKChatGearPlugin plugin, ItemMeta meta) {
+        if (meta != null) {
+            String configKey = GearManager.getEnchantKeyForLoreName(name);
+            if (configKey != null && GearManager.hasEnchantPDC(meta, configKey, plugin)) {
+                return true;
+            }
+        }
+        return hasEnchant(lore, name);
     }
 
     public String getRarityProc(ItemStack item) {

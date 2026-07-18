@@ -16,6 +16,11 @@ import org.bukkit.potion.PotionEffectType;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class VKChatJobsPlugin extends JavaPlugin {
     private static VKChatJobsPlugin instance;
@@ -24,6 +29,8 @@ public class VKChatJobsPlugin extends JavaPlugin {
     private PlacedBlockTracker placedBlockTracker;
     private WeeklyTaskManager weeklyTaskManager;
     private RankingManager rankingManager;
+    private final Map<UUID, Set<String>> jobSkills = new ConcurrentHashMap<>();
+    private final Map<UUID, String> playerProfessions = new ConcurrentHashMap<>();
 
     @Override
     public void onEnable() {
@@ -68,9 +75,13 @@ public class VKChatJobsPlugin extends JavaPlugin {
             }, 1200L, 1200L); // 1200 тиков = 60 секунд
         }
 
-        // Пассивные эффекты профессий (раз в 2 секунды)
+        // Пассивные эффекты профессий (раз в 2 секунды) — использует кеш навыков
         Bukkit.getScheduler().runTaskTimer(this, () -> {
             for (Player p : Bukkit.getOnlinePlayers()) {
+                UUID uid = p.getUniqueId();
+                Set<String> cached = jobSkills.get(uid);
+                if (cached == null) continue;
+
                 Material hand = p.getInventory().getItemInMainHand().getType();
                 String name = hand.name();
                 Location loc = p.getLocation();
@@ -81,27 +92,27 @@ public class VKChatJobsPlugin extends JavaPlugin {
 
                 // Шахтер
                 if (name.endsWith("_PICKAXE")) {
-                    if (jobsDataManager.hasSkill(p.getUniqueId(), "miner", "miner_haste")) {
+                    if (cached.contains("miner:miner_haste")) {
                         p.addPotionEffect(new PotionEffect(PotionEffectType.FAST_DIGGING, 60, 0, true, false, false));
                     }
-                    if (dark && jobsDataManager.hasSkill(p.getUniqueId(), "miner", "miner_night")) {
+                    if (dark && cached.contains("miner:miner_night")) {
                         p.addPotionEffect(new PotionEffect(PotionEffectType.NIGHT_VISION, 300, 0, true, false, false));
                     }
-                    if (dark && jobsDataManager.hasSkill(p.getUniqueId(), "miner", "miner_seism")) {
+                    if (dark && cached.contains("miner:miner_seism")) {
                         p.addPotionEffect(new PotionEffect(PotionEffectType.GLOWING, 60, 0, true, false, false));
                     }
                 }
 
                 // Лесоруб
                 if (name.endsWith("_AXE")) {
-                    if (jobsDataManager.hasSkill(p.getUniqueId(), "woodcutter", "wood_haste")) {
+                    if (cached.contains("woodcutter:wood_haste")) {
                         p.addPotionEffect(new PotionEffect(PotionEffectType.FAST_DIGGING, 60, 0, true, false, false));
                     }
-                    if (forest && jobsDataManager.hasSkill(p.getUniqueId(), "woodcutter", "wood_bird")) {
+                    if (forest && cached.contains("woodcutter:wood_bird")) {
                         p.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 60, 1, true, false, false));
                         p.addPotionEffect(new PotionEffect(PotionEffectType.JUMP, 60, 1, true, false, false));
                     }
-                    if (forest && jobsDataManager.hasSkill(p.getUniqueId(), "woodcutter", "wood_forest")) {
+                    if (forest && cached.contains("woodcutter:wood_forest")) {
                         p.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, 60, 2, true, false, false));
                         p.addPotionEffect(new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, 60, 0, true, false, false));
                     }
@@ -109,22 +120,22 @@ public class VKChatJobsPlugin extends JavaPlugin {
 
                 // Фермер
                 if (name.endsWith("_HOE")) {
-                    if (jobsDataManager.hasSkill(p.getUniqueId(), "farmer", "farm_speed")) {
+                    if (cached.contains("farmer:farm_speed")) {
                         p.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 60, 0, true, false, false));
                     }
-                    if (jobsDataManager.hasSkill(p.getUniqueId(), "farmer", "farm_harvest")) {
+                    if (cached.contains("farmer:farm_harvest")) {
                         p.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, 60, 0, true, false, false));
                     }
-                    if (jobsDataManager.hasSkill(p.getUniqueId(), "farmer", "farm_nature")) {
+                    if (cached.contains("farmer:farm_nature")) {
                         p.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, 60, 0, true, false, false));
                     }
                 }
 
                 // Рыбак
-                if (hand == Material.FISHING_ROD && jobsDataManager.hasSkill(p.getUniqueId(), "fisherman", "fish_luck")) {
+                if (hand == Material.FISHING_ROD && cached.contains("fisherman:fish_luck")) {
                     p.addPotionEffect(new PotionEffect(PotionEffectType.LUCK, 60, 0, true, false, false));
                 }
-                if (hand == Material.FISHING_ROD && jobsDataManager.hasSkill(p.getUniqueId(), "fisherman", "fish_neptune")) {
+                if (hand == Material.FISHING_ROD && cached.contains("fisherman:fish_neptune")) {
                     p.addPotionEffect(new PotionEffect(PotionEffectType.WATER_BREATHING, 60, 0, true, false, false));
                 }
             }
@@ -133,10 +144,15 @@ public class VKChatJobsPlugin extends JavaPlugin {
         // Еженедельный сброс рейтинга и проверка бродкаста (раз в 10 минут)
         Bukkit.getScheduler().runTaskTimer(this, () -> {
             if (rankingManager != null) {
-                rankingManager.checkWeeklyReset();
                 rankingManager.tryBroadcast();
+                rankingManager.checkWeeklyReset();
             }
         }, 12000L, 12000L);
+
+        // Заполняем кеш навыков для уже онлайн игроков (на случай перезагрузки плагина)
+        for (Player p : Bukkit.getOnlinePlayers()) {
+            rebuildJobSkills(p.getUniqueId());
+        }
     }
 
     private void updateConfigWithDefaults() {
@@ -159,6 +175,7 @@ public class VKChatJobsPlugin extends JavaPlugin {
         if (placedBlockTracker != null) placedBlockTracker.save();
         if (weeklyTaskManager != null) weeklyTaskManager.save();
         if (rankingManager != null) rankingManager.save();
+        instance = null;
     }
 
     public static VKChatJobsPlugin getInstance() { return instance; }
@@ -167,4 +184,29 @@ public class VKChatJobsPlugin extends JavaPlugin {
     public PlacedBlockTracker getPlacedBlockTracker() { return placedBlockTracker; }
     public WeeklyTaskManager getWeeklyTaskManager() { return weeklyTaskManager; }
     public RankingManager getRankingManager() { return rankingManager; }
+
+    public void rebuildJobSkills(UUID uuid) {
+        Set<String> skills = new HashSet<>();
+        String[] jobs = {"miner", "woodcutter", "farmer", "alchemist", "blacksmith", "hunter", "fisherman"};
+        for (String job : jobs) {
+            for (String skill : jobsDataManager.getUnlockedSkills(uuid, job)) {
+                skills.add(job + ":" + skill);
+            }
+        }
+        jobSkills.put(uuid, skills);
+        playerProfessions.put(uuid, jobsDataManager.getTopJob(uuid));
+    }
+
+    public void clearJobSkills(UUID uuid) {
+        jobSkills.remove(uuid);
+        playerProfessions.remove(uuid);
+    }
+
+    public Set<String> getCachedSkills(UUID uuid) {
+        return jobSkills.get(uuid);
+    }
+
+    public String getCachedProfession(UUID uuid) {
+        return playerProfessions.get(uuid);
+    }
 }

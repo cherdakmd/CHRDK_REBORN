@@ -1,0 +1,188 @@
+# ==========================================
+# КАСТОМНЫЕ ЧАРЫ — определения и конфликты
+# ==========================================
+custom_enchants:
+  # --- ОРУЖИЕ ---
+  vampire_aoe:
+    name: "&4✨ Аура Вампиризма (AOE похищение ХП вокруг)"
+    conflicts: ["vampirism", "lifesteal_aura", "life_steal"]
+  vampirism: 
+    name: "&c✨ Вампиризм (Восстанавливает здоровье при ударе)"
+    conflicts: ["lifesteal", "vampire", "blood"]
+  venom: 
+    name: "&2☠ Отравление (Отравляет жертву)"
+    conflicts: ["poison", "venomous", "toxic"]
+  lightning: 
+    name: "&e⚡ Грозовой Разряд (Шанс удара молнией)"
+    conflicts: ["smite", "lightning", "thunder"]
+  frost: 
+    name: "&b❄ Окоченение (Сильно замедляет врага)"
+    conflicts: ["slowness", "freeze", "ice", "frost"]
+  execute: 
+    name: "&4 Казнь (+50% урона по раненым врагам)"
+    conflicts: ["execute", "assassinate", "finisher"]
+  blindness: 
+    name: "&8 Мрак (Шанс ослепить противника)"
+    conflicts: ["blindness", "darkness", "shadow"]
+  bleeding: 
+    name: "&4 Рваная рана (Наносит DoT урон кровотечением)"
+    conflicts: ["bleed", "cut", "wound"]
+  meteor: 
+    name: "&6☄ Метеоритный Удар (Шанс 10% вызвать взрыв при ударе)"
+    conflicts: ["meteor", "explosion", "blast"]
+  wither_strike:
+    name: "&8 Гниль (Накладывает Иссушение на врага)"
+    conflicts: ["wither", "decay", "rot"]
+  armor_piercing:
+    name: "&7 Бронебойность (Игнорирует часть брони)"
+    conflicts: ["piercing", "penetration"]
+  soul_reaper:
+    name: "&d Жнец Душ (Шанс убить не-босса мгновенно при ХП < 15%)"
+    conflicts: ["reaper", "soul", "death"]
+  berserk:
+    name: "&c Берсерк (Урон растет по мере потери вашего ХП)"
+    conflicts: ["berserk", "rage", "fury"]
+  disarm:
+    name: "&e Разоружение (Шанс выбить предмет из рук врага)"
+    conflicts: ["disarm", "drop"]
+  levitation_strike:
+    name: "&b Подбрасывание (Шанс отправить врага в полет)"
+    conflicts: ["levitation", "float", "up"]
+  # --- БРОНЯ ---
+  thorns: 
+    name: "&4 Кровавые шипы (Возвращает часть урона)"
+    conflicts: ["thorns", "spikes", "barbed"]
+  dodge: 
+    name: "&f Уклонение (10% шанс полностью избежать урона)"
+    conflicts: ["dodge", "evasion", "agility"]
+  fire_aura: 
+    name: "&6 Огненная аура (Поджигает атакующего)"
+    conflicts: ["fire_aura", "flame", "molten"]
+  shield: 
+    name: "&b Эгида (При падении ХП ниже 20% дает Щит на 5 сек)"
+    conflicts: ["shield", "invulnerability", "aegis"]
+  health_boost:
+    name: "&a❤ Титан (Увеличивает макс. здоровье)"
+    conflicts: ["health", "vitality", "life"]
+  reflect_magic:
+    name: "&d Зеркало (Шанс отразить магический урон)"
+    conflicts: ["reflect", "mirror", "magic"]
+  second_wind:
+    name: "&e Второе дыхание (Восстанавливает 50% ХП при смертельном ударе, ломая броню)"
+    conflicts: ["revive", "phoenix", "undying"]
+  heavy_weight:
+    name: "&8⚓ Тяжеловес (Иммунитет к отбрасыванию, но -15% скорости)"
+    conflicts: ["heavy", "weight", "anchor"]
+  
+  # --- ИНСТРУМЕНТЫ ---
+  haste: 
+    name: "&e⛏ Спешка (Пассивное ускорение копания в руке)"
+    conflicts: ["haste", "dig_speed", "miner"]
+  rarity_seal:
+    name: "&d🛡️ Печать Души (Защищает грейд предмета при смерти)"
+    conflicts: []
+  telekenesis:
+    name: "&d Телекинез (Блоки сразу падают в инвентарь)"
+    conflicts: ["telekenesis", "magnet", "auto_pickup"]
+  experience_boost:
+    name: "&a✨ Мудрость (+50% опыта при добыче)"
+    conflicts: ["experience", "wisdom", "xp"]
+
+  # Новые
+  wither_burst:
+    name: "&8 Взрыв Иссушения"
+    conflicts: []
+  thunder_strike:
+    name: "&e⚡ Удар Грома"
+    conflicts: ["lightning"]
+  poison_cloud:
+    name: "&2 Ядовитое Облако"
+    conflicts: ["venom"]
+  critical_strike:
+    name: "&c Критический Удар"
+    conflicts: []
+  lifesteal_aura:
+    name: "&4 Аура Вампира"
+    conflicts: ["vampirism"]
+  magma_walker:
+    name: "&6 Магматический Шаг"
+    conflicts: []
+  ender_shield:
+    name: "&d Эндер Щит"
+    conflicts: []
+  wind_step:
+    name: "&f Поступь Ветра"
+    conflicts: []
+  golem_skin:
+    name: "&8 Кожа Голема"
+    conflicts: []
+  spider_reflexes:
+    name: "&a Рефлексы Паука"
+    conflicts: ["dodge"]
+  healing_aura:
+    name: "&d✨ Аура Исцеления"
+    conflicts: []
+  aquatic_life:
+    name: "&b Подводная Жизнь"
+    conflicts: []
+  ore_magnet:
+    name: "&d Магнит Руд"
+    conflicts: ["telekenesis"]
+  timber:
+    name: "&6 Дровосек"
+    conflicts: []
+  auto_smelt:
+    name: "&c Авто-плавка"
+    conflicts: []
+  life_steal:
+    name: "&d💖 Похищение Жизни (Восстанавливает 1 HP при каждом ударе)"
+    conflicts: ["vampirism"]
+  fire_punch:
+    name: "&6🔥 Огненный Удар (Поджигает цель при атаке)"
+    conflicts: ["fire_aspect"]
+  paralyze:
+    name: "&e⚡ Паралич (Шанс 10% парализовать цель на 2 сек)"
+    conflicts: ["frost"]
+  absorption:
+    name: "&b🛡️ Поглощение (Шанс 15% получить золотые сердечки при ударе)"
+    conflicts: ["shield"]
+  haste_aura:
+    name: "&e⛏️ Аура Спешки (Пассивная Спешка I для вас и союзников вокруг)"
+    conflicts: ["haste"]
+  meteor_shower:
+    name: "&6☄ Метеоритный Дождь (Шанс 10% вызвать серию взрывов вокруг цели)"
+    conflicts: ["meteor", "explosion"]
+  soul_bond:
+    name: "&d🔮 Связь Душ (Шанс 10% вернуть 50% урона обидчику и исцелиться)"
+    conflicts: ["reflect", "mirror"]
+  frozen_touch:
+    name: "&b❄ Ледяное Касание (Шанс 15% полностью заморозить врага на 3 сек)"
+    conflicts: ["frost", "ice"]
+  wind_glide:
+    name: "&f🍃 Полет Ветра (Дарует Скорость III и полный иммунитет к падению)"
+    conflicts: ["speed", "flight"]
+  disintegration:
+    name: "&4☠ Распад (Шанс 5% нанести двойной урон и повесить Иссушение III)"
+    conflicts: ["wither", "decay"]
+  berserker_rage:
+    name: "&4💢 Ярость Берсерка (Чем меньше HP, тем больше урон — до +50%)"
+    conflicts: ["strength", "rage"]
+  evasion:
+    name: "&7💨 Уклонение (Шанс 10% полностью избежать урона)"
+    conflicts: ["dodge", "miss"]
+  # --- НОВЫЕ ЧАРЫ ---
+  soul_drain:
+    name: "&5☠ Вытягивание душ"
+    conflicts: ["vampirism", "lifesteal_aura", "life_steal", "vampire_aoe"]
+  chain_lightning:
+    name: "&b⚡ Цепная молния"
+    conflicts: ["lightning", "thunder_strike"]
+  void_strike:
+    name: "&8⚔ Удар Бездны"
+    conflicts: []
+  stone_skin:
+    name: "&7🛡 Каменная кожа"
+    conflicts: ["golem_skin"]
+  life_link:
+    name: "&c❤ Связь жизней"
+    conflicts: ["soul_bond"]

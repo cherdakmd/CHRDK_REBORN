@@ -11,8 +11,9 @@ import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
-import ru.example.vkchat.VKChatPlugin;
 import ru.example.vkchat.util.DonateStatusResolver;
+import ru.example.vkchat.util.JobsBridge;
+import ru.example.vkchat.util.VKChatBridge;
 import ru.example.vkchatgear.forge.SetBonusManager;
 
 import java.util.*;
@@ -20,6 +21,76 @@ import java.util.concurrent.ThreadLocalRandom;
 
 public class GearManager {
     private final VKChatGearPlugin plugin;
+
+    /** PDC key prefix for custom enchant tags */
+    public static final String PDC_ENCHANT_PREFIX = "custom_enchant_";
+
+    /** Mapping: lore display name → config key (for PDC-based detection) */
+    private static final Map<String, String> LORE_TO_KEY = new HashMap<>();
+    static {
+        // Defensive enchants
+        LORE_TO_KEY.put("Уклонение", "dodge");
+        LORE_TO_KEY.put("Кровавые шипы", "thorns");
+        LORE_TO_KEY.put("Огненная аура", "fire_aura");
+        LORE_TO_KEY.put("Эгида", "shield");
+        LORE_TO_KEY.put("Поглощение", "absorption");
+        LORE_TO_KEY.put("Эндер Щит", "ender_shield");
+        LORE_TO_KEY.put("Зеркало", "reflect_magic");
+        LORE_TO_KEY.put("Связь Душ", "soul_bond");
+        LORE_TO_KEY.put("Каменная кожа", "stone_skin");
+        LORE_TO_KEY.put("Связь жизней", "life_link");
+        // Offensive enchants
+        LORE_TO_KEY.put("Вампиризм", "vampirism");
+        LORE_TO_KEY.put("Отравление", "venom");
+        LORE_TO_KEY.put("Метеоритный Удар", "meteor");
+        LORE_TO_KEY.put("Грозовой Разряд", "lightning");
+        LORE_TO_KEY.put("Окоченение", "frost");
+        LORE_TO_KEY.put("Мрак", "blindness");
+        LORE_TO_KEY.put("Гниль", "wither_strike");
+        LORE_TO_KEY.put("Подбрасывание", "levitation_strike");
+        LORE_TO_KEY.put("Бронебойность", "armor_piercing");
+        LORE_TO_KEY.put("Берсерк", "berserk");
+        LORE_TO_KEY.put("Разоружение", "disarm");
+        LORE_TO_KEY.put("Жнец Душ", "soul_reaper");
+        LORE_TO_KEY.put("Критический Удар", "critical_strike");
+        LORE_TO_KEY.put("Взрыв Иссушения", "wither_burst");
+        LORE_TO_KEY.put("Ядовитое Облако", "poison_cloud");
+        LORE_TO_KEY.put("Удар Грома", "thunder_strike");
+        LORE_TO_KEY.put("Аура Вампира", "lifesteal_aura");
+        LORE_TO_KEY.put("Казнь", "execute");
+        LORE_TO_KEY.put("Похищение Жизни", "life_steal");
+        LORE_TO_KEY.put("Огненный Удар", "fire_punch");
+        LORE_TO_KEY.put("Паралич", "paralyze");
+        LORE_TO_KEY.put("Метеоритный Дождь", "meteor_shower");
+        LORE_TO_KEY.put("Ледяное Касание", "frozen_touch");
+        LORE_TO_KEY.put("Распад", "disintegration");
+        LORE_TO_KEY.put("Аура Вампиризма", "vampire_aoe");
+        LORE_TO_KEY.put("Вытягивание душ", "soul_drain");
+        LORE_TO_KEY.put("Цепная молния", "chain_lightning");
+        LORE_TO_KEY.put("Удар Бездны", "void_strike");
+        // Other enchants
+        LORE_TO_KEY.put("Полет Ветра", "wind_glide");
+        LORE_TO_KEY.put("Второе дыхание", "second_wind");
+    }
+
+    /** Resolve a lore display name to its config key. Returns null if unmapped. */
+    public static String getEnchantKeyForLoreName(String loreName) {
+        return LORE_TO_KEY.get(loreName);
+    }
+
+    /** Tag an item's PDC with a custom enchant key+level. */
+    public static void tagItemWithEnchant(ItemMeta meta, String configKey, int level, org.bukkit.plugin.Plugin plugin) {
+        meta.getPersistentDataContainer().set(
+                new NamespacedKey(plugin, PDC_ENCHANT_PREFIX + configKey),
+                PersistentDataType.INTEGER, level);
+    }
+
+    /** Check if an item has a specific custom enchant via PDC. */
+    public static boolean hasEnchantPDC(ItemMeta meta, String configKey, org.bukkit.plugin.Plugin plugin) {
+        return meta.getPersistentDataContainer().has(
+                new NamespacedKey(plugin, PDC_ENCHANT_PREFIX + configKey),
+                PersistentDataType.INTEGER);
+    }
     
     private final List<Enchantment> swordEnchants = Arrays.asList(Enchantment.DAMAGE_ALL, Enchantment.FIRE_ASPECT, Enchantment.KNOCKBACK, Enchantment.SWEEPING_EDGE, Enchantment.DURABILITY, Enchantment.LOOT_BONUS_MOBS);
     private final List<Enchantment> axeEnchants = Arrays.asList(Enchantment.DAMAGE_ALL, Enchantment.DURABILITY, Enchantment.LOOT_BONUS_MOBS, Enchantment.DIG_SPEED);
@@ -34,7 +105,7 @@ public class GearManager {
 
     public int getBlacksmithLevel(Player p) {
         if (p == null) return 0;
-        int level = ru.example.vkchat.util.JobsBridge.getLevel(p, "blacksmith");
+        int level = JobsBridge.getLevel(p, "blacksmith");
         if (level > 0) return level;
         // Fallback если JobsBridge не доступен
         try {
@@ -70,28 +141,28 @@ public class GearManager {
 
     public boolean takeVkReputation(Player p, int cost, String actionName) {
         if (cost <= 0) return true;
-        int vkId = VKChatPlugin.getInstance().getApi().getLinkedVkId(p);
-        boolean hasPass = ru.example.vkchat.util.VKChatBridge.hasPass(p);
+        int vkId = VKChatBridge.getLinkedVkId(p);
+        boolean hasPass = VKChatBridge.hasPass(p);
         if (vkId == -1 && !hasPass) {
             p.sendMessage(ChatColor.RED + "Для действия '" + actionName + "' нужно привязать ВКонтакте (/vklink) или купить проходку.");
             return false;
         }
         // FIX #5: Поддержка PassManager — локальная репутация для проходочников
         if (vkId != -1) {
-            int rep = VKChatPlugin.getInstance().getApi().getReputation(vkId);
+            int rep = VKChatBridge.getReputation(vkId);
             if (rep < cost) {
                 p.sendMessage(ChatColor.RED + "Недостаточно репутации ВК для '" + actionName + "'. Нужно: " + cost + ", у тебя: " + rep + ".");
                 return false;
             }
-            VKChatPlugin.getInstance().getApi().takeReputation(vkId, cost);
+            VKChatBridge.takeReputation(vkId, cost);
         } else if (hasPass) {
             // Проходочник — используем локальную репутацию через VKChatBridge
-            int localRep = ru.example.vkchat.util.VKChatBridge.getLocalReputation(p);
+            int localRep = VKChatBridge.getLocalReputation(p);
             if (localRep < cost) {
                 p.sendMessage(ChatColor.RED + "Недостаточно репутации для '" + actionName + "'. Нужно: " + cost + ", у тебя: " + localRep + ".");
                 return false;
             }
-            ru.example.vkchat.util.VKChatBridge.takeLocalReputation(p, cost);
+            VKChatBridge.takeLocalReputation(p, cost);
         }
         return true;
     }
@@ -158,7 +229,7 @@ public class GearManager {
         for (String line : lore) {
             String stripped = ChatColor.stripColor(line).toLowerCase();
             for (String key : all) {
-                String rawName = plugin.getConfig().getString("custom_enchants." + key + ".name", "");
+                String rawName = plugin.getEnchantsConfig().getString("custom_enchants." + key + ".name", "");
                 String cfg = ChatColor.stripColor(ChatColor.translateAlternateColorCodes('&', rawName)).toLowerCase();
                 if (!cfg.isEmpty() && stripped.contains(cfg.split(" ")[0].toLowerCase())) {
                     count++;
@@ -315,7 +386,7 @@ public class GearManager {
             // Название предмета больше не проверяется, чтобы игрок не мог переименовать бумагу на наковальне.
             String set = meta.getPersistentDataContainer().get(new NamespacedKey(plugin, "set_fragment"), PersistentDataType.STRING);
 
-            if (set != null && plugin.getConfig().contains("sets." + set)) {
+            if (set != null && plugin.getSetsConfig().contains("sets." + set)) {
                 if (plugin.getConfig().getBoolean("hardcore-forging.set-fragments.consume-on-craft", true)) {
                     stack.setAmount(stack.getAmount() - 1);
                 }
@@ -473,7 +544,7 @@ public class GearManager {
         if (item == null || !item.hasItemMeta()) return false;
         ItemMeta meta = item.getItemMeta();
         return meta.getPersistentDataContainer().has(
-                new org.bukkit.NamespacedKey(Bukkit.getPluginManager().getPlugin("VKChatGear"), "is_named_gear"),
+                new org.bukkit.NamespacedKey(VKChatGearPlugin.getInstance(), "is_named_gear"),
                 org.bukkit.persistence.PersistentDataType.INTEGER);
     }
 
@@ -484,7 +555,7 @@ public class GearManager {
         if (!isNamedGear(item)) return null;
         ItemMeta meta = item.getItemMeta();
         return meta.getPersistentDataContainer().get(
-                new org.bukkit.NamespacedKey(Bukkit.getPluginManager().getPlugin("VKChatGear"), "named_gear_name"),
+                new org.bukkit.NamespacedKey(VKChatGearPlugin.getInstance(), "named_gear_name"),
                 org.bukkit.persistence.PersistentDataType.STRING);
     }
 
@@ -552,6 +623,10 @@ public class GearManager {
         meta.getPersistentDataContainer().set(new org.bukkit.NamespacedKey(plugin, "named_gear_name"), org.bukkit.persistence.PersistentDataType.STRING, name);
         meta.getPersistentDataContainer().set(new org.bukkit.NamespacedKey(plugin, "gear_rarity"), org.bukkit.persistence.PersistentDataType.STRING, rarity);
         meta.getPersistentDataContainer().set(new org.bukkit.NamespacedKey(plugin, "upgrade_level"), org.bukkit.persistence.PersistentDataType.INTEGER, 0);
+
+        if (plugin.getEnchantsConfig().contains("custom_enchants." + enchant)) {
+            tagItemWithEnchant(meta, enchant, level, plugin);
+        }
 
         item.setItemMeta(meta);
         return item;
@@ -642,9 +717,9 @@ public class GearManager {
         int luckPoints = 0;
         int blacksmithLvl = getBlacksmithLevel(crafter);
         try {
-            int vkId = VKChatPlugin.getInstance().getApi().getLinkedVkId(crafter);
+            int vkId = VKChatBridge.getLinkedVkId(crafter);
             if (vkId != -1) {
-                int rep = VKChatPlugin.getInstance().getApi().getReputation(vkId);
+                int rep = VKChatBridge.getReputation(vkId);
                 int divider = plugin.getConfig().getInt("reputation.rep_per_luck_point", 50);
                 if (divider > 0) {
                     luckPoints = rep / divider; 
@@ -652,9 +727,9 @@ public class GearManager {
             }
             
             // Check Blacksmith Legend skill
-            int blacksmithLvlJob = ru.example.vkchat.util.JobsBridge.getLevel(crafter, "blacksmith");
+            int blacksmithLvlJob = JobsBridge.getLevel(crafter, "blacksmith");
             if (blacksmithLvlJob >= 30) {
-                boolean hasSkill = ru.example.vkchat.util.JobsBridge.hasSkill(crafter.getUniqueId(), "blacksmith", "black_leg");
+                boolean hasSkill = JobsBridge.hasSkill(crafter.getUniqueId(), "blacksmith", "black_leg");
                 if (hasSkill) {
                     luckPoints += 50; // Extra 50 luck points (~ +5% to rare/legendary rolls based on logic)
                 }
@@ -711,7 +786,7 @@ public class GearManager {
             for (String cKey : available) {
                 if (applied >= customAmount) break;
                 
-                List<String> conflicts = plugin.getConfig().getStringList("custom_enchants." + cKey + ".conflicts");
+                List<String> conflicts = plugin.getEnchantsConfig().getStringList("custom_enchants." + cKey + ".conflicts");
                 boolean conflictFound = false;
                 for (String conflict : conflicts) {
                     for (String appliedKey : appliedEnchantKeys) {
@@ -724,11 +799,12 @@ public class GearManager {
                 }
                 
                 if (!conflictFound) {
-                    String cName = plugin.getConfig().getString("custom_enchants." + cKey + ".name");
+                    String cName = plugin.getEnchantsConfig().getString("custom_enchants." + cKey + ".name");
                     if (cName != null) {
                         customLoreLines.add(ChatColor.translateAlternateColorCodes('&', cName));
                         appliedEnchantKeys.add(cKey.toLowerCase());
                         applied++;
+                        tagItemWithEnchant(meta, cKey, 1, plugin);
                     }
                 }
             }
@@ -761,7 +837,7 @@ public class GearManager {
             String setKey = consumeSetFragment(crafter);
             if (setKey != null) {
                 lore.add("");
-                lore.add(ChatColor.GOLD + "Часть сета: " + plugin.getConfig().getString("sets." + setKey + ".name", setKey));
+                lore.add(ChatColor.GOLD + "Часть сета: " + plugin.getSetsConfig().getString("sets." + setKey + ".name", setKey));
                 meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "gear_set"), PersistentDataType.STRING, setKey);
                 markSetOrigin(meta, "fragment");
             }
@@ -783,13 +859,13 @@ public class GearManager {
             String msg = " ДРЕВНЕЕ ПРОБУЖДЕНИЕ! Кузнец " + crafter.getName() + " сковал предмет запредельной силы: " + rarityName + " " + generatedName + "!";
             Bukkit.broadcastMessage(ChatColor.DARK_PURPLE + msg);
             try {
-                VKChatPlugin.getInstance().getApi().sendToMainChat(msg);
+                VKChatBridge.sendToMainChat(msg);
             } catch (Exception ignored) {}
         } else if (rarityKey.equals("legendary")) {
             String msg = " ВЕЛИКОЕ СОБЫТИЕ! Кузнец " + crafter.getName() + " сковал предмет мифической силы: " + rarityName + " " + generatedName + "!";
             Bukkit.broadcastMessage(ChatColor.GOLD + msg);
             try {
-                VKChatPlugin.getInstance().getApi().sendToMainChat(msg);
+                VKChatBridge.sendToMainChat(msg);
             } catch (Exception ignored) {}
         }
 
@@ -834,6 +910,7 @@ public class GearManager {
             luckBonus = 0;
         }
 
+        double ancientChance = plugin.getConfig().getInt("rarities.ancient.chance", 0);
         double legChance = plugin.getConfig().getInt("rarities.legendary.chance", 1);
         double epicChance = plugin.getConfig().getInt("rarities.epic.chance", 5);
         double rareChance = plugin.getConfig().getInt("rarities.rare.chance", 14);
@@ -842,6 +919,7 @@ public class GearManager {
         // Каждая единица luckBonus (из репутации и навыка кузнеца) умеренно и сбалансированно повышает шансы на 1.5% относительно базовых
         double multiplier = 1.0 + (luckBonus * plugin.getConfig().getDouble("hardcore-forging.rarity-nerf.luck-multiplier-per-point", 0.004));
 
+        ancientChance *= multiplier;
         legChance *= multiplier;
         epicChance *= multiplier;
         rareChance *= multiplier;
@@ -850,6 +928,7 @@ public class GearManager {
         double roll = ThreadLocalRandom.current().nextDouble() * 100.0;
         double current = 0;
 
+        if (roll < (current += ancientChance)) return "ancient";
         if (roll < (current += legChance)) return "legendary";
         if (roll < (current += epicChance)) return "epic";
         if (roll < (current += rareChance)) return "rare";
@@ -1258,6 +1337,13 @@ public class GearManager {
             int setBonus = (isSetPiece && isLegalSetPiece(item)) ? 1 : 0;
             totalScore += (upgradeLvl * 10) + rarityBonus + (enchantCount * 5) + (setBonus * 20);
         }
+
+        // Артефакты: +25 за каждый
+        ru.example.vkchatgear.artifacts.ArtifactsManager artMgr = plugin.getArtifactsManager();
+        if (artMgr != null) {
+            totalScore += artMgr.getActiveArtifactCount(p) * 25;
+        }
+
         return totalScore;
     }
 
@@ -1283,7 +1369,7 @@ public class GearManager {
         for (String line : lore) {
             String stripped = ChatColor.stripColor(line).toLowerCase().trim();
             for (String enchantKey : available) {
-                String rawName = plugin.getConfig().getString("custom_enchants." + enchantKey + ".name", "");
+                String rawName = plugin.getEnchantsConfig().getString("custom_enchants." + enchantKey + ".name", "");
                 String translated = ChatColor.translateAlternateColorCodes('&', rawName);
                 String nameInConfig = ChatColor.stripColor(translated).toLowerCase().trim();
                 if (!nameInConfig.isEmpty() && stripped.contains(nameInConfig)) {
@@ -1295,7 +1381,7 @@ public class GearManager {
         for (String cKey : available) {
             if (appliedKeys.contains(cKey.toLowerCase())) continue;
 
-            List<String> conflicts = plugin.getConfig().getStringList("custom_enchants." + cKey + ".conflicts");
+            List<String> conflicts = plugin.getEnchantsConfig().getStringList("custom_enchants." + cKey + ".conflicts");
             boolean conflictFound = false;
             for (String conflict : conflicts) {
                 for (String applied : appliedKeys) {
@@ -1309,7 +1395,7 @@ public class GearManager {
 
             if (!conflictFound) {
                 selectedEnchantKey = cKey;
-                selectedEnchantName = plugin.getConfig().getString("custom_enchants." + cKey + ".name", cKey);
+                selectedEnchantName = plugin.getEnchantsConfig().getString("custom_enchants." + cKey + ".name", cKey);
                 break;
             }
         }
@@ -1318,6 +1404,7 @@ public class GearManager {
             String formatted = ChatColor.translateAlternateColorCodes('&', selectedEnchantName);
             lore.add(Math.min(lore.size(), 4), formatted);
             meta.setLore(lore);
+            tagItemWithEnchant(meta, selectedEnchantKey, 1, plugin);
             item.setItemMeta(meta);
 
             p.sendMessage(ChatColor.GOLD + "🌟 ПРОБУЖДЕНИЕ СИЛЫ! На уровне +" + newLvl + " ваше снаряжение пробудило скрытую силу и получило чары: " + formatted + "!");

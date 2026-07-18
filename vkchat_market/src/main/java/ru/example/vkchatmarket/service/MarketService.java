@@ -4,11 +4,11 @@ import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
 import ru.example.vkchatmarket.VKChatMarketPlugin;
 import ru.example.vkchatmarket.log.TransactionLog;
 import ru.example.vkchatmarket.model.MarketCategory;
 import ru.example.vkchatmarket.model.MarketEntry;
+import ru.example.vkchat.util.VKChatBridge;
 
 import java.util.*;
 
@@ -29,9 +29,9 @@ public class MarketService {
 
     public void load() {
         entries.clear();
-        ConfigurationSection items = plugin.getConfig().getConfigurationSection("items");
+        ConfigurationSection items = plugin.getCategoriesConfig().getConfigurationSection("items");
         if (items == null) {
-            plugin.getLogger().warning("Секция 'items' не найдена в config.yml!");
+            plugin.getLogger().warning("Секция 'items' не найдена в categories.yml!");
             return;
         }
         for (String id : items.getKeys(false)) {
@@ -69,6 +69,45 @@ public class MarketService {
         for (MarketEntry e : entries.values()) {
             String name = org.bukkit.ChatColor.stripColor(e.displayName()).toLowerCase();
             if (name.contains(q) || e.id().toLowerCase().contains(q)) result.add(e);
+        }
+        return result;
+    }
+
+    public List<MarketEntry> searchWithPrefix(String query) {
+        String q = query.toLowerCase().trim();
+        String[] parts = q.split(":", 2);
+        if (parts.length < 2 || parts[1].isEmpty()) return search(q);
+
+        String prefix = parts[0].trim();
+        String searchTerm = parts[1].trim();
+
+        MarketCategory cat = MarketCategory.fromConfig(prefix);
+        List<MarketEntry> pool;
+        if (cat != null) {
+            pool = getByCategory(cat);
+        } else {
+            pool = getAll();
+        }
+
+        if (searchTerm.isEmpty()) return pool;
+
+        if (searchTerm.contains("..")) {
+            String[] range = searchTerm.split("\\.\\.", 2);
+            try {
+                int min = range[0].isEmpty() ? 0 : Integer.parseInt(range[0].trim());
+                int max = range[1].isEmpty() ? Integer.MAX_VALUE : Integer.parseInt(range[1].trim());
+                List<MarketEntry> result = new ArrayList<>();
+                for (MarketEntry e : pool) {
+                    if (e.basePrice() >= min && e.basePrice() <= max) result.add(e);
+                }
+                return result;
+            } catch (NumberFormatException ignored) {}
+        }
+
+        List<MarketEntry> result = new ArrayList<>();
+        for (MarketEntry e : pool) {
+            String name = org.bukkit.ChatColor.stripColor(e.displayName()).toLowerCase();
+            if (name.contains(searchTerm) || e.id().toLowerCase().contains(searchTerm)) result.add(e);
         }
         return result;
     }
@@ -124,7 +163,7 @@ public class MarketService {
             }
         }
         if (totalEarned > 0) {
-            ru.example.vkchat.util.VKChatBridge.addEffectiveRep(p, totalEarned);
+            VKChatBridge.addEffectiveRep(p, totalEarned);
         }
         return totalEarned;
     }

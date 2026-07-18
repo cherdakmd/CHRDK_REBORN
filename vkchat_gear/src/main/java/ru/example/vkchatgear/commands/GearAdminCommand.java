@@ -75,11 +75,11 @@ public class GearAdminCommand implements CommandExecutor, TabCompleter {
             Player target = Bukkit.getPlayerExact(args[1]);
             if (target == null) { sender.sendMessage(ChatColor.RED + "Игрок не найден."); return true; }
             String setKey = args[2].toLowerCase();
-            if (!plugin.getConfig().contains("sets." + setKey)) { sender.sendMessage(ChatColor.RED + "Такого сета нет."); return true; }
+            if (!plugin.getSetsConfig().contains("sets." + setKey)) { sender.sendMessage(ChatColor.RED + "Такого сета нет."); return true; }
             int amount = args.length > 3 ? Math.max(1, Integer.parseInt(args[3])) : 1;
             ItemStack fragment = new ItemStack(Material.PAPER, amount);
             ItemMeta meta = fragment.getItemMeta();
-            String setName = plugin.getConfig().getString("sets." + setKey + ".name", setKey);
+            String setName = plugin.getSetsConfig().getString("sets." + setKey + ".name", setKey);
             meta.setDisplayName(ChatColor.GOLD + "Фрагмент сета: " + setName);
             meta.setCustomModelData(59);
             java.util.List<String> lore = new java.util.ArrayList<>();
@@ -106,7 +106,7 @@ public class GearAdminCommand implements CommandExecutor, TabCompleter {
         }
 
         String setKey = args[1].toLowerCase();
-        if (!plugin.getConfig().contains("sets." + setKey)) {
+        if (!plugin.getSetsConfig().contains("sets." + setKey)) {
             sender.sendMessage(ChatColor.RED + "Такого сета не существует в конфиге!");
             return true;
         }
@@ -158,7 +158,7 @@ public class GearAdminCommand implements CommandExecutor, TabCompleter {
         java.util.List<String> lore = meta.getLore();
         
         // Меняем "Обычный" на "Легендарный" для красоты
-        String setName = plugin.getConfig().getString("sets." + setKey + ".name", setKey);
+        String setName = plugin.getSetsConfig().getString("sets." + setKey + ".name", setKey);
         meta.setDisplayName(ChatColor.GOLD + "" + ChatColor.BOLD + "[ЛЕГЕНДАРНЫЙ] " + ChatColor.WHITE + setName + " " + getBaseName(item.getType()));
         
         // Убираем старую строку сета, если она сгенерировалась случайно
@@ -221,7 +221,7 @@ public class GearAdminCommand implements CommandExecutor, TabCompleter {
     }
 
     private List<String> getSetNames() {
-        ConfigurationSection sets = plugin.getConfig().getConfigurationSection("sets");
+        ConfigurationSection sets = plugin.getSetsConfig().getConfigurationSection("sets");
         if (sets == null) return new ArrayList<>();
         return new ArrayList<>(sets.getKeys(false));
     }

@@ -3,6 +3,7 @@ package ru.example.vkchatnations;
 import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.java.JavaPlugin;
 import ru.example.vkchatnations.data.NationManager;
+import ru.example.vkchatnations.data.WarManager;
 import ru.example.vkchatnations.listeners.NationGuiListener;
 import ru.example.vkchatnations.listeners.NationListener;
 import ru.example.vkchatnations.listeners.ClaimDefenseListener;
@@ -18,6 +19,7 @@ import ru.example.vkchatnations.commands.ClaimCommand;
 public class VKChatNationsPlugin extends JavaPlugin {
     private static VKChatNationsPlugin instance;
     private NationManager nationManager;
+    private WarManager warManager;
     private MapGui mapGui;
     private ClaimGui claimGui;
     private NationGuiListener guiListener;
@@ -99,6 +101,7 @@ public class VKChatNationsPlugin extends JavaPlugin {
         }
 
         nationManager = new NationManager(this);
+        warManager = new WarManager(this);
         mapGui = new MapGui(this);
         claimGui = new ClaimGui(this);
         new TaxTask(this).runTaskTimer(this, 1200L, 72000L);
@@ -133,10 +136,12 @@ public class VKChatNationsPlugin extends JavaPlugin {
         HandlerList.unregisterAll(this);
         getServer().getScheduler().cancelTasks(this);
         if (nationManager != null) nationManager.saveAll();
+        instance = null;
     }
 
     public static VKChatNationsPlugin getInstance() { return instance; }
     public NationManager getNationManager() { return nationManager; }
+    public WarManager getWarManager() { return warManager; }
     public MapGui getMapGui() { return mapGui; }
     public ClaimGui getClaimGui() { return claimGui; }
     public NationGuiListener getGuiListener() { return guiListener; }

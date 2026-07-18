@@ -1,5 +1,15 @@
 config-version: 1
 
+# ==========================================
+# ОСНОВНЫЕ НАСТРОЙКИ ПЛАГИНА
+# ==========================================
+# Подробные конфигурации вынесены в отдельные файлы:
+#   enchants.yml        — кастомные чары (custom_enchants)
+#   sets.yml            — сеты и бонусы (sets)
+#   rune_market.yml     — очистка рун и UX-улучшения (rune-cleansing, enhancements)
+#   forge_advanced.yml  — кузня 2.0 (forge2: свитки, ресурсы, артефакты)
+# ==========================================
+
 # Настройки Синтеза (Скрещивание предметов)
 synthesis:
   scroll_name: "&d&l Свиток Синтеза"
@@ -11,15 +21,17 @@ synthesis:
     - "&e▶ Положите предмет-основу в левую руку"
     - "&e▶ Положите предмет-жертву в инвентарь (первый слот)"
     - "&e▶ Возьмите свиток в правую руку и нажмите ПКМ"
-  # Шанс дропа с босса (в модуле Artifacts)
+
 settings:
   enabled: true
   prevent-vanilla-repair: true # Запретить починку на ванильной наковальне
   max-upgrade-level: 25        # Максимальный уровень заточки (+25), мифический нерф
+
 # Интеграция с Репутацией ВКонтакте
 reputation:
   rep_per_luck_point: 50
   forge_cost: 150
+
 # Шансы выпадения редкостей
 rarities:
   common:
@@ -53,282 +65,12 @@ rarities:
     excellent_enchants: 3
     custom_enchants: 3
   ancient:
-    chance: 0
+    chance: 2
     name: "&5&l[ДРЕВНИЙ]"
     vanilla_enchants: 6
     excellent_enchants: 4
     custom_enchants: 4
-# Доступные кастомные чары
-custom_enchants:
-  # --- ОРУЖИЕ ---
-  vampire_aoe:
-    name: "&4✨ Аура Вампиризма (AOE похищение ХП вокруг)"
-    conflicts: ["vampirism", "lifesteal_aura", "life_steal"]
-  vampirism: 
-    name: "&c✨ Вампиризм (Восстанавливает здоровье при ударе)"
-    conflicts: ["lifesteal", "vampire", "blood"]
-  venom: 
-    name: "&2☠ Отравление (Отравляет жертву)"
-    conflicts: ["poison", "venomous", "toxic"]
-  lightning: 
-    name: "&e⚡ Грозовой Разряд (Шанс удара молнией)"
-    conflicts: ["smite", "lightning", "thunder"]
-  frost: 
-    name: "&b❄ Окоченение (Сильно замедляет врага)"
-    conflicts: ["slowness", "freeze", "ice", "frost"]
-  execute: 
-    name: "&4 Казнь (+50% урона по раненым врагам)"
-    conflicts: ["execute", "assassinate", "finisher"]
-  blindness: 
-    name: "&8 Мрак (Шанс ослепить противника)"
-    conflicts: ["blindness", "darkness", "shadow"]
-  bleeding: 
-    name: "&4 Рваная рана (Наносит DoT урон кровотечением)"
-    conflicts: ["bleed", "cut", "wound"]
-  meteor: 
-    name: "&6☄ Метеоритный Удар (Шанс 10% вызвать взрыв при ударе)"
-    conflicts: ["meteor", "explosion", "blast"]
-  wither_strike:
-    name: "&8 Гниль (Накладывает Иссушение на врага)"
-    conflicts: ["wither", "decay", "rot"]
-  armor_piercing:
-    name: "&7 Бронебойность (Игнорирует часть брони)"
-    conflicts: ["piercing", "penetration"]
-  soul_reaper:
-    name: "&d Жнец Душ (Шанс убить не-босса мгновенно при ХП < 15%)"
-    conflicts: ["reaper", "soul", "death"]
-  berserk:
-    name: "&c Берсерк (Урон растет по мере потери вашего ХП)"
-    conflicts: ["berserk", "rage", "fury"]
-  disarm:
-    name: "&e Разоружение (Шанс выбить предмет из рук врага)"
-    conflicts: ["disarm", "drop"]
-  levitation_strike:
-    name: "&b Подбрасывание (Шанс отправить врага в полет)"
-    conflicts: ["levitation", "float", "up"]
-  # --- БРОНЯ ---
-  thorns: 
-    name: "&4 Кровавые шипы (Возвращает часть урона)"
-    conflicts: ["thorns", "spikes", "barbed"]
-  dodge: 
-    name: "&f Уклонение (10% шанс полностью избежать урона)"
-    conflicts: ["dodge", "evasion", "agility"]
-  fire_aura: 
-    name: "&6 Огненная аура (Поджигает атакующего)"
-    conflicts: ["fire_aura", "flame", "molten"]
-  shield: 
-    name: "&b Эгида (При падении ХП ниже 20% дает Щит на 5 сек)"
-    conflicts: ["shield", "invulnerability", "aegis"]
-  health_boost:
-    name: "&a❤ Титан (Увеличивает макс. здоровье)"
-    conflicts: ["health", "vitality", "life"]
-  reflect_magic:
-    name: "&d Зеркало (Шанс отразить магический урон)"
-    conflicts: ["reflect", "mirror", "magic"]
-  second_wind:
-    name: "&e Второе дыхание (Восстанавливает 50% ХП при смертельном ударе, ломая броню)"
-    conflicts: ["revive", "phoenix", "undying"]
-  heavy_weight:
-    name: "&8⚓ Тяжеловес (Иммунитет к отбрасыванию, но -15% скорости)"
-    conflicts: ["heavy", "weight", "anchor"]
-  
-  # --- ИНСТРУМЕНТЫ ---
-  haste: 
-    name: "&e⛏ Спешка (Пассивное ускорение копания в руке)"
-    conflicts: ["haste", "dig_speed", "miner"]
-  rarity_seal:
-    name: "&d🛡️ Печать Души (Защищает грейд предмета при смерти)"
-    conflicts: []
-  telekenesis:
-    name: "&d Телекинез (Блоки сразу падают в инвентарь)"
-    conflicts: ["telekenesis", "magnet", "auto_pickup"]
-  experience_boost:
-    name: "&a✨ Мудрость (+50% опыта при добыче)"
-    conflicts: ["experience", "wisdom", "xp"]
-# Бонусы Сетов
 
-  # Новые
-  wither_burst:
-    name: "&8 Взрыв Иссушения"
-    conflicts: []
-  thunder_strike:
-    name: "&e⚡ Удар Грома"
-    conflicts: ["lightning"]
-  poison_cloud:
-    name: "&2 Ядовитое Облако"
-    conflicts: ["venom"]
-  critical_strike:
-    name: "&c Критический Удар"
-    conflicts: []
-  lifesteal_aura:
-    name: "&4 Аура Вампира"
-    conflicts: ["vampirism"]
-  magma_walker:
-    name: "&6 Магматический Шаг"
-    conflicts: []
-  ender_shield:
-    name: "&d Эндер Щит"
-    conflicts: []
-  wind_step:
-    name: "&f Поступь Ветра"
-    conflicts: []
-  golem_skin:
-    name: "&8 Кожа Голема"
-    conflicts: []
-  spider_reflexes:
-    name: "&a Рефлексы Паука"
-    conflicts: ["dodge"]
-  healing_aura:
-    name: "&d✨ Аура Исцеления"
-    conflicts: []
-  aquatic_life:
-    name: "&b Подводная Жизнь"
-    conflicts: []
-  ore_magnet:
-    name: "&d Магнит Руд"
-    conflicts: ["telekenesis"]
-  timber:
-    name: "&6 Дровосек"
-    conflicts: []
-  auto_smelt:
-    name: "&c Авто-плавка"
-    conflicts: []
-  life_steal:
-    name: "&d💖 Похищение Жизни (Восстанавливает 1 HP при каждом ударе)"
-    conflicts: ["vampirism"]
-  fire_punch:
-    name: "&6🔥 Огненный Удар (Поджигает цель при атаке)"
-    conflicts: ["fire_aspect"]
-  paralyze:
-    name: "&e⚡ Паралич (Шанс 10% парализовать цель на 2 сек)"
-    conflicts: ["frost"]
-  absorption:
-    name: "&b🛡️ Поглощение (Шанс 15% получить золотые сердечки при ударе)"
-    conflicts: ["shield"]
-  haste_aura:
-    name: "&e⛏️ Аура Спешки (Пассивная Спешка I для вас и союзников вокруг)"
-    conflicts: ["haste"]
-  meteor_shower:
-    name: "&6☄ Метеоритный Дождь (Шанс 10% вызвать серию взрывов вокруг цели)"
-    conflicts: ["meteor", "explosion"]
-  soul_bond:
-    name: "&d🔮 Связь Душ (Шанс 10% вернуть 50% урона обидчику и исцелиться)"
-    conflicts: ["reflect", "mirror"]
-  frozen_touch:
-    name: "&b❄ Ледяное Касание (Шанс 15% полностью заморозить врага на 3 сек)"
-    conflicts: ["frost", "ice"]
-  wind_glide:
-    name: "&f🍃 Полет Ветра (Дарует Скорость III и полный иммунитет к падению)"
-    conflicts: ["speed", "flight"]
-  disintegration:
-    name: "&4☠ Распад (Шанс 5% нанести двойной урон и повесить Иссушение III)"
-    conflicts: ["wither", "decay"]
-  berserker_rage:
-    name: "&4💢 Ярость Берсерка (Чем меньше HP, тем больше урон — до +50%)"
-    conflicts: ["strength", "rage"]
-  evasion:
-    name: "&7💨 Уклонение (Шанс 10% полностью избежать урона)"
-    conflicts: ["dodge", "miss"]
-  # --- НОВЫЕ ЧАРЫ ---
-  soul_drain:
-    name: "&5☠ Вытягивание душ"
-    conflicts: ["vampirism", "lifesteal_aura", "life_steal", "vampire_aoe"]
-  chain_lightning:
-    name: "&b⚡ Цепная молния"
-    conflicts: ["lightning", "thunder_strike"]
-  void_strike:
-    name: "&8⚔ Удар Бездны"
-    conflicts: []
-  stone_skin:
-    name: "&7🛡 Каменная кожа"
-    conflicts: ["golem_skin"]
-  life_link:
-    name: "&c❤ Связь жизней"
-    conflicts: ["soul_bond"]
-sets:
-  # Славянские
-  bogatyr:
-    name: "Богатырь"
-    bonus: "&a[Бонус Сета: Сопротивление отбрасыванию + Сила I]"
-  leshy:
-    name: "Леший"
-    bonus: "&a[Бонус Сета: Скорость II + Прыгучесть II]"
-  koshchey:
-    name: "Бессмертный"
-    bonus: "&a[Бонус Сета: Сопротивление урону I + Медлительность I]"
-  volhv:
-    name: "Волхв"
-    bonus: "&a[Бонус Сета: Дыхание под водой + Грация Дельфина]"
-  sokol:
-    name: "Ясный Сокол"
-    bonus: "&a[Бонус Сета: Скорость III + Прыгучесть III]"
-  
-  # Советские
-  proletarian:
-    name: "Пролетарий"
-    bonus: "&c[Бонус Сета: Защита от Огня + Регенерация I]"
-  udarnik:
-    name: "Ударник Труда"
-    bonus: "&c[Бонус Сета: Спешка III]"
-  cosmonaut:
-    name: "Космонавт"
-    bonus: "&c[Бонус Сета: Плавное падение + Прыгучесть II]"
-  tankist:
-    name: "Танкист"
-    bonus: "&c[Бонус Сета: Сопротивление урону II + Медлительность II]"
-  pioneer:
-    name: "Пионер"
-    bonus: "&c[Бонус Сета: Герой деревни + Удача II]"
-  # Легендарные Сеты
-  red_cat:
-    name: "РЫЖИЙ КОТ"
-    bonus: "&6&l[Бонус Сета: Неуязвимость к падению, Скорость III, Прыгучесть IV, Регенерация I]"
-  dragon_slayer:
-    name: "Драконоборец"
-    bonus: "&6&l[Бонус Сета: Сопротивление урону III, Огнестойкость, Сила II]"
-  el_carpo:
-    name: "EL CARPO"
-    bonus: "&6&l[Бонус Сета: Сопротивление урону III, Увеличение здоровья III, Замедление I]"
-  shadow_monarch:
-    name: "Теневой Монарх"
-    bonus: "&6&l[Бонус Сета: Невидимость, Скорость II, Сила III в темноте]"
-  perun:
-    name: "Грозовой Доспех"
-    bonus: "&e&l[Бонус Сета: Сила I, Скорость I, Резист II, Сверкающие Частицы]"
-  chernobog:
-    name: "Чернобог"
-    bonus: "&5&l[Бонус Сета: Сила II, Скорость II, Зловещая Аура]"
-  gagarin:
-    name: "Космонавт Гагарин"
-    bonus: "&b&l[Бонус Сета: Прыгучесть IV, Плавное падение, Полет Ветра]"
-  # Мифические Сеты
-  bone_armor:
-    name: "Костяной Доспех"
-    bonus: "&5&l[Бонус Сета: Сопротивление II, Здоровье II, Щит при критическом ХП]"
-  shadow_blade:
-    name: "Клинок Тени"
-    bonus: "&5&l[Бонус Сета: Сила II, Скорость II, 15% Вампиризм]"
-  ember_crown:
-    name: "Пепельная Корона"
-    bonus: "&6&l[Бонус Сета: Огнестойкость, Сила II, Огненный урон при ударе]"
-  plague_mist:
-    name: "Моровой Туман"
-    bonus: "&2&l[Бонус Сета: Яд AoE, Регенерация I, Отравление врагов]"
-  starforged:
-    name: "Звёздная Ковка"
-    bonus: "&b&l[Бонус Сета: Удача III, Прыгучесть III, Регенерация в темноте]"
-  # Дополнительные Славянские
-  slavic_mage:
-    name: "Славянский Волхв"
-    bonus: "&a[Бонус Сета: Регенерация II, Сопротивление магии I, Частицы Портала]"
-  # Дополнительные Советские
-  soviet_engineer:
-    name: "Инженер"
-    bonus: "&c[Бонус Сета: Спешка II, Усиление инструментов, +50% опыта]"
-  # Дополнительные Легендарные
-  assassin_cloak:
-    name: "Мантия Убийцы"
-    bonus: "&6&l[Бонус Сета: Крит x2, Невидимость 3 сек после убийства, Скорость III]"
 names:
   slavic:
     - "Рунный"
@@ -492,17 +234,12 @@ hardcore-forging:
     notify-illegal: true       # Писать игроку и в консоль о подозрительном сетовом предмете
     item-material: PAPER
     display-format: "&6Фрагмент сета: {set}"
-    # Если игрок держит в инвентаре фрагмент сета, при ковке брони фрагмент расходуется и предмет становится частью сета.
-    # Без фрагмента обычная ковка больше не роллит сетовую часть.
 
 # Защита от незаконных сетовых предметов
-# Сетовые бонусы работают только если у предмета есть gear_set_origin.
-# Легальные origin: fragment, admin, mob_drop, offline_reward. legacy разрешается отдельно.
 hardcore-set-security:
   info: "Настройки перенесены в hardcore-forging.set-fragments ниже. Этот блок информационный."
 
 # Слияние редкости в GUI /forge:
-# 3 предмета одной редкости -> шанс повысить центральный предмет. Боковые предметы сгорают.
 hardcore-rarity-fusion:
   info: "Цена используется из hardcore-forging.rarity-upgrade-cost"
 
@@ -534,91 +271,18 @@ rarity-properties:
     lore: "&5Свойство редкости: +20% урона / +18% защиты"
 
 # ==========================================
-# КУЗНЯ 2.0 — мистическая MMO-кузня
-# ==========================================
-forge2:
-  cost:
-    power-rep-multiplier: 18      # Слияние: доп. репутация за силу предметов
-    rarity-rep-step: 350          # Слияние: доп. репутация за целевую редкость
-    reforge-power-rep: 12         # Перековка: доп. репутация за силу предмета
-  blacksmith:
-    max-chance-bonus: 10          # Максимальный бонус шанса от Jobs-Кузнеца
-  resources:
-    uncommon:
-      material: IRON_INGOT
-      amount: 16
-    rare:
-      material: GOLD_INGOT
-      amount: 16
-    epic:
-      material: DIAMOND
-      amount: 8
-    legendary:
-      material: NETHERITE_SCRAP
-      amount: 4
-    ancient:
-      material: NETHERITE_INGOT
-      amount: 2
-  scrolls:
-    chance_25:
-      price: 2500
-    chance_50:
-      price: 5500
-    perfect:
-      price: 12000
-    protect_all:
-      price: 9000
-    anti_defect:
-      price: 3500
-    discount:
-      price: 4000
-  defects:
-    chance-on-reforge: 22
-  repair:
-    base-rep-cost: 120
-    rep-per-damage-percent: 8
-    power-rep-multiplier: 8
-    base-material-amount: 2
-    percent-per-extra-material: 20
-    fragile-cost-multiplier: 1.35
-  rarity-procs:
-    uncommon:
-      - "&aМалая искра"
-      - "&aЛёгкая сталь"
-    rare:
-      - "&9Искра удачи"
-      - "&9Стальная кожа"
-      - "&9Резкий удар"
-    epic:
-      - "&5Критический жар"
-      - "&5Оберег"
-      - "&5Развеивание"
-      - "&5Похищение Жизни"
-    legendary:
-      - "&6Грозовой Импульс"
-      - "&6Багровый Резонанс"
-      - "&6Астральный Барьер"
-      - "&6Пламенный Контур"
-    ancient:
-      - "&5Древнее Проклятие"
-      - "&5Бездна Хаоса"
-      - "&5Вечная Тьма"
-      - "&5Космический Удар"
-
-# ==========================================
 # GEAR SCORE — оценка предмета
 # ==========================================
 gear-score:
   enabled: true
-  # Множители для расчёта очков
   weights:
-    damage: 2.0          # Урон
-    defense: 1.5         # Защита
-    enchant-count: 5.0   # За каждый зачар
-    upgrade-level: 10.0  # За каждый уровень заточки
-    rune-count: 15.0     # За каждую руну
-    set-piece: 20.0      # За часть набора
-    rarity-bonus:        # Бонус за редкость
+    damage: 2.0
+    defense: 1.5
+    enchant-count: 5.0
+    upgrade-level: 10.0
+    rune-count: 15.0
+    set-piece: 20.0
+    rarity-bonus:
       common: 0
       uncommon: 10
       rare: 25
@@ -626,15 +290,340 @@ gear-score:
       legendary: 100
       mythical: 200
 
-# Очищение рун — удаление всех кастомных чар с предмета
-rune-cleansing:
-  cost: 500
-  material: DIAMOND_BLOCK
-  material-amount: 1
+# ==========================================
+# АРТЕФАКТЫ — мистические предметы силы
+# ==========================================
+artifacts:
+  # --- ОБЫЧНЫЕ ---
+  amulet_of_strength:
+    name: "Амулет Силы"
+    material: IRON_INGOT
+    custom-model-data: 100
+    rarity: common
+    description: "Древний амулет, пропитанный силой предков."
+    slot: offhand
+    stats:
+      damage: 0.02
+    lore:
+      - "&7Древний амулет, пропитанный силой предков."
+      - ""
+      - "&a+ Урон: +2%"
+      - ""
+      - "&eСлот: Доп. рука"
+  ring_of_fortitude:
+    name: "Кольцо Стойкости"
+    material: IRON_NUGGET
+    custom-model-data: 101
+    rarity: common
+    description: "Простое кольцо, дарующее выносливость."
+    slot: offhand
+    stats:
+      defense: 0.01
+    lore:
+      - "&7Простое кольцо, дарующее выносливость."
+      - ""
+      - "&a+ Защита: +1%"
+      - ""
+      - "&eСлот: Доп. рука"
+  bone_charm:
+    name: "Костяной Оберег"
+    material: BONE
+    custom-model-data: 102
+    rarity: common
+    description: "Грубый оберег из кости, пропитанный рунами."
+    slot: offhand
+    stats:
+      health: 2.0
+    lore:
+      - "&7Грубый оберег из кости, пропитанный рунами."
+      - ""
+      - "&a+ Здоровье: +2 ❤"
+      - ""
+      - "&eСлот: Доп. рука"
 
-# Улучшения UX/UI кузни и боёвки
-enhancements:
-  durability-warning: true           # Action Bar предупреждение о низкой прочности
-  set-completion-notification: true  # Уведомление когда не хватает 1 предмета для сета
-  named-gear-announce: true          # Мировой анонс при получении неймд гира
-  set-salvage-bonus: true            # +50% к расчёту salvage за полный сет
+  # --- РЕДКИЕ ---
+  shadow_cloak:
+    name: "Плащ Тени"
+    material: BLACK_WOOL
+    custom-model-data: 103
+    rarity: rare
+    description: "Плащ из ткани незримой, дарующий скрытность."
+    slot: offhand
+    stats:
+      speed: 0.05
+      defense: 0.02
+    lore:
+      - "&7Плащ из ткани незримой, дарующий скрытность."
+      - ""
+      - "&a+ Скорость: +5%"
+      - "&a+ Защита: +2%"
+      - ""
+      - "&eСлот: Доп. рука"
+  bloodstone:
+    name: "Камень Крови"
+    material: REDSTONE
+    custom-model-data: 104
+    rarity: rare
+    description: "Камень, пропитанный жизненной силой убитых."
+    slot: offhand
+    stats:
+      lifesteal: 0.03
+      damage: 0.03
+    lore:
+      - "&7Камень, пропитанный жизненной силой убитых."
+      - ""
+      - "&a+ Вампиризм: +3%"
+      - "&a+ Урон: +3%"
+      - ""
+      - "&eСлот: Доп. рука"
+  rune_compass:
+    name: "Рунный Компас"
+    material: COMPASS
+    custom-model-data: 105
+    rarity: rare
+    description: "Компас, указывающий на рунные энергии."
+    slot: offhand
+    stats:
+      haste: 0.04
+    lore:
+      - "&7Компас, указывающий на рунные энергии."
+      - ""
+      - "&a+ Спешка: +4%"
+      - ""
+      - "&eСлот: Доп. рука"
+
+  # --- ЭПИЧЕСКИЕ ---
+  dragon_heart:
+    name: "Сердце Дракона"
+    material: NETHER_STAR
+    custom-model-data: 106
+    rarity: epic
+    description: "Пульсирующее сердце, хранящее древнюю мощь."
+    slot: offhand
+    stats:
+      damage: 0.06
+      health: 5.0
+      crit_chance: 0.05
+    lore:
+      - "&7Пульсирующее сердце, хранящее древнюю мощь."
+      - ""
+      - "&a+ Урон: +6%"
+      - "&a+ Здоровье: +5 ❤"
+      - "&a+ Шанс крита: +5%"
+      - ""
+      - "&eСлот: Доп. рука"
+  void_shard:
+    name: "Осколок Бездны"
+    material: END_CRYSTAL
+    custom-model-data: 107
+    rarity: epic
+    description: "Осколок чёрной материи, поглощающий свет."
+    slot: offhand
+    stats:
+      damage: 0.08
+      crit_damage: 0.10
+    lore:
+      - "&7Осколок чёрной материи, поглощающий свет."
+      - ""
+      - "&a+ Урон: +8%"
+      - "&a+ Урон крита: +10%"
+      - ""
+      - "&eСлот: Доп. рука"
+  phoenix_feather:
+    name: "Перо Феникса"
+    material: FEATHER
+    custom-model-data: 108
+    rarity: epic
+    description: "Перо, пропитанное пламенем бессмертия."
+    slot: offhand
+    stats:
+      regen: 0.5
+      defense: 0.05
+    lore:
+      - "&7Перо, пропитанное пламенем бессмертия."
+      - ""
+      - "&a+ Регенерация: +0.5"
+      - "&a+ Защита: +5%"
+      - ""
+      - "&eСлот: Доп. рука"
+
+  # --- ЛЕГЕНДАРНЫЕ ---
+  eye_of_the_storm:
+    name: "Глаз Бури"
+    material: ENDER_EYE
+    custom-model-data: 109
+    rarity: legendary
+    description: "Глаз, видящий сквозь завесу шторма."
+    slot: offhand
+    stats:
+      damage: 0.10
+      speed: 0.08
+      crit_chance: 0.08
+      haste: 0.06
+    lore:
+      - "&7Глаз, видящий сквозь завесу шторма."
+      - ""
+      - "&a+ Урон: +10%"
+      - "&a+ Скорость: +8%"
+      - "&a+ Шанс крита: +8%"
+      - "&a+ Спешка: +6%"
+      - ""
+      - "&eСлот: Доп. рука"
+  soul_cage:
+    name: "Клетка Душ"
+    material: IRON_BARS
+    custom-model-data: 110
+    rarity: legendary
+    description: "Клетка, в которой стонут пойманные души."
+    slot: offhand
+    stats:
+      lifesteal: 0.08
+      defense: 0.08
+      health: 8.0
+    lore:
+      - "&7Клетка, в которой стонут пойманные души."
+      - ""
+      - "&a+ Вампиризм: +8%"
+      - "&a+ Защита: +8%"
+      - "&a+ Здоровье: +8 ❤"
+      - ""
+      - "&eСлот: Доп. рука"
+
+  # --- ДРЕВНИЕ ---
+  crown_of_chaos:
+    name: "Корона Хаоса"
+    material: NETHERITE_INGOT
+    custom-model-data: 111
+    rarity: ancient
+    description: "Корона, созданная из праха уничтоженных миров."
+    slot: offhand
+    stats:
+      damage: 0.15
+      defense: 0.10
+      speed: 0.10
+      crit_chance: 0.10
+      crit_damage: 0.15
+      health: 10.0
+    lore:
+      - "&5&lКорона, созданная из праха уничтоженных миров."
+      - ""
+      - "&a+ Урон: +15%"
+      - "&a+ Защита: +10%"
+      - "&a+ Скорость: +10%"
+      - "&a+ Шанс крита: +10%"
+      - "&a+ Урон крита: +15%"
+      - "&a+ Здоровье: +10 ❤"
+      - ""
+      - "&eСлот: Доп. рука"
+
+  # --- ДОПОЛНИТЕЛЬНЫЕ РЕДКИЕ ---
+  war_medal:
+    name: "Медаль Войны"
+    material: GOLD_NUGGET
+    custom-model-data: 112
+    rarity: rare
+    description: "Медаль, пропитанная запахом пороха и крови."
+    slot: offhand
+    stats:
+      damage: 0.04
+      crit_chance: 0.03
+    lore:
+      - "&7Медаль, пропитанная запахом пороха и крови."
+      - ""
+      - "&a+ Урон: +4%"
+      - "&a+ Шанс крита: +3%"
+      - ""
+      - "&eСлот: Доп. рука"
+  warden_eye:
+    name: "Глаз Стража"
+    material: SPIDER_EYE
+    custom-model-data: 113
+    rarity: rare
+    description: "Глаб, видящий сквозь стены подземелий."
+    slot: offhand
+    stats:
+      haste: 0.03
+      speed: 0.03
+    lore:
+      - "&7Глаз, видящий сквозь стены подземелий."
+      - ""
+      - "&a+ Спешка: +3%"
+      - "&a+ Скорость: +3%"
+      - ""
+      - "&eСлот: Доп. рука"
+
+  # --- ДОПОЛНИТЕЛЬНЫЕ ЭПИЧЕСКИЕ ---
+  demon_fang:
+    name: "Клык Демона"
+    material: QUARTZ
+    custom-model-data: 114
+    rarity: epic
+    description: "Клык, вырванный из пасти демона Нижнего мира."
+    slot: offhand
+    stats:
+      damage: 0.07
+      lifesteal: 0.04
+    lore:
+      - "&7Клык, вырванный из пасти демона Нижнего мира."
+      - ""
+      - "&a+ Урон: +7%"
+      - "&a+ Вампиризм: +4%"
+      - ""
+      - "&eСлот: Доп. рука"
+  soul_mirror:
+    name: "Зеркало Душ"
+    material: MAGMA_CREAM
+    custom-model-data: 115
+    rarity: epic
+    description: "Зеркало, отражающее не просто свет, а саму суть атак."
+    slot: offhand
+    stats:
+      defense: 0.07
+      crit_damage: 0.08
+    lore:
+      - "&7Зеркало, отражающее не просто свет, а саму суть атак."
+      - ""
+      - "&a+ Защита: +7%"
+      - "&a+ Урон крита: +8%"
+      - ""
+      - "&eСлот: Доп. рука"
+
+  # --- ДОПОЛНИТЕЛЬНЫЕ ЛЕГЕНДАРНЫЕ ---
+  dragon_scale:
+    name: "Чешуя Дракона"
+    material: PRISMARINE_CRYSTALS
+    custom-model-data: 116
+    rarity: legendary
+    description: "Чешуя, снятая с мёртвого дракона. Прочнее стали."
+    slot: offhand
+    stats:
+      defense: 0.10
+      health: 6.0
+      regen: 0.3
+    lore:
+      - "&7Чешуя, снятая с мёртвого дракона. Прочнее стали."
+      - ""
+      - "&a+ Защита: +10%"
+      - "&a+ Здоровье: +6 ❤"
+      - "&a+ Регенерация: +0.3"
+      - ""
+      - "&eСлот: Доп. рука"
+  void_core:
+    name: "Ядро Пустоты"
+    material: OBSIDIAN
+    custom-model-data: 117
+    rarity: legendary
+    description: "Ядро, пульсирующее энергией между мирами."
+    slot: offhand
+    stats:
+      damage: 0.12
+      crit_chance: 0.06
+      crit_damage: 0.10
+    lore:
+      - "&7Ядро, пульсирующее энергией между мирами."
+      - ""
+      - "&a+ Урон: +12%"
+      - "&a+ Шанс крита: +6%"
+      - "&a+ Урон крита: +10%"
+      - ""
+      - "&eСлот: Доп. рука"

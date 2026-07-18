@@ -7,6 +7,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 import ru.example.vkchat.api.events.VKPlayerLinkEvent;
+import ru.example.vkchat.config.ConfigMigrationUtil;
 import ru.example.vkchatdonate.luckperms.LuckPermsHelper;
 import ru.example.vkchatdonate.pass.PassCommand;
 import ru.example.vkchatdonate.pass.PassManager;
@@ -29,7 +30,7 @@ public class VKChatDonatePlugin extends JavaPlugin {
     public void onEnable() {
         instance = this;
         saveDefaultConfig();
-        ru.example.vkchat.config.ConfigMigrationUtil.migrate(this, "config.yml");
+        ConfigMigrationUtil.migrate(this, "config.yml");
 
         if (Bukkit.getPluginManager().getPlugin("VKChat") == null) {
             getLogger().severe("VKChat не найден! Плагин выключается.");
@@ -116,6 +117,7 @@ public class VKChatDonatePlugin extends JavaPlugin {
         Bukkit.getScheduler().cancelTasks(this);
         if (passManager != null) passManager.shutdown();
         if (donateManager != null) donateManager.shutdown();
+        instance = null;
     }
 
     public static VKChatDonatePlugin getInstance() { return instance; }

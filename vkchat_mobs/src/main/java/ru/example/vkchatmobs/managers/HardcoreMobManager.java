@@ -19,7 +19,8 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 import ru.example.vkchat.VKChatPlugin;
 import ru.example.vkchatmobs.util.BloodMoonHelper;
-import ru.example.vkchatmobs.util.VKChatBridge;
+import ru.example.vkchat.util.VKChatBridge;
+import ru.example.vkchat.util.JobsBridge;
 import ru.example.vkchat.api.VKCommandEvent;
 import ru.example.vkchatmobs.VKChatMobsPlugin;
 import ru.example.vkchatmobs.listeners.MobListener;
@@ -579,13 +580,13 @@ public class HardcoreMobManager implements Listener {
         if (vk != -1) score += VKChatBridge.getReputation(vk) / 500;
         for (ItemStack item : p.getInventory().getArmorContents()) score += getUpgrade(item);
         score += getUpgrade(p.getInventory().getItemInMainHand());
-        score += ru.example.vkchat.util.JobsBridge.getTotalLevel(p);
+        score += JobsBridge.getTotalLevel(p);
         return score;
     }
 
     private int getUpgrade(ItemStack item) {
         if (item == null || !item.hasItemMeta()) return 0;
-        org.bukkit.plugin.Plugin gear = Bukkit.getPluginManager().getPlugin("VKChatGear");
+        org.bukkit.plugin.Plugin gear = plugin.getGearPlugin();
         if (gear == null) return 0;
         return item.getItemMeta().getPersistentDataContainer().getOrDefault(new NamespacedKey(gear, "upgrade_level"), PersistentDataType.INTEGER, 0);
     }

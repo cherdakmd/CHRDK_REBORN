@@ -21,10 +21,24 @@ allprojects {
 }
 
 subprojects {
+    apply plugin: 'java'
+
     task copyJars(type: Copy) {
         from "build/libs"
         into "$rootDir/plugins_output"
         include "*.jar"
     }
     build.finalizedBy(copyJars)
+
+    dependencies {
+        testImplementation libs.junit.api
+        testRuntimeOnly libs.junit.engine
+        testImplementation libs.mockito.core
+        testImplementation libs.mockito.junit.jupiter
+        testImplementation libs.spigot.api
+    }
+
+    test {
+        useJUnitPlatform()
+    }
 }

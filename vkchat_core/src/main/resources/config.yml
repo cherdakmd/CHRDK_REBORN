@@ -285,3 +285,46 @@ resource-pack:
   # SHA-1 хеш (авто-вычисляется при auto-url, вручную — при ручном URL)
   hash: "d27439a34e24ab77a8295d8ca83829d0970f9b9f"
   force: true
+
+# ==========================================
+#  ГОЛОСОВАНИЕ (Votifier)
+# ==========================================
+voting:
+  enabled: true
+  rep-reward: 500
+  items:
+    - material: DIAMOND
+      chance: 20
+      amount: 1
+    - material: NETHERITE_SCRAP
+      chance: 10
+      amount: 2
+    - material: EMERALD
+      chance: 40
+      amount: 3
+    - material: PRISMARINE_SHARD
+      chance: 30
+      amount: 5
+
+# ==========================================
+#  🎁 ОХОТА ЗА СОКРОВИЩАМИ
+# ==========================================
+treasure:
+  enabled: true
+  spawn-interval-minutes: 120
+  despawn-minutes: 60
+  radius-from-spawn: 500
+  compass-cost: 200
+  loot:
+    - material: DIAMOND
+      chance: 40
+      min: 2
+      max: 5
+    - material: NETHERITE_SCRAP
+      chance: 20
+      min: 1
+      max: 3
+    - material: PRISMARINE_SHARD
+      chance: 30
+      min: 3
+      max: 8

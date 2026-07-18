@@ -1,0 +1,15 @@
+name: VKChatAuction
+version: 3.2.0
+main: ru.example.vkchatauction.VKChatAuctionPlugin
+api-version: "1.16"
+depend: [VKChat]
+softdepend: [VKChatDonate]
+
+commands:
+  ah:
+    description: Открыть аукцион
+    usage: /ah [sell|bid|buy|cancel|my|history|collect]
+  ahadmin:
+    description: Управление аукционом (админ)
+    usage: /ahadmin [reload|list|remove|clear]
+    permission: vkchat.auction.admin

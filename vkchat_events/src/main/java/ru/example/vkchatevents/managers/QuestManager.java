@@ -12,7 +12,8 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.inventory.CraftItemEvent;
 import org.bukkit.inventory.ItemStack;
-import ru.example.vkchat.VKChatPlugin;
+import ru.example.vkchat.util.JobsBridge;
+import ru.example.vkchat.util.VKChatBridge;
 import ru.example.vkchatevents.VKChatEventsPlugin;
 
 import java.io.File;
@@ -145,7 +146,7 @@ public class QuestManager implements Listener {
                     try {
                         org.bukkit.plugin.Plugin jobsPlugin = Bukkit.getPluginManager().getPlugin("VKChatJobs");
                         if (jobsPlugin != null && jobsPlugin.isEnabled()) {
-                            int pLvl = ru.example.vkchat.util.JobsBridge.getLevel(p, reqJob);
+                            int pLvl = JobsBridge.getLevel(p, reqJob);
                             if (pLvl < reqLvl) continue; // Не дорос
                         } else {
                             continue; // Плагин джобсов не запущен
@@ -163,9 +164,9 @@ public class QuestManager implements Listener {
                 if (current >= required) {
                     int rep = q.getInt("reward_rep");
                     
-                    int vkId = VKChatPlugin.getInstance().getApi().getLinkedVkId(p);
+                    int vkId = VKChatBridge.getLinkedVkId(p);
                     if (vkId != -1) {
-                        VKChatPlugin.getInstance().getApi().addReputation(vkId, rep);
+                        VKChatBridge.addPoints(vkId, rep);
                         playerProgress.get(p.getUniqueId()).remove(qKey);
                         saveProgress();
                         p.sendMessage(ChatColor.GREEN + " Вы завершили сюжетный квест: " + q.getString("desc") + "!");

@@ -13,6 +13,10 @@ commands:
     description: Администрирование биржи
     aliases: [marketadmin]
     permission: vkchat.market.admin
+  shop:
+    description: Игровые магазины
+    aliases: [sh, магазин]
+    permission: vkchat.shop.player
 permissions:
   vkchat.market.player:
     description: Доступ к использованию экономической биржи покупки/продажи ресурсов
@@ -20,3 +24,6 @@ permissions:
   vkchat.market.admin:
     description: Администрирование биржи (reload, stats, setprice)
     default: op
+  vkchat.shop.player:
+    description: Доступ к игровым магазинам
+    default: true

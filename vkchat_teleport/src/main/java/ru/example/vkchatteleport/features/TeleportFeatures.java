@@ -5,7 +5,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
-import ru.example.vkchat.VKChatPlugin;
+import ru.example.vkchat.util.VKChatBridge;
 import ru.example.vkchatteleport.VKChatTeleportPlugin;
 
 import java.util.*;
@@ -209,8 +209,7 @@ public class TeleportFeatures {
     // ═══════════════════════════════════════════════════════════
 
     public boolean checkLuckyTeleport(Player p) {
-        int vkId = VKChatPlugin.getInstance().getApi().getLinkedVkId(p);
-        if (vkId == -1 && !ru.example.vkchat.util.VKChatBridge.hasPass(p)) return false;
+        if (!VKChatBridge.hasVkOrPass(p)) return false;
 
         // Шанс 5% на бесплатную телепортацию
         if (ThreadLocalRandom.current().nextDouble() < 0.05) {

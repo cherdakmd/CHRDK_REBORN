@@ -38,11 +38,14 @@ public class VKFeaturesManager {
         return gamesManager;
     }
 
-    /**
-     * Можно будет расширять (например, добавить VKShop, VKStats и т.д.)
-     */
     public void reload() {
-        // TODO: Перезагрузка конфигов VK-фич
-        plugin.getLogger().info("VK Features reloaded");
+        plugin.getLogger().info("Reloading VK Features...");
+
+        plugin.reloadConfig();
+
+        this.riddleManager = new RiddleManager(plugin);
+        this.gamesManager = new GamesManager(plugin);
+
+        plugin.getLogger().info("VK Features reloaded: Riddles=" + (riddleManager != null) + ", Games=" + (gamesManager != null));
     }
 }

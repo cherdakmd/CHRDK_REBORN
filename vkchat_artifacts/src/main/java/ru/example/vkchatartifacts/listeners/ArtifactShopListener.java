@@ -16,7 +16,7 @@ import org.bukkit.persistence.PersistentDataType;
 import ru.example.vkchatartifacts.VKChatArtifactsPlugin;
 import ru.example.vkchatartifacts.items.ArtifactFactory;
 import ru.example.vkchatartifacts.items.ConsumableFactory;
-import ru.example.vkchat.VKChatPlugin;
+import ru.example.vkchat.util.VKChatBridge;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,8 +35,8 @@ public class ArtifactShopListener implements Listener {
         for (int i = 0; i < 54; i++) inv.setItem(i, (i < 9 || i >= 45 || i % 9 == 0 || i % 9 == 8) ? border : accent);
 
         // ═══ ШАПКА ═══
-        int vkId = VKChatPlugin.getInstance().getApi().getLinkedVkId(p);
-        int rep = vkId != -1 ? VKChatPlugin.getInstance().getApi().getReputation(vkId) : 0;
+        int vkId = VKChatBridge.getLinkedVkId(p);
+        int rep = vkId != -1 ? VKChatBridge.getReputation(vkId) : 0;
         inv.setItem(4, item(Material.GOLD_BLOCK,
                 "§6§l✨ Рынок Древних Артефактов",
                 "§7Магические предметы и свитки",
@@ -202,10 +202,10 @@ public class ArtifactShopListener implements Listener {
             String type = item.getItemMeta().getPersistentDataContainer().get(typeKey, PersistentDataType.STRING);
             int cost = item.getItemMeta().getPersistentDataContainer().get(costKey, PersistentDataType.INTEGER);
 
-            int vkId = VKChatPlugin.getInstance().getApi().getLinkedVkId(p);
-            if (vkId == -1 && !ru.example.vkchat.util.VKChatBridge.hasPass(p)) { p.sendMessage(ChatColor.RED + "❌ Привяжи ВК! (/vklink)"); return; }
+            int vkId = VKChatBridge.getLinkedVkId(p);
+            if (!VKChatBridge.hasVkOrPass(p)) { p.sendMessage(ChatColor.RED + "❌ Привяжи ВК! (/vklink)"); return; }
 
-            int rep = VKChatPlugin.getInstance().getApi().getReputation(vkId);
+            int rep = VKChatBridge.getReputation(vkId);
             if (rep < cost) { p.sendMessage(ChatColor.RED + "❌ Нужно " + cost + " реп. (у тебя " + rep + ")"); return; }
 
             if (("normal".equals(type) || "relic".equals(type)) && plugin.getArtifactListener().countArtifacts(p) >= plugin.getConfig().getInt("artifacts.max-artifacts", 5)) {
@@ -215,11 +215,11 @@ public class ArtifactShopListener implements Listener {
                 return;
             }
 
-            VKChatPlugin.getInstance().getApi().takeReputation(vkId, cost);
+            VKChatBridge.takeReputation(vkId, cost);
 
             ItemStack itemToGive = switch (type) {
-                case "normal" -> ArtifactFactory.generateArtifact(plugin, false);
-                case "relic" -> ArtifactFactory.generateArtifact(plugin, true);
+                case "normal" -> ArtifactFactory.generateArtifact(plugin, false, p.getUniqueId());
+                case "relic" -> ArtifactFactory.generateArtifact(plugin, true, p.getUniqueId());
                 case "cleanse" -> ConsumableFactory.generateCleanseScroll(plugin);
                 case "escape" -> ConsumableFactory.generateEscapeScroll(plugin);
                 case "revive" -> ConsumableFactory.generateReviveScroll(plugin);

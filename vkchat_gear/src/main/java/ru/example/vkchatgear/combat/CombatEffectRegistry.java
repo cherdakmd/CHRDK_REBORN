@@ -837,9 +837,10 @@ public class CombatEffectRegistry {
         for (ItemStack armor : victim.getInventory().getArmorContents()) {
             if (armor == null || !armor.hasItemMeta() || !armor.getItemMeta().hasLore()) continue;
             java.util.List<String> lore = armor.getItemMeta().getLore();
+            ItemMeta armorMeta = armor.getItemMeta();
 
             for (Map.Entry<String, DefensiveEnchant> entry : defenseEnchants.entrySet()) {
-                if (CombatContext.hasEnchant(lore, entry.getKey())) {
+                if (CombatContext.hasEnchant(lore, entry.getKey(), plugin, armorMeta)) {
                     boolean cancel = entry.getValue().apply(ctx, victim, attacker, armor);
                     if (cancel) return true;
                 }
@@ -881,7 +882,7 @@ public class CombatEffectRegistry {
         for (int i = 0; i < armorContents.length; i++) {
             ItemStack armor = armorContents[i];
             if (armor == null || !armor.hasItemMeta() || !armor.getItemMeta().hasLore()) continue;
-            if (CombatContext.hasEnchant(armor.getItemMeta().getLore(), "Второе дыхание")) {
+            if (CombatContext.hasEnchant(armor.getItemMeta().getLore(), "Второе дыхание", plugin, armor.getItemMeta())) {
                 for (DeathSaveEffect ds : deathSaveEffects) {
                     if (ds.apply(ctx, victim, armor, i)) return true;
                 }
@@ -909,10 +910,11 @@ public class CombatEffectRegistry {
     public void processOffensiveEnchants(CombatContext ctx, Player attacker, LivingEntity target, ItemStack weapon) {
         if (!weapon.hasItemMeta() || !weapon.getItemMeta().hasLore()) return;
         java.util.List<String> lore = weapon.getItemMeta().getLore();
+        ItemMeta weaponMeta = weapon.getItemMeta();
 
         for (Map.Entry<String, OffensiveEnchant> entry : offenseEnchants.entrySet()) {
             if (!ctx.canProc()) break;
-            if (CombatContext.hasEnchant(lore, entry.getKey())) {
+            if (CombatContext.hasEnchant(lore, entry.getKey(), plugin, weaponMeta)) {
                 boolean procced = entry.getValue().apply(ctx, attacker, target);
                 if (procced) ctx.addProc();
             }

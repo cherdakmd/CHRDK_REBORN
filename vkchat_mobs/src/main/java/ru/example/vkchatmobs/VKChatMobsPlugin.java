@@ -9,7 +9,11 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.java.JavaPlugin;
+import ru.example.vkchat.core.ConfigMigrationUtil;
 import ru.example.vkchatmobs.boss.BossAbilityRegistry;
+import ru.example.vkchatmobs.bestiary.BestiaryManager;
+import ru.example.vkchatmobs.bestiary.BestiaryListener;
+import ru.example.vkchatmobs.bestiary.BestiaryGuiListener;
 import ru.example.vkchatmobs.data.ContractManager;
 import ru.example.vkchatmobs.drop.MobDropFactory;
 import ru.example.vkchatmobs.siege.SiegeManager;
@@ -47,34 +51,14 @@ public class VKChatMobsPlugin extends JavaPlugin {
     private MobDropFactory mobDropFactory;
     private CooldownManager cooldownManager;
     private MobEnhancements mobEnhancements;
+    private BestiaryManager bestiaryManager;
+
+    private org.bukkit.plugin.Plugin gearPlugin;
+    private org.bukkit.plugin.Plugin artifactsPlugin;
+    private org.bukkit.plugin.Plugin nationsPlugin;
 
     private void migrateConfigDefaults() {
-        try {
-            if (getConfig().getDefaults() == null) return;
-            boolean hasMissing = false;
-            for (String key : getConfig().getDefaults().getKeys(true)) {
-                if (!getConfig().isSet(key)) {
-                    hasMissing = true;
-                    break;
-                }
-            }
-            if (!hasMissing) return;
-
-            java.io.File configFile = new java.io.File(getDataFolder(), "config.yml");
-            if (configFile.exists()) {
-                String stamp = new java.text.SimpleDateFormat("yyyyMMdd-HHmmss").format(new java.util.Date());
-                java.io.File backup = new java.io.File(getDataFolder(), "config.yml.bak-before-migration-" + stamp);
-                java.nio.file.Files.copy(configFile.toPath(), backup.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING);
-                getLogger().info("Создан бэкап старого config.yml: " + backup.getName());
-            }
-
-            getConfig().options().copyDefaults(true);
-            saveConfig();
-            reloadConfig();
-            getLogger().info("config.yml автоматически обновлён: недостающие ключи добавлены, существующие значения сохранены.");
-        } catch (Exception e) {
-            getLogger().warning("Не удалось выполнить авто-миграцию config.yml: " + e.getMessage());
-        }
+        ConfigMigrationUtil.migrateDefaults(getConfig(), new java.io.File(getDataFolder(), "config.yml"), "config-version", getLogger());
     }
 
     @Override
@@ -89,13 +73,37 @@ public class VKChatMobsPlugin extends JavaPlugin {
             return;
         }
 
-        ru.example.vkchatmobs.util.VKChatBridge.init();
+        gearPlugin = Bukkit.getPluginManager().getPlugin("VKChatGear");
+        artifactsPlugin = Bukkit.getPluginManager().getPlugin("VKChatArtifacts");
+        nationsPlugin = Bukkit.getPluginManager().getPlugin("VKChatNations");
+
+        if (gearPlugin != null && gearPlugin.isEnabled()) {
+            getLogger().info("VKChatGear обнаружен — крафт сетов/кристаллов доступен.");
+        } else {
+            getLogger().warning("VKChatGear не найден — дроп фрагментов сетов и кристаллов отключён.");
+        }
+        if (artifactsPlugin != null && artifactsPlugin.isEnabled()) {
+            getLogger().info("VKChatArtifacts обнаружен — артефакты доступны.");
+        } else {
+            getLogger().warning("VKChatArtifacts не найден — генерация артефактов отключена.");
+        }
+        if (nationsPlugin != null && nationsPlugin.isEnabled()) {
+            getLogger().info("VKChatNations обнаружен — осады и нации доступны.");
+        } else {
+            getLogger().warning("VKChatNations не найден — осады на приваты отключены.");
+        }
+
+        ru.example.vkchat.util.VKChatBridge.init();
 
         // --- Фаза 6: Новые компоненты ---
         cooldownManager = new CooldownManager();
         mobEnhancements = new MobEnhancements(this);
         mobDropFactory = new MobDropFactory(this);
         bossAbilityRegistry = new BossAbilityRegistry(this);
+
+        // Бестиарий
+        bestiaryManager = new BestiaryManager(this);
+        bestiaryManager.load();
 
         // Попробовать загрузить боссов из конфига (если определены)
         bossAbilityRegistry.loadFromConfig();
@@ -130,11 +138,16 @@ public class VKChatMobsPlugin extends JavaPlugin {
         mobStormManager = new MobStormManager(this);
         getServer().getPluginManager().registerEvents(mobStormManager, this);
 
+        // Бестиарий
+        getServer().getPluginManager().registerEvents(new BestiaryListener(this), this);
+        getServer().getPluginManager().registerEvents(new BestiaryGuiListener(this), this);
+
         // Чистка карт памяти каждые 5 минут
         getServer().getScheduler().runTaskTimer(this, () -> {
             long now = System.currentTimeMillis();
             listener.cleanupMaps(now);
             mobEnhancements.cleanup();
+            bestiaryManager.save();
         }, 6000L, 6000L);
 
         getLogger().info("VKChatMobs v3.2.0 (Hardcore RPG Mobs + Осады + Контракты + Шторм + BossRegistry) успешно запущен!");
@@ -146,6 +159,7 @@ public class VKChatMobsPlugin extends JavaPlugin {
         Bukkit.getScheduler().cancelTasks(this);
         if (siegeManager != null) siegeManager.shutdown();
         getLogger().info("VKChatMobs успешно выключен.");
+        instance = null;
     }
 
     public static VKChatMobsPlugin getInstance() {
@@ -188,8 +202,36 @@ public class VKChatMobsPlugin extends JavaPlugin {
         return mobEnhancements;
     }
 
+    public BestiaryManager getBestiaryManager() {
+        return bestiaryManager;
+    }
+
+    public org.bukkit.plugin.Plugin getGearPlugin() {
+        return gearPlugin;
+    }
+
+    public org.bukkit.plugin.Plugin getArtifactsPlugin() {
+        return artifactsPlugin;
+    }
+
+    public org.bukkit.plugin.Plugin getNationsPlugin() {
+        return nationsPlugin;
+    }
+
+    public boolean isGearAvailable() {
+        return gearPlugin != null && gearPlugin.isEnabled();
+    }
+
+    public boolean isArtifactsAvailable() {
+        return artifactsPlugin != null && artifactsPlugin.isEnabled();
+    }
+
+    public boolean isNationsAvailable() {
+        return nationsPlugin != null && nationsPlugin.isEnabled();
+    }
+
     public static ItemStack createSetFragment(VKChatMobsPlugin plugin) {
-        org.bukkit.plugin.Plugin gear = Bukkit.getPluginManager().getPlugin("VKChatGear");
+        org.bukkit.plugin.Plugin gear = plugin.getGearPlugin();
         if (gear == null) return null;
         List<String> sets = new ArrayList<>(plugin.getConfig().getStringList("hardcore-mobs.rewards.set-fragments"));
         if (sets.isEmpty()) sets.addAll(Arrays.asList("bogatyr", "sokol", "volhv", "koshchey", "tankist", "udarnik"));

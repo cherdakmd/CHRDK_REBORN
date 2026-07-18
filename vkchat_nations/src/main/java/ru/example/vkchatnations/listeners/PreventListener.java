@@ -19,7 +19,7 @@ import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.entity.EntityPickupItemEvent;
 import ru.example.vkchatnations.VKChatNationsPlugin;
 import ru.example.vkchatnations.data.ChunkClaim;
-import ru.example.vkchat.VKChatPlugin;
+import ru.example.vkchat.util.VKChatBridge;
 
 import java.util.UUID;
 
@@ -29,12 +29,12 @@ public class PreventListener implements Listener {
     public PreventListener(VKChatNationsPlugin plugin) { this.plugin = plugin; }
 
     private boolean isAwaitingNationSelection(Player p) {
-        return VKChatPlugin.getInstance().getApi().isFullyAuthorized(p) && !plugin.getNationManager().hasNation(p);
+        return VKChatBridge.isFullyAuthorized(p) && !plugin.getNationManager().hasNation(p);
     }
 
     private boolean isUnauthorized(Player p) {
         try {
-            int vkId = VKChatPlugin.getInstance().getApi().getLinkedVkId(p);
+            int vkId = VKChatBridge.getLinkedVkId(p);
             if (vkId != -1) return false;
             if (p.hasPermission("vkchat.pass")) return false;
             return true;

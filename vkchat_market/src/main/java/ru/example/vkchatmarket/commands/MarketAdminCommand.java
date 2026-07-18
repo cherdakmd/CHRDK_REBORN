@@ -9,6 +9,7 @@ import ru.example.vkchatmarket.VKChatMarketPlugin;
 import ru.example.vkchatmarket.gui.MarketGui;
 import ru.example.vkchatmarket.model.MarketCategory;
 import ru.example.vkchatmarket.model.MarketEntry;
+import ru.example.vkchat.util.VKChatBridge;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -38,6 +39,7 @@ public class MarketAdminCommand implements CommandExecutor, TabCompleter {
         switch (sub) {
             case "reload":
                 plugin.reloadConfig();
+                plugin.reloadSubConfigs();
                 plugin.getMarketService().load();
                 sender.sendMessage("§a✓ Конфиг перезагружен. Товаров: " + plugin.getMarketService().getAll().size());
                 break;
@@ -60,11 +62,11 @@ public class MarketAdminCommand implements CommandExecutor, TabCompleter {
             case "balance":
                 if (sender instanceof Player) {
                     Player p = (Player) sender;
-                    int vkId = ru.example.vkchat.util.VKChatBridge.getLinkedVkId(p);
+                    int vkId = VKChatBridge.getLinkedVkId(p);
                     if (vkId == -1) {
                         p.sendMessage("§cВК не привязан.");
                     } else {
-                        int rep = ru.example.vkchat.util.VKChatBridge.getReputation(vkId);
+                        int rep = VKChatBridge.getReputation(vkId);
                         p.sendMessage("§eБаланс: §f" + rep + " реп.");
                     }
                 } else {
@@ -105,7 +107,7 @@ public class MarketAdminCommand implements CommandExecutor, TabCompleter {
         sender.sendMessage("§6§l═══ СТАТИСТИКА БИРЖИ ═══");
         sender.sendMessage("§7Товаров: §f" + totalItems);
         sender.sendMessage("§7Категорий: §f" + totalCategories);
-        sender.sendMessage("§7Динамическое ценообразование: §f" + (plugin.getConfig().getBoolean("settings.dynamic-pricing", true) ? "вкл" : "выкл"));
+        sender.sendMessage("§7Динамическое ценообразование: §f" + (plugin.getSettingsConfig().getBoolean("settings.dynamic-pricing", true) ? "вкл" : "выкл"));
         sender.sendMessage("§7Событие: " + (prices.hasActiveEvent() ? "§c" + prices.getActiveEventName() : "§7нет"));
         sender.sendMessage("§6§l═══════════════════");
     }
@@ -126,14 +128,19 @@ public class MarketAdminCommand implements CommandExecutor, TabCompleter {
             sender.sendMessage("§cТовар не найден: " + id);
             return;
         }
-        plugin.getConfig().set("items." + id + ".base-price", price);
-        plugin.saveConfig();
+        plugin.getCategoriesConfig().set("items." + id + ".base-price", price);
+        try {
+            plugin.getCategoriesConfig().save(new java.io.File(plugin.getDataFolder(), "categories.yml"));
+        } catch (java.io.IOException e) {
+            sender.sendMessage("§cОшибка сохранения: " + e.getMessage());
+            return;
+        }
         plugin.getMarketService().load();
         sender.sendMessage("§a✓ Цена " + entry.displayName() + " → §e" + price + " реп.");
     }
 
     private void showEvents(CommandSender sender) {
-        var sec = plugin.getConfig().getConfigurationSection("events.list");
+        var sec = plugin.getEventsConfig().getConfigurationSection("events.list");
         if (sec == null) { sender.sendMessage("§7Нет событий."); return; }
         sender.sendMessage("§6§l═══ СОБЫТИЯ ═══");
         for (String key : sec.getKeys(false)) {
@@ -159,7 +166,7 @@ public class MarketAdminCommand implements CommandExecutor, TabCompleter {
             return;
         }
         String id = args[1];
-        var sec = plugin.getConfig().getConfigurationSection("events.list." + id);
+        var sec = plugin.getEventsConfig().getConfigurationSection("events.list." + id);
         if (sec == null) {
             sender.sendMessage("§cСобытие не найдено: " + id);
             return;
@@ -178,7 +185,7 @@ public class MarketAdminCommand implements CommandExecutor, TabCompleter {
         if (args.length == 2 && (args[0].equalsIgnoreCase("setprice") || args[0].equalsIgnoreCase("startevent"))) {
             String prefix = args[1].toLowerCase();
             if (args[0].equalsIgnoreCase("startevent")) {
-                var sec = plugin.getConfig().getConfigurationSection("events.list");
+                var sec = plugin.getEventsConfig().getConfigurationSection("events.list");
                 if (sec != null) {
                     return new ArrayList<>(sec.getKeys(false)).stream()
                             .filter(k -> k.startsWith(prefix)).collect(Collectors.toList());

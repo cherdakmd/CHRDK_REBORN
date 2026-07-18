@@ -12,6 +12,9 @@ import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import ru.example.vkchatstarter.VKChatStarterPlugin;
+import ru.example.vkchat.util.VKChatBridge;
+import ru.example.vkchatartifacts.VKChatArtifactsPlugin;
+import ru.example.vkchatartifacts.items.ArtifactFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -82,9 +85,9 @@ public class JoinListener implements Listener {
         int starterRep = plugin.getConfig().getInt("settings.starter-reputation", 500);
         if (starterRep > 0) {
             try {
-                int vkId = ru.example.vkchat.VKChatPlugin.getInstance().getApi().getLinkedVkId(p);
+                int vkId = VKChatBridge.getLinkedVkId(p);
                 if (vkId != -1) {
-                    ru.example.vkchat.VKChatPlugin.getInstance().getApi().addReputation(vkId, starterRep);
+                    VKChatBridge.addPoints(vkId, starterRep);
                     p.sendMessage(ChatColor.GOLD + "✨ +" + starterRep + " репутации ВК за первый вход!");
                 }
             } catch (Exception ignored) {}
@@ -203,13 +206,13 @@ public class JoinListener implements Listener {
         try {
             org.bukkit.plugin.Plugin artPlugin = Bukkit.getPluginManager().getPlugin("VKChatArtifacts");
             if (artPlugin != null && artPlugin.isEnabled()) {
-                ru.example.vkchatartifacts.VKChatArtifactsPlugin vka = (ru.example.vkchatartifacts.VKChatArtifactsPlugin) artPlugin;
+                VKChatArtifactsPlugin vka = (VKChatArtifactsPlugin) artPlugin;
                 int count = plugin.getConfig().getInt("settings.artifact-count", 2);
                 int max = vka.getConfig().getInt("artifacts.max-artifacts", 5);
                 int current = vka.getArtifactListener().countArtifacts(p);
                 int toGive = Math.min(count, max - current);
                 for (int i = 0; i < toGive; i++) {
-                    ItemStack art = ru.example.vkchatartifacts.items.ArtifactFactory.generateArtifact(vka, false);
+                    ItemStack art = ArtifactFactory.generateArtifact(vka, false);
                     if (art != null) p.getInventory().addItem(art);
                 }
                 if (toGive > 0) p.sendMessage(ChatColor.GOLD + "✨ Ты получил " + toGive + " стартовых артефактов!");

@@ -6,11 +6,14 @@ public enum MarketCategory {
     ORES(Material.IRON_INGOT),
     FOOD(Material.BREAD),
     WOOD(Material.OAK_LOG),
-    BLOCKS(Material.STONE),
+    BLOCKS(Material.BRICKS),
     STONES(Material.COBBLESTONE),
     MOBS(Material.BONE),
+    ARMOR(Material.DIAMOND_CHESTPLATE),
+    WEAPONS(Material.DIAMOND_SWORD),
+    TOOLS(Material.DIAMOND_PICKAXE),
     DECOR(Material.WHITE_WOOL),
-    POTIONS(Material.POTION),
+    POTIONS(Material.BREWING_STAND),
     NETHER(Material.NETHERRACK);
 
     private final Material icon;

@@ -1,0 +1,1090 @@
+# MARKET v5.0 — Categories & Items
+# Подключён из categories.yml
+
+categories:
+  ores:
+    name: "§c⛏ Руды и слитки"
+    material: IRON_INGOT
+  food:
+    name: "§6🍞 Еда и ферма"
+    material: BREAD
+  wood:
+    name: "§a🌲 Дерево"
+    material: OAK_LOG
+  blocks:
+    name: "§7🧱 Стройматериалы"
+    material: BRICKS
+  stones:
+    name: "§8🪨 Камни"
+    material: COBBLESTONE
+  mobs:
+    name: "§5☠ Лут мобов"
+    material: BONE
+  armor:
+    name: "§b🛡 Броня"
+    material: DIAMOND_CHESTPLATE
+  weapons:
+    name: "§c⚔ Оружие"
+    material: DIAMOND_SWORD
+  tools:
+    name: "§e⛏ Инструменты"
+    material: DIAMOND_PICKAXE
+  decor:
+    name: "§d🎨 Декор"
+    material: WHITE_WOOL
+  potions:
+    name: "§9🧪 Алхимия"
+    material: BREWING_STAND
+  nether:
+    name: "§4🔥 Незер и Энд"
+    material: NETHERRACK
+
+items:
+  # === РУДЫ И СЛИТКИ (17) ===
+  COAL:
+    material: COAL
+    name: "§8Уголь"
+    category: ores
+    base-price: 5
+  IRON_INGOT:
+    material: IRON_INGOT
+    name: "§fЖелезный слиток"
+    category: ores
+    base-price: 25
+  GOLD_INGOT:
+    material: GOLD_INGOT
+    name: "§eЗолотой слиток"
+    category: ores
+    base-price: 60
+  DIAMOND:
+    material: DIAMOND
+    name: "§bАлмаз"
+    category: ores
+    base-price: 200
+  EMERALD:
+    material: EMERALD
+    name: "§aИзумруд"
+    category: ores
+    base-price: 100
+  REDSTONE:
+    material: REDSTONE
+    name: "§cРедстоун"
+    category: ores
+    base-price: 10
+  LAPIS_LAZULI:
+    material: LAPIS_LAZULI
+    name: "§9Лазурит"
+    category: ores
+    base-price: 8
+  FLINT:
+    material: FLINT
+    name: "§7Кремень"
+    category: ores
+    base-price: 5
+  COAL_BLOCK:
+    material: COAL_BLOCK
+    name: "§8Угольный блок"
+    category: ores
+    base-price: 45
+  IRON_BLOCK:
+    material: IRON_BLOCK
+    name: "§fЖелезный блок"
+    category: ores
+    base-price: 225
+  GOLD_BLOCK:
+    material: GOLD_BLOCK
+    name: "§eЗолотой блок"
+    category: ores
+    base-price: 540
+  DIAMOND_BLOCK:
+    material: DIAMOND_BLOCK
+    name: "§bАлмазный блок"
+    category: ores
+    base-price: 1800
+  EMERALD_BLOCK:
+    material: EMERALD_BLOCK
+    name: "§aИзумрудный блок"
+    category: ores
+    base-price: 900
+  LAPIS_BLOCK:
+    material: LAPIS_BLOCK
+    name: "§9Лазуритовый блок"
+    category: ores
+    base-price: 72
+  REDSTONE_BLOCK:
+    material: REDSTONE_BLOCK
+    name: "§cРедстоуновый блок"
+    category: ores
+    base-price: 90
+  NETHERITE_SCRAP:
+    material: NETHERITE_SCRAP
+    name: "§4Незеритовый лом"
+    category: ores
+    base-price: 800
+  NETHER_GOLD_ORE:
+    material: NETHER_GOLD_ORE
+    name: "§4Незер-золотая руда"
+    category: ores
+    base-price: 5
+
+  # === ЕДА И ФЕРМА (22) ===
+  BREAD:
+    material: BREAD
+    name: "§6Хлеб"
+    category: food
+    base-price: 12
+  APPLE:
+    material: APPLE
+    name: "§cЯблоко"
+    category: food
+    base-price: 8
+  GOLDEN_APPLE:
+    material: GOLDEN_APPLE
+    name: "§eЗолотое яблоко"
+    category: food
+    base-price: 80
+  ENCHANTED_GOLDEN_APPLE:
+    material: ENCHANTED_GOLDEN_APPLE
+    name: "§dЗачарованное золотое яблоко"
+    category: food
+    base-price: 1500
+  CARROT:
+    material: CARROT
+    name: "§6Морковь"
+    category: food
+    base-price: 6
+  GOLDEN_CARROT:
+    material: GOLDEN_CARROT
+    name: "§eЗолотая морковь"
+    category: food
+    base-price: 15
+  POTATO:
+    material: POTATO
+    name: "§eКартофель"
+    category: food
+    base-price: 6
+  BAKED_POTATO:
+    material: BAKED_POTATO
+    name: "§6Запечённый картофель"
+    category: food
+    base-price: 8
+  WHEAT:
+    material: WHEAT
+    name: "§eПшеница"
+    category: food
+    base-price: 5
+  BEETROOT:
+    material: BEETROOT
+    name: "§cСвёкла"
+    category: food
+    base-price: 5
+  PUMPKIN:
+    material: PUMPKIN
+    name: "§6Тыква"
+    category: food
+    base-price: 8
+  MELON_SLICE:
+    material: MELON_SLICE
+    name: "§aЛомтик арбуза"
+    category: food
+    base-price: 2
+  GLISTERING_MELON_SLICE:
+    material: GLISTERING_MELON_SLICE
+    name: "§eЗолотой ломтик арбуза"
+    category: food
+    base-price: 20
+  SWEET_BERRIES:
+    material: SWEET_BERRIES
+    name: "§cСладкие ягоды"
+    category: food
+    base-price: 4
+  CACTUS:
+    material: CACTUS
+    name: "§2Кактус"
+    category: food
+    base-price: 4
+  SUGAR_CANE:
+    material: SUGAR_CANE
+    name: "§aСахарный тростник"
+    category: food
+    base-price: 6
+  BAMBOO:
+    material: BAMBOO
+    name: "§aБамбук"
+    category: food
+    base-price: 2
+  COOKED_BEEF:
+    material: COOKED_BEEF
+    name: "§cСтейк"
+    category: food
+    base-price: 25
+  COOKED_PORKCHOP:
+    material: COOKED_PORKCHOP
+    name: "§cЖареная свинина"
+    category: food
+    base-price: 22
+  COOKED_CHICKEN:
+    material: COOKED_CHICKEN
+    name: "§cЖареная курица"
+    category: food
+    base-price: 18
+  COOKED_MUTTON:
+    material: COOKED_MUTTON
+    name: "§cЖареная баранина"
+    category: food
+    base-price: 20
+  CAKE:
+    material: CAKE
+    name: "§fТорт"
+    category: food
+    base-price: 50
+
+  # === ДЕРЕВО (14) ===
+  OAK_LOG:
+    material: OAK_LOG
+    name: "§6Дубовое бревно"
+    category: wood
+    base-price: 4
+  SPRUCE_LOG:
+    material: SPRUCE_LOG
+    name: "§6Еловое бревно"
+    category: wood
+    base-price: 4
+  BIRCH_LOG:
+    material: BIRCH_LOG
+    name: "§fБерёзовое бревно"
+    category: wood
+    base-price: 4
+  JUNGLE_LOG:
+    material: JUNGLE_LOG
+    name: "§aТропическое бревно"
+    category: wood
+    base-price: 5
+  ACACIA_LOG:
+    material: ACACIA_LOG
+    name: "§6Акациевое бревно"
+    category: wood
+    base-price: 5
+  DARK_OAK_LOG:
+    material: DARK_OAK_LOG
+    name: "§8Тёмное дубовое бревно"
+    category: wood
+    base-price: 6
+  STRIPPED_OAK_LOG:
+    material: STRIPPED_OAK_LOG
+    name: "§6Дубовое бревно (ошкуренное)"
+    category: wood
+    base-price: 3
+  STRIPPED_SPRUCE_LOG:
+    material: STRIPPED_SPRUCE_LOG
+    name: "§6Еловое бревно (ошкуренное)"
+    category: wood
+    base-price: 3
+  STRIPPED_BIRCH_LOG:
+    material: STRIPPED_BIRCH_LOG
+    name: "§fБерёзовое бревно (ошкуренное)"
+    category: wood
+    base-price: 3
+  STRIPPED_JUNGLE_LOG:
+    material: STRIPPED_JUNGLE_LOG
+    name: "§aТропическое бревно (ошкуренное)"
+    category: wood
+    base-price: 4
+  STRIPPED_ACACIA_LOG:
+    material: STRIPPED_ACACIA_LOG
+    name: "§6Акациевое бревно (ошкуренное)"
+    category: wood
+    base-price: 4
+  STRIPPED_DARK_OAK_LOG:
+    material: STRIPPED_DARK_OAK_LOG
+    name: "§8Тёмное дубовое бревно (ошкуренное)"
+    category: wood
+    base-price: 5
+  OAK_PLANKS:
+    material: OAK_PLANKS
+    name: "§6Дубовая доска"
+    category: wood
+    base-price: 1
+  STICK:
+    material: STICK
+    name: "§6Палка"
+    category: wood
+    base-price: 1
+
+  # === СТРОЙМАТЕРИАЛЫ (20) ===
+  SAND:
+    material: SAND
+    name: "§eПесок"
+    category: blocks
+    base-price: 1
+  RED_SAND:
+    material: RED_SAND
+    name: "§6Красный песок"
+    category: blocks
+    base-price: 2
+  GLASS:
+    material: GLASS
+    name: "§fСтекло"
+    category: blocks
+    base-price: 2
+  GRAVEL:
+    material: GRAVEL
+    name: "§7Гравий"
+    category: blocks
+    base-price: 1
+  CLAY_BALL:
+    material: CLAY_BALL
+    name: "§7Глина"
+    category: blocks
+    base-price: 2
+  CLAY:
+    material: CLAY
+    name: "§7Глиняный блок"
+    category: blocks
+    base-price: 8
+  BRICK:
+    material: BRICK
+    name: "§cКирпич"
+    category: blocks
+    base-price: 5
+  BRICKS:
+    material: BRICKS
+    name: "§cКирпичная кладка"
+    category: blocks
+    base-price: 20
+  NETHER_BRICK:
+    material: NETHER_BRICK
+    name: "§4Незер-кирпич"
+    category: blocks
+    base-price: 5
+  RED_NETHER_BRICK:
+    material: RED_NETHER_BRICK
+    name: "§4Красный незер-кирпич"
+    category: blocks
+    base-price: 8
+  OBSIDIAN:
+    material: OBSIDIAN
+    name: "§5Обсидиан"
+    category: blocks
+    base-price: 35
+  CRYING_OBSIDIAN:
+    material: CRYING_OBSIDIAN
+    name: "§5Плачущий обсидиан"
+    category: blocks
+    base-price: 40
+  DIRT:
+    material: DIRT
+    name: "§7Земля"
+    category: blocks
+    base-price: 1
+  GRASS_BLOCK:
+    material: GRASS_BLOCK
+    name: "§aТравяной блок"
+    category: blocks
+    base-price: 2
+  COARSE_DIRT:
+    material: COARSE_DIRT
+    name: "§7Грубая земля"
+    category: blocks
+    base-price: 1
+  SNOW_BLOCK:
+    material: SNOW_BLOCK
+    name: "§fСнежный блок"
+    category: blocks
+    base-price: 1
+  ICE:
+    material: ICE
+    name: "§bЛёд"
+    category: blocks
+    base-price: 5
+  PACKED_ICE:
+    material: PACKED_ICE
+    name: "§bПлотный лёд"
+    category: blocks
+    base-price: 12
+  BLUE_ICE:
+    material: BLUE_ICE
+    name: "§9Синий лёд"
+    category: blocks
+    base-price: 30
+  TERRACOTTA:
+    material: TERRACOTTA
+    name: "§cТерракота"
+    category: blocks
+    base-price: 3
+
+  # === КАМНИ (13) ===
+  STONE:
+    material: STONE
+    name: "§7Камень"
+    category: stones
+    base-price: 1
+  COBBLESTONE:
+    material: COBBLESTONE
+    name: "§7Булыжник"
+    category: stones
+    base-price: 1
+  GRANITE:
+    material: GRANITE
+    name: "§cГранит"
+    category: stones
+    base-price: 1
+  POLISHED_GRANITE:
+    material: POLISHED_GRANITE
+    name: "§cПолированный гранит"
+    category: stones
+    base-price: 2
+  DIORITE:
+    material: DIORITE
+    name: "§fДиорит"
+    category: stones
+    base-price: 1
+  POLISHED_DIORITE:
+    material: POLISHED_DIORITE
+    name: "§fПолированный диорит"
+    category: stones
+    base-price: 2
+  ANDESITE:
+    material: ANDESITE
+    name: "§7Андезит"
+    category: stones
+    base-price: 1
+  POLISHED_ANDESITE:
+    material: POLISHED_ANDESITE
+    name: "§7Полированный андезит"
+    category: stones
+    base-price: 2
+  TUFF:
+    material: TUFF
+    name: "§8Туф"
+    category: stones
+    base-price: 2
+  BASALT:
+    material: BASALT
+    name: "§8Базальт"
+    category: stones
+    base-price: 2
+  BLACKSTONE:
+    material: BLACKSTONE
+    name: "§8Чернокамень"
+    category: stones
+    base-price: 2
+  END_STONE:
+    material: END_STONE
+    name: "§eКамень Энда"
+    category: stones
+    base-price: 5
+  END_STONE_BRICKS:
+    material: END_STONE_BRICKS
+    name: "§eКирпичи из камня Энда"
+    category: stones
+    base-price: 8
+
+  # === ЛУТ МОБОВ (20) ===
+  BONE:
+    material: BONE
+    name: "§fКость"
+    category: mobs
+    base-price: 3
+  BONE_MEAL:
+    material: BONE_MEAL
+    name: "§fКостная мука"
+    category: mobs
+    base-price: 1
+  STRING:
+    material: STRING
+    name: "§fНить"
+    category: mobs
+    base-price: 3
+  GUNPOWDER:
+    material: GUNPOWDER
+    name: "§8Порох"
+    category: mobs
+    base-price: 20
+  ROTTEN_FLESH:
+    material: ROTTEN_FLESH
+    name: "§2Гнилая плоть"
+    category: mobs
+    base-price: 2
+  SPIDER_EYE:
+    material: SPIDER_EYE
+    name: "§4Паучий глаз"
+    category: mobs
+    base-price: 15
+  FERMENTED_SPIDER_EYE:
+    material: FERMENTED_SPIDER_EYE
+    name: "§4Ферментированный паучий глаз"
+    category: mobs
+    base-price: 25
+  LEATHER:
+    material: LEATHER
+    name: "§6Кожа"
+    category: mobs
+    base-price: 12
+  FEATHER:
+    material: FEATHER
+    name: "§fПеро"
+    category: mobs
+    base-price: 5
+  SLIME_BALL:
+    material: SLIME_BALL
+    name: "§aСлизь"
+    category: mobs
+    base-price: 35
+  ENDER_PEARL:
+    material: ENDER_PEARL
+    name: "§5Жемчуг Эндера"
+    category: mobs
+    base-price: 60
+  ENDER_EYE:
+    material: ENDER_EYE
+    name: "§5Глаз Эндера"
+    category: mobs
+    base-price: 80
+  BLAZE_ROD:
+    material: BLAZE_ROD
+    name: "§6Огненный стержень"
+    category: mobs
+    base-price: 80
+  BLAZE_POWDER:
+    material: BLAZE_POWDER
+    name: "§6Порядок огня"
+    category: mobs
+    base-price: 30
+  GHAST_TEAR:
+    material: GHAST_TEAR
+    name: "§fСлеза гаста"
+    category: mobs
+    base-price: 250
+  MAGMA_CREAM:
+    material: MAGMA_CREAM
+    name: "§6Сгусток магмы"
+    category: mobs
+    base-price: 40
+  PHANTOM_MEMBRANE:
+    material: PHANTOM_MEMBRANE
+    name: "§9Мембрана фантома"
+    category: mobs
+    base-price: 60
+  NAUTILUS_SHELL:
+    material: NAUTILUS_SHELL
+    name: "§bРаковина наутилуса"
+    category: mobs
+    base-price: 150
+  RABBIT_FOOT:
+    material: RABBIT_FOOT
+    name: "§6Кроличья лапка"
+    category: mobs
+    base-price: 30
+  PRISMARINE_SHARD:
+    material: PRISMARINE_SHARD
+    name: "§bПризмариновый осколок"
+    category: mobs
+    base-price: 35
+
+  # === БРОНЯ (15) ===
+  IRON_HELMET:
+    material: IRON_HELMET
+    name: "§fЖелезный шлем"
+    category: armor
+    base-price: 45
+  IRON_CHESTPLATE:
+    material: IRON_CHESTPLATE
+    name: "§fЖелезная кираса"
+    category: armor
+    base-price: 75
+  IRON_LEGGINGS:
+    material: IRON_LEGGINGS
+    name: "§fЖелезные поножи"
+    category: armor
+    base-price: 65
+  IRON_BOOTS:
+    material: IRON_BOOTS
+    name: "§fЖелезные ботинки"
+    category: armor
+    base-price: 50
+  DIAMOND_HELMET:
+    material: DIAMOND_HELMET
+    name: "§bАлмазный шлем"
+    category: armor
+    base-price: 180
+  DIAMOND_CHESTPLATE:
+    material: DIAMOND_CHESTPLATE
+    name: "§bАлмазная кираса"
+    category: armor
+    base-price: 300
+  DIAMOND_LEGGINGS:
+    material: DIAMOND_LEGGINGS
+    name: "§bАлмазные поножи"
+    category: armor
+    base-price: 250
+  DIAMOND_BOOTS:
+    material: DIAMOND_BOOTS
+    name: "§bАлмазные ботинки"
+    category: armor
+    base-price: 200
+  NETHERITE_HELMET:
+    material: NETHERITE_HELMET
+    name: "§4Незеритовый шлем"
+    category: armor
+    base-price: 400
+  NETHERITE_CHESTPLATE:
+    material: NETHERITE_CHESTPLATE
+    name: "§4Незеритовая кираса"
+    category: armor
+    base-price: 650
+  NETHERITE_LEGGINGS:
+    material: NETHERITE_LEGGINGS
+    name: "§4Незеритовые поножи"
+    category: armor
+    base-price: 550
+  NETHERITE_BOOTS:
+    material: NETHERITE_BOOTS
+    name: "§4Незеритовые ботинки"
+    category: armor
+    base-price: 450
+  SHIELD:
+    material: SHIELD
+    name: "§6Щит"
+    category: armor
+    base-price: 15
+  ELYTRA:
+    material: ELYTRA
+    name: "§fЭлитры"
+    category: armor
+    base-price: 800
+  TURTLE_HELMET:
+    material: TURTLE_HELMET
+    name: "§aЧерепаший шлем"
+    category: armor
+    base-price: 120
+
+  # === ОРУЖИЕ (12) ===
+  DIAMOND_SWORD:
+    material: DIAMOND_SWORD
+    name: "§bАлмазный меч"
+    category: weapons
+    base-price: 250
+  DIAMOND_AXE:
+    material: DIAMOND_AXE
+    name: "§bАлмазный топор"
+    category: weapons
+    base-price: 200
+  NETHERITE_SWORD:
+    material: NETHERITE_SWORD
+    name: "§4Незеритовый меч"
+    category: weapons
+    base-price: 500
+  NETHERITE_AXE:
+    material: NETHERITE_AXE
+    name: "§4Незеритовый топор"
+    category: weapons
+    base-price: 400
+  IRON_SWORD:
+    material: IRON_SWORD
+    name: "§fЖелезный меч"
+    category: weapons
+    base-price: 60
+  IRON_AXE:
+    material: IRON_AXE
+    name: "§fЖелезный топор"
+    category: weapons
+    base-price: 45
+  BOW:
+    material: BOW
+    name: "§6Лук"
+    category: weapons
+    base-price: 30
+  CROSSBOW:
+    material: CROSSBOW
+    name: "§6Арбалет"
+    category: weapons
+    base-price: 50
+  ARROW:
+    material: ARROW
+    name: "§7Стрела"
+    category: weapons
+    base-price: 2
+  SPECTRAL_ARROW:
+    material: SPECTRAL_ARROW
+    name: "§eСпектральная стрела"
+    category: weapons
+    base-price: 8
+  TRIDENT:
+    material: TRIDENT
+    name: "§bТрезубец"
+    category: weapons
+    base-price: 600
+  TNT:
+    material: TNT
+    name: "§cТНТ"
+    category: weapons
+    base-price: 40
+
+  # === ИНСТРУМЕНТЫ (12) ===
+  DIAMOND_PICKAXE:
+    material: DIAMOND_PICKAXE
+    name: "§bАлмазная кирка"
+    category: tools
+    base-price: 250
+  DIAMOND_SHOVEL:
+    material: DIAMOND_SHOVEL
+    name: "§bАлмазная лопата"
+    category: tools
+    base-price: 100
+  DIAMOND_HOE:
+    material: DIAMOND_HOE
+    name: "§bАлмазная мотыга"
+    category: tools
+    base-price: 80
+  NETHERITE_PICKAXE:
+    material: NETHERITE_PICKAXE
+    name: "§4Незеритовая кирка"
+    category: tools
+    base-price: 500
+  NETHERITE_SHOVEL:
+    material: NETHERITE_SHOVEL
+    name: "§4Незеритовая лопата"
+    category: tools
+    base-price: 200
+  NETHERITE_HOE:
+    material: NETHERITE_HOE
+    name: "§4Незеритовая мотыга"
+    category: tools
+    base-price: 160
+  IRON_PICKAXE:
+    material: IRON_PICKAXE
+    name: "§fЖелезная кирка"
+    category: tools
+    base-price: 60
+  IRON_SHOVEL:
+    material: IRON_SHOVEL
+    name: "§fЖелезная лопата"
+    category: tools
+    base-price: 25
+  IRON_HOE:
+    material: IRON_HOE
+    name: "§fЖелезная мотыга"
+    category: tools
+    base-price: 20
+  SHEARS:
+    material: SHEARS
+    name: "§fНожницы"
+    category: tools
+    base-price: 20
+  FLINT_AND_STEEL:
+    material: FLINT_AND_STEEL
+    name: "§6Огниво"
+    category: tools
+    base-price: 10
+  FISHING_ROD:
+    material: FISHING_ROD
+    name: "§6Удочка"
+    category: tools
+    base-price: 8
+
+  # === ДЕКОР (35) ===
+  WHITE_WOOL:
+    material: WHITE_WOOL
+    name: "§fБелая шерсть"
+    category: decor
+    base-price: 6
+  ORANGE_WOOL:
+    material: ORANGE_WOOL
+    name: "§6Оранжевая шерсть"
+    category: decor
+    base-price: 6
+  MAGENTA_WOOL:
+    material: MAGENTA_WOOL
+    name: "§dМаджента шерсть"
+    category: decor
+    base-price: 6
+  LIGHT_BLUE_WOOL:
+    material: LIGHT_BLUE_WOOL
+    name: "§bГолубая шерсть"
+    category: decor
+    base-price: 6
+  YELLOW_WOOL:
+    material: YELLOW_WOOL
+    name: "§eЖёлтая шерсть"
+    category: decor
+    base-price: 6
+  LIME_WOOL:
+    material: LIME_WOOL
+    name: "§aЛаймовая шерсть"
+    category: decor
+    base-price: 6
+  PINK_WOOL:
+    material: PINK_WOOL
+    name: "§dРозовая шерсть"
+    category: decor
+    base-price: 6
+  GRAY_WOOL:
+    material: GRAY_WOOL
+    name: "§7Серая шерсть"
+    category: decor
+    base-price: 6
+  LIGHT_GRAY_WOOL:
+    material: LIGHT_GRAY_WOOL
+    name: "§7Светло-серая шерсть"
+    category: decor
+    base-price: 6
+  CYAN_WOOL:
+    material: CYAN_WOOL
+    name: "§3Бирюзовая шерсть"
+    category: decor
+    base-price: 6
+  PURPLE_WOOL:
+    material: PURPLE_WOOL
+    name: "§5Фиолетовая шерсть"
+    category: decor
+    base-price: 6
+  BLUE_WOOL:
+    material: BLUE_WOOL
+    name: "§9Синяя шерсть"
+    category: decor
+    base-price: 6
+  BROWN_WOOL:
+    material: BROWN_WOOL
+    name: "§6Коричневая шерсть"
+    category: decor
+    base-price: 6
+  GREEN_WOOL:
+    material: GREEN_WOOL
+    name: "§2Зелёная шерсть"
+    category: decor
+    base-price: 6
+  RED_WOOL:
+    material: RED_WOOL
+    name: "§cКрасная шерсть"
+    category: decor
+    base-price: 6
+  BLACK_WOOL:
+    material: BLACK_WOOL
+    name: "§8Чёрная шерсть"
+    category: decor
+    base-price: 7
+  INK_SAC:
+    material: INK_SAC
+    name: "§8Чернильный мешок"
+    category: decor
+    base-price: 10
+  POPPY:
+    material: POPPY
+    name: "§cМак"
+    category: decor
+    base-price: 3
+  DANDELION:
+    material: DANDELION
+    name: "§eОдуванчик"
+    category: decor
+    base-price: 2
+  BLUE_ORCHID:
+    material: BLUE_ORCHID
+    name: "§9Синяя орхидея"
+    category: decor
+    base-price: 5
+  ALLIUM:
+    material: ALLIUM
+    name: "§dАллиум"
+    category: decor
+    base-price: 8
+  AZURE_BLUET:
+    material: AZURE_BLUET
+    name: "§bГолубой василёк"
+    category: decor
+    base-price: 4
+  RED_TULIP:
+    material: RED_TULIP
+    name: "§cКрасный тюльпан"
+    category: decor
+    base-price: 3
+  OXEYE_DAISY:
+    material: OXEYE_DAISY
+    name: "§fРомашка"
+    category: decor
+    base-price: 4
+  CORNFLOWER:
+    material: CORNFLOWER
+    name: "§9Василёк"
+    category: decor
+    base-price: 6
+  LILY_OF_THE_VALLEY:
+    material: LILY_OF_THE_VALLEY
+    name: "§fЛандыш"
+    category: decor
+    base-price: 10
+  SUNFLOWER:
+    material: SUNFLOWER
+    name: "§eПодсолнух"
+    category: decor
+    base-price: 5
+  LILAC:
+    material: LILAC
+    name: "§dСирень"
+    category: decor
+    base-price: 8
+  ROSE_BUSH:
+    material: ROSE_BUSH
+    name: "§cКуст роз"
+    category: decor
+    base-price: 6
+  PEONY:
+    material: PEONY
+    name: "§dПион"
+    category: decor
+    base-price: 5
+  ITEM_FRAME:
+    material: ITEM_FRAME
+    name: "§6Рамка для предмета"
+    category: decor
+    base-price: 30
+  PAINTING:
+    material: PAINTING
+    name: "§fКартина"
+    category: decor
+    base-price: 20
+  FLOWER_POT:
+    material: FLOWER_POT
+    name: "§6Цветочный горшок"
+    category: decor
+    base-price: 8
+  BOOKSHELF:
+    material: BOOKSHELF
+    name: "§6Книжная полка"
+    category: decor
+    base-price: 15
+  JACK_O_LANTERN:
+    material: JACK_O_LANTERN
+    name: "§6Тыквенная фонарь"
+    category: decor
+    base-price: 8
+
+  # === АЛХИМИЯ (11) ===
+  EXPERIENCE_BOTTLE:
+    material: EXPERIENCE_BOTTLE
+    name: "§aПузырёк опыта"
+    category: potions
+    base-price: 20
+  GLASS_BOTTLE:
+    material: GLASS_BOTTLE
+    name: "§fСтеклянная бутылка"
+    category: potions
+    base-price: 3
+  BREWING_STAND:
+    material: BREWING_STAND
+    name: "§7Зельеварочная стойка"
+    category: potions
+    base-price: 30
+  CAULDRON:
+    material: CAULDRON
+    name: "§7Котёл"
+    category: potions
+    base-price: 20
+  NETHER_WART:
+    material: NETHER_WART
+    name: "§4Незер-водоросль"
+    category: potions
+    base-price: 15
+  GLOWSTONE_DUST:
+    material: GLOWSTONE_DUST
+    name: "§eСветопыль"
+    category: potions
+    base-price: 15
+  DRAGON_BREATH:
+    material: DRAGON_BREATH
+    name: "§5Дыхание дракона"
+    category: potions
+    base-price: 500
+  PRISMARINE_CRYSTALS:
+    material: PRISMARINE_CRYSTALS
+    name: "§bПризмариновый кристалл"
+    category: potions
+    base-price: 50
+  SUGAR:
+    material: SUGAR
+    name: "§fСахар"
+    category: potions
+    base-price: 2
+  RED_MUSHROOM:
+    material: RED_MUSHROOM
+    name: "§cКрасный гриб"
+    category: potions
+    base-price: 4
+  BROWN_MUSHROOM:
+    material: BROWN_MUSHROOM
+    name: "§6Коричневый гриб"
+    category: potions
+    base-price: 4
+
+  # === НЕЗЕР И ЭНД (14) ===
+  NETHERRACK:
+    material: NETHERRACK
+    name: "§4Незеррак"
+    category: nether
+    base-price: 1
+  NETHER_QUARTZ_ORE:
+    material: NETHER_QUARTZ_ORE
+    name: "§4Незер-кварцевая руда"
+    category: nether
+    base-price: 3
+  SOUL_SAND:
+    material: SOUL_SAND
+    name: "§4Песок душ"
+    category: nether
+    base-price: 8
+  SOUL_SOIL:
+    material: SOUL_SOIL
+    name: "§4Почва душ"
+    category: nether
+    base-price: 8
+  QUARTZ:
+    material: QUARTZ
+    name: "§fНезер-кварц"
+    category: nether
+    base-price: 12
+  WARPED_STEM:
+    material: WARPED_STEM
+    name: "§3Искажённое бревно"
+    category: nether
+    base-price: 4
+  CRIMSON_STEM:
+    material: CRIMSON_STEM
+    name: "§4Багровое бревно"
+    category: nether
+    base-price: 4
+  WARPED_NYLIUM:
+    material: WARPED_NYLIUM
+    name: "§3Искажённый нилий"
+    category: nether
+    base-price: 3
+  CRIMSON_NYLIUM:
+    material: CRIMSON_NYLIUM
+    name: "§4Багровый нилий"
+    category: nether
+    base-price: 3
+  WARPED_WART_BLOCK:
+    material: WARPED_WART_BLOCK
+    name: "§3Искажённый блок нароста"
+    category: nether
+    base-price: 5
+  NETHER_WART_BLOCK:
+    material: NETHER_WART_BLOCK
+    name: "§4Блок незер-воды"
+    category: nether
+    base-price: 5
+  SHROOMLIGHT:
+    material: SHROOMLIGHT
+    name: "§6Грибосвет"
+    category: nether
+    base-price: 8
+  GILDED_BLACKSTONE:
+    material: GILDED_BLACKSTONE
+    name: "§8Позолоченный чернокамень"
+    category: nether
+    base-price: 10
+  MAGMA_BLOCK:
+    material: MAGMA_BLOCK
+    name: "§6Блок магмы"
+    category: nether
+    base-price: 8

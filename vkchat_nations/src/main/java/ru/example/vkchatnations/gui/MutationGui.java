@@ -10,7 +10,8 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
-import ru.example.vkchat.VKChatPlugin;
+
+import ru.example.vkchat.util.VKChatBridge;
 import ru.example.vkchatnations.VKChatNationsPlugin;
 
 import java.util.ArrayList;
@@ -162,8 +163,8 @@ public class MutationGui {
             lore.add("§c❌ ЗАБЛОКИРОВАНО");
             lore.add("§eСтоимость разблокировки: §b1500 реп. ВК (лично)");
 
-            int vkId = VKChatPlugin.getInstance().getApi().getLinkedVkId(p);
-            int rep = vkId != -1 ? VKChatPlugin.getInstance().getApi().getReputation(vkId) : 0;
+            int vkId = VKChatBridge.getLinkedVkId(p);
+            int rep = vkId != -1 ? VKChatBridge.getReputation(vkId) : 0;
             lore.add("§7Ваш баланс: §e" + rep + " реп. ВК");
 
             if (rep >= 1500) {
@@ -199,16 +200,16 @@ public class MutationGui {
             return true;
         }
 
-        int vkId = VKChatPlugin.getInstance().getApi().getLinkedVkId(p);
-        if (vkId == -1 && !ru.example.vkchat.util.VKChatBridge.hasPass(p)) {
+        int vkId = VKChatBridge.getLinkedVkId(p);
+        if (!VKChatBridge.hasVkOrPass(p)) {
             p.sendMessage(ChatColor.RED + "❌ Сначала привяжите ВКонтакте! (/vklink)");
             return true;
         }
 
         int cost = 1500;
-        int rep = VKChatPlugin.getInstance().getApi().getReputation(vkId);
+        int rep = VKChatBridge.getReputation(vkId);
         if (rep >= cost) {
-            VKChatPlugin.getInstance().getApi().takeReputation(vkId, cost);
+            VKChatBridge.takeReputation(vkId, cost);
             plugin.getNationManager().unlockMutation(p.getUniqueId(), mId);
 
             String mName = meta.getDisplayName();

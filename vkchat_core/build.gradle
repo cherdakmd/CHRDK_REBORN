@@ -13,13 +13,14 @@ repositories {
 }
 
 dependencies {
-    compileOnly 'org.spigotmc:spigot-api:1.16.5-R0.1-SNAPSHOT'
-    compileOnly 'me.clip:placeholderapi:2.11.5'
-    compileOnly 'com.github.MilkBowl:VaultAPI:1.7'
+    compileOnly libs.spigot.api
+    compileOnly libs.placeholderapi
+    compileOnly libs.vaultapi
+    compileOnly libs.jsr305
 
-    implementation 'com.zaxxer:HikariCP:4.0.3'
-    implementation 'org.json:json:20230227'
-    implementation 'org.mindrot:jbcrypt:0.4'
+    implementation libs.hikaricp
+    implementation libs.json
+    implementation libs.jbcrypt
 }
 
 jar {

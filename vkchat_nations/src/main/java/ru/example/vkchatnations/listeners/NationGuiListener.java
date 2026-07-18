@@ -15,7 +15,7 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
-import ru.example.vkchat.VKChatPlugin;
+import ru.example.vkchat.util.VKChatBridge;
 import ru.example.vkchatnations.VKChatNationsPlugin;
 import ru.example.vkchatnations.data.ChunkClaim;
 import ru.example.vkchatnations.gui.ClaimGui;
@@ -53,7 +53,7 @@ public class NationGuiListener implements Listener {
         Bukkit.getScheduler().runTaskTimer(plugin, () -> {
             for (Player p : Bukkit.getOnlinePlayers()) {
                 try {
-                    if (VKChatPlugin.getInstance().getApi().isFullyAuthorized(p)) {
+                    if (VKChatBridge.isFullyAuthorized(p)) {
                         if (!plugin.getNationManager().hasNation(p)) {
                             if (!p.getOpenInventory().getTitle().equals(NATION_SELECT_TITLE)) {
                                 openNationSelection(p);
@@ -274,7 +274,7 @@ public class NationGuiListener implements Listener {
             claimGui.removeActiveClaim(p.getUniqueId());
         }
         if (title.equals(NATION_SELECT_TITLE)) {
-            if (VKChatPlugin.getInstance().getApi().isFullyAuthorized(p) && !plugin.getNationManager().hasNation(p)) {
+            if (VKChatBridge.isFullyAuthorized(p) && !plugin.getNationManager().hasNation(p)) {
                 Bukkit.getScheduler().runTask(plugin, () -> {
                     if (p.isOnline() && !plugin.getNationManager().hasNation(p)) {
                         openNationSelection(p);

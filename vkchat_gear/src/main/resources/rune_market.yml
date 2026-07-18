@@ -1,0 +1,14 @@
+# ==========================================
+# ОЧИСТКА РУН — удаление всех кастомных чар с предмета
+# ==========================================
+rune-cleansing:
+  cost: 500
+  material: DIAMOND_BLOCK
+  material-amount: 1
+
+# Улучшения UX/UI кузни и боёвки
+enhancements:
+  durability-warning: true           # Action Bar предупреждение о низкой прочности
+  set-completion-notification: true  # Уведомление когда не хватает 1 предмета для сета
+  named-gear-announce: true          # Мировой анонс при получении неймд гира
+  set-salvage-bonus: true            # +50% к расчёту salvage за полный сет

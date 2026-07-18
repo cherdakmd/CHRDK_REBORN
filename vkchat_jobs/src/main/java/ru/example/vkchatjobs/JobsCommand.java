@@ -34,7 +34,7 @@ public class JobsCommand implements CommandExecutor, TabCompleter {
             String sub = args[0].toLowerCase();
             if (sub.equals("daily") || sub.equals("дейлик")) { sendDailyText(p); return true; }
             if (sub.equals("top") || sub.equals("топ")) { sendTop(p); return true; }
-            if (sub.equals("info") || sub.equals("инфо")) { sendSpecsHelp(p); sendDailyText(p); return true; }
+            if (sub.equals("info") || sub.equals("инфо")) { sendJobInfo(p); return true; }
             if (sub.equals("claim") || sub.equals("забрать")) {
                 if (args.length < 2) { p.sendMessage(ChatColor.YELLOW + "Используй: /jobs claim <job>"); return true; }
                 if (!plugin.getJobsDataManager().claimDaily(p, args[1].toLowerCase())) p.sendMessage(ChatColor.RED + "Ежедневка не готова или уже забрана.");
@@ -189,6 +189,81 @@ public class JobsCommand implements CommandExecutor, TabCompleter {
         p.sendMessage(sb.toString());
     }
 
+    private void sendJobInfo(Player p) {
+        String[] jobs = {"miner", "woodcutter", "farmer", "alchemist", "blacksmith", "hunter", "fisherman"};
+        String[] names = {"Шахтёр", "Лесоруб", "Фермер", "Алхимик", "Кузнец", "Охотник", "Рыбак"};
+
+        boolean hasAny = false;
+        for (String job : jobs) {
+            if (plugin.getJobsDataManager().getLevel(p.getUniqueId(), job) > 1) { hasAny = true; break; }
+        }
+        if (!hasAny) {
+            int totalLvl = 0;
+            for (String job : jobs) totalLvl += plugin.getJobsDataManager().getLevel(p.getUniqueId(), job);
+            if (totalLvl <= jobs.length) {
+                p.sendMessage("§8▸ §e§lИНФО §8◂ §7Профили");
+                p.sendMessage("");
+                p.sendMessage("§7У тебя пока нет профессий.");
+                p.sendMessage("§e▸ §7Используй §f/jobs list §7чтобы выбрать!");
+                return;
+            }
+        }
+
+        p.sendMessage("§8▸ §e§lИНФО §8◂ §7Профили");
+        p.sendMessage("");
+
+        int fatigue = plugin.getJobsDataManager().getFatigue(p.getUniqueId());
+        int maxF = plugin.getConfig().getInt("fatigue.max-fatigue", 1000);
+        p.sendMessage("§8▸ §c§lУСТАЛОСТЬ §8◂ §7Текущий статус");
+        p.sendMessage("   §7" + fatigue + "§8/§7" + maxF + " " + progressBar(maxF - fatigue, maxF));
+        p.sendMessage("");
+
+        int rankPos = plugin.getRankingManager().getPlayerRank(p.getUniqueId());
+        int weeklyRep = plugin.getRankingManager().getWeeklyRep(p.getUniqueId());
+        p.sendMessage("§8▸ §6§lРЕЙТИНГ §8◂ §7Позиция за неделю");
+        p.sendMessage("   §7Позиция: " + (rankPos > 0 ? "§e#" + rankPos : "§8не в топе") + " §8| §7Репутация: §a" + weeklyRep);
+        p.sendMessage("");
+
+        for (int i = 0; i < jobs.length; i++) {
+            String job = jobs[i];
+            java.util.UUID uuid = p.getUniqueId();
+            int lvl = plugin.getJobsDataManager().getLevel(uuid, job);
+            int exp = plugin.getJobsDataManager().getExp(uuid, job);
+            int req = Math.max(1, lvl * 1000);
+            String spec = plugin.getJobsDataManager().getSpecialization(uuid, job);
+            java.util.List<String> skills = plugin.getJobsDataManager().getUnlockedSkills(uuid, job);
+
+            p.sendMessage("§8▸ §e§l" + names[i].toUpperCase() + " §8◂ §7" + rankName(lvl) + " §8| §7ур. §f" + lvl);
+            p.sendMessage("   §7Опыт: §a" + exp + "§8/§7" + req + " " + progressBar(exp, req));
+
+            if (!spec.isEmpty()) {
+                p.sendMessage("   §7Специализация: §d" + specName(spec));
+            }
+
+            if (!skills.isEmpty()) {
+                StringBuilder sb = new StringBuilder("   §7Навыки: ");
+                for (int si = 0; si < skills.size(); si++) {
+                    String skillId = skills.get(si);
+                    String skillName = getSkillName(job, skillId);
+                    sb.append("§a").append(skillName);
+                    if (si < skills.size() - 1) sb.append("§7, ");
+                }
+                p.sendMessage(sb.toString());
+            } else {
+                p.sendMessage("   §7Навыки: §8нет");
+            }
+
+            p.sendMessage("");
+        }
+    }
+
+    private String getSkillName(String job, String skillId) {
+        for (SkillManager.SkillDef sd : plugin.getSkillManager().getSkillsForJob(job)) {
+            if (sd.id.equals(skillId)) return sd.name;
+        }
+        return skillId;
+    }
+
     private void sendSpecsHelp(Player p) {
         p.sendMessage(ChatColor.LIGHT_PURPLE + "Специализации Jobs");
         p.sendMessage(ChatColor.GRAY + "С 20 уровня профессии выбери одну навсегда:");
@@ -290,7 +365,7 @@ public class JobsCommand implements CommandExecutor, TabCompleter {
     private void sendHelp(Player p) {
         p.sendMessage(ChatColor.GOLD + "═══ /jobs Помощь ═══");
         p.sendMessage(ChatColor.YELLOW + "/jobs" + ChatColor.GRAY + " — открыть GUI профессий");
-        p.sendMessage(ChatColor.YELLOW + "/jobs info" + ChatColor.GRAY + " — ежедневки + специализации");
+        p.sendMessage(ChatColor.YELLOW + "/jobs info" + ChatColor.GRAY + " — инфо о профессиях и навыках");
         p.sendMessage(ChatColor.YELLOW + "/jobs top" + ChatColor.GRAY + " — топ игроков по уровням");
         p.sendMessage(ChatColor.YELLOW + "/jobs stats [игрок]" + ChatColor.GRAY + " — детальная статистика");
         p.sendMessage(ChatColor.YELLOW + "/jobs spec <job> <xp|stamina|reward>" + ChatColor.GRAY + " — выбрать специализацию");

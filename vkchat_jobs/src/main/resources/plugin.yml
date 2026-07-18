@@ -3,6 +3,7 @@ version: 3.2.0
 main: ru.example.vkchatjobs.VKChatJobsPlugin
 api-version: "1.16"
 depend: [VKChat]
+softdepend: [VKChatMobs]
 commands:
   jobs:
     description: Открыть интерактивное игровое меню профессий и навыков

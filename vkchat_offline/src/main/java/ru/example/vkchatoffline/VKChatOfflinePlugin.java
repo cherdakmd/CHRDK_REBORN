@@ -7,6 +7,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import ru.example.vkchatoffline.data.StashManager;
 import ru.example.vkchatoffline.listeners.OfflineListener;
 import ru.example.vkchatoffline.managers.ShiftManager;
+import ru.example.vkchat.config.ConfigMigrationUtil;
 
 public class VKChatOfflinePlugin extends JavaPlugin {
     private static VKChatOfflinePlugin instance;
@@ -17,7 +18,7 @@ public class VKChatOfflinePlugin extends JavaPlugin {
     public void onEnable() {
         instance = this;
         saveDefaultConfig();
-        ru.example.vkchat.config.ConfigMigrationUtil.migrate(this, "config.yml");
+        ConfigMigrationUtil.migrate(this, "config.yml");
 
         if (Bukkit.getPluginManager().getPlugin("VKChat") == null) {
             getLogger().severe("VKChat не найден!");
@@ -35,8 +36,11 @@ public class VKChatOfflinePlugin extends JavaPlugin {
             getCommand("stash").setExecutor(stashCmd);
             getCommand("stash").setTabCompleter(stashCmd);
         }
-        if (getCommand("shift") != null)
-            getCommand("shift").setExecutor(new ru.example.vkchatoffline.commands.ShiftCommand(this));
+        if (getCommand("shift") != null) {
+            ru.example.vkchatoffline.commands.ShiftCommand shiftCmd = new ru.example.vkchatoffline.commands.ShiftCommand(this);
+            getCommand("shift").setExecutor(shiftCmd);
+            getCommand("shift").setTabCompleter(shiftCmd);
+        }
 
         getLogger().info("VKChatOffline v1.0 — шахтёрские смены запущены!");
     }
@@ -47,6 +51,7 @@ public class VKChatOfflinePlugin extends JavaPlugin {
         Bukkit.getScheduler().cancelTasks(this);
         if (shiftManager != null) shiftManager.saveShifts();
         if (stashManager != null) stashManager.save();
+        instance = null;
     }
 
     public static VKChatOfflinePlugin getInstance() { return instance; }

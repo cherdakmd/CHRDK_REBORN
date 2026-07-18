@@ -52,7 +52,7 @@ public class RuneRegistry {
 
     private void loadFromConfig() {
         runesById.clear();
-        ConfigurationSection sec = plugin.getConfig().getConfigurationSection("custom_enchants");
+        ConfigurationSection sec = ((ru.example.vkchatgear.VKChatGearPlugin) plugin).getEnchantsConfig().getConfigurationSection("custom_enchants");
         if (sec == null) {
             plugin.getLogger().warning("[RuneRegistry] Секция custom_enchants не найдена в конфиге!");
             return;

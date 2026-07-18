@@ -5,7 +5,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
-import ru.example.vkchat.VKChatPlugin;
+import ru.example.vkchat.util.VKChatBridge;
 import ru.example.vkchatevents.VKChatEventsPlugin;
 
 import java.util.*;
@@ -38,13 +38,13 @@ public class DailyRewardManager implements Listener {
         lastDailyClaim.put(uuid, now);
 
         int baseReward = plugin.getConfig().getInt("daily-rewards.base", 50);
-        int vkId = VKChatPlugin.getInstance().getApi().getLinkedVkId(p);
-        if (vkId == -1 && !ru.example.vkchat.util.VKChatBridge.hasPass(p)) return "§c❌ Привяжи ВК!";
+        int vkId = VKChatBridge.getLinkedVkId(p);
+        if (!VKChatBridge.hasVkOrPass(p)) return "§c❌ Привяжи ВК!";
 
         if (vkId != -1) {
-            VKChatPlugin.getInstance().getApi().addReputation(vkId, baseReward);
+            VKChatBridge.addPoints(vkId, baseReward);
         } else {
-            ru.example.vkchat.util.VKChatBridge.addEffectiveRep(p, baseReward);
+            VKChatBridge.addEffectiveRep(p, baseReward);
         }
         return "§a🎁 Ежедневная награда: §e+" + baseReward + " реп!";
     }

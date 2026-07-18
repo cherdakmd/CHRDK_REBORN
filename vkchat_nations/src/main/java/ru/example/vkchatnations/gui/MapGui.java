@@ -17,7 +17,8 @@ import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.NamespacedKey;
 import ru.example.vkchatnations.VKChatNationsPlugin;
 import ru.example.vkchatnations.data.ChunkClaim;
-import ru.example.vkchat.VKChatPlugin;
+
+import ru.example.vkchat.util.VKChatBridge;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -170,19 +171,19 @@ public class MapGui implements Listener {
             return;
         }
 
-        int vkId = VKChatPlugin.getInstance().getApi().getLinkedVkId(p);
-        if (vkId == -1 && !ru.example.vkchat.util.VKChatBridge.hasPass(p)) {
+        int vkId = VKChatBridge.getLinkedVkId(p);
+        if (!VKChatBridge.hasVkOrPass(p)) {
             p.sendMessage(ChatColor.RED + "Для телепортации нужно привязать ВК! (/vklink)");
             return;
         }
 
         int cost = 20;
-        if (VKChatPlugin.getInstance().getApi().getReputation(vkId) < cost) {
+        if (VKChatBridge.getReputation(vkId) < cost) {
             p.sendMessage(ChatColor.RED + "Недостаточно Репутации ВК! Нужно: " + cost);
             return;
         }
 
-        VKChatPlugin.getInstance().getApi().takeReputation(vkId, cost);
+        VKChatBridge.takeReputation(vkId, cost);
         tpCooldowns.put(p.getUniqueId(), System.currentTimeMillis());
         
         Location target = new Location(c.getWorld(), (c.getX() << 4) + 8, c.getWorld().getHighestBlockYAt((c.getX() << 4) + 8, (c.getZ() << 4) + 8) + 1, (c.getZ() << 4) + 8);

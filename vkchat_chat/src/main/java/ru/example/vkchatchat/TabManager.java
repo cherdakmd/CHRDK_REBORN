@@ -10,6 +10,7 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
 import ru.example.vkchat.VKChatPlugin;
+import ru.example.vkchat.util.VKChatBridge;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -154,9 +155,8 @@ public class TabManager implements Listener {
 
     private String getReputation(Player p) {
         try {
-            ru.example.vkchat.VKChatPlugin vk = ru.example.vkchat.VKChatPlugin.getInstance();
-            int vkId = vk.getApi().getLinkedVkId(p);
-            if (vkId != -1) return String.valueOf(vk.getApi().getReputation(vkId));
+            int vkId = VKChatBridge.getLinkedVkId(p);
+            if (vkId != -1) return String.valueOf(VKChatBridge.getReputation(vkId));
         } catch (Exception ignored) {}
         return "0";
     }
@@ -222,7 +222,7 @@ public class TabManager implements Listener {
 
     private void sendToVk(String msg) {
         if (!plugin.getConfig().getBoolean("broadcasts.vk-join-quit", true)) return;
-        try { VKChatPlugin.getInstance().getApi().sendToMainChat(msg); } catch (Exception e) { plugin.getLogger().warning("VK send failed: " + e.getMessage()); }
+        try { VKChatBridge.sendToMainChat(msg); } catch (Exception e) { plugin.getLogger().warning("VK send failed: " + e.getMessage()); }
     }
 
     // ═══ ГЕНЕРАТОРЫ ВАРИАНТОВ ═══

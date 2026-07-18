@@ -11,7 +11,8 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitTask;
 import ru.example.vkchatteleport.VKChatTeleportPlugin;
-import ru.example.vkchat.VKChatPlugin;
+
+import ru.example.vkchat.util.VKChatBridge;
 
 import java.io.File;
 import java.io.IOException;
@@ -35,6 +36,18 @@ public class TeleportManager {
     // Ожидающие TPA запросы: Кому (цель) -> Инфо запроса
     private final Map<UUID, TpaRequestInfo> tpaRequests = new ConcurrentHashMap<>();
     private final Map<UUID, BukkitTask> tpaTimeoutTasks = new ConcurrentHashMap<>();
+
+    // Anti-abuse: TPA cooldown — when player can next send TPA
+    private final Map<UUID, Long> tpaSendCooldown = new ConcurrentHashMap<>();
+
+    // Anti-abuse: Spam detection — recent incoming TPA request timestamps per target
+    private final Map<UUID, List<Long>> tpaRequestTimestamps = new ConcurrentHashMap<>();
+
+    // Anti-abuse: TPA shield — when spam shield expires for a player
+    private final Map<UUID, Long> tpaShieldUntil = new ConcurrentHashMap<>();
+
+    // Anti-abuse: Combat cooldown — when player can TPA again after combat
+    private final Map<UUID, Long> combatCooldownUntil = new ConcurrentHashMap<>();
 
     // Текущие телепортации с задержкой: UUID -> WarmupTask
     private final Map<UUID, WarmupTask> activeWarmups = new ConcurrentHashMap<>();
@@ -189,11 +202,15 @@ public class TeleportManager {
     // ==========================================
 
     public boolean sendTpaRequest(Player sender, Player target) {
-        tpaRequests.put(target.getUniqueId(), new TpaRequestInfo(sender.getUniqueId(), false));
+        long expirySeconds = getConfigTpaExpirySeconds();
+        long expiryMs = expirySeconds * 1000L;
+
+        tpaRequests.put(target.getUniqueId(), new TpaRequestInfo(sender.getUniqueId(), false, System.currentTimeMillis() + expiryMs));
 
         BukkitTask oldTask = tpaTimeoutTasks.remove(target.getUniqueId());
         if (oldTask != null) oldTask.cancel();
 
+        long expiryTicks = expirySeconds * 20L;
         BukkitTask task = Bukkit.getScheduler().runTaskLater(plugin, () -> {
             TpaRequestInfo info = tpaRequests.get(target.getUniqueId());
             if (info != null && info.sender.equals(sender.getUniqueId())) {
@@ -206,18 +223,22 @@ public class TeleportManager {
                     target.sendMessage(ChatColor.RED + "⏳ Запрос от " + sender.getName() + " истек.");
                 }
             }
-        }, 1200L);
+        }, expiryTicks);
 
         tpaTimeoutTasks.put(target.getUniqueId(), task);
         return true;
     }
 
     public boolean sendTpaHereRequest(Player sender, Player target) {
-        tpaRequests.put(target.getUniqueId(), new TpaRequestInfo(sender.getUniqueId(), true));
+        long expirySeconds = getConfigTpaExpirySeconds();
+        long expiryMs = expirySeconds * 1000L;
+
+        tpaRequests.put(target.getUniqueId(), new TpaRequestInfo(sender.getUniqueId(), true, System.currentTimeMillis() + expiryMs));
 
         BukkitTask oldTask = tpaTimeoutTasks.remove(target.getUniqueId());
         if (oldTask != null) oldTask.cancel();
 
+        long expiryTicks = expirySeconds * 20L;
         BukkitTask task = Bukkit.getScheduler().runTaskLater(plugin, () -> {
             TpaRequestInfo info = tpaRequests.get(target.getUniqueId());
             if (info != null && info.sender.equals(sender.getUniqueId())) {
@@ -230,7 +251,7 @@ public class TeleportManager {
                     target.sendMessage(ChatColor.RED + "⏳ Запрос от " + sender.getName() + " истек.");
                 }
             }
-        }, 1200L);
+        }, expiryTicks);
 
         tpaTimeoutTasks.put(target.getUniqueId(), task);
         return true;
@@ -260,6 +281,132 @@ public class TeleportManager {
         tpaRequests.remove(targetId);
         BukkitTask task = tpaTimeoutTasks.remove(targetId);
         if (task != null) task.cancel();
+    }
+
+    // ==========================================
+    // TPA ANTI-ABUSE PROTECTIONS
+    // ==========================================
+
+    private int getConfigTpaCooldownSeconds() {
+        return plugin.getConfig().getInt("tpa.cooldown-seconds", 30);
+    }
+
+    private long getConfigTpaExpirySeconds() {
+        return plugin.getConfig().getInt("tpa.request-expiry-seconds", 60);
+    }
+
+    private int getConfigSpamThreshold() {
+        return plugin.getConfig().getInt("tpa.spam-threshold", 3);
+    }
+
+    private int getConfigSpamWindowMinutes() {
+        return plugin.getConfig().getInt("tpa.spam-window-minutes", 5);
+    }
+
+    private int getConfigShieldDurationMinutes() {
+        return plugin.getConfig().getInt("tpa.shield-duration-minutes", 10);
+    }
+
+    private int getConfigCombatCooldownSeconds() {
+        return plugin.getConfig().getInt("tpa.combat-cooldown-seconds", 10);
+    }
+
+    public boolean canSendTpa(UUID senderId) {
+        Long nextAvailable = tpaSendCooldown.get(senderId);
+        if (nextAvailable != null && System.currentTimeMillis() < nextAvailable) {
+            return false;
+        }
+        return true;
+    }
+
+    public long getTpaCooldownRemainingMs(UUID senderId) {
+        Long nextAvailable = tpaSendCooldown.get(senderId);
+        if (nextAvailable == null) return 0;
+        long remaining = nextAvailable - System.currentTimeMillis();
+        return remaining > 0 ? remaining : 0;
+    }
+
+    public void setTpaCooldown(UUID senderId) {
+        long cooldownMs = getConfigTpaCooldownSeconds() * 1000L;
+        tpaSendCooldown.put(senderId, System.currentTimeMillis() + cooldownMs);
+    }
+
+    public boolean isTpaShielded(UUID targetId) {
+        Long shieldExpiry = tpaShieldUntil.get(targetId);
+        if (shieldExpiry == null) return false;
+        if (System.currentTimeMillis() < shieldExpiry) {
+            return true;
+        }
+        tpaShieldUntil.remove(targetId);
+        return false;
+    }
+
+    public long getTpaShieldRemainingMs(UUID targetId) {
+        Long shieldExpiry = tpaShieldUntil.get(targetId);
+        if (shieldExpiry == null) return 0;
+        long remaining = shieldExpiry - System.currentTimeMillis();
+        return remaining > 0 ? remaining : 0;
+    }
+
+    public void recordTpaRequestReceived(UUID targetId) {
+        long now = System.currentTimeMillis();
+        long windowMs = getConfigSpamWindowMinutes() * 60L * 1000L;
+        int threshold = getConfigSpamThreshold();
+
+        List<Long> timestamps = tpaRequestTimestamps.computeIfAbsent(targetId, k -> new ArrayList<>());
+        timestamps.add(now);
+
+        // Remove expired timestamps outside the window
+        timestamps.removeIf(t -> now - t > windowMs);
+
+        if (timestamps.size() >= threshold) {
+            long shieldDurationMs = getConfigShieldDurationMinutes() * 60L * 1000L;
+            tpaShieldUntil.put(targetId, now + shieldDurationMs);
+            timestamps.clear();
+        }
+    }
+
+    public boolean isInCombatCooldown(UUID playerUuid) {
+        Long expiry = combatCooldownUntil.get(playerUuid);
+        if (expiry == null) return false;
+        if (System.currentTimeMillis() < expiry) {
+            return true;
+        }
+        combatCooldownUntil.remove(playerUuid);
+        return false;
+    }
+
+    public long getCombatCooldownRemainingMs(UUID playerUuid) {
+        Long expiry = combatCooldownUntil.get(playerUuid);
+        if (expiry == null) return 0;
+        long remaining = expiry - System.currentTimeMillis();
+        return remaining > 0 ? remaining : 0;
+    }
+
+    public void setCombatCooldown(UUID playerUuid) {
+        long cooldownMs = getConfigCombatCooldownSeconds() * 1000L;
+        combatCooldownUntil.put(playerUuid, System.currentTimeMillis() + cooldownMs);
+    }
+
+    public boolean isSameWorld(Player player, Player target) {
+        if (player.getWorld() == target.getWorld()) return true;
+        return player.getWorld().getName().equals(target.getWorld().getName());
+    }
+
+    public boolean isAdmin(Player player) {
+        return player.hasPermission("vkchat.teleport.admin");
+    }
+
+    public TpaRequestInfo getTpaRequestInfoIfValid(UUID targetId) {
+        TpaRequestInfo info = tpaRequests.get(targetId);
+        if (info == null) return null;
+        if (info.isExpired()) {
+            tpaRequests.remove(targetId);
+            BukkitTask task = tpaTimeoutTasks.remove(targetId);
+            if (task != null) task.cancel();
+            return null;
+        }
+        return info;
     }
 
     // ==========================================
@@ -334,13 +481,13 @@ public class TeleportManager {
     }
 
     private void executeTeleport(Player player, Location target, String successMessage, int cost, String cooldownType, Runnable onComplete) {
-        int vkId = VKChatPlugin.getInstance().getApi().getLinkedVkId(player);
-        if (vkId == -1 && !ru.example.vkchat.util.VKChatBridge.hasPass(player)) {
+        int vkId = VKChatBridge.getLinkedVkId(player);
+        if (!VKChatBridge.hasVkOrPass(player)) {
             player.sendMessage(ChatColor.RED + "Для телепортации нужно привязать ВКонтакте (/vklink)!");
             return;
         }
 
-        int currentRep = VKChatPlugin.getInstance().getApi().getReputation(vkId);
+        int currentRep = VKChatBridge.getReputation(vkId);
         if (currentRep < cost) {
             player.sendMessage(ChatColor.RED + "Тебе не хватает репутации ВКонтакте! Нужно: " + cost);
             return;
@@ -349,7 +496,7 @@ public class TeleportManager {
         Location from = player.getLocation().clone();
 
         if (cost > 0) {
-            VKChatPlugin.getInstance().getApi().takeReputation(vkId, cost);
+            VKChatBridge.takeReputation(vkId, cost);
         }
 
         player.teleport(target);
@@ -471,10 +618,16 @@ public class TeleportManager {
     public static class TpaRequestInfo {
         public final UUID sender;
         public final boolean isHere;
+        public final long expiresAt;
 
-        TpaRequestInfo(UUID sender, boolean isHere) {
+        TpaRequestInfo(UUID sender, boolean isHere, long expiresAt) {
             this.sender = sender;
             this.isHere = isHere;
+            this.expiresAt = expiresAt;
+        }
+
+        public boolean isExpired() {
+            return System.currentTimeMillis() > expiresAt;
         }
     }
 

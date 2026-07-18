@@ -33,7 +33,11 @@ import ru.example.vkchatmobs.boss.BossAbilityRegistry.AbilityDef;
 import ru.example.vkchatmobs.drop.MobDropFactory;
 import ru.example.vkchatmobs.tracking.CooldownManager;
 import ru.example.vkchatmobs.util.BloodMoonHelper;
-import ru.example.vkchatmobs.util.VKChatBridge;
+import ru.example.vkchat.util.VKChatBridge;
+import ru.example.vkchat.util.JobsBridge;
+import ru.example.vkchatartifacts.VKChatArtifactsPlugin;
+import ru.example.vkchatartifacts.items.ArtifactFactory;
+import ru.example.vkchatartifacts.items.ConsumableFactory;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -550,6 +554,15 @@ public class MobListener implements Listener {
         int rank = mob.getPersistentDataContainer().get(rankKey, PersistentDataType.INTEGER);
         boolean isMiniBoss = mob.getPersistentDataContainer().has(isBossKey, PersistentDataType.INTEGER);
 
+        // Бестиарий: бонус урона от накопленных milestone'ов
+        if (e.getDamager() instanceof Player) {
+            Player attacker = (Player) e.getDamager();
+            double dmgBonus = plugin.getBestiaryManager().getTotalDamageBonus(attacker);
+            if (dmgBonus > 0) {
+                e.setDamage(e.getDamage() * (1.0 + dmgBonus));
+            }
+        }
+
         if (plugin.getConfig().getBoolean("abilities.minion_summon.enabled", true) || isMiniBoss) {
             int minRank = plugin.getConfig().getInt("abilities.minion_summon.min-rank", 6);
             if (rank >= minRank || isMiniBoss) {
@@ -715,8 +728,10 @@ public class MobListener implements Listener {
                 int max = 5;
                 int current = 0;
                 try {
-                    max = ru.example.vkchatartifacts.VKChatArtifactsPlugin.getInstance().getConfig().getInt("artifacts.max-artifacts", 5);
-                    current = ru.example.vkchatartifacts.VKChatArtifactsPlugin.getInstance().getArtifactListener().countArtifacts(p);
+                    if (plugin.isArtifactsAvailable()) {
+                        max = VKChatArtifactsPlugin.getInstance().getConfig().getInt("artifacts.max-artifacts", 5);
+                        current = VKChatArtifactsPlugin.getInstance().getArtifactListener().countArtifacts(p);
+                    }
                 } catch (Exception ignored) {}
                 if (current >= max) {
                     item.setAmount(item.getAmount() + 1); // вернуть шард
@@ -742,7 +757,7 @@ public class MobListener implements Listener {
     // ═══ FIX #8: rollRandomGearItem — делегирует в GearPlugin RuneRegistry ═══
 
     private ItemStack rollRandomGearItem() {
-        org.bukkit.plugin.Plugin gearPlugin = Bukkit.getPluginManager().getPlugin("VKChatGear");
+        org.bukkit.plugin.Plugin gearPlugin = plugin.getGearPlugin();
         if (gearPlugin == null || !gearPlugin.isEnabled()) {
             return new ItemStack(Material.DIAMOND, 3);
         }
@@ -781,7 +796,7 @@ public class MobListener implements Listener {
     }
 
     private ItemStack rollRandomArtifactItem() {
-        org.bukkit.plugin.Plugin artifactsPlugin = Bukkit.getPluginManager().getPlugin("VKChatArtifacts");
+        org.bukkit.plugin.Plugin artifactsPlugin = plugin.getArtifactsPlugin();
         if (artifactsPlugin == null || !artifactsPlugin.isEnabled()) {
             return new ItemStack(Material.DIAMOND, 5);
         }
@@ -789,24 +804,24 @@ public class MobListener implements Listener {
         int roll = ThreadLocalRandom.current().nextInt(100);
         if (roll < 70) {
             boolean isMythic = ThreadLocalRandom.current().nextInt(100) < 15;
-            return ru.example.vkchatartifacts.items.ArtifactFactory.generateArtifact(
-                (ru.example.vkchatartifacts.VKChatArtifactsPlugin) artifactsPlugin, isMythic);
+            return ArtifactFactory.generateArtifact(
+                (VKChatArtifactsPlugin) artifactsPlugin, isMythic);
         } else if (roll < 80) {
-            return ru.example.vkchatartifacts.items.ConsumableFactory.generateCleanseScroll(
-                (ru.example.vkchatartifacts.VKChatArtifactsPlugin) artifactsPlugin);
+            return ConsumableFactory.generateCleanseScroll(
+                (VKChatArtifactsPlugin) artifactsPlugin);
         } else if (roll < 90) {
-            return ru.example.vkchatartifacts.items.ConsumableFactory.generateReviveScroll(
-                (ru.example.vkchatartifacts.VKChatArtifactsPlugin) artifactsPlugin);
+            return ConsumableFactory.generateReviveScroll(
+                (VKChatArtifactsPlugin) artifactsPlugin);
         } else {
-            return ru.example.vkchatartifacts.items.ConsumableFactory.generateEscapeScroll(
-                (ru.example.vkchatartifacts.VKChatArtifactsPlugin) artifactsPlugin);
+            return ConsumableFactory.generateEscapeScroll(
+                (VKChatArtifactsPlugin) artifactsPlugin);
         }
     }
 
     // ═══ Утилиты ═══
 
     private int getJobLevels(Player p) {
-        int total = ru.example.vkchat.util.JobsBridge.getTotalLevel(p);
+        int total = JobsBridge.getTotalLevel(p);
         return total > 0 ? total : 1;
     }
 

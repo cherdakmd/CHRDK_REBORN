@@ -31,6 +31,7 @@ import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.util.Vector;
 import ru.example.vkchatnations.VKChatNationsPlugin;
 import ru.example.vkchatnations.data.ChunkClaim;
+import ru.example.vkchat.VKChatPlugin;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -366,9 +367,9 @@ public class NationListener implements Listener {
                 // Проверяем Кровавую Луну и Шлем Нации (Проклятие Безумия)
                 boolean bloodMoonActive = false;
                 try {
-                    if (ru.example.vkchat.VKChatPlugin.getInstance() != null && 
-                        ru.example.vkchat.VKChatPlugin.getInstance().getBloodMoonManager() != null) {
-                        bloodMoonActive = ru.example.vkchat.VKChatPlugin.getInstance().getBloodMoonManager().isActive();
+                    if (VKChatPlugin.getInstance() != null && 
+                        VKChatPlugin.getInstance().getBloodMoonManager() != null) {
+                        bloodMoonActive = VKChatPlugin.getInstance().getBloodMoonManager().isActive();
                     }
                 } catch (Throwable ignored) {}
 
@@ -395,6 +396,29 @@ public class NationListener implements Listener {
                 e.setCancelled(true);
                 attacker.sendMessage(ChatColor.RED + "Нельзя бить соотечественников!");
                 return;
+            }
+
+            // Проверка PvP между вражескими нациями в приватах (во время войны)
+            if (vNation != null && aNation != null && !vNation.equals(aNation)) {
+                if (plugin.getWarManager().areAtWar(vNation, aNation)) {
+                    boolean allowPvpInClaims = plugin.getConfig().getBoolean("war.allow-pvp-in-claims", true);
+                    if (allowPvpInClaims) {
+                        ChunkClaim victimClaim = plugin.getNationManager().getClaimAt(victim.getLocation());
+                        ChunkClaim attackerClaim = plugin.getNationManager().getClaimAt(attacker.getLocation());
+                        
+                        // Разрешаем PvP если оба игрока в приватах (любых)
+                        if (victimClaim != null && attackerClaim != null) {
+                            int pvpProtectLevel = plugin.getConfig().getInt("claim.pvp-protect-level", 5);
+                            // Разрешаем PvP если уровень привата жертвы меньше pvp-protect-level ИЛИ если идёт война
+                            if (victimClaim.getLevel() < pvpProtectLevel || plugin.getWarManager().areAtWar(vNation, aNation)) {
+                                // PvP разрешено во время войны в приватах
+                                attacker.sendMessage(ChatColor.RED + "⚔ PvP разрешено во время войны!");
+                                victim.sendMessage(ChatColor.RED + "⚔ PvP разрешено во время войны!");
+                                return; // Разрешаем урон
+                            }
+                        }
+                    }
+                }
             }
         }
 

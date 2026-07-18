@@ -17,7 +17,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 import ru.example.vkchat.VKChatPlugin;
 import ru.example.vkchatmobs.VKChatMobsPlugin;
 import ru.example.vkchatmobs.listeners.MobListener;
-import ru.example.vkchatmobs.util.VKChatBridge;
+import ru.example.vkchat.util.VKChatBridge;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -302,7 +302,7 @@ public class MobsEvents2Manager implements Listener {
     }
 
     private ItemStack createForgeScroll(String type) {
-        org.bukkit.plugin.Plugin gear = Bukkit.getPluginManager().getPlugin("VKChatGear");
+        org.bukkit.plugin.Plugin gear = plugin.getGearPlugin();
         if (gear == null) return new ItemStack(Material.DIAMOND, 2);
         ItemStack it = new ItemStack(Material.PAPER);
         ItemMeta meta = it.getItemMeta();

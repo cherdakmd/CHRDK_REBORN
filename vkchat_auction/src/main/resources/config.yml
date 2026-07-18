@@ -1,0 +1,62 @@
+# ═══════════════════════════════════
+# VKChatAuction — Конфигурация аукциона
+# ═══════════════════════════════════
+
+auction:
+  # Длительность аукциона в часах
+  default-duration-hours: 24
+  # Максимум активных лотов у одного игрока
+  max-active-per-player: 6
+  # Минимальная стартовая цена
+  min-price: 10
+  # Минимальный шаг ставки (в процентах от текущей цены)
+  bid-increment-percent: 10
+  # Комиссия аукциона (в процентах от продажи)
+  tax-percent: 5
+  # Кулдаун между созданием лотов (секунды)
+  create-cooldown-seconds: 10
+  # Максимум предметов в одном лоте
+  max-stack-size: 64
+  # Кулдаун за отмену лота (секунды, наказание)
+  cancel-cooldown-seconds: 60
+  # Штраф за отмену (репутация)
+  cancel-penalty: 500
+  # Автосохранение (секунды)
+  auto-save-interval: 300
+  # Чёрный список материалов (BEDROCK, BARRIER, COMMAND_BLOCK, ...)
+  blacklist-materials:
+    - BEDROCK
+    - BARRIER
+    - COMMAND_BLOCK
+    - COMMAND_BLOCK_MINECART
+    - STRUCTURE_BLOCK
+    - STRUCTURE_VOID
+    - JIGSAW
+  # Чёрный список по имени предмета (содержит подстроку, регистронезависимо)
+  blacklist-names:
+    - "админский"
+    - "admin"
+    - "op"
+
+# Бонусы для донатеров (ключ = id статуса из VKChatDonate)
+# max-lots-bonus — дополнительно к базовому max-active-per-player
+# commission-discount — множитель налога (1.0 = полный налог, 0.50 = половина)
+status-perks:
+  spark:
+    max-lots-bonus: 2
+    commission-discount: 0.10
+  flame:
+    max-lots-bonus: 4
+    commission-discount: 0.20
+  star:
+    max-lots-bonus: 6
+    commission-discount: 0.35
+  legend:
+    max-lots-bonus: 10
+    commission-discount: 0.50
+  overlord:
+    max-lots-bonus: 15
+    commission-discount: 0.65
+  pass:
+    max-lots-bonus: 1
+    commission-discount: 0.0

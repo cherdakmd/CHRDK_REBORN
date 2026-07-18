@@ -17,12 +17,15 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
 import ru.example.vkchatstarter.VKChatStarterPlugin;
-import ru.example.vkchat.VKChatPlugin;
+import ru.example.vkchat.util.VKChatBridge;
+
+import ru.example.vkchatstarter.QuestDataManager;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 /**
  * Обработчик квестов обучения нового игрока.
@@ -30,10 +33,13 @@ import java.util.Map;
  */
 public class QuestListener implements Listener {
     private final VKChatStarterPlugin plugin;
+    private final QuestDataManager questData;
     private final NamespacedKey stageKey;
     private final NamespacedKey progKey;
     private final NamespacedKey deathKey;
     private final NamespacedKey startTimeKey;
+    private final NamespacedKey skippedKey;
+    private final NamespacedKey achPrefixKey;
 
     private final Map<Integer, QuestStage> stages = new HashMap<>();
     private int rewardPerStage = 75;
@@ -47,12 +53,15 @@ public class QuestListener implements Listener {
     private String titleComplete = "&aКвест выполнен!";
     private String titleFinal = "&6🌟 ОБУЧЕНИЕ ЗАВЕРШЕНО 🌟";
 
-    public QuestListener(VKChatStarterPlugin plugin) {
+    public QuestListener(VKChatStarterPlugin plugin, QuestDataManager questData) {
         this.plugin = plugin;
+        this.questData = questData;
         this.stageKey = new NamespacedKey(plugin, "starter_quest_stage");
         this.progKey = new NamespacedKey(plugin, "starter_quest_progress");
         this.deathKey = new NamespacedKey(plugin, "starter_quest_deaths");
         this.startTimeKey = new NamespacedKey(plugin, "starter_quest_start_time");
+        this.skippedKey = new NamespacedKey(plugin, "starter_quest_skipped");
+        this.achPrefixKey = new NamespacedKey(plugin, "ach_");
         loadConfig();
     }
 
@@ -92,43 +101,68 @@ public class QuestListener implements Listener {
     }
 
     /**
-     * Получает текущий этап квеста игрока.
+     * Gets and syncs quest stage: PDC -> YAML cache.
      */
     private int getStage(Player p) {
-        return p.getPersistentDataContainer().getOrDefault(stageKey, PersistentDataType.INTEGER, 0);
+        int pdcVal = p.getPersistentDataContainer().getOrDefault(stageKey, PersistentDataType.INTEGER, 0);
+        QuestDataManager.PlayerQuestData data = questData.getData(p.getUniqueId());
+        if (pdcVal > data.currentStage) {
+            data.currentStage = pdcVal;
+        } else if (data.currentStage > pdcVal) {
+            p.getPersistentDataContainer().set(stageKey, PersistentDataType.INTEGER, data.currentStage);
+            pdcVal = data.currentStage;
+        }
+        return pdcVal;
     }
 
     /**
-     * Получает прогресс текущего этапа.
+     * Gets and syncs quest progress: PDC -> YAML cache.
      */
     private int getProgress(Player p) {
-        return p.getPersistentDataContainer().getOrDefault(progKey, PersistentDataType.INTEGER, 0);
+        int pdcVal = p.getPersistentDataContainer().getOrDefault(progKey, PersistentDataType.INTEGER, 0);
+        QuestDataManager.PlayerQuestData data = questData.getData(p.getUniqueId());
+        if (pdcVal > data.progress) {
+            data.progress = pdcVal;
+        } else if (data.progress > pdcVal) {
+            p.getPersistentDataContainer().set(progKey, PersistentDataType.INTEGER, data.progress);
+            pdcVal = data.progress;
+        }
+        return pdcVal;
     }
 
     /**
-     * Проверяет, пропустил ли игрок квест (по конфигу или PDC).
+     * Checks if the player skipped the quest (by config or PDC).
      */
     private boolean isSkipped(Player p) {
-        return p.getPersistentDataContainer().getOrDefault(
-                new NamespacedKey(plugin, "starter_quest_skipped"),
-                PersistentDataType.INTEGER, 0) == 1;
+        boolean pdcVal = p.getPersistentDataContainer().getOrDefault(skippedKey, PersistentDataType.INTEGER, 0) == 1;
+        QuestDataManager.PlayerQuestData data = questData.getData(p.getUniqueId());
+        if (pdcVal) data.skipped = true;
+        if (data.skipped && !pdcVal) {
+            p.getPersistentDataContainer().set(skippedKey, PersistentDataType.INTEGER, 1);
+        }
+        return data.skipped;
     }
 
     /**
-     * Выполняет промежуточный этап квеста.
+     * Completes an intermediate quest stage.
      */
     private void completeStage(Player p, String nextGoal) {
         int current = getStage(p);
-        p.getPersistentDataContainer().set(stageKey, PersistentDataType.INTEGER, current + 1);
+        int newStage = current + 1;
+        p.getPersistentDataContainer().set(stageKey, PersistentDataType.INTEGER, newStage);
         p.getPersistentDataContainer().set(progKey, PersistentDataType.INTEGER, 0);
 
-        // Награда за этап
+        QuestDataManager.PlayerQuestData data = questData.getData(p.getUniqueId());
+        data.currentStage = newStage;
+        data.progress = 0;
+
+        // Reward for stage
         int vkId = getVkId(p);
         if (vkId != -1) {
-            VKChatPlugin.getInstance().getApi().addReputation(vkId, rewardPerStage);
+            VKChatBridge.addPoints(vkId, rewardPerStage);
         }
 
-        // Уведомление
+        // Notification
         String completeMsg = ChatColor.translateAlternateColorCodes('&', msgComplete)
                 .replace("{next}", nextGoal)
                 .replace("{reward}", String.valueOf(rewardPerStage));
@@ -142,20 +176,25 @@ public class QuestListener implements Listener {
     }
 
     /**
-     * Выполняет финальный этап квеста.
+     * Completes the final quest stage.
      */
     private void completeFinalQuest(Player p) {
         int current = getStage(p);
-        p.getPersistentDataContainer().set(stageKey, PersistentDataType.INTEGER, current + 1);
+        int newStage = current + 1;
+        p.getPersistentDataContainer().set(stageKey, PersistentDataType.INTEGER, newStage);
         p.getPersistentDataContainer().set(progKey, PersistentDataType.INTEGER, 0);
 
-        // Финальная награда
+        QuestDataManager.PlayerQuestData data = questData.getData(p.getUniqueId());
+        data.currentStage = newStage;
+        data.progress = 0;
+
+        // Final reward
         int vkId = getVkId(p);
         if (vkId != -1) {
-            VKChatPlugin.getInstance().getApi().addReputation(vkId, finalRewardRep);
+            VKChatBridge.addPoints(vkId, finalRewardRep);
         }
 
-        // Предметы
+        // Items
         for (String itemStr : finalRewardItems) {
             String[] parts = itemStr.split(";");
             if (parts.length >= 2) {
@@ -167,7 +206,7 @@ public class QuestListener implements Listener {
             }
         }
 
-        // Уведомление
+        // Notification
         String finalMsg = ChatColor.translateAlternateColorCodes('&', msgFinal)
                 .replace("{reward}", String.valueOf(finalRewardRep));
         p.sendMessage(finalMsg);
@@ -178,12 +217,11 @@ public class QuestListener implements Listener {
         );
         p.playSound(p.getLocation(), Sound.UI_TOAST_CHALLENGE_COMPLETE, 1.5f, 0.8f);
 
-        // Проверка достижений
         checkAchievements(p);
     }
 
     /**
-     * Проверяет и выдаёт достижения.
+     * Checks and grants achievements.
      */
     private void checkAchievements(Player p) {
         ConfigurationSection achSec = plugin.getConfig().getConfigurationSection("achievements");
@@ -192,24 +230,25 @@ public class QuestListener implements Listener {
         int vkId = getVkId(p);
         if (vkId == -1) return;
 
-        // Выпускник
         unlockAchievement(p, vkId, "quest_complete");
 
-        // Спринтер (за 10 минут)
+        // Sprinter (under 10 minutes)
         long startTime = p.getPersistentDataContainer().getOrDefault(startTimeKey, PersistentDataType.LONG, 0L);
         if (startTime > 0 && System.currentTimeMillis() - startTime < 600000) {
             unlockAchievement(p, vkId, "quest_speedrun");
         }
 
-        // Безупречный (без смертей)
+        // Flawless (no deaths) - sync from YAML
+        QuestDataManager.PlayerQuestData data = questData.getData(p.getUniqueId());
         int deaths = p.getPersistentDataContainer().getOrDefault(deathKey, PersistentDataType.INTEGER, 0);
+        if (data.deaths > deaths) deaths = data.deaths;
         if (deaths == 0) {
             unlockAchievement(p, vkId, "quest_no_death");
         }
     }
 
     /**
-     * Разблокирует достижение и выдаёт награду.
+     * Unlocks an achievement and gives reward.
      */
     private void unlockAchievement(Player p, int vkId, String achievementId) {
         NamespacedKey achKey = new NamespacedKey(plugin, "ach_" + achievementId);
@@ -217,7 +256,10 @@ public class QuestListener implements Listener {
 
         p.getPersistentDataContainer().set(achKey, PersistentDataType.INTEGER, 1);
 
-        // Награда из конфига
+        QuestDataManager.PlayerQuestData data = questData.getData(p.getUniqueId());
+        data.achievements.put(achievementId, true);
+
+        // Reward from config
         ConfigurationSection achSec = plugin.getConfig().getConfigurationSection("achievements");
         if (achSec != null) {
             List<Map<?, ?>> list = achSec.getMapList("list");
@@ -225,7 +267,7 @@ public class QuestListener implements Listener {
                 if (achievementId.equals(ach.get("id"))) {
                     int rep = ach.containsKey("reward-rep") ? ((Number) ach.get("reward-rep")).intValue() : 0;
                     if (rep > 0) {
-                        VKChatPlugin.getInstance().getApi().addReputation(vkId, rep);
+                        VKChatBridge.addPoints(vkId, rep);
                     }
                     String name = ach.containsKey("name") ? (String) ach.get("name") : achievementId;
                     p.sendMessage(ChatColor.GOLD + "🏆 Достижение: " + name + " (+" + rep + " реп.)");
@@ -246,12 +288,11 @@ public class QuestListener implements Listener {
     }
 
     /**
-     * Обрабатывает прогресс квеста.
+     * Handles quest progress.
      */
     private void handleProgress(Player p, QuestStage stage, int currentProg) {
         int newProg = currentProg + 1;
         if (newProg >= stage.amount) {
-            // Этап завершён
             int nextStage = stage.id + 1;
             QuestStage next = stages.get(nextStage);
             String nextName = next != null ? next.name : "Финал!";
@@ -262,7 +303,9 @@ public class QuestListener implements Listener {
             }
         } else {
             p.getPersistentDataContainer().set(progKey, PersistentDataType.INTEGER, newProg);
-            // Прогресс-сообщение
+            QuestDataManager.PlayerQuestData data = questData.getData(p.getUniqueId());
+            data.progress = newProg;
+
             if (stage.message != null) {
                 String msg = ChatColor.translateAlternateColorCodes('&', stage.message)
                         .replace("{progress}", String.valueOf(newProg))
@@ -277,7 +320,7 @@ public class QuestListener implements Listener {
      */
     private int getVkId(Player p) {
         try {
-            return VKChatPlugin.getInstance().getApi().getLinkedVkId(p);
+            return VKChatBridge.getLinkedVkId(p);
         } catch (Exception e) {
             return -1;
         }
@@ -290,6 +333,16 @@ public class QuestListener implements Listener {
         Player p = e.getPlayer();
         int vkId = getVkId(p);
         if (vkId == -1) return;
+
+        // Sync start_time from YAML if PDC has none
+        QuestDataManager.PlayerQuestData data = questData.getData(p.getUniqueId());
+        if (data.startTime > 0) {
+            long pdcStart = p.getPersistentDataContainer().getOrDefault(startTimeKey, PersistentDataType.LONG, 0L);
+            if (pdcStart == 0) {
+                p.getPersistentDataContainer().set(startTimeKey, PersistentDataType.LONG, data.startTime);
+            }
+        }
+
         int stage = getStage(p);
         if (stage >= 0 && stage < stages.size()) {
             QuestStage current = stages.get(stage);
@@ -395,10 +448,13 @@ public class QuestListener implements Listener {
     @EventHandler
     public void onDeath(PlayerDeathEvent e) {
         Player p = e.getEntity();
-        // Считаем смерти для достижения "Безупречный"
         if (p.getPersistentDataContainer().has(stageKey, PersistentDataType.INTEGER)) {
             int deaths = p.getPersistentDataContainer().getOrDefault(deathKey, PersistentDataType.INTEGER, 0);
-            p.getPersistentDataContainer().set(deathKey, PersistentDataType.INTEGER, deaths + 1);
+            int newDeaths = deaths + 1;
+            p.getPersistentDataContainer().set(deathKey, PersistentDataType.INTEGER, newDeaths);
+
+            QuestDataManager.PlayerQuestData data = questData.getData(p.getUniqueId());
+            data.deaths = newDeaths;
         }
     }
 

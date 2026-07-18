@@ -2,7 +2,7 @@
 version: 3.2.0
 main: ru.example.vkchat.VKChatPlugin
 api-version: "1.16"
-softdepend: [Vault]
+softdepend: [Vault, PlaceholderAPI, VKChatNations, VKChatChat, VKChatDonate, VKChatJobs]
 commands:
   vklink:
     description: Получить уникальный код для привязки аккаунта ВКонтакте
@@ -58,18 +58,6 @@ commands:
     usage: /menu
     aliases: [меню, servermenu, mainmenu]
     permission: vkchat.player
-  mute:
-    description: Замутить игрока
-    usage: /mute <ник> <минуты> [причина]
-    permission: vkchat.moderation.warn
-  unmute:
-    description: Размутить игрока
-    usage: /unmute <ник>
-    permission: vkchat.moderation.warn
-  ignore:
-    description: Игнорировать игрока
-    usage: /ignore <ник>
-    permission: vkchat.player
   warn:
     description: Выдать предупреждение игроку
     usage: /warn <player> <reason>
@@ -101,6 +89,25 @@ commands:
     usage: /lastseen <игрок>
     aliases: [был, seen]
     permission: vkchat.player
+  admin:
+    description: Панель администратора VKChat
+    usage: /admin <dashboard|reload>
+    aliases: [админ]
+    permission: vkchat.admin
+  top:
+    description: Открыть GUI-рейтинг игроков
+    usage: /top [страница|rep|kills|miners]
+    aliases: [leaderboard, рейтинг, топ]
+    permission: vkchat.player
+  vote:
+    description: Посмотреть информацию о голосовании
+    usage: /vote
+    permission: vkchat.player
+  treasure:
+    description: Охота за сокровищами
+    usage: /treasure <start|compass>
+    permission: vkchat.player
+    aliases: [tresure, сокровище]
 permissions:
   vkchat.player:
     description: Доступ к базовым командам игрока

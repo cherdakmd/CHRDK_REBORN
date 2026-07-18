@@ -16,7 +16,8 @@ import org.bukkit.potion.PotionEffectType;
 import ru.example.vkchatmobs.VKChatMobsPlugin;
 import ru.example.vkchatmobs.listeners.MobListener;
 import ru.example.vkchatmobs.util.BloodMoonHelper;
-import ru.example.vkchatmobs.util.VKChatBridge;
+import ru.example.vkchat.util.VKChatBridge;
+import ru.example.vkchat.util.JobsBridge;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -128,7 +129,7 @@ public class MobDropFactory {
         int chance = plugin.getConfig().getInt("loot.crystal-scroll-chance", 5);
         if (ThreadLocalRandom.current().nextInt(100) >= chance) return;
 
-        org.bukkit.plugin.Plugin gearPlugin = Bukkit.getPluginManager().getPlugin("VKChatGear");
+        org.bukkit.plugin.Plugin gearPlugin = plugin.getGearPlugin();
         if (gearPlugin == null || !gearPlugin.isEnabled()) return;
 
         ItemStack dropToGive = rollCrystalOrScroll(gearPlugin, rank);
@@ -333,7 +334,7 @@ public class MobDropFactory {
     // ═══════════════════════════════════════════
 
     private int getJobLevels(Player p) {
-        return ru.example.vkchat.util.JobsBridge.getTotalLevel(p);
+        return JobsBridge.getTotalLevel(p);
     }
 
     private int getRankFromMob(LivingEntity mob) {

@@ -3,7 +3,7 @@ version: 3.2.0
 main: ru.example.vkchatchat.VKChatChatPlugin
 api-version: "1.16"
 depend: [VKChat]
-softdepend: [LuckPerms, VKChatNations]
+softdepend: [LuckPerms, VKChatNations, VKChatDonate, Vault]
 commands:
   channel:
     description: Переключить канал чата
@@ -22,8 +22,14 @@ commands:
   cc:
     description: Очистить чат
     permission: vkchat.chat.player
+  filter:
+    description: Управление фильтром чата
+    aliases: [ф]
+    permission: vkchat.chat.filter
 permissions:
   vkchat.chat.player:
     default: true
   vkchat.chat.mute:
+    default: op
+  vkchat.chat.filter:
     default: op

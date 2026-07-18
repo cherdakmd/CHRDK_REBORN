@@ -1,5 +1,7 @@
 package ru.example.vkchatmobs.util;
 
+import ru.example.vkchat.util.VKChatBridge;
+
 /**
  * Единая точка проверки состояния Кровавой Луны.
  *

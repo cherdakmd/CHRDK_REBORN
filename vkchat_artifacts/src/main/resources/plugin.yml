@@ -3,12 +3,7 @@ version: 3.2.0
 main: ru.example.vkchatartifacts.VKChatArtifactsPlugin
 api-version: "1.16"
 depend: [VKChat]
-commands:
-  artifacts:
-    description: Открыть меню покупки кастомных MMO-артефактов и эликсиров
-    usage: /artifacts
-    aliases: [артефакты, зелья]
-    permission: vkchat.artifacts.player
+softdepend: [VKChatGear, VKChatMarket]
 permissions:
   vkchat.artifacts.player:
     description: Доступ к просмотру и использованию магазина артефактов

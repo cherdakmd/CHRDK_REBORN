@@ -7,7 +7,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
-import ru.example.vkchat.VKChatPlugin;
+import ru.example.vkchat.util.VKChatBridge;
 
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -65,9 +65,9 @@ public class QuizListener implements Listener {
             activeQuestion = null;
             activeAnswer = null;
 
-            int vkId = VKChatPlugin.getInstance().getApi().getLinkedVkId(p);
+            int vkId = VKChatBridge.getLinkedVkId(p);
             if (vkId != -1) {
-                VKChatPlugin.getInstance().getApi().addReputation(vkId, 50);
+                VKChatBridge.addPoints(vkId, 50);
             }
 
             Bukkit.getScheduler().runTask(plugin, () -> {

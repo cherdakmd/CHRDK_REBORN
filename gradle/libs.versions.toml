@@ -1,0 +1,25 @@
+[versions]
+spigot = "1.16.5-R0.1-SNAPSHOT"
+json = "20230227"
+hikaricp = "4.0.3"
+jbcrypt = "0.4"
+luckperms-api = "5.4"
+placeholderapi = "2.11.5"
+vaultapi = "1.7"
+junit = "5.10.0"
+mockito = "5.7.0"
+jsr305 = "3.0.2"
+
+[libraries]
+spigot-api = { module = "org.spigotmc:spigot-api", version.ref = "spigot" }
+json = { module = "org.json:json", version.ref = "json" }
+hikaricp = { module = "com.zaxxer:HikariCP", version.ref = "hikaricp" }
+jbcrypt = { module = "org.mindrot:jbcrypt", version.ref = "jbcrypt" }
+luckperms-api = { module = "net.luckperms:api", version.ref = "luckperms-api" }
+placeholderapi = { module = "me.clip:placeholderapi", version.ref = "placeholderapi" }
+vaultapi = { module = "com.github.MilkBowl:VaultAPI", version.ref = "vaultapi" }
+junit-api = { module = "org.junit.jupiter:junit-jupiter-api", version.ref = "junit" }
+junit-engine = { module = "org.junit.jupiter:junit-jupiter-engine", version.ref = "junit" }
+mockito-core = { module = "org.mockito:mockito-core", version.ref = "mockito" }
+mockito-junit-jupiter = { module = "org.mockito:mockito-junit-jupiter", version.ref = "mockito" }
+jsr305 = { module = "com.google.code.findbugs:jsr305", version.ref = "jsr305" }

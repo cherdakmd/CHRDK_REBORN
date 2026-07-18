@@ -11,6 +11,7 @@ import org.bukkit.persistence.PersistentDataType;
 import ru.example.vkchatmobs.VKChatMobsPlugin;
 import ru.example.vkchatmobs.listeners.MobListener;
 import ru.example.vkchat.VKChatPlugin;
+import ru.example.vkchat.util.JobsBridge;
 
 import java.util.Arrays;
 import java.util.List;
@@ -123,7 +124,7 @@ public class ContractManager {
     }
 
     public int getHunterJobLevel(Player p) {
-        int level = ru.example.vkchat.util.JobsBridge.getLevel(p, "hunter");
+        int level = JobsBridge.getLevel(p, "hunter");
         return level > 0 ? level : 1;
     }
 
@@ -231,9 +232,9 @@ public class ContractManager {
             pdc.set(completedKey, PersistentDataType.INTEGER, getCompletedContracts(p) + 1);
 
             // Выдаем награды
-            int vkId = ru.example.vkchatmobs.util.VKChatBridge.getLinkedVkId(p);
+            int vkId = ru.example.vkchat.util.VKChatBridge.getLinkedVkId(p);
             if (vkId != -1) {
-                ru.example.vkchatmobs.util.VKChatBridge.addPoints(vkId, contract.getRepReward());
+                ru.example.vkchat.util.VKChatBridge.addPoints(vkId, contract.getRepReward());
             }
 
             p.sendMessage(" ");

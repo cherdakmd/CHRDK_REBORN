@@ -124,7 +124,7 @@ public class GearEnhancements {
     // ═══════════════════════════════════════════════════
 
     public void checkDurabilityWarning(Player p) {
-        if (!plugin.getConfig().getBoolean("enhancements.durability-warning", true)) return;
+        if (!plugin.getRuneMarketConfig().getBoolean("enhancements.durability-warning", true)) return;
 
         long now = System.currentTimeMillis();
         Long lastWarn = durabilityWarnCooldown.get(p.getUniqueId());
@@ -153,7 +153,7 @@ public class GearEnhancements {
     // ═══════════════════════════════════════════════════
 
     public void checkSetCompletion(Player p) {
-        if (!plugin.getConfig().getBoolean("enhancements.set-completion-notification", true)) return;
+        if (!plugin.getRuneMarketConfig().getBoolean("enhancements.set-completion-notification", true)) return;
 
         PersistentDataContainer pdc;
         Map<String, Integer> setCounts = new HashMap<>();
@@ -372,7 +372,7 @@ public class GearEnhancements {
     // ═══════════════════════════════════════════════════
 
     public void announceNamedGear(Player p, ItemStack item, String rarity) {
-        if (!plugin.getConfig().getBoolean("enhancements.named-gear-announce", true)) return;
+        if (!plugin.getRuneMarketConfig().getBoolean("enhancements.named-gear-announce", true)) return;
 
         String name = GearManager.getNamedGearName(item);
         if (name == null) return;
@@ -396,7 +396,7 @@ public class GearEnhancements {
     // ═══════════════════════════════════════════════════
 
     public double getSetBonusMultiplier(Player p) {
-        if (!plugin.getConfig().getBoolean("enhancements.set-salvage-bonus", true)) return 1.0;
+        if (!plugin.getRuneMarketConfig().getBoolean("enhancements.set-salvage-bonus", true)) return 1.0;
 
         int setCount = 0;
         String currentSet = null;

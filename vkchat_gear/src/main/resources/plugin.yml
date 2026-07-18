@@ -3,6 +3,7 @@ version: 3.2.0
 main: ru.example.vkchatgear.VKChatGearPlugin
 api-version: "1.16"
 depend: [VKChat]
+softdepend: [VKChatJobs, ExcellentEnchants]
 commands:
   forge:
     description: Перековать (сгенерировать) MMO-предмет за репутацию ВК
@@ -21,6 +22,11 @@ commands:
   salvage:
     description: Разобрать (утилизировать) MMO-предмет на репутацию ВК и опыт Minecraft
     aliases: [разбор, утилизация]
+    permission: vkchat.gear.player
+
+  artifacts:
+    description: Управление артефактами — мистическими предметами силы
+    aliases: [артефакты]
     permission: vkchat.gear.player
 permissions:
   vkchat.gear.admin:

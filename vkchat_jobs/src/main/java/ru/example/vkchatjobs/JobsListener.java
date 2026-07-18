@@ -1,7 +1,7 @@
 package ru.example.vkchatjobs;
 
 import ru.example.vkchat.api.VKCommandEvent;
-import ru.example.vkchat.VKChatPlugin;
+import ru.example.vkchat.util.VKChatBridge;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -21,6 +21,8 @@ import org.bukkit.event.inventory.BrewEvent;
 import org.bukkit.event.inventory.CraftItemEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerFishEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -44,12 +46,22 @@ public class JobsListener implements Listener {
     }
 
     @EventHandler
+    public void onJoin(PlayerJoinEvent e) {
+        plugin.rebuildJobSkills(e.getPlayer().getUniqueId());
+    }
+
+    @EventHandler
+    public void onQuit(PlayerQuitEvent e) {
+        plugin.clearJobSkills(e.getPlayer().getUniqueId());
+    }
+
+    @EventHandler
     public void onVKCommand(VKCommandEvent e) {
         if (e.getCommand().equals("!работы") || e.getCommand().equals("!jobs")) {
             e.setCancelled(true);
-            UUID targetUuid = VKChatPlugin.getInstance().getApi().getUuidByVkId(e.getSenderVkId());
+            UUID targetUuid = VKChatBridge.getUuidByVkId(e.getSenderVkId());
             if (targetUuid == null) {
-                VKChatPlugin.getInstance().getApi().sendMessage(e.getPeerId(), "❌ Твой аккаунт не привязан к серверу Minecraft!");
+                VKChatBridge.sendMessage(e.getPeerId(), "❌ Твой аккаунт не привязан к серверу Minecraft!");
                 return;
             }
 
@@ -73,7 +85,7 @@ public class JobsListener implements Listener {
                     " Рыбак: " + fi + " ур.\n\n" +
                     " Усталость: " + fatigue + " / " + maxF;
 
-            VKChatPlugin.getInstance().getApi().sendMessage(e.getPeerId(), msg);
+            VKChatBridge.sendMessage(e.getPeerId(), msg);
         }
     }
 
@@ -546,6 +558,7 @@ public class JobsListener implements Listener {
 
             plugin.getJobsDataManager().removeSkillPoint(p.getUniqueId(), job);
             plugin.getJobsDataManager().unlockSkill(p.getUniqueId(), job, sd.id);
+            plugin.rebuildJobSkills(p.getUniqueId());
             p.playSound(p.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1f, 2f);
             p.sendMessage(org.bukkit.ChatColor.GREEN + "Вы изучили навык: " + sd.name + "!");
             plugin.getSkillManager().openSkillMenu(p, job);
@@ -682,9 +695,9 @@ public class JobsListener implements Listener {
 
     private void rewardVKRep(Player p, int amount) {
         try {
-            int vkId = VKChatPlugin.getInstance().getApi().getLinkedVkId(p);
+            int vkId = VKChatBridge.getLinkedVkId(p);
             if (vkId != -1) {
-                VKChatPlugin.getInstance().getApi().addReputation(vkId, amount);
+                VKChatBridge.addPoints(vkId, amount);
             }
         } catch (Exception ignored) {}
     }

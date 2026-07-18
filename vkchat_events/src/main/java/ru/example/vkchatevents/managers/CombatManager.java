@@ -5,7 +5,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
-import ru.example.vkchat.VKChatPlugin;
+import ru.example.vkchat.util.VKChatBridge;
 import ru.example.vkchatevents.VKChatEventsPlugin;
 
 import java.util.*;
@@ -60,8 +60,8 @@ public class CombatManager implements Listener {
         if (kills >= 100) {
             Player p = org.bukkit.Bukkit.getPlayer(uuid);
             if (p != null) {
-                VKChatPlugin.getInstance().getApi().addReputation(
-                        VKChatPlugin.getInstance().getApi().getLinkedVkId(p), 1000);
+                VKChatBridge.addPoints(
+                        VKChatBridge.getLinkedVkId(p), 1000);
             }
         }
     }

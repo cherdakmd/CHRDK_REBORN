@@ -8,7 +8,7 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-import ru.example.vkchat.VKChatPlugin;
+import ru.example.vkchat.util.VKChatBridge;
 import ru.example.vkchatoffline.VKChatOfflinePlugin;
 
 import java.io.File;
@@ -25,6 +25,7 @@ public class ShiftManager {
     private final Map<Integer, ShiftData> activeShifts = new ConcurrentHashMap<>();
     private final Map<Integer, Integer> shiftHistory = new ConcurrentHashMap<>();
     private final Map<Integer, Long> lastShiftEnd = new ConcurrentHashMap<>();
+    private final Map<Integer, Long> lastInGameShiftStart = new ConcurrentHashMap<>();
     private final File shiftsFile;
     private FileConfiguration shiftsCfg;
 
@@ -67,22 +68,61 @@ public class ShiftManager {
     }
 
     private void notifyPlayer(int vkId, String shiftKey) {
+        UUID uuid = getPlayerUuid(vkId);
+        Player onlinePlayer = uuid != null ? Bukkit.getPlayer(uuid) : null;
+        if (onlinePlayer != null && onlinePlayer.isOnline()) {
+            List<ItemStack> items = generateShiftItems(shiftKey);
+            plugin.getStashManager().addItems(onlinePlayer.getUniqueId(), items);
+            notifyInGamePlayer(onlinePlayer, shiftKey, items.size());
+        }
         try {
-            VKChatPlugin.getInstance().getApi().sendMessage(vkId,
+            VKChatBridge.sendMessage(vkId,
                     "⛏ Смена '" + getShiftName(shiftKey) + "' завершена! Напиши !шахта чтобы забрать награды.");
-            VKChatPlugin.getInstance().getApi().sendKeyboard(vkId,
+            VKChatBridge.sendKeyboard(vkId,
                     "Смена завершена!", Keyboards.shiftDone());
         } catch (Exception e) { plugin.getLogger().warning("VK notify failed: " + e.getMessage()); }
     }
 
+    private void notifyInGamePlayer(Player player, String shiftKey, int itemCount) {
+        try {
+            String msg = "§a⛏ Смена '" + getShiftName(shiftKey) + "' завершена! §e+" + itemCount + " предметов в /stash";
+            player.spigot().sendMessage(
+                    net.md_5.bungee.api.ChatMessageType.ACTION_BAR,
+                    net.md_5.bungee.api.chat.TextComponent.fromLegacyText(msg));
+        } catch (Exception ignored) {}
+    }
+
+    private List<ItemStack> generateShiftItems(String key) {
+        List<ItemStack> items = new ArrayList<>();
+        Random rnd = ThreadLocalRandom.current();
+        List<String> resList = plugin.getConfig().getStringList("shifts." + key + ".resources");
+        for (String entry : resList) {
+            String[] parts = entry.split(":");
+            if (parts.length == 3) {
+                try {
+                    Material mat = Material.valueOf(parts[0]);
+                    int min = Integer.parseInt(parts[1]);
+                    int max = Integer.parseInt(parts[2]);
+                    int amount = rnd.nextInt(max - min + 1) + min;
+                    items.add(new ItemStack(mat, amount));
+                } catch (Exception ignored) {}
+            }
+        }
+        return items;
+    }
+
     private void notifyProgress(int vkId, long hoursLeft) {
         try {
-            VKChatPlugin.getInstance().getApi().sendMessage(vkId,
+            VKChatBridge.sendMessage(vkId,
                     "⛏ Ты на середине смены! Осталось примерно " + hoursLeft + " ч. Продолжай копать!");
         } catch (Exception e) { plugin.getLogger().warning("VK progress notify failed: " + e.getMessage()); }
     }
 
     public boolean startShift(int vkId, String shiftKey) {
+        return startShift(vkId, shiftKey, false);
+    }
+
+    public boolean startShift(int vkId, String shiftKey, boolean inGame) {
         if (activeShifts.containsKey(vkId)) {
             ShiftData existing = activeShifts.get(vkId);
             if (!existing.completed) return false;
@@ -94,6 +134,10 @@ public class ShiftManager {
             if (lastEnd != null && System.currentTimeMillis() - lastEnd < cooldownMinutes * 60000L) {
                 return false;
             }
+        }
+
+        if (inGame) {
+            lastInGameShiftStart.put(vkId, System.currentTimeMillis());
         }
 
         int minutes = plugin.getConfig().getInt("shifts." + shiftKey + ".duration-minutes", 60);
@@ -168,6 +212,57 @@ public class ShiftManager {
         return getCooldownRemaining(vkId) == 0;
     }
 
+    public boolean canStartInGameShift(int vkId) {
+        Long lastStart = lastInGameShiftStart.get(vkId);
+        if (lastStart == null) return true;
+        int cooldownMinutes = plugin.getConfig().getInt("shift.cooldown-minutes", 5);
+        return System.currentTimeMillis() - lastStart >= cooldownMinutes * 60000L;
+    }
+
+    public long getInGameCooldownRemaining(int vkId) {
+        Long lastStart = lastInGameShiftStart.get(vkId);
+        if (lastStart == null) return 0;
+        int cooldownMinutes = plugin.getConfig().getInt("shift.cooldown-minutes", 5);
+        long elapsed = System.currentTimeMillis() - lastStart;
+        long cooldown = cooldownMinutes * 60000L;
+        if (elapsed >= cooldown) return 0;
+        return cooldown - elapsed;
+    }
+
+    public boolean hasEnoughRep(int vkId) {
+        int cost = plugin.getConfig().getInt("shift.rep-cost", 100);
+        if (cost <= 0) return true;
+        try {
+            return VKChatBridge.getReputation(vkId) >= cost;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    public boolean deductRepCost(int vkId) {
+        int cost = plugin.getConfig().getInt("shift.rep-cost", 100);
+        if (cost <= 0) return true;
+        try {
+            int current = VKChatBridge.getReputation(vkId);
+            if (current < cost) return false;
+            VKChatBridge.takeReputation(vkId, cost);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    public String formatCooldown(long ms) {
+        long mins = ms / 60000;
+        long secs = (ms % 60000) / 1000;
+        if (mins > 0) return mins + " мин " + secs + " сек";
+        return secs + " сек";
+    }
+
+    private UUID getPlayerUuid(int vkId) {
+        return VKChatBridge.getUuidByVkId(vkId);
+    }
+
     public List<ItemStack> claimRewards(int vkId) {
         ShiftData sd = activeShifts.get(vkId);
         if (sd == null || !sd.completed || sd.claimed) return Collections.emptyList();
@@ -205,7 +300,7 @@ public class ShiftManager {
         if (donateMult > 1.0) rep = (int)(rep * donateMult);
 
         try {
-            VKChatPlugin.getInstance().getApi().addReputation(vkId, rep);
+            VKChatBridge.addPoints(vkId, rep);
         } catch (Exception e) {
             plugin.getLogger().warning("Ошибка начисления репутации за смену vkId=" + vkId + ": " + e.getMessage());
         }
@@ -242,7 +337,7 @@ public class ShiftManager {
                 : consecutive >= 3 ? " ⚡ УДАРНАЯ СЕРИЯ ×" + consecutive + "!" + " +" + bonusRep + " бонус (+75%)!"
                 : "";
         try {
-            VKChatPlugin.getInstance().getApi().sendMessage(vkId,
+            VKChatBridge.sendMessage(vkId,
                     "⛏ Награда за смену '" + getShiftName(key) + "': +" + rep + " репутации." + bonusMsg + rareMsg + " Ресурсы в /stash.");
         } catch (Exception ignored) {}
 
@@ -309,6 +404,11 @@ public class ShiftManager {
                 lastShiftEnd.put(Integer.parseInt(key), shiftsCfg.getLong("lastend." + key));
             }
         }
+        if (shiftsCfg.contains("ingame-start")) {
+            for (String key : shiftsCfg.getConfigurationSection("ingame-start").getKeys(false)) {
+                lastInGameShiftStart.put(Integer.parseInt(key), shiftsCfg.getLong("ingame-start." + key));
+            }
+        }
     }
 
     public void saveShifts() {
@@ -328,13 +428,16 @@ public class ShiftManager {
         for (Map.Entry<Integer, Long> e : lastShiftEnd.entrySet()) {
             shiftsCfg.set("lastend." + e.getKey(), e.getValue());
         }
+        for (Map.Entry<Integer, Long> e : lastInGameShiftStart.entrySet()) {
+            shiftsCfg.set("ingame-start." + e.getKey(), e.getValue());
+        }
         try { shiftsCfg.save(shiftsFile); } catch (IOException e) {
             plugin.getLogger().warning("Ошибка сохранения shifts.yml: " + e.getMessage());
         }
     }
 
     private double getDonateShiftMultiplier(int vkId) {
-        java.util.UUID uuid = VKChatPlugin.getInstance().getApi().getUuidByVkId(vkId);
+        java.util.UUID uuid = VKChatBridge.getUuidByVkId(vkId);
         if (uuid == null) return 1.0;
         Player p = Bukkit.getPlayer(uuid);
         if (p == null) return 1.0;

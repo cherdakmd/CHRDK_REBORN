@@ -7,7 +7,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
-import ru.example.vkchat.VKChatPlugin;
+import ru.example.vkchat.util.VKChatBridge;
 import ru.example.vkchatevents.VKChatEventsPlugin;
 
 import java.util.*;
@@ -51,9 +51,9 @@ public class ChallengeManager implements Listener {
             int target = currentDailyChallenge.equals("mine_stone") ? 64 : 128;
             if (count >= target && !dailyCompleted.getOrDefault(uuid, Collections.emptySet()).contains(currentDailyChallenge)) {
                 dailyCompleted.computeIfAbsent(uuid, k -> ConcurrentHashMap.newKeySet()).add(currentDailyChallenge);
-                int vkId = VKChatPlugin.getInstance().getApi().getLinkedVkId(p);
+                int vkId = VKChatBridge.getLinkedVkId(p);
                 if (vkId != -1) {
-                    VKChatPlugin.getInstance().getApi().addReputation(vkId, 300);
+                    VKChatBridge.addPoints(vkId, 300);
                     p.sendMessage("§a🎯 Испытание выполнено! +300 реп!");
                 }
             }
@@ -73,9 +73,9 @@ public class ChallengeManager implements Listener {
 
             if (count >= 50 && !dailyCompleted.getOrDefault(uuid, Collections.emptySet()).contains("kill_mobs")) {
                 dailyCompleted.computeIfAbsent(uuid, k -> ConcurrentHashMap.newKeySet()).add("kill_mobs");
-                int vkId = VKChatPlugin.getInstance().getApi().getLinkedVkId(p);
+                int vkId = VKChatBridge.getLinkedVkId(p);
                 if (vkId != -1) {
-                    VKChatPlugin.getInstance().getApi().addReputation(vkId, 300);
+                    VKChatBridge.addPoints(vkId, 300);
                     p.sendMessage("§a🎯 Испытание выполнено! +300 реп!");
                 }
             }

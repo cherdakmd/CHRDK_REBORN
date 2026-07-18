@@ -23,8 +23,8 @@ import org.bukkit.block.Block;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.inventory.meta.ItemMeta;
-import ru.example.vkchat.VKChatPlugin;
 import ru.example.vkchat.api.VKCommandEvent;
+import ru.example.vkchat.util.VKChatBridge;
 import ru.example.vkchatevents.VKChatEventsPlugin;
 import ru.example.vkchatevents.util.ClaimProtection;
 import ru.example.vkchatevents.cataclysm.CataclysmRegistry;
@@ -1101,15 +1101,15 @@ public class WrathManager implements Listener {
             int cost = plugin.getConfig().getInt("wrath.vk-event-cost", 1500);
 
             if (args.length < 2) {
-                VKChatPlugin.getInstance().getApi().sendMessage(peer,
+                VKChatBridge.sendMessage(peer,
                         "⛏️ Использование: !ивент <" + cataclysmRegistry.getAvailableTypes() + ">\n" +
                         "💰 Стоимость запуска любого события — " + cost + " репутации ВК!");
                 return;
             }
 
-            int currentRep = VKChatPlugin.getInstance().getApi().getReputation(vkId);
+            int currentRep = VKChatBridge.getReputation(vkId);
             if (currentRep < cost) {
-                VKChatPlugin.getInstance().getApi().sendMessage(peer, "❌ Недостаточно репутации! Требуется " + cost + " репутации ВК (у тебя: " + currentRep + ").");
+                VKChatBridge.sendMessage(peer, "❌ Недостаточно репутации! Требуется " + cost + " репутации ВК (у тебя: " + currentRep + ").");
                 return;
             }
 
@@ -1118,46 +1118,46 @@ public class WrathManager implements Listener {
             // Спец-обработка: босс
             if (typeArg.equals("босс") || typeArg.equals("boss")) {
                 if (isActive()) {
-                    VKChatPlugin.getInstance().getApi().sendMessage(peer, "❌ Аватар Гнева Богов уже бродит по серверу!");
+                    VKChatBridge.sendMessage(peer, "❌ Аватар Гнева Богов уже бродит по серверу!");
                     return;
                 }
-                VKChatPlugin.getInstance().getApi().takeReputation(vkId, cost);
+                VKChatBridge.takeReputation(vkId, cost);
                 Bukkit.getScheduler().runTask(plugin, this::tryStartWrath);
-                VKChatPlugin.getInstance().getApi().sendMessage(peer, "✅ Вы призвали Аватара Гнева Богов за " + cost + " репутации!");
+                VKChatBridge.sendMessage(peer, "✅ Вы призвали Аватара Гнева Богов за " + cost + " репутации!");
                 return;
             }
 
             // Разрешаем алиас через реестр
             String cataclysmId = cataclysmRegistry.resolveAlias(typeArg);
             if (cataclysmId == null) {
-                VKChatPlugin.getInstance().getApi().sendMessage(peer, "❌ Неверный тип катаклизма! Доступные: " + cataclysmRegistry.getAvailableTypes() + ".");
+                VKChatBridge.sendMessage(peer, "❌ Неверный тип катаклизма! Доступные: " + cataclysmRegistry.getAvailableTypes() + ".");
                 return;
             }
 
             if (activeCataclysm != null) {
-                VKChatPlugin.getInstance().getApi().sendMessage(peer, "❌ На сервере уже бушует катаклизм!");
+                VKChatBridge.sendMessage(peer, "❌ На сервере уже бушует катаклизм!");
                 return;
             }
 
-            UUID uuid = VKChatPlugin.getInstance().getApi().getUuidByVkId(vkId);
+            UUID uuid = VKChatBridge.getUuidByVkId(vkId);
             if (uuid == null) {
-                VKChatPlugin.getInstance().getApi().sendMessage(peer, "❌ Твой аккаунт не привязан к серверу Minecraft!");
+                VKChatBridge.sendMessage(peer, "❌ Твой аккаунт не привязан к серверу Minecraft!");
                 return;
             }
 
             Player p = Bukkit.getPlayer(uuid);
             if (p == null || !p.isOnline()) {
-                VKChatPlugin.getInstance().getApi().sendMessage(peer, "❌ Для покупки мирового ивента ты должен находиться на сервере онлайн!");
+                VKChatBridge.sendMessage(peer, "❌ Для покупки мирового ивента ты должен находиться на сервере онлайн!");
                 return;
             }
 
-            VKChatPlugin.getInstance().getApi().takeReputation(vkId, cost);
+            VKChatBridge.takeReputation(vkId, cost);
             Bukkit.getScheduler().runTask(plugin, () -> startCataclysm(cataclysmId));
 
             CataclysmRegistry.CataclysmDef def = cataclysmRegistry.getDef(cataclysmId);
             String name = def != null ? def.getDisplayName() : cataclysmId;
             String category = (def != null && def.isPositive()) ? "благословение" : "событие";
-            VKChatPlugin.getInstance().getApi().sendMessage(peer, "✅ Вы запустили " + category + " '" + name + "' за " + cost + " репутации!");
+            VKChatBridge.sendMessage(peer, "✅ Вы запустили " + category + " '" + name + "' за " + cost + " репутации!");
         }
     }
 }

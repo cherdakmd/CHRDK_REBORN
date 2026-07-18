@@ -1,0 +1,57 @@
+﻿# MARKET v5.0 — 12 Categories
+config-version: 7
+
+settings:
+  buy-spread: 0.20
+  sell-spread: 0.10
+  price-multiplier: 1.0
+  dynamic-pricing: true
+  max-dynamic-shift: 0.50
+  dynamic-elasticity: 50
+  min-price: 1
+  max-price: 10000
+  bulk-discount-threshold-1: 64
+  bulk-discount-1: 0.05
+  bulk-discount-threshold-2: 128
+  bulk-discount-2: 0.10
+  bulk-discount-threshold-3: 256
+  bulk-discount-3: 0.15
+
+dynamics:
+  decay-half-life-minutes: 30
+  max-history-minutes: 120
+  mean-reversion-rate: 0.05
+  momentum-factor: 0.15
+  momentum-price-impact: 0.10
+  bulk-base: 1.0
+  bulk-scale: 0.02
+  bulk-cap: 2.0
+  noise-level: 0.02
+  buy-impact: 1.0
+  sell-impact: 1.2
+  whale-threshold: 64
+  seasonal:
+    enabled: false
+    hours:
+      morning: 0.95
+      afternoon: 1.0
+      evening: 1.05
+      night: 1.10
+  category-volatility:
+    ores: 1.2
+    food: 0.8
+    wood: 1.0
+    blocks: 0.9
+    stones: 0.7
+    mobs: 1.3
+    armor: 1.1
+    weapons: 1.3
+    tools: 1.0
+    decor: 0.6
+    potions: 1.1
+    nether: 1.4
+
+categories:
+  ores:
+    name: [char]0x2547 + [char]0x26CF + " Rudy i slitki"
+    material: IRON_INGOT

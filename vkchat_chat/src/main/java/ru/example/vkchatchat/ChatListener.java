@@ -8,7 +8,8 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
-import ru.example.vkchat.VKChatPlugin;
+import ru.example.vkchat.util.VKChatBridge;
+import net.milkbowl.vault.chat.Chat;
 
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -36,7 +37,33 @@ public class ChatListener implements Listener {
 
         if (!checkAntiSpam(p, msg)) return;
 
-        msg = applyFilter(msg);
+        if (plugin.getWordFilter().isTempMuted(p.getUniqueId())) {
+            p.sendMessage(ChatColor.RED + "Вы замучены за нарушение правил чата.");
+            return;
+        }
+
+        WordFilter.FilterResult filterResult = plugin.getWordFilter().check(msg);
+        if (filterResult != null && filterResult.filtered) {
+            String mode = plugin.getWordFilter().getMode();
+            switch (mode) {
+                case "delete":
+                    if (plugin.getWordFilter().isWarnPlayer()) {
+                        p.sendMessage(ChatColor.RED + "Ваше сообщение удалено за нецензурную лексику.");
+                    }
+                    return;
+                case "mute":
+                    plugin.getWordFilter().tempMute(p.getUniqueId());
+                    p.sendMessage(ChatColor.RED + "Вы замучены на " + plugin.getWordFilter().getMuteDuration() + " сек. за нецензурную лексику.");
+                    return;
+                case "replace":
+                default:
+                    msg = plugin.getWordFilter().applyFilter(msg);
+                    if (plugin.getWordFilter().isWarnPlayer()) {
+                        p.sendMessage(ChatColor.YELLOW + "Ваше сообщение было отфильтровано.");
+                    }
+                    break;
+            }
+        }
 
         String prefix = getPrefix(p);
         String name = p.getName();
@@ -97,16 +124,6 @@ public class ChatListener implements Listener {
         return "&f";
     }
 
-    private String applyFilter(String msg) {
-        if (!plugin.getConfig().getBoolean("chat-filter.enabled", false)) return msg;
-        List<String> words = plugin.getConfig().getStringList("chat-filter.words");
-        for (String word : words) {
-            if (word == null || word.isEmpty()) continue;
-            msg = msg.replaceAll("(?i)" + Pattern.quote(word), "***");
-        }
-        return msg;
-    }
-
     private String applyMentions(String msg, Player sender, String color) {
         for (Player target : Bukkit.getOnlinePlayers()) {
             if (target.equals(sender)) continue;
@@ -141,7 +158,7 @@ public class ChatListener implements Listener {
         try {
             String vkFormat = plugin.getConfig().getString("vk.format-to-vk", "{player}: {message}")
                     .replace("{player}", player).replace("{message}", msg);
-            VKChatPlugin.getInstance().getApi().sendToMainChat(vkFormat);
+            VKChatBridge.sendToMainChat(vkFormat);
         } catch (Exception ignored) {}
     }
 
@@ -179,8 +196,8 @@ public class ChatListener implements Listener {
 
     private String getPrefix(Player p) {
         try {
-            net.milkbowl.vault.chat.Chat vc = Bukkit.getServicesManager()
-                    .getRegistration(net.milkbowl.vault.chat.Chat.class).getProvider();
+            Chat vc = Bukkit.getServicesManager()
+                    .getRegistration(Chat.class).getProvider();
             if (vc != null) {
                 String pr = vc.getPlayerPrefix(p);
                 if (pr != null && !pr.isEmpty()) return pr;

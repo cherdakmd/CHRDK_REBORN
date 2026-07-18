@@ -11,7 +11,8 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
 import ru.example.vkchatnations.VKChatNationsPlugin;
 import ru.example.vkchatnations.data.ChunkClaim;
-import ru.example.vkchat.VKChatPlugin;
+
+import ru.example.vkchat.util.VKChatBridge;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -92,17 +93,17 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
                 p.sendMessage(ChatColor.RED + "⏳ Кулдаун: " + (left / 60000) + " мин " + ((left % 60000) / 1000) + " сек");
                 return true;
             }
-            int vkId = VKChatPlugin.getInstance().getApi().getLinkedVkId(p);
-            if (vkId == -1 && !ru.example.vkchat.util.VKChatBridge.hasPass(p)) {
+            int vkId = VKChatBridge.getLinkedVkId(p);
+            if (!VKChatBridge.hasVkOrPass(p)) {
                 p.sendMessage(ChatColor.RED + "❌ Привяжите ВК! (/vklink)");
                 return true;
             }
             int cost = plugin.getConfig().getInt("claim.teleport-cost", 20);
-            if (VKChatPlugin.getInstance().getApi().getReputation(vkId) < cost) {
+            if (VKChatBridge.getReputation(vkId) < cost) {
                 p.sendMessage(ChatColor.RED + "❌ Нужно " + cost + " репутации для телепорта к дому.");
                 return true;
             }
-            VKChatPlugin.getInstance().getApi().takeReputation(vkId, cost);
+            VKChatBridge.takeReputation(vkId, cost);
             homeCooldown.put(p.getUniqueId(), System.currentTimeMillis());
             World w = Bukkit.getWorld(claim.getWorldName());
             if (w != null) {

@@ -23,6 +23,9 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import ru.example.vkchatartifacts.VKChatArtifactsPlugin;
 import ru.example.vkchat.api.events.ReputationChangeEvent;
+import ru.example.vkchat.VKChatPlugin;
+import ru.example.vkchat.util.VKChatBridge;
+import ru.example.vkchatgear.VKChatGearPlugin;
 
 import java.util.Iterator;
 import java.util.List;
@@ -119,6 +122,8 @@ public class ArtifactListener implements Listener {
                     if (System.currentTimeMillis() > expire) {
                         item.setAmount(0);
                         p.sendMessage(org.bukkit.ChatColor.RED + "Твой Хрупкий Артефакт рассыпался в пыль!");
+                        plugin.incrementArtifactsDisintegrated();
+                        plugin.incrementPlayerDisintegratedCount(p.getUniqueId());
                         continue;
                     }
                 }
@@ -233,7 +238,7 @@ public class ArtifactListener implements Listener {
                 org.bukkit.plugin.Plugin gearPlugin = org.bukkit.Bukkit.getPluginManager().getPlugin("VKChatGear");
                 if (gearPlugin != null && gearPlugin.isEnabled()) {
                     try {
-                        ru.example.vkchatgear.VKChatGearPlugin gp = (ru.example.vkchatgear.VKChatGearPlugin) gearPlugin;
+                        VKChatGearPlugin gp = (VKChatGearPlugin) gearPlugin;
                         // Проверяем, надет ли какой-либо полный сет
                         for (String setKey : gp.getConfig().getConfigurationSection("sets").getKeys(false)) {
                             if (gp.getGearManager().isWearingSet(p, setKey)) {
@@ -398,6 +403,8 @@ public class ArtifactListener implements Listener {
                     p.sendMessage(org.bukkit.ChatColor.DARK_RED + "☠ Проклятие поглотило артефакт! Он рассыпался в прах!");
                     p.getWorld().spawnParticle(org.bukkit.Particle.SMOKE_LARGE, p.getLocation().add(0, 1, 0), 20, 0.3, 0.3, 0.3, 0.05);
                     p.playSound(p.getLocation(), org.bukkit.Sound.ENTITY_WITHER_DEATH, 0.5f, 1.5f);
+                    plugin.incrementArtifactsDisintegrated();
+                    plugin.incrementPlayerDisintegratedCount(p.getUniqueId());
                 } else if (growth == warn90) {
                     p.sendMessage(org.bukkit.ChatColor.DARK_RED + "☠ Проклятие почти поглотило артефакт! (90%)");
                 } else if (growth == warn75) {
@@ -509,7 +516,7 @@ public class ArtifactListener implements Listener {
         Player player = null;
         try {
             for (Player p : plugin.getServer().getOnlinePlayers()) {
-                int linked = ru.example.vkchat.VKChatPlugin.getInstance().getApi().getLinkedVkId(p);
+                int linked = VKChatBridge.getLinkedVkId(p);
                 if (linked == vkId) {
                     player = p;
                     break;
@@ -540,7 +547,7 @@ public class ArtifactListener implements Listener {
                 final int finalExtra = extra;
                 plugin.getServer().getScheduler().runTaskAsynchronously(plugin, () -> {
                     try {
-                        ru.example.vkchat.VKChatPlugin.getInstance().getReputationManager().addPoints(vkId, finalExtra);
+                        VKChatPlugin.getInstance().getReputationManager().addPoints(vkId, finalExtra);
                         Bukkit.getScheduler().runTask(plugin, () ->
                             finalPlayer.sendMessage(org.bukkit.ChatColor.GOLD + "✨ Бонус к репутации ВК +" + finalExtra + " (Артефакт REP_BOOST)"));
                     } finally {

@@ -7,7 +7,8 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
-import ru.example.vkchat.VKChatPlugin;
+import ru.example.vkchat.util.UUIDResolver;
+import ru.example.vkchat.util.VKChatBridge;
 import ru.example.vkchatdonate.DonateManager;
 import ru.example.vkchatdonate.VKChatDonatePlugin;
 import ru.example.vkchatdonate.luckperms.LuckPermsHelper;
@@ -232,7 +233,7 @@ public class PassManager {
         passData = new YamlConfiguration();
 
         for (String name : oldNames) {
-            OfflinePlayer off = ru.example.vkchat.util.UUIDResolver.resolve(name);
+            OfflinePlayer off = UUIDResolver.resolve(name);
             if (off == null) {
                 plugin.getLogger().warning("[Pass] Пропуск неизвестного игрока: " + name);
                 continue;
@@ -406,7 +407,7 @@ public class PassManager {
      * Выдать проходку вручную (админ).
      */
     public boolean grantPassManually(String playerName) {
-        org.bukkit.OfflinePlayer off = ru.example.vkchat.util.UUIDResolver.resolve(playerName);
+        org.bukkit.OfflinePlayer off = UUIDResolver.resolve(playerName);
         if (off == null) {
             return false;
         }
@@ -566,7 +567,7 @@ public class PassManager {
         int localRep = getLocalRep(player);
         if (localRep > 0) {
             try {
-                VKChatPlugin.getInstance().getApi().addReputation(vkId, localRep);
+                VKChatBridge.addPoints(vkId, localRep);
                 player.sendMessage(ChatColor.GREEN + "✨ " + localRep
                         + " локальной репутации перенесено в ВК-профиль!");
                 plugin.getLogger().info("[Pass] " + player.getName() + ": перенесено "
@@ -792,7 +793,7 @@ public class PassManager {
 
     private int getLinkedVkId(Player p) {
         try {
-            return VKChatPlugin.getInstance().getApi().getLinkedVkId(p);
+            return VKChatBridge.getLinkedVkId(p);
         } catch (Exception e) { return -1; }
     }
 

@@ -67,7 +67,7 @@ public class DonateTierHelper {
         int tier = getTierIndex(p);
         if (tier < 0) return plugin.getConfig().getInt("teleportation.home.max-homes", 3);
 
-        int[] defaults = {30, 20, 12, 8, 5};
+        int[] defaults = {20, 16, 12, 8, 5};
         return plugin.getConfig().getInt(
                 "teleportation.donate-tiers." + TIER_PERMS[tier].replace("vkchat.donate.", "") + ".max-homes",
                 defaults[tier]);

@@ -435,65 +435,47 @@ public class MCCommands implements CommandExecutor, org.bukkit.command.TabComple
         }
 
 
-        if (name.equals("mute")) {
-            if (!sender.hasPermission("vkchat.admin")) return true;
-            if (args.length < 2) {
-                sender.sendMessage("Использование: /mute <игрок> <минуты>");
-                return true;
-            }
-            Player target = org.bukkit.Bukkit.getPlayer(args[0]);
-            if (target == null) {
-                sender.sendMessage("Игрок не найден.");
-                return true;
-            }
-            try {
-                int mins = Integer.parseInt(args[1]);
-                plugin.getChatManager().mutePlayer(target.getUniqueId(), mins * 60000L);
-                sender.sendMessage("Игрок " + target.getName() + " замучен на " + mins + " минут.");
-            } catch (NumberFormatException e) {
-                sender.sendMessage("Минуты должны быть числом.");
-            }
-            return true;
-        }
-
-        if (name.equals("unmute")) {
-            if (!sender.hasPermission("vkchat.admin")) return true;
-            if (args.length < 1) return false;
-            org.bukkit.OfflinePlayer op = ru.example.vkchat.util.UUIDResolver.resolve(args[0]);
-            if (op == null) {
-                sender.sendMessage("Игрок " + args[0] + " не найден.");
-                return true;
-            }
-            plugin.getChatManager().unmutePlayer(op.getUniqueId());
-            sender.sendMessage("Игрок размучен.");
-            return true;
-        }
-
-        if (name.equals("ignore")) {
-            if (!(sender instanceof Player)) return true;
-            Player p = (Player) sender;
-            if (args.length < 1) {
-                p.sendMessage("Использование: /ignore <игрок>");
-                return true;
-            }
-            Player target = org.bukkit.Bukkit.getPlayer(args[0]);
-            if (target == null) {
-                p.sendMessage("Игрок не найден.");
-                return true;
-            }
-            if (target.equals(p)) {
-                p.sendMessage("Нельзя игнорировать самого себя.");
-                return true;
-            }
-            boolean ignored = plugin.getChatManager().toggleIgnore(p.getUniqueId(), target.getUniqueId());
-            if (ignored) p.sendMessage(org.bukkit.ChatColor.YELLOW + "Вы добавили игрока " + target.getName() + " в черный список.");
-            else p.sendMessage(org.bukkit.ChatColor.GREEN + "Вы убрали игрока " + target.getName() + " из черного списка.");
-            return true;
-        }
         if (name.equals("menu")) {
             if (sender instanceof Player) {
                 plugin.getGuiListener().openServerMenu((Player) sender);
             }
+            return true;
+        }
+
+        if (name.equals("treasure")) {
+            if (!(sender instanceof Player)) {
+                sender.sendMessage("Эту команду может использовать только игрок!");
+                return true;
+            }
+            Player p = (Player) sender;
+            return plugin.getTreasureHuntManager().executeCommand(p, args);
+        }
+
+        if (name.equals("vote")) {
+            if (!(sender instanceof Player)) {
+                sender.sendMessage("Эту команду может использовать только игрок!");
+                return true;
+            }
+            Player p = (Player) sender;
+            ru.example.vkchat.voting.VotingManager vm = plugin.getVotingManager();
+            if (vm == null || !vm.isEnabled()) {
+                p.sendMessage(org.bukkit.ChatColor.RED + "❌ Система голосования отключена.");
+                return true;
+            }
+            int votesToday = vm.getVotesToday(p.getUniqueId());
+            int totalVotes = vm.getTotalVotes(p.getUniqueId());
+            String nextReward = vm.getNextRewardPreview();
+
+            p.sendMessage(org.bukkit.ChatColor.translateAlternateColorCodes('&',
+                    "&6&l★ &eИнформация о голосовании"));
+            p.sendMessage(org.bukkit.ChatColor.translateAlternateColorCodes('&',
+                    " &7Голосов сегодня: &e" + votesToday));
+            p.sendMessage(org.bukkit.ChatColor.translateAlternateColorCodes('&',
+                    " &7Всего голосов: &e" + totalVotes));
+            p.sendMessage(org.bukkit.ChatColor.translateAlternateColorCodes('&',
+                    " &7Следующая награда: " + nextReward));
+            p.sendMessage(org.bukkit.ChatColor.translateAlternateColorCodes('&',
+                    " &7Голосуй на &evote.chrdk.ru &7каждые 24ч!"));
             return true;
         }
 
@@ -780,14 +762,6 @@ public class MCCommands implements CommandExecutor, org.bukkit.command.TabComple
                     completions.addAll(getOnlinePlayerNames(last));
                 }
                 break;
-            case "mute":
-                if (args.length == 1) completions.addAll(getOnlinePlayerNames(last));
-                else if (args.length == 2) completions.addAll(Arrays.asList("5", "10", "15", "30", "60"));
-                break;
-            case "unmute":
-            case "ignore":
-                if (args.length == 1) completions.addAll(getOnlinePlayerNames(last));
-                break;
             case "pay":
                 if (args.length == 1) completions.addAll(getOnlinePlayerNames(last));
                 else if (args.length == 2) completions.addAll(Arrays.asList("10", "25", "50", "100", "confirm"));
@@ -802,6 +776,9 @@ public class MCCommands implements CommandExecutor, org.bukkit.command.TabComple
                 } else if (args.length == 2 && (args[0].equalsIgnoreCase("give") || args[0].equalsIgnoreCase("add") || args[0].equalsIgnoreCase("set") || args[0].equalsIgnoreCase("unlink"))) {
                     completions.addAll(getOnlinePlayerNames(last));
                 }
+                break;
+            case "treasure":
+                if (args.length == 1) completions.addAll(Arrays.asList("start", "compass"));
                 break;
             default:
                 break;

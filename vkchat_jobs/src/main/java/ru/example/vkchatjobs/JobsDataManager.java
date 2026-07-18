@@ -486,7 +486,10 @@ public class JobsDataManager {
 
         expData.get(uuid).put(job, currentExp);
         lvlData.get(uuid).put(job, currentLvl);
-        if (levelsGained > 0) saveAll();
+        if (levelsGained > 0) {
+            saveAll();
+            plugin.rebuildJobSkills(uuid);
+        }
     }
 
     private void sendVkLevelUpNotification(org.bukkit.entity.Player p, String job, int newLevel) {

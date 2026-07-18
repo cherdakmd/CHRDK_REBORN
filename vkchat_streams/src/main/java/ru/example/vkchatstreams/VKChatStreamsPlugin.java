@@ -4,6 +4,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.java.JavaPlugin;
 import ru.example.vkchatstreams.checker.StreamChecker;
+import ru.example.vkchat.util.VKChatBridge;
 
 public class VKChatStreamsPlugin extends JavaPlugin {
     private static VKChatStreamsPlugin instance;
@@ -13,7 +14,7 @@ public class VKChatStreamsPlugin extends JavaPlugin {
     public void onEnable() {
         instance = this;
         saveDefaultConfig();
-        ru.example.vkchat.util.VKChatBridge.init();
+        VKChatBridge.init();
 
         if (Bukkit.getPluginManager().getPlugin("VKChat") == null) {
             getLogger().severe("VKChat не найден!");
@@ -66,6 +67,7 @@ public class VKChatStreamsPlugin extends JavaPlugin {
         HandlerList.unregisterAll(this);
         Bukkit.getScheduler().cancelTasks(this);
         if (streamChecker != null) streamChecker.stop();
+        instance = null;
     }
 
     public static VKChatStreamsPlugin getInstance() { return instance; }

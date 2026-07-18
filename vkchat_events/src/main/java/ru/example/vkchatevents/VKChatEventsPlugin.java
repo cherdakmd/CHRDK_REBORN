@@ -127,8 +127,10 @@ public class VKChatEventsPlugin extends JavaPlugin {
         if (bountyManager != null) bountyManager.saveBounties();
         if (questManager != null) questManager.saveProgress();
         if (statisticsManager != null) statisticsManager.save();
+        if (evolutionManager != null) evolutionManager.save();
 
         getLogger().info("VKChatEvents выключен, все данные сохранены.");
+        instance = null;
     }
 
     private void migrateConfigDefaults() {

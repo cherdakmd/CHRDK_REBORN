@@ -2,7 +2,8 @@
 version: 3.2.0
 main: ru.example.vkchatmobs.VKChatMobsPlugin
 api-version: "1.16"
-depend: [VKChat, VKChatGear, VKChatArtifacts, VKChatNations]
+depend: [VKChat]
+softdepend: [VKChatGear, VKChatArtifacts, VKChatNations, VKChatEvents]
 commands:
   mobs:
     description: Управление контрактами на охоту за мобами.

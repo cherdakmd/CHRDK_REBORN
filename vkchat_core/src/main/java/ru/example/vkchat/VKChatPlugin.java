@@ -9,6 +9,8 @@ import ru.example.vkchat.config.ConfigManager;
 import ru.example.vkchat.vk.VKLongPollManager;
 import ru.example.vkchat.listeners.*;
 import ru.example.vkchat.commands.MCCommands;
+import ru.example.vkchat.commands.AdminDashboard;
+import ru.example.vkchat.commands.LeaderboardGUI;
 import ru.example.vkchat.tasks.*;
 import ru.example.vkchat.vk.VKFeaturesManager;
 import ru.example.vkchat.managers.CoreManagers;
@@ -19,6 +21,9 @@ import ru.example.vkchat.database.DatabaseManager;
 import ru.example.vkchat.hardcore.BleedingTask;
 import ru.example.vkchat.auth.MembershipManager;
 import ru.example.vkchat.resourcepack.ResourcePackServer;
+import ru.example.vkchat.voting.VotingManager;
+import ru.example.vkchat.voting.VoteListener;
+import ru.example.vkchat.game.TreasureHuntManager;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -40,6 +45,10 @@ public class VKChatPlugin extends JavaPlugin {
     private DatabaseManager databaseManager;
     private MembershipManager membershipManager;
     private ResourcePackServer resourcePackServer;
+    private AdminDashboard adminDashboard;
+    private LeaderboardGUI leaderboardGUI;
+    private VotingManager votingManager;
+    private TreasureHuntManager treasureHuntManager;
 
     private boolean vaultEnabled = false;
 
@@ -71,6 +80,11 @@ public class VKChatPlugin extends JavaPlugin {
         api = new VKChatAPI(this);
         warnManager = new WarnManager(this);
         membershipManager = new MembershipManager(this);
+
+        adminDashboard = new AdminDashboard(this);
+        leaderboardGUI = new LeaderboardGUI(this);
+        votingManager = new VotingManager(this);
+        treasureHuntManager = new TreasureHuntManager(this);
 
         registerListeners();
         registerCommands();
@@ -105,6 +119,17 @@ public class VKChatPlugin extends JavaPlugin {
         // EventsListener removed — dead code
         getServer().getPluginManager().registerEvents(new RandomSpawnListener(this), this);
         getServer().getPluginManager().registerEvents(new JoinNotificationListener(this), this);
+        getServer().getPluginManager().registerEvents(adminDashboard, this);
+        getServer().getPluginManager().registerEvents(leaderboardGUI, this);
+        getServer().getPluginManager().registerEvents(treasureHuntManager, this);
+
+        if (votingManager.isEnabled() && votingManager.isVotifierInstalled()) {
+            getServer().getPluginManager().registerEvents(new VoteListener(this), this);
+            getLogger().info("Votifier найден! Система голосования включена.");
+        } else if (votingManager.isEnabled()) {
+            getLogger().warning("Votifier не найден! Система голосования отключена.");
+            votingManager.disable();
+        }
     }
 
     private void registerCommands() {
@@ -134,6 +159,12 @@ public class VKChatPlugin extends JavaPlugin {
         getCommand("unmute").setExecutor(mcCmds);
         getCommand("ignore").setExecutor(mcCmds);
 
+        getCommand("admin").setExecutor(adminDashboard);
+        getCommand("top").setExecutor(leaderboardGUI);
+        getCommand("vote").setExecutor(mcCmds);
+        getCommand("treasure").setExecutor(mcCmds);
+        getCommand("treasure").setTabCompleter(mcCmds);
+
         getCommand("vklink").setTabCompleter(mcCmds);
         getCommand("vkunlink").setTabCompleter(mcCmds);
         getCommand("vkchat").setTabCompleter(mcCmds);
@@ -146,6 +177,7 @@ public class VKChatPlugin extends JavaPlugin {
         getCommand("pay").setTabCompleter(mcCmds);
         getCommand("vk").setTabCompleter(mcCmds);
         getCommand("menu").setTabCompleter(mcCmds);
+        getCommand("vote").setTabCompleter(mcCmds);
         getCommand("clearwarns").setTabCompleter(mcCmds);
         getCommand("warns").setTabCompleter(mcCmds);
         getCommand("unwarn").setTabCompleter(mcCmds);
@@ -196,6 +228,7 @@ public class VKChatPlugin extends JavaPlugin {
 
         new BleedingTask(this).runTaskTimer(this, 20L, 20L);
         bloodMoonManager.runTaskTimer(this, 100L, 200L);
+        treasureHuntManager.startAutoTask();
     }
 
     @Override
@@ -221,6 +254,8 @@ public class VKChatPlugin extends JavaPlugin {
         }
         if (warnManager != null) warnManager.save();
         if (databaseManager != null) databaseManager.close();
+        if (treasureHuntManager != null) treasureHuntManager.onDisable();
+        instance = null;
     }
 
     public static VKChatPlugin getInstance() {
@@ -309,6 +344,14 @@ public class VKChatPlugin extends JavaPlugin {
 
     public ru.example.vkchat.vk.RiddleManager getRiddleManager() {
         return vkFeaturesManager != null ? vkFeaturesManager.getRiddleManager() : null;
+    }
+
+    public VotingManager getVotingManager() {
+        return votingManager;
+    }
+
+    public TreasureHuntManager getTreasureHuntManager() {
+        return treasureHuntManager;
     }
 
     public void reloadAll() {

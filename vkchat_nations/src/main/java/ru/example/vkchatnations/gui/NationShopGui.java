@@ -10,7 +10,8 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
-import ru.example.vkchat.VKChatPlugin;
+
+import ru.example.vkchat.util.VKChatBridge;
 import ru.example.vkchatnations.VKChatNationsPlugin;
 
 import java.util.ArrayList;
@@ -81,8 +82,8 @@ public class NationShopGui {
             return true;
         }
 
-        int vkId = VKChatPlugin.getInstance().getApi().getLinkedVkId(p);
-        if (vkId == -1 && !ru.example.vkchat.util.VKChatBridge.hasPass(p)) {
+        int vkId = VKChatBridge.getLinkedVkId(p);
+        if (!VKChatBridge.hasVkOrPass(p)) {
             p.sendMessage(ChatColor.RED + "❌ Для покупок привяжите ВКонтакте! (/vklink)");
             return true;
         }
@@ -97,16 +98,17 @@ public class NationShopGui {
 
         if (cost == 0) return false;
 
-        int rep = VKChatPlugin.getInstance().getApi().getReputation(vkId);
+        int rep = VKChatBridge.getReputation(vkId);
         if (rep < cost) {
             p.sendMessage(ChatColor.RED + "❌ Недостаточно репутации ВК! Требуется: " + cost + " реп. (У вас: " + rep + ").");
             p.playSound(p.getLocation(), Sound.ENTITY_ITEM_BREAK, 1f, 1f);
             return true;
         }
 
-        VKChatPlugin.getInstance().getApi().takeReputation(vkId, cost);
+        VKChatBridge.takeReputation(vkId, cost);
 
         org.bukkit.plugin.Plugin gearPlugin = Bukkit.getPluginManager().getPlugin("VKChatGear");
+        if (gearPlugin == null) { p.sendMessage("§cСнаряжение недоступно!"); return true; }
         String nation = plugin.getNationManager().getPlayerNation(p);
         String setKey = getNationSetKey(nation);
 

@@ -69,7 +69,7 @@ public class SetBonusManager {
      */
     public void loadFromConfig() {
         setDefs.clear();
-        ConfigurationSection setsSection = plugin.getConfig().getConfigurationSection("sets");
+        ConfigurationSection setsSection = ((ru.example.vkchatgear.VKChatGearPlugin) plugin).getSetsConfig().getConfigurationSection("sets");
         if (setsSection == null) return;
 
         for (String setId : setsSection.getKeys(false)) {

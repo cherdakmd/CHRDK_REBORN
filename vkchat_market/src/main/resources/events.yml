@@ -1,0 +1,85 @@
+# MARKET v5.0 — Events
+# Подключён из events.yml
+
+events:
+  enabled: true
+  interval-minutes: 15
+  chance: 0.20
+  max-duration-minutes: 10
+  list:
+    boom:
+      name: "§6📈 Экономический Бум"
+      description: "Все товары дорожают!"
+      buy-mult: 1.30
+      sell-mult: 1.20
+    crash:
+      name: "§c📉 Обвал Рынка"
+      description: "Паника на бирже!"
+      buy-mult: 0.70
+      sell-mult: 0.60
+    ore_rush:
+      name: "§e⛏ Золотая Лихорадка"
+      description: "Руды взлетели в цене!"
+      category: ores
+      buy-mult: 1.50
+      sell-mult: 1.40
+    ore_glut:
+      name: "§7🪨 Затоваривание Руды"
+      description: "Шахты завалили рынок."
+      category: ores
+      buy-mult: 0.60
+      sell-mult: 0.50
+    harvest:
+      name: "§a🌾 Сезон Урожая"
+      description: "Рекордный урожай!"
+      category: food
+      buy-mult: 0.55
+      sell-mult: 0.45
+    famine:
+      name: "§c🍂 Голодные Времена"
+      description: "Неурожай! Еда на вес золота."
+      category: food
+      buy-mult: 1.60
+      sell-mult: 1.50
+    monster_hunt:
+      name: "§5⚔️ Сезон Охоты"
+      description: "Спрос на лут мобов вырос!"
+      category: mobs
+      buy-mult: 1.45
+      sell-mult: 1.35
+    lumber_boom:
+      name: "§a🪓 Лесной Бум"
+      description: "Дерево в цене!"
+      category: wood
+      buy-mult: 1.40
+      sell-mult: 1.30
+    fire_sale:
+      name: "§c🔥 Пожар на Складе"
+      description: "Стройматериалы сгорели!"
+      category: blocks
+      buy-mult: 1.50
+      sell-mult: 1.40
+    stone_quarry:
+      name: "§8⛏ Каменоломня"
+      description: "Камень дешевеет!"
+      category: stones
+      buy-mult: 0.65
+      sell-mult: 0.55
+    armor_rush:
+      name: "§b🛡 Броня в Цене"
+      description: "Все покупают броню!"
+      category: armor
+      buy-mult: 1.45
+      sell-mult: 1.35
+    weapon_forged:
+      name: "§c⚒ Кузнецкая Лавка"
+      description: "Оружие подорожало!"
+      category: weapons
+      buy-mult: 1.50
+      sell-mult: 1.40
+    tool_sale:
+      name: "§e💰 Распродажа Инструментов"
+      description: "Инструменты со скидкой!"
+      category: tools
+      buy-mult: 0.60
+      sell-mult: 0.50

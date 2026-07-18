@@ -13,7 +13,13 @@ import ru.example.vkchatartifacts.effects.BuffEffectRegistry;
 import ru.example.vkchatartifacts.listeners.ArtifactListener;
 import ru.example.vkchatartifacts.listeners.ConsumablesListener;
 import ru.example.vkchatartifacts.bosses.BossManager;
+import ru.example.vkchat.config.ConfigMigrationUtil;
+import ru.example.vkchat.util.VKChatBridge;
 
+import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
+import java.io.File;
+import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadLocalRandom;
@@ -26,19 +32,27 @@ public class VKChatArtifactsPlugin extends JavaPlugin {
     private final Map<UUID, Long> airdropCooldowns = new ConcurrentHashMap<>();
     private final Map<Location, Long> activeChests = new ConcurrentHashMap<>();
     private final java.util.concurrent.atomic.AtomicLong totalArtifactsGenerated = new java.util.concurrent.atomic.AtomicLong(0);
+    private final java.util.concurrent.atomic.AtomicLong totalArtifactsDisintegrated = new java.util.concurrent.atomic.AtomicLong(0);
+    private final java.util.concurrent.atomic.AtomicLong totalBossKills = new java.util.concurrent.atomic.AtomicLong(0);
     private final Map<UUID, Integer> playerArtifactCounts = new ConcurrentHashMap<>();
+    private final Map<UUID, Integer> playerDisintegratedCounts = new ConcurrentHashMap<>();
+    private final Map<UUID, Integer> playerBossKills = new ConcurrentHashMap<>();
+    private File artifactStatsFile;
 
     @Override
     public void onEnable() {
         instance = this;
         saveDefaultConfig();
-        ru.example.vkchat.config.ConfigMigrationUtil.migrate(this, "config.yml");
+        ConfigMigrationUtil.migrate(this, "config.yml");
 
         if (Bukkit.getPluginManager().getPlugin("VKChat") == null) {
             getLogger().severe("VKChat не найден! Аддон выключается.");
             getServer().getPluginManager().disablePlugin(this);
             return;
         }
+
+        artifactStatsFile = new File(getDataFolder(), "artifact_stats.yml");
+        loadStats();
 
         bossManager = new BossManager(this);
         buffEffectRegistry = new BuffEffectRegistry(this);
@@ -48,9 +62,6 @@ public class VKChatArtifactsPlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new ConsumablesListener(this), this);
         getServer().getPluginManager().registerEvents(new ru.example.vkchatartifacts.listeners.ArtifactShopListener(this), this);
         getServer().getPluginManager().registerEvents(bossManager, this);
-        ArtifactCommand artifactCmd = new ArtifactCommand(this);
-        getCommand("artifacts").setExecutor(artifactCmd);
-        getCommand("artifacts").setTabCompleter(artifactCmd);
 
         if (getConfig().getBoolean("bosses.enabled", true)) {
             long interval = getConfig().getLong("bosses.spawn-interval", 43200) * 20L;
@@ -65,15 +76,19 @@ public class VKChatArtifactsPlugin extends JavaPlugin {
         }
 
         getLogger().info("VKChatArtifacts (Боссы, Артефакты, Свитки) успешно загружен!");
+
+        getServer().getScheduler().runTaskTimer(this, this::saveStats, 6000L, 6000L);
     }
 
     @Override
     public void onDisable() {
+        saveStats();
         HandlerList.unregisterAll(this);
         Bukkit.getScheduler().cancelTasks(this);
         if (bossManager != null) {
             bossManager.clearBosses();
         }
+        instance = null;
     }
 
     public static VKChatArtifactsPlugin getInstance() {
@@ -114,6 +129,90 @@ public class VKChatArtifactsPlugin extends JavaPlugin {
 
     public void incrementPlayerArtifactCount(UUID uuid) {
         playerArtifactCounts.merge(uuid, 1, Integer::sum);
+    }
+
+    public long getTotalArtifactsDisintegrated() {
+        return totalArtifactsDisintegrated.get();
+    }
+
+    public long incrementArtifactsDisintegrated() {
+        return totalArtifactsDisintegrated.incrementAndGet();
+    }
+
+    public int getPlayerDisintegratedCount(UUID uuid) {
+        return playerDisintegratedCounts.getOrDefault(uuid, 0);
+    }
+
+    public void incrementPlayerDisintegratedCount(UUID uuid) {
+        playerDisintegratedCounts.merge(uuid, 1, Integer::sum);
+    }
+
+    public long getTotalBossKills() {
+        return totalBossKills.get();
+    }
+
+    public long incrementBossKills() {
+        return totalBossKills.incrementAndGet();
+    }
+
+    public int getPlayerBossKills(UUID uuid) {
+        return playerBossKills.getOrDefault(uuid, 0);
+    }
+
+    public void incrementPlayerBossKills(UUID uuid) {
+        playerBossKills.merge(uuid, 1, Integer::sum);
+    }
+
+    // ==================== PERSISTENCE ====================
+
+    private void loadStats() {
+        if (!artifactStatsFile.exists()) return;
+        FileConfiguration config = YamlConfiguration.loadConfiguration(artifactStatsFile);
+
+        totalArtifactsGenerated.set(config.getLong("global.total_generated", 0));
+        totalArtifactsDisintegrated.set(config.getLong("global.total_disintegrated", 0));
+        totalBossKills.set(config.getLong("global.boss_kills", 0));
+
+        ConfigurationSection playersSection = config.getConfigurationSection("players");
+        if (playersSection != null) {
+            for (String uuidStr : playersSection.getKeys(false)) {
+                try {
+                    UUID uuid = UUID.fromString(uuidStr);
+                    ConfigurationSection playerSection = playersSection.getConfigurationSection(uuidStr);
+                    playerArtifactCounts.put(uuid, playerSection.getInt("artifacts_generated", 0));
+                    playerDisintegratedCounts.put(uuid, playerSection.getInt("artifacts_disintegrated", 0));
+                    playerBossKills.put(uuid, playerSection.getInt("boss_kills", 0));
+                } catch (IllegalArgumentException ignored) {}
+            }
+        }
+        getLogger().info("Статистика артефактов загружена.");
+    }
+
+    public void saveStats() {
+        if (artifactStatsFile == null) return;
+        FileConfiguration config = new YamlConfiguration();
+
+        config.set("global.total_generated", totalArtifactsGenerated.get());
+        config.set("global.total_disintegrated", totalArtifactsDisintegrated.get());
+        config.set("global.boss_kills", totalBossKills.get());
+
+        Set<UUID> allPlayers = new HashSet<>();
+        allPlayers.addAll(playerArtifactCounts.keySet());
+        allPlayers.addAll(playerDisintegratedCounts.keySet());
+        allPlayers.addAll(playerBossKills.keySet());
+
+        for (UUID uuid : allPlayers) {
+            String path = "players." + uuid.toString();
+            config.set(path + ".artifacts_generated", getPlayerArtifactCount(uuid));
+            config.set(path + ".artifacts_disintegrated", getPlayerDisintegratedCount(uuid));
+            config.set(path + ".boss_kills", getPlayerBossKills(uuid));
+        }
+
+        try {
+            config.save(artifactStatsFile);
+        } catch (IOException e) {
+            getLogger().warning("Не удалось сохранить статистику артефактов: " + e.getMessage());
+        }
     }
 
     // ==================== АЛХИМИЧЕСКИЙ ТАЙНИК ====================
@@ -187,7 +286,7 @@ public class VKChatArtifactsPlugin extends JavaPlugin {
             double artifactChance = getConfig().getDouble("alchemist-airdrop.artifact-chance", 15);
             if (ThreadLocalRandom.current().nextDouble() * 100 < artifactChance) {
                 try {
-                    ItemStack artifact = ru.example.vkchatartifacts.items.ArtifactFactory.generateArtifact(this, false);
+                    ItemStack artifact = ru.example.vkchatartifacts.items.ArtifactFactory.generateArtifact(this, false, target.getUniqueId());
                     if (artifact != null) chest.getInventory().addItem(artifact);
                 } catch (Exception ignored) {}
             }
@@ -224,7 +323,7 @@ public class VKChatArtifactsPlugin extends JavaPlugin {
         // VK уведомление
         if (getConfig().getBoolean("alchemist-airdrop.vk-announce", false)) {
             try {
-                ru.example.vkchat.VKChatPlugin.getInstance().getApi().sendToMainChat(
+                VKChatBridge.sendToMainChat(
                     "🧪 Алхимический Тайник получен игроком " + target.getName() + "!");
             } catch (Exception ignored) {}
         }
@@ -275,11 +374,7 @@ public class VKChatArtifactsPlugin extends JavaPlugin {
     }
 
     private boolean isSafeBlock(Location loc) {
-        Block block = loc.getBlock();
-        Material type = block.getType();
-        return type != Material.LAVA && type != Material.FIRE && type != Material.SOUL_FIRE
-                && type != Material.CACTUS && type != Material.MAGMA_BLOCK
-                && type != Material.AIR || !loc.clone().add(0, -1, 0).getBlock().getType().isAir();
+        return loc.getBlock().getType() == Material.AIR && loc.clone().add(0, -1, 0).getBlock().getType() == Material.AIR;
     }
 
     /**

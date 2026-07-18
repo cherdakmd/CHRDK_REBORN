@@ -9,7 +9,8 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
-import ru.example.vkchat.VKChatPlugin;
+import ru.example.vkchat.util.VKChatBridge;
+import ru.example.vkchat.util.JobsBridge;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -77,7 +78,7 @@ public class BroadcastManager implements Listener {
 
     private void checkJobLevel(Player p) {
         try {
-            int totalLvl = ru.example.vkchat.util.JobsBridge.getTotalLevelPlayer(p);
+            int totalLvl = JobsBridge.getTotalLevelPlayer(p);
             if (totalLvl <= 0) return;
             int prev = lastJobLevel.getOrDefault(p.getUniqueId(), 0);
             if (totalLvl > prev && prev > 0) {
@@ -115,7 +116,7 @@ public class BroadcastManager implements Listener {
     private void broadcast(String msg) {
         for (Player p : Bukkit.getOnlinePlayers()) p.sendMessage(msg);
         if (plugin.getConfig().getBoolean("broadcasts.send-to-vk", true)) {
-            try { VKChatPlugin.getInstance().getApi().sendToMainChat(ChatColor.stripColor(msg)); } catch (Exception e) { plugin.getLogger().warning("VK broadcast failed: " + e.getMessage()); }
+            try { VKChatBridge.sendToMainChat(ChatColor.stripColor(msg)); } catch (Exception e) { plugin.getLogger().warning("VK broadcast failed: " + e.getMessage()); }
         }
     }
 

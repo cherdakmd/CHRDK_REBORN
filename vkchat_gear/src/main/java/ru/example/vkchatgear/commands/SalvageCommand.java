@@ -17,8 +17,8 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
+import ru.example.vkchat.util.JobsBridge;
 import ru.example.vkchatgear.VKChatGearPlugin;
-import ru.example.vkchat.VKChatPlugin;
 import ru.example.vkchat.util.VKChatBridge;
 import org.bukkit.command.TabCompleter;
 
@@ -142,7 +142,7 @@ public class SalvageCommand implements CommandExecutor, Listener, TabCompleter {
 
     private void processSalvage(Player p, Inventory inv) {
         int vkId = VKChatBridge.getLinkedVkId(p);
-        if (vkId == -1 && !ru.example.vkchat.util.VKChatBridge.hasPass(p)) {
+        if (!VKChatBridge.hasVkOrPass(p)) {
             p.sendMessage(ChatColor.RED + "❌ Для утилизации привяжите свой ВКонтакте! (/vklink)");
             return;
         }
@@ -193,7 +193,7 @@ public class SalvageCommand implements CommandExecutor, Listener, TabCompleter {
         try {
             org.bukkit.plugin.Plugin jobsPlugin = Bukkit.getPluginManager().getPlugin("VKChatJobs");
             if (jobsPlugin != null && jobsPlugin.isEnabled()) {
-                int blacksmithLvl = ru.example.vkchat.util.JobsBridge.getLevel(p, "blacksmith");
+                int blacksmithLvl = JobsBridge.getLevel(p, "blacksmith");
                 jobBonusMultiplier += (blacksmithLvl * 0.01);
             }
         } catch (Exception ignored) {}

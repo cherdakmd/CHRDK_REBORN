@@ -23,7 +23,7 @@ import ru.example.vkchatnations.VKChatNationsPlugin;
 import ru.example.vkchatnations.data.ChunkClaim;
 import ru.example.vkchatnations.data.NationManager;
 import ru.example.vkchat.VKChatPlugin;
-import ru.example.vkchatmobs.util.VKChatBridge;
+import ru.example.vkchat.util.VKChatBridge;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -109,7 +109,7 @@ public class SiegeManager {
     }
 
     private void triggerRandomSiege() {
-        VKChatNationsPlugin nationsPlugin = (VKChatNationsPlugin) Bukkit.getPluginManager().getPlugin("VKChatNations");
+        VKChatNationsPlugin nationsPlugin = (VKChatNationsPlugin) plugin.getNationsPlugin();
         if (nationsPlugin == null || !nationsPlugin.isEnabled()) return;
 
         NationManager nm = nationsPlugin.getNationManager();
@@ -163,7 +163,7 @@ public class SiegeManager {
         if (world == null) return;
 
         String nation = siege.claim.getNation();
-        VKChatNationsPlugin nationsPlugin = (VKChatNationsPlugin) Bukkit.getPluginManager().getPlugin("VKChatNations");
+        VKChatNationsPlugin nationsPlugin = (VKChatNationsPlugin) plugin.getNationsPlugin();
 
         if (nationsPlugin != null) {
             nationsPlugin.getNationManager().broadcastToNationWithPrefix(nation, "§c☠ [ОСАДА] Надвигается Волна " + siege.currentWave + "/" + siege.totalWaves + "! Будьте наготове!");
@@ -258,8 +258,8 @@ public class SiegeManager {
                     siege.currentWave++;
                     siege.state = 2; // Transition
                     
-                    String nation = siege.claim.getNation();
-                    VKChatNationsPlugin nationsPlugin = (VKChatNationsPlugin) Bukkit.getPluginManager().getPlugin("VKChatNations");
+        String nation = siege.claim.getNation();
+        VKChatNationsPlugin nationsPlugin = (VKChatNationsPlugin) plugin.getNationsPlugin();
                     if (nationsPlugin != null) {
                         nationsPlugin.getNationManager().broadcastToNationWithPrefix(nation, "§a✓ Волна успешно отбита! Подготовка к Волне " + siege.currentWave + "...");
                     }
@@ -322,7 +322,7 @@ public class SiegeManager {
                 world.playSound(siege.blockLoc, Sound.BLOCK_ANVIL_LAND, 1.0f, 0.8f);
                 world.spawnParticle(org.bukkit.Particle.BLOCK_CRACK, siege.blockLoc.clone().add(0.5, 0.5, 0.5), 40, 0.3, 0.3, 0.3, Material.OBSIDIAN.createBlockData());
 
-                VKChatNationsPlugin nationsPlugin = (VKChatNationsPlugin) Bukkit.getPluginManager().getPlugin("VKChatNations");
+                VKChatNationsPlugin nationsPlugin = (VKChatNationsPlugin) plugin.getNationsPlugin();
                 if (nationsPlugin != null) {
                     nationsPlugin.getNationManager().broadcastToNationWithPrefix(claim.getNation(), 
                         "§c⚠️ [ОСАДА] Монстры прорвались к блоку привата! Прочность снижена! Текущая прочность: §e" + claim.getDurability() + "%"
@@ -384,7 +384,7 @@ public class SiegeManager {
         }
 
         String nation = siege.claim.getNation();
-        VKChatNationsPlugin nationsPlugin = (VKChatNationsPlugin) Bukkit.getPluginManager().getPlugin("VKChatNations");
+        VKChatNationsPlugin nationsPlugin = (VKChatNationsPlugin) plugin.getNationsPlugin();
 
         if (success) {
             // Раздаем награды игрокам в радиусе 30 блоков от привата

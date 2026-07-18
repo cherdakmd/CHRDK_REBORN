@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 import java.lang.reflect.Method;
 
@@ -232,11 +233,17 @@ public class BossManager extends BukkitRunnable implements Listener {
             
             if (ThreadLocalRandom.current().nextInt(100) < dropChance) {
                 boolean isMythic = ThreadLocalRandom.current().nextDouble() * 100 <= mythicChanceConfig;
-                org.bukkit.inventory.ItemStack artifact = ArtifactFactory.generateArtifact(plugin, isMythic);
+                Player killer = e.getEntity().getKiller();
+                UUID killerUUID = killer != null ? killer.getUniqueId() : null;
+                org.bukkit.inventory.ItemStack artifact = ArtifactFactory.generateArtifact(plugin, isMythic, killerUUID);
                 e.getDrops().add(artifact);
                 
+                if (killer != null) {
+                    plugin.incrementBossKills();
+                    plugin.incrementPlayerBossKills(killerUUID);
+                }
+                
                 if (isMythic) {
-                    Player killer = e.getEntity().getKiller();
                     String pName = killer != null ? killer.getName() : "Неизвестный Герой";
                     
                     String mcMsg = plugin.getConfig().getString("artifacts.messages.mythic-announce-mc", "&6⚡ {player} получил мифический артефакт!")

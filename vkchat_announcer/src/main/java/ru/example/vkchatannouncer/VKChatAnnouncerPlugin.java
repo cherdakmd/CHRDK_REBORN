@@ -59,6 +59,7 @@ public class VKChatAnnouncerPlugin extends JavaPlugin {
         HandlerList.unregisterAll(this);
         Bukkit.getScheduler().cancelTasks(this);
         if (task != null) task.cancel();
+        instance = null;
     }
 
     public static VKChatAnnouncerPlugin getInstance() {

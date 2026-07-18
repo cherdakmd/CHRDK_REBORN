@@ -10,7 +10,8 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
-import ru.example.vkchat.VKChatPlugin;
+
+import ru.example.vkchat.util.VKChatBridge;
 import ru.example.vkchatnations.VKChatNationsPlugin;
 import ru.example.vkchatnations.data.ChunkClaim;
 
@@ -302,8 +303,8 @@ public class ClaimGui {
         glass.setItemMeta(glassMeta);
         for (int i = 0; i < 27; i++) inv.setItem(i, glass);
 
-        int vkId = VKChatPlugin.getInstance().getApi().getLinkedVkId(p);
-        int rep = vkId != -1 ? VKChatPlugin.getInstance().getApi().getReputation(vkId) : 0;
+        int vkId = VKChatBridge.getLinkedVkId(p);
+        int rep = vkId != -1 ? VKChatBridge.getReputation(vkId) : 0;
 
         // Шапка
         ItemStack statusItem = new ItemStack(ChunkClaim.getLevelMaterial(claim.getLevel()));
@@ -337,7 +338,7 @@ public class ClaimGui {
                 int cost = ChunkClaim.getUpgradeCost(claim.getLevel());
                 lore.add(ChatColor.GRAY + "Цена повышения: " + ChatColor.GOLD + cost + " реп. ВК");
                 lore.add("");
-                if (vkId == -1 && !ru.example.vkchat.util.VKChatBridge.hasPass(p)) {
+                if (!VKChatBridge.hasVkOrPass(p)) {
                     lore.add(ChatColor.RED + "▶ Привяжите ВК для прокачки! (/vklink)");
                 } else if (rep >= cost) {
                     lore.add(ChatColor.YELLOW + "▶ Нажмите, чтобы прокачать!");
@@ -382,20 +383,20 @@ public class ClaimGui {
             int cost = item.getItemMeta().getPersistentDataContainer().get(costKey, PersistentDataType.INTEGER);
             int radius = item.getItemMeta().getPersistentDataContainer().get(radiusKey, PersistentDataType.INTEGER);
 
-            int vkId = VKChatPlugin.getInstance().getApi().getLinkedVkId(p);
-            if (vkId == -1 && !ru.example.vkchat.util.VKChatBridge.hasPass(p)) {
+            int vkId = VKChatBridge.getLinkedVkId(p);
+            if (!VKChatBridge.hasVkOrPass(p)) {
                 p.sendMessage(ChatColor.RED + "❌ Для покупок привяжите ВКонтакте! (/vklink)");
                 return true;
             }
 
-            int rep = VKChatPlugin.getInstance().getApi().getReputation(vkId);
+            int rep = VKChatBridge.getReputation(vkId);
             if (rep < cost) {
                 p.sendMessage(ChatColor.RED + "❌ Недостаточно репутации ВК! Требуется: " + cost + " реп. (У вас: " + rep + ").");
                 p.playSound(p.getLocation(), Sound.ENTITY_ITEM_BREAK, 1f, 1f);
                 return true;
             }
 
-            VKChatPlugin.getInstance().getApi().takeReputation(vkId, cost);
+            VKChatBridge.takeReputation(vkId, cost);
 
             ItemStack blockToGive;
             if (radius == 8) blockToGive = plugin.getNationManager().getSmallClaimBlockItem();
@@ -473,17 +474,17 @@ public class ClaimGui {
         if (rawSlot == 8) {
             int expansions = claim.getExtraRadius();
             int cost = ChunkClaim.getRadiusExpandCost(expansions);
-            int vkId = VKChatPlugin.getInstance().getApi().getLinkedVkId(p);
-            if (vkId == -1 && !ru.example.vkchat.util.VKChatBridge.hasPass(p)) {
+            int vkId = VKChatBridge.getLinkedVkId(p);
+            if (!VKChatBridge.hasVkOrPass(p)) {
                 p.sendMessage(ChatColor.RED + "❌ Привяжите ВК! (/vklink)");
                 return true;
             }
-            int rep = VKChatPlugin.getInstance().getApi().getReputation(vkId);
+            int rep = VKChatBridge.getReputation(vkId);
             if (rep < cost) {
                 p.sendMessage(ChatColor.RED + "❌ Недостаточно репутации! Нужно " + cost + ", у вас " + rep);
                 return true;
             }
-            VKChatPlugin.getInstance().getApi().takeReputation(vkId, cost);
+            VKChatBridge.takeReputation(vkId, cost);
             claim.addExtraRadius(1);
             plugin.getNationManager().saveAll();
             p.sendMessage(ChatColor.GREEN + "⬡ Радиус расширен! Теперь: " + claim.getRadius() + " блоков.");
@@ -521,21 +522,21 @@ public class ClaimGui {
 
         // Покормить репутацией
         if (clicked.getType() == Material.REDSTONE) {
-            int vkId = VKChatPlugin.getInstance().getApi().getLinkedVkId(p);
-            if (vkId == -1 && !ru.example.vkchat.util.VKChatBridge.hasPass(p)) {
+            int vkId = VKChatBridge.getLinkedVkId(p);
+            if (!VKChatBridge.hasVkOrPass(p)) {
                 p.sendMessage(ChatColor.RED + "❌ Для питания за репутацию привяжите ВКонтакте! (/vklink)");
                 return true;
             }
 
             int cost = 15;
-            int rep = VKChatPlugin.getInstance().getApi().getReputation(vkId);
+            int rep = VKChatBridge.getReputation(vkId);
             if (rep < cost) {
                 p.sendMessage(ChatColor.RED + "❌ Недостаточно репутации ВК! Требуется: " + cost + " (Ваш баланс: " + rep + ").");
                 p.playSound(p.getLocation(), Sound.ENTITY_ITEM_BREAK, 1f, 1f);
                 return true;
             }
 
-            VKChatPlugin.getInstance().getApi().takeReputation(vkId, cost);
+            VKChatBridge.takeReputation(vkId, cost);
             claim.addDurability(100);
             plugin.getNationManager().saveAll();
             p.sendMessage(ChatColor.GREEN + "✓ Прочность привата увеличена на +100 за 15 репутации ВК!");
@@ -589,22 +590,22 @@ public class ClaimGui {
             return true;
         }
 
-        int vkId = VKChatPlugin.getInstance().getApi().getLinkedVkId(p);
-        if (vkId == -1 && !ru.example.vkchat.util.VKChatBridge.hasPass(p)) {
+        int vkId = VKChatBridge.getLinkedVkId(p);
+        if (!VKChatBridge.hasVkOrPass(p)) {
             p.sendMessage(ChatColor.RED + "❌ Для прокачки привяжите ВКонтакте! (/vklink)");
             p.playSound(p.getLocation(), Sound.ENTITY_ITEM_BREAK, 1f, 1f);
             return true;
         }
 
         int cost = claim.getNextUpgradeCost();
-        int rep = VKChatPlugin.getInstance().getApi().getReputation(vkId);
+        int rep = VKChatBridge.getReputation(vkId);
         if (rep < cost) {
             p.sendMessage(ChatColor.RED + "❌ Недостаточно репутации ВК! Требуется: " + cost + " (У вас: " + rep + ").");
             p.playSound(p.getLocation(), Sound.ENTITY_ITEM_BREAK, 1f, 1f);
             return true;
         }
 
-        VKChatPlugin.getInstance().getApi().takeReputation(vkId, cost);
+        VKChatBridge.takeReputation(vkId, cost);
         claim.setLevel(claim.getLevel() + 1);
         claim.addDurability(0);
         plugin.getNationManager().saveAll();

@@ -9,6 +9,7 @@ import org.bukkit.entity.Player;
 
 import java.util.*;
 import java.util.function.BiConsumer;
+import ru.example.vkchat.util.UUIDResolver;
 
 /**
  * DonateCommand v3.1 — делегирование /donate pass в PassCommand.
@@ -255,7 +256,8 @@ public class DonateCommand implements CommandExecutor, TabCompleter {
         plugin.reloadConfig();
         plugin.getPassManager().reloadConfig();
         plugin.getDonateManager().shutdown();
-        sender.sendMessage(ChatColor.GREEN + "Конфиг перезагружен. Перезапусти плагин для полного применения.");
+        plugin.getDonateManager().restartWebhookServer();
+        sender.sendMessage(ChatColor.GREEN + "Конфиг перезагружен. Webhook/polling перезапущен.");
     }
 
     private void handleFundraiser(CommandSender sender, String[] args) {
@@ -329,7 +331,7 @@ public class DonateCommand implements CommandExecutor, TabCompleter {
             }
             case "remove" -> {
                 if (args.length < 3) { sender.sendMessage(ChatColor.RED + "/donate pass remove <ник>"); return; }
-                pm.removePass(ru.example.vkchat.util.UUIDResolver.resolve(args[2]));
+                pm.removePass(UUIDResolver.resolve(args[2]));
                 sender.sendMessage(ChatColor.GREEN + "✅ Проходка отозвана: " + args[2]);
             }
             case "stats" -> sender.sendMessage(pm.getAnalyticsFormatted());

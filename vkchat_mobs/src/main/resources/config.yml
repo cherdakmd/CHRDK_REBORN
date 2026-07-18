@@ -775,3 +775,34 @@ enhancements:
   rare-drop-announce: true
   # Прогресс контракта в action bar
   contract-progress-bar: true
+
+# ═══════════════════════════════════
+# Бестиарий — энциклопедия мобов
+# ═══════════════════════════════════
+bestiary:
+  enabled: true
+  milestones:
+    10:
+      hp-bonus: 1
+      damage-bonus: 0.0
+      rep-reward: 0
+    50:
+      hp-bonus: 2
+      damage-bonus: 0.005
+      rep-reward: 100
+    100:
+      hp-bonus: 3
+      damage-bonus: 0.01
+      rep-reward: 250
+    250:
+      hp-bonus: 4
+      damage-bonus: 0.015
+      rep-reward: 500
+    500:
+      hp-bonus: 5
+      damage-bonus: 0.02
+      rep-reward: 1000
+    1000:
+      hp-bonus: 8
+      damage-bonus: 0.03
+      rep-reward: 2500
