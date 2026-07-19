@@ -107,6 +107,8 @@ public class MarketGui {
         inv.setItem(48, item(plugin, Material.EMERALD, "mkt_stats", "§a📊 Статистика", "§7Объём торгов, топ-товары"));
         inv.setItem(49, item(plugin, Material.DIAMOND, "mkt_daily", "§b🎁 Дневной бонус", "§7Забрать §e" + plugin.getSettingsConfig().getInt("settings.daily-reward-amount", 50) + " §7реп."));
         inv.setItem(50, categoryItem(plugin, Material.CLOCK, "mkt_profile", "§6👤 Профиль", "§7Твоя статистика трейдера"));
+        int alertCount = plugin.getMarketService().prices().dynamics().getPlayerAlerts(p.getUniqueId()).size();
+        inv.setItem(51, item(plugin, Material.BELL, "mkt_alerts", "§e🔔 Алерты", alertCount > 0 ? "§7Активных: §f" + alertCount : "§7Нет активных алертов"));
         inv.setItem(53, item(plugin, Material.BARRIER, "mkt_close", "§c✕ Закрыть"));
 
         p.openInventory(inv);
@@ -339,6 +341,62 @@ public class MarketGui {
         inv.setItem(22, categoryItem(plugin, Material.BARRIER, categoryKey, "§c✖ Отмена", "§7Вернуться назад"));
 
         p.openInventory(inv);
+    }
+
+    public static void openAlerts(VKChatMarketPlugin plugin, Player p) {
+        var dynamics = plugin.getMarketService().prices().dynamics();
+        var alerts = dynamics.getPlayerAlerts(p.getUniqueId());
+
+        Inventory inv = Bukkit.createInventory(null, 27, "§8▸ §6§lБИРЖА §8◂ §e🔔 Алерты");
+
+        for (int i = 0; i < 27; i++) inv.setItem(i, bg());
+
+        if (alerts.isEmpty()) {
+            inv.setItem(13, item(Material.BARRIER, "§7Нет алертов", "", "§7Нажми §e+ §7чтобы добавить", "§7Уведомление когда цена достигнет цели"));
+        } else {
+            int slot = 10;
+            for (var alertEntry : alerts.entrySet()) {
+                if (slot > 16) break;
+                MarketEntry me = plugin.getMarketService().get(alertEntry.getKey());
+                if (me == null) continue;
+                int targetPrice = alertEntry.getValue();
+                int currentPrice = plugin.getMarketService().prices().getSellPrice(me, p);
+                inv.setItem(slot++, alertItem(plugin, me, targetPrice, currentPrice));
+            }
+        }
+
+        inv.setItem(22, item(plugin, Material.EMERALD, "mkt_alert_add", "§a+ Добавить алерт", "§7Уведомить когда цена §e≥ §7цели"));
+        inv.setItem(18, item(plugin, Material.LAVA_BUCKET, "mkt_alert_clr", "§c🗑 Очистить все", "§7Удалить все алерты"));
+        inv.setItem(26, item(plugin, Material.BARRIER, "mkt_close", "§c✕ Закрыть"));
+
+        p.openInventory(inv);
+    }
+
+    static ItemStack alertItem(VKChatMarketPlugin plugin, MarketEntry entry, int targetPrice, int currentPrice) {
+        ItemStack item = new ItemStack(entry.material());
+        ItemMeta meta = item.getItemMeta();
+        if (meta == null) return item;
+
+        boolean reached = currentPrice >= targetPrice;
+        String status = reached ? " §a✓" : "";
+        meta.setDisplayName("§r" + entry.displayName() + status);
+
+        List<String> lore = new ArrayList<>();
+        lore.add("");
+        lore.add("§7Цель: §e≥ " + targetPrice + " реп.");
+        lore.add("§7Сейчас: " + (reached ? "§a" : "§f") + currentPrice + " реп.");
+        if (reached) {
+            lore.add("§a✅ Алерт сработал!");
+        } else {
+            lore.add("§7Осталось: §c" + (targetPrice - currentPrice) + " реп.");
+        }
+        lore.add("");
+        lore.add("§7§oНажми чтобы убрать");
+        meta.setLore(lore);
+
+        meta.getPersistentDataContainer().set(new NamespacedKey(plugin, "mkt_alert_rm"), PersistentDataType.STRING, entry.id());
+        item.setItemMeta(meta);
+        return item;
     }
 
     // === ITEM BUILDERS ===

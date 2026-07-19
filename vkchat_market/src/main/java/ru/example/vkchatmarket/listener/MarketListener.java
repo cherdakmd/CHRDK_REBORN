@@ -28,6 +28,7 @@ public class MarketListener implements Listener {
     private final NamespacedKey itemKey;
     private final NamespacedKey catKey;
     private final NamespacedKey sellAllConfirmKey;
+    private final NamespacedKey alertRmKey;
 
     private final Map<UUID, Long> tradeCooldown = new ConcurrentHashMap<>();
     private static final long COOLDOWN_MS = 300;
@@ -38,6 +39,7 @@ public class MarketListener implements Listener {
         this.itemKey = new NamespacedKey(plugin, "mkt_item");
         this.catKey = new NamespacedKey(plugin, "mkt_cat");
         this.sellAllConfirmKey = new NamespacedKey(plugin, "mkt_sellall_confirm");
+        this.alertRmKey = new NamespacedKey(plugin, "mkt_alert_rm");
     }
 
     @EventHandler
@@ -65,6 +67,44 @@ public class MarketListener implements Listener {
                 p.sendMessage("§7Нет предметов для продажи.");
             }
             MarketGui.openMainMenu(plugin, p);
+            return;
+        }
+
+        // Alert remove
+        if (meta.getPersistentDataContainer().has(alertRmKey, PersistentDataType.STRING)) {
+            String alertItemId = meta.getPersistentDataContainer().get(alertRmKey, PersistentDataType.STRING);
+            plugin.getMarketService().prices().dynamics().removePriceAlert(p.getUniqueId(), alertItemId);
+            MarketEntry me = plugin.getMarketService().get(alertItemId);
+            String name = me != null ? me.displayName() : alertItemId;
+            p.sendMessage("§7Алерт на §f" + name + " §7удалён.");
+            playSound(p, Sound.UI_BUTTON_CLICK);
+            MarketGui.openAlerts(plugin, p);
+            return;
+        }
+
+        // Alerts menu
+        if (hasPdc(meta, "mkt_alerts")) {
+            MarketGui.openAlerts(plugin, p);
+            playSound(p, Sound.UI_BUTTON_CLICK);
+            return;
+        }
+
+        // Alert add
+        if (hasPdc(meta, "mkt_alert_add")) {
+            p.closeInventory();
+            p.sendMessage("§e🔔 Введи название товара в чат (или 'отмена'):");
+            plugin.getPromptService().startAlertSet(p.getUniqueId(), "");
+            return;
+        }
+
+        // Alert clear all
+        if (hasPdc(meta, "mkt_alert_clr")) {
+            var alerts = plugin.getMarketService().prices().dynamics().getPlayerAlerts(p.getUniqueId());
+            int count = alerts.size();
+            alerts.clear();
+            p.sendMessage("§7Удалено алертов: §f" + count);
+            playSound(p, Sound.UI_BUTTON_CLICK);
+            MarketGui.openAlerts(plugin, p);
             return;
         }
 
@@ -510,6 +550,58 @@ public class MarketListener implements Listener {
             final String mode = tradeMode;
             final int amt = amount;
             Bukkit.getScheduler().runTask(plugin, () -> trade(p, mode, entry, amt, catKey));
+        }
+
+        if (prompt.type() == PlayerPromptService.PromptType.ALERT_SET) {
+            e.setCancelled(true);
+            String storedItemId = plugin.getPromptService().getItemId(id);
+            plugin.getPromptService().clear(id);
+            String msg = e.getMessage().trim();
+            if (msg.equalsIgnoreCase("отмена") || msg.isEmpty()) {
+                Bukkit.getScheduler().runTask(plugin, () -> MarketGui.openAlerts(plugin, p));
+                return;
+            }
+
+            if (storedItemId == null || storedItemId.isEmpty()) {
+                final String query = msg;
+                Bukkit.getScheduler().runTask(plugin, () -> {
+                    List<MarketEntry> results = plugin.getMarketService().search(query);
+                    if (results.isEmpty()) {
+                        p.sendMessage("§cТовар не найден: §f" + query);
+                        p.sendMessage("§7Попробуй снова или введи §eотмена");
+                        plugin.getPromptService().startAlertSet(p.getUniqueId(), "");
+                    } else if (results.size() == 1) {
+                        MarketEntry found = results.get(0);
+                        p.sendMessage("§e🔔 Товар: §f" + found.displayName() + " §7(сейчас §f" + plugin.getMarketService().prices().getSellPrice(found, p) + " §7реп.)");
+                        p.sendMessage("§eВведи целевую цену для алерта:");
+                        plugin.getPromptService().startAlertSet(p.getUniqueId(), found.id());
+                    } else {
+                        p.sendMessage("§7Найдено несколько товаров (§f" + results.size() + "§7). Уточни запрос:");
+                        for (int i = 0; i < Math.min(results.size(), 5); i++) {
+                            p.sendMessage("§e" + (i + 1) + ". §f" + results.get(i).displayName() + " §7(" + results.get(i).id() + ")");
+                        }
+                        p.sendMessage("§7Введи точное название или §eотмена");
+                        plugin.getPromptService().startAlertSet(p.getUniqueId(), "");
+                    }
+                });
+            } else {
+                int targetPrice;
+                try { targetPrice = Integer.parseInt(msg); } catch (NumberFormatException ex) {
+                    p.sendMessage("§cЦена — число!");
+                    plugin.getPromptService().startAlertSet(p.getUniqueId(), storedItemId);
+                    return;
+                }
+                if (targetPrice <= 0) { p.sendMessage("§cЦена > 0!"); return; }
+                MarketEntry entry = plugin.getMarketService().get(storedItemId);
+                if (entry == null) { p.sendMessage("§cТовар не найден."); return; }
+                plugin.getMarketService().prices().dynamics().setPriceAlert(p.getUniqueId(), storedItemId, targetPrice);
+                int currentPrice = plugin.getMarketService().prices().getSellPrice(entry, p);
+                p.sendMessage("§a✓ Алерт: §f" + entry.displayName() + " §7→ §e≥ " + targetPrice + " реп.");
+                if (currentPrice >= targetPrice) {
+                    p.sendMessage("§a✅ Уже достигнут! Текущая цена: §f" + currentPrice);
+                }
+                Bukkit.getScheduler().runTask(plugin, () -> MarketGui.openAlerts(plugin, p));
+            }
         }
     }
 

@@ -7,7 +7,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class PlayerPromptService {
     private final Map<UUID, PromptState> prompts = new ConcurrentHashMap<>();
 
-    public enum PromptType { NONE, SEARCH, CUSTOM_AMOUNT }
+    public enum PromptType { NONE, SEARCH, CUSTOM_AMOUNT, ALERT_SET }
 
     public void startSearch(UUID uuid) {
         prompts.put(uuid, new PromptState(PromptType.SEARCH, "", ""));
@@ -15,6 +15,10 @@ public class PlayerPromptService {
 
     public void startCustomAmount(UUID uuid, String itemId, String categoryKey) {
         prompts.put(uuid, new PromptState(PromptType.CUSTOM_AMOUNT, itemId, categoryKey));
+    }
+
+    public void startAlertSet(UUID uuid, String itemId) {
+        prompts.put(uuid, new PromptState(PromptType.ALERT_SET, itemId, ""));
     }
 
     public PromptState get(UUID uuid) {
