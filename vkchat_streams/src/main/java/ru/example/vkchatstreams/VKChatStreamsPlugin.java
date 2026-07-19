@@ -26,13 +26,12 @@ public class VKChatStreamsPlugin extends JavaPlugin {
         streamChecker = new StreamChecker(this);
         streamChecker.start();
 
+        StreamsCommand scmd = new StreamsCommand(this);
         if (getCommand("streams") != null) {
-            StreamsCommand scmd = new StreamsCommand(this);
             getCommand("streams").setExecutor(scmd);
             getCommand("streams").setTabCompleter(scmd);
         }
         if (getCommand("stream") != null) {
-            StreamsCommand scmd = new StreamsCommand(this);
             getCommand("stream").setExecutor(scmd);
             getCommand("stream").setTabCompleter(scmd);
         }

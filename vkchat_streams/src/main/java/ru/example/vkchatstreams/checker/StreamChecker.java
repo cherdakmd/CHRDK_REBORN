@@ -7,6 +7,8 @@ import org.bukkit.entity.Player;
 import ru.example.vkchat.util.VKChatBridge;
 import ru.example.vkchatstreams.VKChatStreamsPlugin;
 import ru.example.vkchatstreams.StreamEvent;
+import ru.example.vkchatstreams.announce.KeyboardBuilder;
+import ru.example.vkchatstreams.announce.TemplateEngine;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -24,13 +26,47 @@ public class StreamChecker {
     private final Map<String, Long> streamStartTimes = new ConcurrentHashMap<>();
     private final Map<String, Set<UUID>> claimedRewards = new ConcurrentHashMap<>();
     private final Map<String, Long> lastAnnounceTime = new ConcurrentHashMap<>();
-    private final Map<String, String[]> streamerLinks = new HashMap<>();
+    private final Map<String, StreamerLinks> streamerLinks = new HashMap<>();
     private int taskId = -1;
+
+    private static final int INITIAL_DELAY_TICKS = 200;
+    private static final int TICKS_PER_MINUTE = 1200;
+    private static final long MILLIS_PER_SECOND = 1000L;
+
+    public record StreamerLinks(String youtube, String vk) {
+        public boolean isEmpty() { return (youtube == null || youtube.isEmpty()) && (vk == null || vk.isEmpty()); }
+    }
 
     public StreamChecker(VKChatStreamsPlugin plugin) {
         this.plugin = plugin;
         loadStreamerLinks();
     }
+
+    // ═══ Lifecycle ═══
+
+    public void start() {
+        int intervalTicks = plugin.getConfig().getInt("check-interval-minutes", 5) * TICKS_PER_MINUTE;
+        taskId = Bukkit.getScheduler()
+                .runTaskTimerAsynchronously(plugin, this::checkAll, INITIAL_DELAY_TICKS, Math.max(INITIAL_DELAY_TICKS, intervalTicks))
+                .getTaskId();
+    }
+
+    public void stop() {
+        if (taskId != -1) {
+            Bukkit.getScheduler().cancelTask(taskId);
+            taskId = -1;
+        }
+    }
+
+    public void restart() { stop(); start(); }
+
+    public void reload() {
+        loadStreamerLinks();
+        lastAnnounceTime.clear();
+        TwitchChecker.resetToken();
+    }
+
+    // ═══ Config ═══
 
     private void loadStreamerLinks() {
         streamerLinks.clear();
@@ -39,182 +75,160 @@ public class StreamChecker {
         for (String key : sec.getKeys(false)) {
             String yt = sec.getString(key + ".youtube", "");
             String vk = sec.getString(key + ".vk", "");
-            if (!yt.isEmpty() || !vk.isEmpty())
-                streamerLinks.put(key.toLowerCase(), new String[]{yt, vk});
+            if (!yt.isEmpty() || !vk.isEmpty()) {
+                streamerLinks.put(key.toLowerCase(), new StreamerLinks(yt, vk));
+            }
         }
     }
 
-    public void start() {
-        int interval = plugin.getConfig().getInt("check-interval-minutes", 5) * 1200;
-        taskId = Bukkit.getScheduler().runTaskTimerAsynchronously(plugin, this::checkAll, 200L, Math.max(200, interval)).getTaskId();
+    private StreamerLinks getLinks(String channel) {
+        return streamerLinks.getOrDefault(channel.toLowerCase(), new StreamerLinks("", ""));
     }
 
-    public void stop() { if (taskId != -1) Bukkit.getScheduler().cancelTask(taskId); }
-    public void restart() { stop(); start(); }
+    private int getCooldownMillis() {
+        return plugin.getConfig().getInt("announcement.cooldown-seconds", 300) * (int) MILLIS_PER_SECOND;
+    }
+
+    private boolean isGameAnnounceEnabled() {
+        return plugin.getConfig().getBoolean("announcement.game-enabled", true);
+    }
+
+    private boolean isKeyboardEnabled() {
+        return plugin.getConfig().getBoolean("announcement.keyboard", true);
+    }
+
+    // ═══ Core Logic ═══
 
     public void checkAll() {
         Set<StreamEvent> events = TwitchChecker.check(plugin);
+        handleOfflineStreams(events);
+        handleNewStreams(events);
+    }
 
+    private void handleOfflineStreams(Set<StreamEvent> events) {
         for (String key : new HashSet<>(announced)) {
             if (events.stream().noneMatch(e -> key.equals(e.getChannel()))) {
-                StreamEvent old = activeStreams.get(key);
+                StreamEvent old = activeStreams.remove(key);
                 announced.remove(key);
-                activeStreams.remove(key);
                 if (old != null) {
                     long start = streamStartTimes.remove(key);
                     int claimed = claimedRewards.getOrDefault(key, Set.of()).size();
                     claimedRewards.remove(key);
-                    Bukkit.getScheduler().runTask(plugin, () -> notifyOffline(old, start, claimed));
+                    long uptimeSeconds = (System.currentTimeMillis() - start) / MILLIS_PER_SECOND;
+                    Bukkit.getScheduler().runTask(plugin, () -> notifyOffline(old, uptimeSeconds, claimed));
                 }
             }
         }
+    }
 
-        int cooldownSec = plugin.getConfig().getInt("announcement.cooldown-seconds", 300);
+    private void handleNewStreams(Set<StreamEvent> events) {
+        int cooldownMs = getCooldownMillis();
         for (StreamEvent e : events) {
             if (!e.isLive() || announced.contains(e.getChannel())) continue;
 
             long now = System.currentTimeMillis();
             Long last = lastAnnounceTime.get(e.getChannel());
-            if (last != null && (now - last) < cooldownSec * 1000L) continue;
+            if (last != null && (now - last) < cooldownMs) continue;
 
-            lastAnnounceTime.put(e.getChannel(), now);
-            announced.add(e.getChannel());
-            claimedRewards.putIfAbsent(e.getChannel(), ConcurrentHashMap.newKeySet());
-            streamStartTimes.putIfAbsent(e.getChannel(), e.getStartTime());
-            activeStreams.put(e.getChannel(), e);
+            registerStream(e, now);
             Bukkit.getScheduler().runTask(plugin, () -> announce(e));
         }
+    }
+
+    private void registerStream(StreamEvent e, long announceTime) {
+        lastAnnounceTime.put(e.getChannel(), announceTime);
+        announced.add(e.getChannel());
+        claimedRewards.computeIfAbsent(e.getChannel(), k -> ConcurrentHashMap.newKeySet());
+        streamStartTimes.putIfAbsent(e.getChannel(), e.getStartTime());
+        activeStreams.put(e.getChannel(), e);
     }
 
     public void forceAnnounce(StreamEvent e) {
         loadStreamerLinks();
         if (announced.contains(e.getChannel())) return;
-        announced.add(e.getChannel());
-        claimedRewards.putIfAbsent(e.getChannel(), ConcurrentHashMap.newKeySet());
-        streamStartTimes.putIfAbsent(e.getChannel(), e.getStartTime());
-        activeStreams.put(e.getChannel(), e);
+        registerStream(e, System.currentTimeMillis());
         Bukkit.getScheduler().runTask(plugin, () -> announce(e));
     }
 
-    public List<StreamEvent> getLiveStreams() { return new ArrayList<>(activeStreams.values()); }
-
-    public int getClaimedCount(String channel) {
-        Set<UUID> s = claimedRewards.get(channel);
-        return s != null ? s.size() : 0;
-    }
-
-    public long getStartTime(String channel) {
-        return streamStartTimes.getOrDefault(channel, System.currentTimeMillis());
-    }
+    // ═══ Announcements ═══
 
     private void announce(StreamEvent e) {
-        String ytUrl = "", vkUrl = "";
-        String[] links = streamerLinks.get(e.getChannel().toLowerCase());
-        if (links != null) { ytUrl = links[0]; vkUrl = links[1]; }
+        StreamerLinks links = getLinks(e.getChannel());
+        if (isGameAnnounceEnabled()) announceToGame(e, links);
+        announceToVK(e, links);
+        announceToPlayers(e, links);
+    }
 
-        // In-game broadcast
-        if (plugin.getConfig().getBoolean("announcement.game-enabled", true)) {
-            for (String line : plugin.getConfig().getStringList("announcement.game")) {
-                String msg = ChatColor.translateAlternateColorCodes('&', format(line, e, ytUrl, vkUrl, 0));
-                if (!msg.trim().isEmpty()) Bukkit.broadcastMessage(msg);
-            }
+    private void announceToGame(StreamEvent e, StreamerLinks links) {
+        for (String line : plugin.getConfig().getStringList("announcement.game")) {
+            String msg = ChatColor.translateAlternateColorCodes('&',
+                    TemplateEngine.format(line, e, links.youtube(), links.vk(), 0, null));
+            if (!msg.trim().isEmpty()) Bukkit.broadcastMessage(msg);
         }
+    }
 
-        // VK chat
+    private void announceToVK(StreamEvent e, StreamerLinks links) {
         StringBuilder chatText = new StringBuilder();
         for (String line : plugin.getConfig().getStringList("announcement.chat")) {
-            String msg = format(line, e, ytUrl, vkUrl, 0).trim();
+            String msg = TemplateEngine.format(line, e, links.youtube(), links.vk(), 0, null).trim();
             if (!msg.isEmpty()) chatText.append(chatText.length() > 0 ? "\n" : "").append(msg);
         }
         String fullText = chatText.toString().trim();
         if (fullText.isEmpty()) return;
 
-        boolean useKeyboard = plugin.getConfig().getBoolean("announcement.keyboard", true);
-        if (useKeyboard) {
-            int peerId = VKChatBridge.getMainChatPeerId();
-            if (peerId > 0) VKChatBridge.sendKeyboard(peerId, fullText, buildKeyboard(e, ytUrl, vkUrl));
-            else VKChatBridge.sendToMainChat(fullText);
-        } else {
-            VKChatBridge.sendToMainChat(fullText);
-        }
+        String keyboard = isKeyboardEnabled() ? KeyboardBuilder.build(e, links.youtube(), links.vk()) : null;
+        sendToChat(fullText, keyboard);
+    }
 
-        // Player DMs
+    private void sendToChat(String text, String keyboard) {
+        if (keyboard != null) {
+            int peerId = VKChatBridge.getMainChatPeerId();
+            if (peerId > 0) {
+                VKChatBridge.sendKeyboard(peerId, text, keyboard);
+                return;
+            }
+        }
+        VKChatBridge.sendToMainChat(text);
+    }
+
+    private void announceToPlayers(StreamEvent e, StreamerLinks links) {
         String dmTemplate = plugin.getConfig().getString("announcement.player-dm", "");
-        if (!dmTemplate.isEmpty()) {
-            String dm = format(dmTemplate, e, ytUrl, vkUrl, 0).trim();
-            if (!dm.isEmpty()) {
-                for (Player p : Bukkit.getOnlinePlayers()) {
-                    int vkId = VKChatBridge.getLinkedVkId(p);
-                    if (vkId != -1) {
-                        if (useKeyboard) VKChatBridge.sendKeyboard(vkId, dm, buildKeyboard(e, ytUrl, vkUrl));
-                        else VKChatBridge.sendMessage(vkId, dm);
-                    }
-                }
+        if (dmTemplate.isEmpty()) return;
+
+        String dm = TemplateEngine.format(dmTemplate, e, links.youtube(), links.vk(), 0, null).trim();
+        if (dm.isEmpty()) return;
+
+        String keyboard = isKeyboardEnabled() ? KeyboardBuilder.build(e, links.youtube(), links.vk()) : null;
+        for (Player p : Bukkit.getOnlinePlayers()) {
+            int vkId = VKChatBridge.getLinkedVkId(p);
+            if (vkId != -1) {
+                if (keyboard != null) VKChatBridge.sendKeyboard(vkId, dm, keyboard);
+                else VKChatBridge.sendMessage(vkId, dm);
             }
         }
     }
 
-    private void notifyOffline(StreamEvent e, long startTime, int claimed) {
+    private void notifyOffline(StreamEvent e, long uptimeSeconds, int claimed) {
         String template = plugin.getConfig().getString("announcement.offline", "");
         if (template.isEmpty()) return;
-
-        long sec = (System.currentTimeMillis() - startTime) / 1000;
-        String uptime = formatUptime(sec);
-
-        String msg = template.replace("{channel}", e.getChannel())
-                .replace("{title}", e.getTitle() != null ? e.getTitle() : "")
-                .replace("{claimed}", String.valueOf(claimed))
-                .replace("{uptime}", uptime)
-                .replace("{viewers}", String.valueOf(e.getViewerCount()));
-
+        String msg = TemplateEngine.formatOffline(template, e.getChannel(), e.getTitle(), claimed, uptimeSeconds, e.getViewerCount());
         VKChatBridge.sendToMainChat(msg.trim());
     }
 
-    static String formatUptime(long totalSeconds) {
-        if (totalSeconds < 60) return totalSeconds + "с";
-        if (totalSeconds < 3600) return (totalSeconds / 60) + "м " + (totalSeconds % 60) + "с";
-        return (totalSeconds / 3600) + "ч " + ((totalSeconds % 3600) / 60) + "м";
-    }
-
-    private String buildKeyboard(StreamEvent e, String ytUrl, String vkUrl) {
-        StringBuilder kb = new StringBuilder("{\"inline\":false,\"buttons\":[");
-        boolean first = true;
-        if (e.getUrl() != null && !e.getUrl().isEmpty()) {
-            kb.append("[{\"action\":{\"type\":\"open_link\",\"link\":\"")
-              .append(escapeJson(e.getUrl())).append("\",\"label\":\"📺 Twitch\"}}]");
-            first = false;
-        }
-        if (!ytUrl.isEmpty()) {
-            if (!first) kb.append(",");
-            kb.append("[{\"action\":{\"type\":\"open_link\",\"link\":\"")
-              .append(escapeJson(ytUrl)).append("\",\"label\":\"🔴 YouTube\"}}]");
-            first = false;
-        }
-        if (!vkUrl.isEmpty()) {
-            if (!first) kb.append(",");
-            kb.append("[{\"action\":{\"type\":\"open_link\",\"link\":\"")
-              .append(escapeJson(vkUrl)).append("\",\"label\":\"🔵 VK\"}}]");
-        }
-        kb.append("]}");
-        return kb.toString();
-    }
-
-    private String escapeJson(String s) { return s.replace("\\", "\\\\").replace("\"", "\\\""); }
+    // ═══ Rewards ═══
 
     public boolean claimReward(Player p) {
         if (announced.isEmpty()) {
             p.sendMessage(ChatColor.RED + "Сейчас нет активных стримов.");
             return false;
         }
-        String keyToClaim = null;
-        for (String key : announced) {
-            Set<UUID> claimers = claimedRewards.get(key);
-            if (claimers == null || !claimers.contains(p.getUniqueId())) { keyToClaim = key; break; }
-        }
+
+        String keyToClaim = findUnclaimedStream(p.getUniqueId());
         if (keyToClaim == null) {
             p.sendMessage(ChatColor.RED + "Ты уже получил награду за все активные стримы!");
             return false;
         }
+
         claimedRewards.computeIfAbsent(keyToClaim, k -> ConcurrentHashMap.newKeySet()).add(p.getUniqueId());
         StreamEvent stream = activeStreams.get(keyToClaim);
 
@@ -231,27 +245,34 @@ public class StreamChecker {
         return true;
     }
 
-    private String format(String template, StreamEvent e, String ytUrl, String vkUrl, int claimed) {
-        String title = e.getTitle();
-        if (title == null || title.isEmpty()) title = "Без названия";
+    private String findUnclaimedStream(UUID playerId) {
+        for (String key : announced) {
+            Set<UUID> claimers = claimedRewards.get(key);
+            if (claimers == null || !claimers.contains(playerId)) return key;
+        }
+        return null;
+    }
 
-        String linksStr = "📺 Twitch: " + (e.getUrl() != null ? e.getUrl() : "");
-        if (!ytUrl.isEmpty()) linksStr += "\n🔴 YouTube: " + ytUrl;
-        if (!vkUrl.isEmpty()) linksStr += "\n🔵 VK: " + vkUrl;
+    // ═══ Public Getters ═══
 
-        return template.replace("{channel}", e.getChannel())
-                .replace("{title}", title)
-                .replace("{game}", e.getGame() != null ? e.getGame() : "")
-                .replace("{viewers}", e.getViewerCount() > 0 ? String.valueOf(e.getViewerCount()) : "0")
-                .replace("{url}", e.getUrl() != null ? e.getUrl() : "")
-                .replace("{youtube_url}", ytUrl)
-                .replace("{vk_url}", vkUrl)
-                .replace("{links}", linksStr)
-                .replace("{uptime}", e.getUptime())
-                .replace("{claimed}", String.valueOf(claimed > 0 ? claimed : getClaimedCount(e.getChannel())));
+    public List<StreamEvent> getLiveStreams() { return new ArrayList<>(activeStreams.values()); }
+
+    public int getClaimedCount(String channel) {
+        Set<UUID> s = claimedRewards.get(channel);
+        return s != null ? s.size() : 0;
+    }
+
+    public long getStartTime(String channel) {
+        return streamStartTimes.getOrDefault(channel, System.currentTimeMillis());
     }
 
     public Set<String> getAnnounced() { return announced; }
-    public void resetAnnounced() { announced.clear(); activeStreams.clear(); claimedRewards.clear(); streamStartTimes.clear(); lastAnnounceTime.clear(); }
-    public void reload() { loadStreamerLinks(); lastAnnounceTime.clear(); TwitchChecker.resetToken(); }
+
+    public void resetAnnounced() {
+        announced.clear();
+        activeStreams.clear();
+        claimedRewards.clear();
+        streamStartTimes.clear();
+        lastAnnounceTime.clear();
+    }
 }

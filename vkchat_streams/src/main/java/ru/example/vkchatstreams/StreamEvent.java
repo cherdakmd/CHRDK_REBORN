@@ -36,9 +36,13 @@ public class StreamEvent {
     public long getStartTime() { return startTime; }
 
     public String getUptime() {
-        long sec = (System.currentTimeMillis() - startTime) / 1000;
-        if (sec < 60) return sec + "с";
-        if (sec < 3600) return (sec / 60) + "м " + (sec % 60) + "с";
-        return (sec / 3600) + "ч " + ((sec % 3600) / 60) + "м";
+        return formatUptime((System.currentTimeMillis() - startTime) / 1000);
+    }
+
+    public static String formatUptime(long totalSeconds) {
+        if (totalSeconds < 0) totalSeconds = 0;
+        if (totalSeconds < 60) return totalSeconds + "с";
+        if (totalSeconds < 3600) return (totalSeconds / 60) + "м " + (totalSeconds % 60) + "с";
+        return (totalSeconds / 3600) + "ч " + ((totalSeconds % 3600) / 60) + "м";
     }
 }
