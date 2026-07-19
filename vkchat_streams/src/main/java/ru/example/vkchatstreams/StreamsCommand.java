@@ -102,7 +102,9 @@ public class StreamsCommand implements CommandExecutor, TabCompleter {
     public List<String> onTabComplete(CommandSender sender, Command cmd, String alias, String[] args) {
         if (args.length == 1) {
             List<String> subs = new ArrayList<>(Arrays.asList("reward", "list"));
-            if (sender.hasPermission("vkchat.streams.admin")) subs.add("start");
+            if (sender.hasPermission("vkchat.streams.admin")) {
+                subs.addAll(Arrays.asList("start", "check", "reset", "reload"));
+            }
             String prefix = args[0].toLowerCase();
             subs.removeIf(s -> !s.startsWith(prefix));
             return subs;

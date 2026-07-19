@@ -60,9 +60,8 @@ public class StreamChecker {
                 StreamEvent old = activeStreams.get(key);
                 announced.remove(key);
                 activeStreams.remove(key);
-                streamStartTimes.remove(key);
                 if (old != null) {
-                    long start = streamStartTimes.getOrDefault(key, old.getStartTime());
+                    long start = streamStartTimes.remove(key);
                     int claimed = claimedRewards.getOrDefault(key, Set.of()).size();
                     claimedRewards.remove(key);
                     Bukkit.getScheduler().runTask(plugin, () -> notifyOffline(old, start, claimed));
@@ -160,7 +159,7 @@ public class StreamChecker {
         if (template.isEmpty()) return;
 
         long sec = (System.currentTimeMillis() - startTime) / 1000;
-        String uptime = sec < 60 ? sec + "с" : sec < 3600 ? (sec / 60) + "м" : (sec / 3600) + "ч " + ((sec % 3600) / 60) + "м";
+        String uptime = formatUptime(sec);
 
         String msg = template.replace("{channel}", e.getChannel())
                 .replace("{title}", e.getTitle() != null ? e.getTitle() : "")
@@ -169,6 +168,12 @@ public class StreamChecker {
                 .replace("{viewers}", String.valueOf(e.getViewerCount()));
 
         VKChatBridge.sendToMainChat(msg.trim());
+    }
+
+    static String formatUptime(long totalSeconds) {
+        if (totalSeconds < 60) return totalSeconds + "с";
+        if (totalSeconds < 3600) return (totalSeconds / 60) + "м " + (totalSeconds % 60) + "с";
+        return (totalSeconds / 3600) + "ч " + ((totalSeconds % 3600) / 60) + "м";
     }
 
     private String buildKeyboard(StreamEvent e, String ytUrl, String vkUrl) {
@@ -210,7 +215,7 @@ public class StreamChecker {
             p.sendMessage(ChatColor.RED + "Ты уже получил награду за все активные стримы!");
             return false;
         }
-        claimedRewards.get(keyToClaim).add(p.getUniqueId());
+        claimedRewards.computeIfAbsent(keyToClaim, k -> ConcurrentHashMap.newKeySet()).add(p.getUniqueId());
         StreamEvent stream = activeStreams.get(keyToClaim);
 
         int rep = plugin.getConfig().getInt("rewards.reputation", 150);
