@@ -124,7 +124,7 @@ public class VKChatGearPlugin extends JavaPlugin {
                         }
                     }
                     if (hasHaste) {
-                        p.addPotionEffect(new PotionEffect(PotionEffectType.FAST_DIGGING, 40, 1, false, false, false));
+                        p.addPotionEffect(new PotionEffect(PotionEffectType.HASTE, 40, 1, false, false, false));
                     }
 
                     // --- Постоянные шлейфы частиц для оружия высокого уровня заточки (+15 / +20) ---
@@ -138,7 +138,7 @@ public class VKChatGearPlugin extends JavaPlugin {
                                 if (upgradeLvl >= 20) {
                                     // Эндгейм-искры текущего максимума (+20)
                                     p.getWorld().spawnParticle(org.bukkit.Particle.CRIT, loc, 2, 0.2, 0.2, 0.2, 0.05);
-                                    p.getWorld().spawnParticle(org.bukkit.Particle.CRIT_MAGIC, loc, 1, 0.2, 0.2, 0.2, 0.02);
+                                    p.getWorld().spawnParticle(org.bukkit.Particle.ENCHANTED_HIT, loc, 1, 0.2, 0.2, 0.2, 0.02);
                                 } else {
                                     // Пламя (+15)
                                     p.getWorld().spawnParticle(org.bukkit.Particle.FLAME, loc, 1, 0.2, 0.2, 0.2, 0.02);
@@ -161,10 +161,10 @@ public class VKChatGearPlugin extends JavaPlugin {
                     }
                 }
                 if (hasHasteAura) {
-                    p.addPotionEffect(new PotionEffect(PotionEffectType.FAST_DIGGING, 60, 0, false, false, false));
+                    p.addPotionEffect(new PotionEffect(PotionEffectType.HASTE, 60, 0, false, false, false));
                     for (org.bukkit.entity.Entity ent : p.getNearbyEntities(10, 10, 10)) {
                         if (ent instanceof Player) {
-                            ((Player) ent).addPotionEffect(new PotionEffect(PotionEffectType.FAST_DIGGING, 60, 0, false, false, false));
+                            ((Player) ent).addPotionEffect(new PotionEffect(PotionEffectType.HASTE, 60, 0, false, false, false));
                         }
                     }
                 }
@@ -180,7 +180,7 @@ public class VKChatGearPlugin extends JavaPlugin {
                     long lastHeavy = p.hasMetadata("heavy_defect_last") ? p.getMetadata("heavy_defect_last").get(0).asLong() : 0;
                     if (now - lastHeavy >= 5000) {
                         p.setMetadata("heavy_defect_last", new org.bukkit.metadata.FixedMetadataValue(this, now));
-                        p.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, 120, 0, false, false, false));
+                        p.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 120, 0, false, false, false));
                     }
                 }
 
@@ -202,14 +202,14 @@ public class VKChatGearPlugin extends JavaPlugin {
                 if (hasAquatic) p.addPotionEffect(new PotionEffect(PotionEffectType.WATER_BREATHING, 60, 0, false, false, false));
                 if (hasMagma) p.addPotionEffect(new PotionEffect(PotionEffectType.FIRE_RESISTANCE, 60, 0, false, false, false));
                 if (hasWind) p.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 60, 1, false, false, false));
-                if (hasGolem) p.addPotionEffect(new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, 60, 0, false, false, false));
-                if (hasSpider) p.addPotionEffect(new PotionEffect(PotionEffectType.JUMP, 60, 1, false, false, false));
+                if (hasGolem) p.addPotionEffect(new PotionEffect(PotionEffectType.RESISTANCE, 60, 0, false, false, false));
+                if (hasSpider) p.addPotionEffect(new PotionEffect(PotionEffectType.JUMP_BOOST, 60, 1, false, false, false));
                 if (hasHealingAura) {
                     long now = System.currentTimeMillis();
                     long lastHeal = p.hasMetadata("healing_aura_last") ? p.getMetadata("healing_aura_last").get(0).asLong() : 0;
                     if (now - lastHeal >= 3000) {
                         p.setMetadata("healing_aura_last", new org.bukkit.metadata.FixedMetadataValue(this, now));
-                        double maxHp = p.getAttribute(org.bukkit.attribute.Attribute.GENERIC_MAX_HEALTH).getValue();
+                        double maxHp = p.getAttribute(org.bukkit.attribute.Attribute.MAX_HEALTH).getValue();
                         if (p.getHealth() < maxHp) {
                             p.setHealth(Math.min(p.getHealth() + 1.0, maxHp));
                         }

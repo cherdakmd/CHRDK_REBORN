@@ -97,7 +97,7 @@ public class AirdropManager implements Listener {
                     Location bLoc = loc.clone().add(dx, -1, dz);
                     if (!ClaimProtection.isLocationClaimed(bLoc) && bLoc.getBlock().getType() != Material.BEDROCK) {
                         bLoc.getBlock().setType(Material.COARSE_DIRT);
-                        bLoc.getWorld().spawnParticle(org.bukkit.Particle.EXPLOSION_LARGE, bLoc.clone().add(0, 1, 0), 1);
+                        bLoc.getWorld().spawnParticle(org.bukkit.Particle.EXPLOSION, bLoc.clone().add(0, 1, 0), 1);
                     }
                 }
             }
@@ -116,7 +116,7 @@ public class AirdropManager implements Listener {
             activeBoss.getPersistentDataContainer().set(new NamespacedKey(plugin, "airdrop_boss"), PersistentDataType.INTEGER, 1);
             if (activeBoss instanceof LivingEntity) {
                 LivingEntity le = (LivingEntity) activeBoss;
-                le.getAttribute(org.bukkit.attribute.Attribute.GENERIC_MAX_HEALTH).setBaseValue(150.0);
+                le.getAttribute(org.bukkit.attribute.Attribute.MAX_HEALTH).setBaseValue(150.0);
                 le.setHealth(150.0);
             }
         } catch (Exception ignored) {}
@@ -178,7 +178,7 @@ public class AirdropManager implements Listener {
                 double radRadius = plugin.getConfig().getDouble("radiation.radius", 20.0);
                 double dmg = plugin.getConfig().getDouble("radiation.damage", 2.0);
                 String safePot = plugin.getConfig().getString("radiation.safe_potion", "FIRE_RESISTANCE");
-                PotionEffectType safeType = PotionEffectType.getByName(safePot);
+                PotionEffectType safeType = ru.example.vkchat.util.BukkitNames.potionEffect(safePot);
                 
                 for (Player p : activeAirdrop.getWorld().getPlayers()) {
                     if (p.getLocation().distance(activeAirdrop) <= radRadius && !ClaimProtection.isLocationClaimed(p.getLocation())) {
@@ -367,7 +367,7 @@ public class AirdropManager implements Listener {
             Bukkit.broadcastMessage(ChatColor.GOLD + "⚔️ [Аирдроп] Из-за ожесточенного боя в зоне взлома (активность: " + combatActionCount + "), количество выпавшего лута выросло в " + String.format("%.1f", multiplier) + " раза!");
         }
         
-        activeAirdrop.getWorld().spawnParticle(org.bukkit.Particle.FIREWORKS_SPARK, activeAirdrop.clone().add(0, 1, 0), 200, 1, 1, 1, 0.2);
+        activeAirdrop.getWorld().spawnParticle(org.bukkit.Particle.FIREWORK, activeAirdrop.clone().add(0, 1, 0), 200, 1, 1, 1, 0.2);
         
         clearAirdropState();
     }

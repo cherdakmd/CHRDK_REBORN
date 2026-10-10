@@ -42,7 +42,7 @@ public class CraftListener implements Listener {
                 e.setCancelled(true);
                 p.sendMessage(ChatColor.DARK_RED + "💥 Ковка сорвалась! Заготовка уничтожена, репутация потрачена.");
                 p.playSound(p.getLocation(), org.bukkit.Sound.BLOCK_ANVIL_BREAK, 1f, 0.7f);
-                p.getWorld().spawnParticle(org.bukkit.Particle.SMOKE_LARGE, p.getLocation().add(0, 1, 0), 30, 0.5, 0.5, 0.5, 0.08);
+                p.getWorld().spawnParticle(org.bukkit.Particle.LARGE_SMOKE, p.getLocation().add(0, 1, 0), 30, 0.5, 0.5, 0.5, 0.08);
                 return;
             }
 

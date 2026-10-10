@@ -29,7 +29,7 @@ public class ArtifactFactory {
     public static final String[] CURSES = {"SLOWNESS", "WEAKNESS", "HUNGER", "FRAGILE", "BLINDNESS", "VULNERABILITY", "DECAY", "SILENCE", "BLOODLETTING", "ANCHOR", "NIGHTMARE", "GREED", "CHAOS"};
 
     public static ItemStack generateArtifact(VKChatArtifactsPlugin plugin, boolean isMythic) {
-        Material[] possibleMats = {Material.NETHER_STAR, Material.TOTEM_OF_UNDYING, Material.HEART_OF_THE_SEA, Material.DRAGON_BREATH, Material.GHAST_TEAR, Material.BLAZE_POWDER, Material.RABBIT_FOOT, Material.MAGMA_CREAM, Material.END_CRYSTAL, Material.CONDUIT, Material.SCUTE, Material.END_ROD, Material.CHORUS_FRUIT};
+        Material[] possibleMats = {Material.NETHER_STAR, Material.TOTEM_OF_UNDYING, Material.HEART_OF_THE_SEA, Material.DRAGON_BREATH, Material.GHAST_TEAR, Material.BLAZE_POWDER, Material.RABBIT_FOOT, Material.MAGMA_CREAM, Material.END_CRYSTAL, Material.CONDUIT, Material.TURTLE_SCUTE, Material.END_ROD, Material.CHORUS_FRUIT};
         Material mat = possibleMats[random.nextInt(possibleMats.length)];
         
         ItemStack item = new ItemStack(mat);

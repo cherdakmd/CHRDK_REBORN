@@ -1,6 +1,6 @@
 # CHRDK REBORN
 
-RPG-экосистема **Minecraft ↔ ВКонтакте** на сервере Purpur 1.20.4.
+RPG-экосистема **Minecraft ↔ ВКонтакте** на сервере Purpur 26.3 (Minecraft 26.3, требуется Java 25).
 
 ---
 

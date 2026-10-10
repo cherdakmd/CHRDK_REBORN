@@ -359,9 +359,9 @@ public class TeleportManager {
                 if (secondsPassed % 2 == 0) {
                     world.spawnParticle(Particle.SOUL_FIRE_FLAME, new Location(world, x, loc.getY() + y, z), 1, 0, 0, 0, 0.01);
                 } else {
-                    world.spawnParticle(Particle.REDSTONE, new Location(world, x, loc.getY() + y, z), 2, 0, 0, 0, 0.01, new Particle.DustOptions(org.bukkit.Color.FUCHSIA, 1.2f));
+                    world.spawnParticle(Particle.DUST, new Location(world, x, loc.getY() + y, z), 2, 0, 0, 0, 0.01, new Particle.DustOptions(org.bukkit.Color.FUCHSIA, 1.2f));
                 }
-                world.spawnParticle(Particle.SMOKE_NORMAL, loc.clone().add(0, 0.1, 0), 1, 0.3, 0.1, 0.3, 0.02);
+                world.spawnParticle(Particle.SMOKE, loc.clone().add(0, 0.1, 0), 1, 0.3, 0.1, 0.3, 0.02);
             }
         }
     }

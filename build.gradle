@@ -3,20 +3,24 @@ allprojects {
     group = 'ru.example'
     version = '2.0.0'
 
-    sourceCompatibility = '17'
-    targetCompatibility = '17'
 
     repositories {
         mavenCentral()
-        maven { url = 'https://hub.spigotmc.org/nexus/content/repositories/snapshots/' }
+        maven { url = 'https://repo.papermc.io/repository/maven-public/' }
         maven { url = 'https://oss.sonatype.org/content/repositories/snapshots' }
         maven { url = 'https://repo.extendedclip.com/content/repositories/placeholderapi/' }
         maven { url = 'https://jitpack.io' }
     }
     
+    java {
+        toolchain {
+            languageVersion = JavaLanguageVersion.of(25)
+        }
+    }
+
     tasks.withType(JavaCompile) {
         options.encoding = 'UTF-8'
-        options.release = 17
+        options.release = 25
     }
 }
 

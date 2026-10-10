@@ -104,7 +104,7 @@ public class ConsumablesListener implements Listener {
             int chance = plugin.getConfig().getInt("consumables.cleanse.success-chance", 50);
             int breakChance = plugin.getConfig().getInt("consumables.cleanse.break-chance", 30);
             
-            p.getWorld().spawnParticle(Particle.ENCHANTMENT_TABLE, p.getLocation().add(0, 1, 0), 50, 0.5, 0.5, 0.5, 0.1);
+            p.getWorld().spawnParticle(Particle.ENCHANT, p.getLocation().add(0, 1, 0), 50, 0.5, 0.5, 0.5, 0.1);
             p.playSound(p.getLocation(), Sound.BLOCK_ENCHANTMENT_TABLE_USE, 1.0f, 1.0f);
 
             int roll = random.nextInt(100);
@@ -125,7 +125,7 @@ public class ConsumablesListener implements Listener {
                 sendVkChat("✨ Чудо! Игрок " + p.getName() + " успешно очистил артефакт от проклятия!");
             } else if (roll < chance + breakChance) {
                 p.getInventory().setItemInOffHand(new ItemStack(Material.AIR));
-                p.getWorld().spawnParticle(Particle.EXPLOSION_LARGE, p.getLocation().add(0, 1, 0), 1);
+                p.getWorld().spawnParticle(Particle.EXPLOSION, p.getLocation().add(0, 1, 0), 1);
                 p.playSound(p.getLocation(), Sound.ENTITY_GENERIC_EXPLODE, 1.0f, 1.0f);
                 
                 p.sendMessage(ChatColor.DARK_RED + " Артефакт не выдержал магии и рассыпался в пыль!");
@@ -157,7 +157,7 @@ public class ConsumablesListener implements Listener {
             ENCHANTMENT_SCROLL_BOOST.put(p.getUniqueId(), System.currentTimeMillis() + 600000L);
             item.setAmount(item.getAmount() - 1);
             cooldowns.put(p.getUniqueId(), now);
-            p.getWorld().spawnParticle(Particle.ENCHANTMENT_TABLE, p.getLocation().add(0, 1, 0), 80, 0.5, 0.5, 0.5, 0.2);
+            p.getWorld().spawnParticle(Particle.ENCHANT, p.getLocation().add(0, 1, 0), 80, 0.5, 0.5, 0.5, 0.2);
             p.playSound(p.getLocation(), Sound.BLOCK_ENCHANTMENT_TABLE_USE, 1.0f, 1.5f);
             p.sendMessage(ChatColor.AQUA + "✨ Свиток Чар Усиления активирован! Все баффы артефактов усилены на 50% (10 мин).");
         }
@@ -180,7 +180,7 @@ public class ConsumablesListener implements Listener {
             offhand.setItemMeta(offMeta);
             item.setAmount(item.getAmount() - 1);
             cooldowns.put(p.getUniqueId(), now);
-            p.getWorld().spawnParticle(Particle.VILLAGER_HAPPY, p.getLocation().add(0, 1, 0), 30, 0.3, 0.3, 0.3, 0.1);
+            p.getWorld().spawnParticle(Particle.HAPPY_VILLAGER, p.getLocation().add(0, 1, 0), 30, 0.3, 0.3, 0.3, 0.1);
             p.playSound(p.getLocation(), Sound.BLOCK_ANVIL_USE, 1.0f, 1.0f);
             p.sendMessage(ChatColor.GREEN + "✨ Ремонтный набор восстановил время жизни артефакта на 24 часа!");
         }
@@ -261,7 +261,7 @@ public class ConsumablesListener implements Listener {
             offhand.setItemMeta(offMeta);
             item.setAmount(item.getAmount() - 1);
             cooldowns.put(p.getUniqueId(), now);
-            p.getWorld().spawnParticle(Particle.ENCHANTMENT_TABLE, p.getLocation().add(0, 1, 0), 60, 0.5, 0.5, 0.5, 0.2);
+            p.getWorld().spawnParticle(Particle.ENCHANT, p.getLocation().add(0, 1, 0), 60, 0.5, 0.5, 0.5, 0.2);
             p.playSound(p.getLocation(), Sound.BLOCK_ENCHANTMENT_TABLE_USE, 1.0f, 1.2f);
             p.sendMessage(ChatColor.DARK_PURPLE + "✨ Руна Обмена перекатила бафф артефакта на: " + newBuff + "!");
         }
@@ -290,7 +290,7 @@ public class ConsumablesListener implements Listener {
             offhand.setItemMeta(offMeta);
             item.setAmount(item.getAmount() - 1);
             cooldowns.put(p.getUniqueId(), now);
-            p.getWorld().spawnParticle(Particle.TOTEM, p.getLocation().add(0, 1, 0), 50, 0.5, 0.5, 0.5, 0.3);
+            p.getWorld().spawnParticle(Particle.TOTEM_OF_UNDYING, p.getLocation().add(0, 1, 0), 50, 0.5, 0.5, 0.5, 0.3);
             p.playSound(p.getLocation(), Sound.ITEM_TOTEM_USE, 1.0f, 1.0f);
             p.sendMessage(ChatColor.GOLD + "✨ Тотем Укрепления привязал артефакт к твоей душе!");
         }
@@ -344,7 +344,7 @@ public class ConsumablesListener implements Listener {
                 mainHand.setItemMeta(mainMeta);
                 p.getInventory().setItemInOffHand(new ItemStack(Material.AIR));
 
-                p.getWorld().spawnParticle(Particle.ENCHANTMENT_TABLE, p.getLocation().add(0, 1, 0), 80, 0.5, 0.5, 0.5, 0.2);
+                p.getWorld().spawnParticle(Particle.ENCHANT, p.getLocation().add(0, 1, 0), 80, 0.5, 0.5, 0.5, 0.2);
                 p.playSound(p.getLocation(), Sound.BLOCK_ANVIL_USE, 1.0f, 1.5f);
                 p.sendMessage(ChatColor.GREEN + "✨ Свиток Синтеза усилил артефакт! Уровень: " + mainLevel + " → " + newLevel);
             } else {
@@ -368,7 +368,7 @@ public class ConsumablesListener implements Listener {
                 mainHand.setItemMeta(mainMeta);
                 p.getInventory().setItemInOffHand(new ItemStack(Material.AIR));
 
-                p.getWorld().spawnParticle(Particle.ENCHANTMENT_TABLE, p.getLocation().add(0, 1, 0), 80, 0.5, 0.5, 0.5, 0.2);
+                p.getWorld().spawnParticle(Particle.ENCHANT, p.getLocation().add(0, 1, 0), 80, 0.5, 0.5, 0.5, 0.2);
                 p.playSound(p.getLocation(), Sound.BLOCK_ANVIL_USE, 1.0f, 1.5f);
                 p.sendMessage(ChatColor.GREEN + "✨ Свиток Синтеза объединил баффы! Новый бафф: " + offBuff);
             }
@@ -399,7 +399,7 @@ public class ConsumablesListener implements Listener {
             offhand.setItemMeta(offMeta);
             item.setAmount(item.getAmount() - 1);
             cooldowns.put(p.getUniqueId(), now);
-            p.getWorld().spawnParticle(Particle.VILLAGER_HAPPY, p.getLocation().add(0, 1, 0), 40, 0.3, 0.3, 0.3, 0.1);
+            p.getWorld().spawnParticle(Particle.HAPPY_VILLAGER, p.getLocation().add(0, 1, 0), 40, 0.3, 0.3, 0.3, 0.1);
             p.playSound(p.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1.0f, 1.0f);
             p.sendMessage(ChatColor.GREEN + "✨ Антидот Разложения успешно снял проклятие!");
             sendVkChat("✨ Игрок " + p.getName() + " снял проклятие с артефакта с помощью Антидота Разложения!");
@@ -423,11 +423,11 @@ public class ConsumablesListener implements Listener {
                 e.setCancelled(true);
                 totem.setAmount(totem.getAmount() - 1);
                 
-                p.setHealth(p.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue());
+                p.setHealth(p.getAttribute(Attribute.MAX_HEALTH).getValue());
                 p.addPotionEffect(new PotionEffect(PotionEffectType.FIRE_RESISTANCE, 200, 0));
-                p.addPotionEffect(new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, 200, 1));
+                p.addPotionEffect(new PotionEffect(PotionEffectType.RESISTANCE, 200, 1));
                 
-                p.getWorld().spawnParticle(Particle.TOTEM, p.getLocation().add(0, 1, 0), 200, 0.5, 1, 0.5, 0.5);
+                p.getWorld().spawnParticle(Particle.TOTEM_OF_UNDYING, p.getLocation().add(0, 1, 0), 200, 0.5, 1, 0.5, 0.5);
                 p.playSound(p.getLocation(), Sound.ITEM_TOTEM_USE, 1.0f, 1.0f);
                 
                 p.sendMessage(ChatColor.RED + " Тотем Крови спас твою жизнь, восстановив все силы!");

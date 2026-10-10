@@ -18,12 +18,12 @@ public class GearManager {
     private final VKChatGearPlugin plugin;
     private final Random random = new Random();
     
-    private final List<Enchantment> swordEnchants = Arrays.asList(Enchantment.DAMAGE_ALL, Enchantment.FIRE_ASPECT, Enchantment.KNOCKBACK, Enchantment.SWEEPING_EDGE, Enchantment.DURABILITY, Enchantment.LOOT_BONUS_MOBS);
-    private final List<Enchantment> axeEnchants = Arrays.asList(Enchantment.DAMAGE_ALL, Enchantment.DURABILITY, Enchantment.LOOT_BONUS_MOBS, Enchantment.DIG_SPEED);
-    private final List<Enchantment> bowEnchants = Arrays.asList(Enchantment.ARROW_DAMAGE, Enchantment.ARROW_FIRE, Enchantment.ARROW_INFINITE, Enchantment.ARROW_KNOCKBACK, Enchantment.DURABILITY);
-    private final List<Enchantment> crossbowEnchants = Arrays.asList(Enchantment.MULTISHOT, Enchantment.QUICK_CHARGE, Enchantment.PIERCING, Enchantment.DURABILITY);
-    private final List<Enchantment> armorEnchants = Arrays.asList(Enchantment.PROTECTION_ENVIRONMENTAL, Enchantment.PROTECTION_FIRE, Enchantment.PROTECTION_PROJECTILE, Enchantment.THORNS, Enchantment.DURABILITY);
-    private final List<Enchantment> toolEnchants = Arrays.asList(Enchantment.DIG_SPEED, Enchantment.DURABILITY, Enchantment.LOOT_BONUS_BLOCKS);
+    private final List<Enchantment> swordEnchants = Arrays.asList(Enchantment.SHARPNESS, Enchantment.FIRE_ASPECT, Enchantment.KNOCKBACK, Enchantment.SWEEPING_EDGE, Enchantment.UNBREAKING, Enchantment.LOOTING);
+    private final List<Enchantment> axeEnchants = Arrays.asList(Enchantment.SHARPNESS, Enchantment.UNBREAKING, Enchantment.LOOTING, Enchantment.EFFICIENCY);
+    private final List<Enchantment> bowEnchants = Arrays.asList(Enchantment.POWER, Enchantment.FLAME, Enchantment.INFINITY, Enchantment.PUNCH, Enchantment.UNBREAKING);
+    private final List<Enchantment> crossbowEnchants = Arrays.asList(Enchantment.MULTISHOT, Enchantment.QUICK_CHARGE, Enchantment.PIERCING, Enchantment.UNBREAKING);
+    private final List<Enchantment> armorEnchants = Arrays.asList(Enchantment.PROTECTION, Enchantment.FIRE_PROTECTION, Enchantment.PROJECTILE_PROTECTION, Enchantment.THORNS, Enchantment.UNBREAKING);
+    private final List<Enchantment> toolEnchants = Arrays.asList(Enchantment.EFFICIENCY, Enchantment.UNBREAKING, Enchantment.FORTUNE);
 
     public GearManager(VKChatGearPlugin plugin) {
         this.plugin = plugin;
@@ -682,14 +682,14 @@ public class GearManager {
     }
 
     private void removeSetPotionEffects(Player p) {
-        p.removePotionEffect(org.bukkit.potion.PotionEffectType.INCREASE_DAMAGE);
+        p.removePotionEffect(org.bukkit.potion.PotionEffectType.STRENGTH);
         p.removePotionEffect(org.bukkit.potion.PotionEffectType.SPEED);
-        p.removePotionEffect(org.bukkit.potion.PotionEffectType.FAST_DIGGING);
+        p.removePotionEffect(org.bukkit.potion.PotionEffectType.HASTE);
         p.removePotionEffect(org.bukkit.potion.PotionEffectType.FIRE_RESISTANCE);
         p.removePotionEffect(org.bukkit.potion.PotionEffectType.REGENERATION);
-        p.removePotionEffect(org.bukkit.potion.PotionEffectType.JUMP);
-        p.removePotionEffect(org.bukkit.potion.PotionEffectType.DAMAGE_RESISTANCE);
-        p.removePotionEffect(org.bukkit.potion.PotionEffectType.SLOW);
+        p.removePotionEffect(org.bukkit.potion.PotionEffectType.JUMP_BOOST);
+        p.removePotionEffect(org.bukkit.potion.PotionEffectType.RESISTANCE);
+        p.removePotionEffect(org.bukkit.potion.PotionEffectType.SLOWNESS);
         p.removePotionEffect(org.bukkit.potion.PotionEffectType.WATER_BREATHING);
         p.removePotionEffect(org.bukkit.potion.PotionEffectType.DOLPHINS_GRACE);
         p.removePotionEffect(org.bukkit.potion.PotionEffectType.SLOW_FALLING);
@@ -699,7 +699,7 @@ public class GearManager {
         // HEALTH_BOOST не снимаем здесь: этот эффект могут выдавать артефакты/донат-статусы/зелья.
         // Снятие каждую секунду вызывало мигание дополнительных сердец.
         p.removePotionEffect(org.bukkit.potion.PotionEffectType.WITHER);
-        p.removePotionEffect(org.bukkit.potion.PotionEffectType.SLOW_DIGGING);
+        p.removePotionEffect(org.bukkit.potion.PotionEffectType.MINING_FATIGUE);
         p.removePotionEffect(org.bukkit.potion.PotionEffectType.WEAKNESS);
         p.removePotionEffect(org.bukkit.potion.PotionEffectType.ABSORPTION);
     }
@@ -780,22 +780,22 @@ public class GearManager {
 
                 if (set.equals("bogatyr")) {
                     // Светлая Империя: Сила + Сопротивление. Дебафф: Утомление II (-15% скорость атаки)
-                    p.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.INCREASE_DAMAGE, 1200, strAmp, true, false));
-                    p.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.DAMAGE_RESISTANCE, 1200, resAmp, true, false));
-                    p.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.SLOW_DIGGING, 1200, 1, true, false));
+                    p.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.STRENGTH, 1200, strAmp, true, false));
+                    p.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.RESISTANCE, 1200, resAmp, true, false));
+                    p.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.MINING_FATIGUE, 1200, 1, true, false));
                 } else if (set.equals("sokol")) {
                     // Темная Империя: Скорость + Прыгучесть
                     p.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.SPEED, 1200, speedAmp, true, false));
-                    p.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.JUMP, 1200, jumpAmp, true, false));
+                    p.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.JUMP_BOOST, 1200, jumpAmp, true, false));
                 } else if (set.equals("udarnik")) {
                     // Светлый Совет: Спешка. Дебафф: Слабость II (-20% урон)
-                    p.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.FAST_DIGGING, 1200, hasteAmp, true, false));
+                    p.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.HASTE, 1200, hasteAmp, true, false));
                     p.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.WEAKNESS, 1200, 1, true, false));
                 } else if (set.equals("tankist")) {
                     // Темный Совет: Сопротивление + Невидимость. Дебафф: Медлительность III (-30% скорость)
-                    p.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.DAMAGE_RESISTANCE, 1200, resAmp, true, false));
+                    p.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.RESISTANCE, 1200, resAmp, true, false));
                     p.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.INVISIBILITY, 1200, 1, true, false));
-                    p.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.SLOW, 1200, 2, true, false));
+                    p.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.SLOWNESS, 1200, 2, true, false));
                     if (avgLvl >= 15) {
                         p.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.ABSORPTION, 1200, avgLvl >= 20 ? 3 : 1, true, false));
                     }
@@ -817,47 +817,47 @@ public class GearManager {
                     p.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.WEAKNESS, 1200, 0, true, false)); // Дебафф силы
                 } else if (set.equals("koshchey")) {
                     // Темные Язычники: Сила. Дебафф: Медлительность II
-                    p.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.INCREASE_DAMAGE, 1200, strAmp + 1, true, false));
-                    p.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.SLOW, 1200, 1, true, false));
+                    p.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.STRENGTH, 1200, strAmp + 1, true, false));
+                    p.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.SLOWNESS, 1200, 1, true, false));
                 } else if (set.equals("perun")) {
-                    p.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.INCREASE_DAMAGE, 1200, strAmp, true, false));
+                    p.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.STRENGTH, 1200, strAmp, true, false));
                     p.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.SPEED, 1200, speedAmp - 2, true, false));
-                    p.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.DAMAGE_RESISTANCE, 1200, resAmp, true, false));
+                    p.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.RESISTANCE, 1200, resAmp, true, false));
                 } else if (set.equals("chernobog")) {
-                    p.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.INCREASE_DAMAGE, 1200, strAmp + 1, true, false));
+                    p.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.STRENGTH, 1200, strAmp + 1, true, false));
                     p.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.SPEED, 1200, speedAmp - 1, true, false));
                     p.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.WITHER, 1200, 0, true, false));
                 } else if (set.equals("gagarin")) {
-                    p.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.JUMP, 1200, jumpAmp + 1, true, false));
+                    p.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.JUMP_BOOST, 1200, jumpAmp + 1, true, false));
                     p.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.SLOW_FALLING, 1200, 0, true, false));
                     p.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.SPEED, 1200, speedAmp, true, false));
                 } else if (set.equals("el_carpo")) {
                     // EL CARPO: Сопротивление урону III, Увеличение здоровья III, Замедление I
-                    p.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.DAMAGE_RESISTANCE, 1200, resAmp + 1, true, false));
+                    p.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.RESISTANCE, 1200, resAmp + 1, true, false));
                     p.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.HEALTH_BOOST, 1200, 2, true, false));
-                    p.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.SLOW, 1200, 0, true, false));
+                    p.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.SLOWNESS, 1200, 0, true, false));
                 } else if (set.equals("shadow_monarch")) {
                     // Теневой Монарх: Невидимость, Скорость II, Сила III в темноте
                     p.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.INVISIBILITY, 1200, 0, true, false));
                     p.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.SPEED, 1200, 1, true, false));
                     int light = p.getLocation().getBlock().getLightLevel();
                     if (light <= 7) {
-                        p.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.INCREASE_DAMAGE, 1200, 2, true, false));
+                        p.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.STRENGTH, 1200, 2, true, false));
                     }
                 } else if (set.equals("red_cat")) {
                     // РЫЖИЙ КОТ: Скорость III, Прыгучесть IV, Регенерация I
                     p.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.SPEED, 1200, 2, true, false));
-                    p.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.JUMP, 1200, 3, true, false));
+                    p.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.JUMP_BOOST, 1200, 3, true, false));
                     p.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.REGENERATION, 1200, 0, true, false));
                 } else if (set.equals("dragon_slayer")) {
                     // Драконоборец: Сопротивление урону III, Огнестойкость, Сила II
-                    p.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.DAMAGE_RESISTANCE, 1200, resAmp + 1, true, false));
+                    p.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.RESISTANCE, 1200, resAmp + 1, true, false));
                     p.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.FIRE_RESISTANCE, 1200, 0, true, false));
-                    p.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.INCREASE_DAMAGE, 1200, 1, true, false));
+                    p.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.STRENGTH, 1200, 1, true, false));
                 } else if (set.equals("leshy")) {
                     // Леший: Скорость II, Прыгучесть II
                     p.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.SPEED, 1200, 1, true, false));
-                    p.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.JUMP, 1200, 1, true, false));
+                    p.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.JUMP_BOOST, 1200, 1, true, false));
                 } else if (set.equals("proletarian")) {
                     // Пролетарий: Защита от Огня + Регенерация I
                     p.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.FIRE_RESISTANCE, 1200, 0, true, false));
@@ -865,52 +865,52 @@ public class GearManager {
                 } else if (set.equals("cosmonaut")) {
                     // Космонавт: Плавное падение + Прыгучесть II
                     p.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.SLOW_FALLING, 1200, 0, true, false));
-                    p.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.JUMP, 1200, 1, true, false));
+                    p.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.JUMP_BOOST, 1200, 1, true, false));
                 } else if (set.equals("pioneer")) {
                     // Пионер: Герой деревни + Удача II
                     p.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.HERO_OF_THE_VILLAGE, 1200, 0, true, false));
                     p.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.LUCK, 1200, 1, true, false));
                 } else if (set.equals("bone_armor")) {
                     // Костяной Доспех: Сопротивление II + Увеличение здоровья II. Дебафф: Медлительность I
-                    p.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.DAMAGE_RESISTANCE, 1200, resAmp, true, false));
+                    p.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.RESISTANCE, 1200, resAmp, true, false));
                     p.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.HEALTH_BOOST, 1200, 1, true, false));
-                    p.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.SLOW, 1200, 0, true, false));
+                    p.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.SLOWNESS, 1200, 0, true, false));
                 } else if (set.equals("shadow_blade")) {
                     // Клинок Тени: Сила II + Скорость II. Дебафф: Слабость I
-                    p.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.INCREASE_DAMAGE, 1200, strAmp + 1, true, false));
+                    p.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.STRENGTH, 1200, strAmp + 1, true, false));
                     p.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.SPEED, 1200, speedAmp - 1, true, false));
                     p.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.WEAKNESS, 1200, 0, true, false));
                 } else if (set.equals("ember_crown")) {
                     // Пепельная Корона: Огнестойкость + Сила II. Дебафф: Утомление копания
                     p.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.FIRE_RESISTANCE, 1200, 0, true, false));
-                    p.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.INCREASE_DAMAGE, 1200, strAmp + 1, true, false));
-                    p.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.SLOW_DIGGING, 1200, 1, true, false));
+                    p.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.STRENGTH, 1200, strAmp + 1, true, false));
+                    p.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.MINING_FATIGUE, 1200, 1, true, false));
                 } else if (set.equals("plague_mist")) {
                     // Моровой Туман: Яд AoE + Регенерация I. Дебафф: Медлительность II
                     p.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.REGENERATION, 1200, 0, true, false));
-                    p.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.SLOW, 1200, 1, true, false));
+                    p.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.SLOWNESS, 1200, 1, true, false));
                 } else if (set.equals("starforged")) {
                     // Звёздная Ковка: Удача III + Прыгучесть III. Дебафф: Невидимость (только ночью)
                     p.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.LUCK, 1200, 2, true, false));
-                    p.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.JUMP, 1200, jumpAmp, true, false));
+                    p.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.JUMP_BOOST, 1200, jumpAmp, true, false));
                     boolean isNight = p.getWorld().getTime() >= 13000 && p.getWorld().getTime() <= 23000;
                     if (isNight) {
                         p.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.INVISIBILITY, 1200, 0, true, false));
                     }
                 } else if (set.equals("slavic_mage")) {
                     // Славянский Волхв: Сила I + Скорость I. Дебафф: Слабость I
-                    p.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.INCREASE_DAMAGE, 1200, 0, true, false));
+                    p.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.STRENGTH, 1200, 0, true, false));
                     p.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.SPEED, 1200, 0, true, false));
                     p.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.WEAKNESS, 1200, 0, true, false));
                 } else if (set.equals("soviet_engineer")) {
                     // Инженер: Спешка I + Сопротивление I. Дебафф: Медлительность I
-                    p.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.FAST_DIGGING, 1200, 0, true, false));
-                    p.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.DAMAGE_RESISTANCE, 1200, 0, true, false));
-                    p.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.SLOW, 1200, 0, true, false));
+                    p.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.HASTE, 1200, 0, true, false));
+                    p.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.RESISTANCE, 1200, 0, true, false));
+                    p.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.SLOWNESS, 1200, 0, true, false));
                 } else if (set.equals("assassin_cloak")) {
                     // Мантия Убийцы: Скорость II + Прыгучесть II. Дебафф: Слабость I
                     p.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.SPEED, 1200, 1, true, false));
-                    p.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.JUMP, 1200, 1, true, false));
+                    p.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.JUMP_BOOST, 1200, 1, true, false));
                     p.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.WEAKNESS, 1200, 0, true, false));
                 }
             }

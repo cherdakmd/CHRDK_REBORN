@@ -112,13 +112,13 @@ public class MobStormManager implements Listener {
         mob.setCustomNameVisible(true);
         mob.setGlowing(true);
 
-        double maxHp = mob.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue();
-        mob.getAttribute(Attribute.GENERIC_MAX_HEALTH).setBaseValue(maxHp * multiplier);
-        mob.setHealth(mob.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue());
+        double maxHp = mob.getAttribute(Attribute.MAX_HEALTH).getValue();
+        mob.getAttribute(Attribute.MAX_HEALTH).setBaseValue(maxHp * multiplier);
+        mob.setHealth(mob.getAttribute(Attribute.MAX_HEALTH).getValue());
 
-        if (mob.getAttribute(Attribute.GENERIC_ATTACK_DAMAGE) != null) {
-            mob.getAttribute(Attribute.GENERIC_ATTACK_DAMAGE).setBaseValue(
-                mob.getAttribute(Attribute.GENERIC_ATTACK_DAMAGE).getValue() * multiplier);
+        if (mob.getAttribute(Attribute.ATTACK_DAMAGE) != null) {
+            mob.getAttribute(Attribute.ATTACK_DAMAGE).setBaseValue(
+                mob.getAttribute(Attribute.ATTACK_DAMAGE).getValue() * multiplier);
         }
 
         mob.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 600, 1, true, false));

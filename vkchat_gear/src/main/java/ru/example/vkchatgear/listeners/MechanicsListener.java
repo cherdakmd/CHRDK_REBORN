@@ -97,7 +97,7 @@ public class MechanicsListener implements Listener {
                         p.giveExp(exp);
                         e.setExpToDrop(0);
                     }
-                    p.getWorld().spawnParticle(org.bukkit.Particle.SPELL_WITCH, e.getBlock().getLocation(), 5, 0.5, 0.5, 0.5);
+                    p.getWorld().spawnParticle(org.bukkit.Particle.WITCH, e.getBlock().getLocation(), 5, 0.5, 0.5, 0.5);
                 }
                 
                 // Шанс сохранить прочность (1% за уровень заточки)
@@ -127,33 +127,33 @@ public class MechanicsListener implements Listener {
         // Спавн красивых шлейфов частиц для новых легендарных и национальных сетов
         if (e.getFrom().getX() != e.getTo().getX() || e.getFrom().getZ() != e.getTo().getZ()) {
             if (plugin.getGearManager().isWearingSet(p, "perun")) {
-                p.getWorld().spawnParticle(org.bukkit.Particle.CRIT_MAGIC, p.getLocation().add(0, 0.5, 0), 2, 0.2, 0.2, 0.2, 0.01);
+                p.getWorld().spawnParticle(org.bukkit.Particle.ENCHANTED_HIT, p.getLocation().add(0, 0.5, 0), 2, 0.2, 0.2, 0.2, 0.01);
             } else if (plugin.getGearManager().isWearingSet(p, "chernobog")) {
-                p.getWorld().spawnParticle(org.bukkit.Particle.TOWN_AURA, p.getLocation().add(0, 0.1, 0), 4, 0.3, 0.1, 0.3, 0.01);
+                p.getWorld().spawnParticle(org.bukkit.Particle.MYCELIUM, p.getLocation().add(0, 0.1, 0), 4, 0.3, 0.1, 0.3, 0.01);
             } else if (plugin.getGearManager().isWearingSet(p, "gagarin")) {
                 p.getWorld().spawnParticle(org.bukkit.Particle.PORTAL, p.getLocation().add(0, 0.1, 0), 2, 0.2, 0.1, 0.2, 0.01);
             } else if (plugin.getGearManager().isWearingSet(p, "udarnik")) {
                 p.getWorld().spawnParticle(org.bukkit.Particle.CRIT, p.getLocation().add(0, 0.1, 0), 3, 0.2, 0.1, 0.2, 0.01);
             } else if (plugin.getGearManager().isWearingSet(p, "tankist")) {
-                p.getWorld().spawnParticle(org.bukkit.Particle.SMOKE_NORMAL, p.getLocation().add(0, 0.1, 0), 2, 0.2, 0.1, 0.2, 0.01);
+                p.getWorld().spawnParticle(org.bukkit.Particle.SMOKE, p.getLocation().add(0, 0.1, 0), 2, 0.2, 0.1, 0.2, 0.01);
             } else if (plugin.getGearManager().isWearingSet(p, "volhv")) {
-                p.getWorld().spawnParticle(org.bukkit.Particle.VILLAGER_HAPPY, p.getLocation().add(0, 0.2, 0), 2, 0.3, 0.2, 0.3, 0.01);
+                p.getWorld().spawnParticle(org.bukkit.Particle.HAPPY_VILLAGER, p.getLocation().add(0, 0.2, 0), 2, 0.3, 0.2, 0.3, 0.01);
             } else if (plugin.getGearManager().isWearingSet(p, "koshchey")) {
                 p.getWorld().spawnParticle(org.bukkit.Particle.SOUL, p.getLocation().add(0, 0.2, 0), 2, 0.2, 0.2, 0.2, 0.01);
             } else if (plugin.getGearManager().isWearingSet(p, "bogatyr")) {
-                p.getWorld().spawnParticle(org.bukkit.Particle.TOTEM, p.getLocation().add(0, 0.3, 0), 2, 0.2, 0.2, 0.2, 0.02);
+                p.getWorld().spawnParticle(org.bukkit.Particle.TOTEM_OF_UNDYING, p.getLocation().add(0, 0.3, 0), 2, 0.2, 0.2, 0.2, 0.02);
             } else if (plugin.getGearManager().isWearingSet(p, "sokol")) {
-                p.getWorld().spawnParticle(org.bukkit.Particle.REDSTONE, p.getLocation().add(0, 0.2, 0), 5, 0.2, 0.2, 0.2, new org.bukkit.Particle.DustOptions(org.bukkit.Color.fromRGB(150, 0, 0), 1.0f));
+                p.getWorld().spawnParticle(org.bukkit.Particle.DUST, p.getLocation().add(0, 0.2, 0), 5, 0.2, 0.2, 0.2, new org.bukkit.Particle.DustOptions(org.bukkit.Color.fromRGB(150, 0, 0), 1.0f));
             } else if (plugin.getGearManager().isWearingSet(p, "bone_armor")) {
-                p.getWorld().spawnParticle(org.bukkit.Particle.SMOKE_LARGE, p.getLocation().add(0, 0.1, 0), 3, 0.2, 0.1, 0.2, 0.01);
+                p.getWorld().spawnParticle(org.bukkit.Particle.LARGE_SMOKE, p.getLocation().add(0, 0.1, 0), 3, 0.2, 0.1, 0.2, 0.01);
             } else if (plugin.getGearManager().isWearingSet(p, "shadow_blade")) {
-                p.getWorld().spawnParticle(org.bukkit.Particle.SPELL_WITCH, p.getLocation().add(0, 0.3, 0), 2, 0.2, 0.3, 0.2, 0.01);
+                p.getWorld().spawnParticle(org.bukkit.Particle.WITCH, p.getLocation().add(0, 0.3, 0), 2, 0.2, 0.3, 0.2, 0.01);
             } else if (plugin.getGearManager().isWearingSet(p, "ember_crown")) {
                 p.getWorld().spawnParticle(org.bukkit.Particle.FLAME, p.getLocation().add(0, 0.2, 0), 2, 0.15, 0.1, 0.15, 0.01);
             } else if (plugin.getGearManager().isWearingSet(p, "plague_mist")) {
-                p.getWorld().spawnParticle(org.bukkit.Particle.SPELL_MOB, p.getLocation().add(0, 0.2, 0), 3, 0.3, 0.2, 0.3, 0.01);
+                p.getWorld().spawnParticle(org.bukkit.Particle.ENTITY_EFFECT, p.getLocation().add(0, 0.2, 0), 3, 0.3, 0.2, 0.3, 0.01);
             } else if (plugin.getGearManager().isWearingSet(p, "starforged")) {
-                p.getWorld().spawnParticle(org.bukkit.Particle.ENCHANTMENT_TABLE, p.getLocation().add(0, 0.5, 0), 2, 0.3, 0.3, 0.3, 0.01);
+                p.getWorld().spawnParticle(org.bukkit.Particle.ENCHANT, p.getLocation().add(0, 0.5, 0), 2, 0.3, 0.3, 0.3, 0.01);
             }
         }
 

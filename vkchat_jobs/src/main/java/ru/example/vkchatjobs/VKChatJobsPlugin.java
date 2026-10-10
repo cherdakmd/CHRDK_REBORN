@@ -81,7 +81,7 @@ public class VKChatJobsPlugin extends JavaPlugin {
                 // Шахтер
                 if (name.endsWith("_PICKAXE")) {
                     if (jobsDataManager.hasSkill(p.getUniqueId(), "miner", "miner_haste")) {
-                        p.addPotionEffect(new PotionEffect(PotionEffectType.FAST_DIGGING, 60, 0, true, false, false));
+                        p.addPotionEffect(new PotionEffect(PotionEffectType.HASTE, 60, 0, true, false, false));
                     }
                     if (dark && jobsDataManager.hasSkill(p.getUniqueId(), "miner", "miner_night")) {
                         p.addPotionEffect(new PotionEffect(PotionEffectType.NIGHT_VISION, 300, 0, true, false, false));
@@ -94,15 +94,15 @@ public class VKChatJobsPlugin extends JavaPlugin {
                 // Лесоруб
                 if (name.endsWith("_AXE")) {
                     if (jobsDataManager.hasSkill(p.getUniqueId(), "woodcutter", "wood_haste")) {
-                        p.addPotionEffect(new PotionEffect(PotionEffectType.FAST_DIGGING, 60, 0, true, false, false));
+                        p.addPotionEffect(new PotionEffect(PotionEffectType.HASTE, 60, 0, true, false, false));
                     }
                     if (forest && jobsDataManager.hasSkill(p.getUniqueId(), "woodcutter", "wood_bird")) {
                         p.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 60, 1, true, false, false));
-                        p.addPotionEffect(new PotionEffect(PotionEffectType.JUMP, 60, 1, true, false, false));
+                        p.addPotionEffect(new PotionEffect(PotionEffectType.JUMP_BOOST, 60, 1, true, false, false));
                     }
                     if (forest && jobsDataManager.hasSkill(p.getUniqueId(), "woodcutter", "wood_forest")) {
                         p.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, 60, 2, true, false, false));
-                        p.addPotionEffect(new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, 60, 0, true, false, false));
+                        p.addPotionEffect(new PotionEffect(PotionEffectType.RESISTANCE, 60, 0, true, false, false));
                     }
                 }
 

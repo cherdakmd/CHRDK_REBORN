@@ -88,7 +88,7 @@ public class CombatListener implements Listener {
                 toDowngrade.setItemMeta(meta);
                 sendCombatMessage(p, org.bukkit.ChatColor.LIGHT_PURPLE + "🛡️ [Печать Души] Ваша Печать Души защитила предмет " + meta.getDisplayName() + " от потери грейда, но разрушилась!");
                 p.playSound(p.getLocation(), org.bukkit.Sound.ENTITY_ITEM_BREAK, 1.0f, 1.0f);
-                p.getWorld().spawnParticle(org.bukkit.Particle.TOTEM, p.getLocation(), 40, 0.5, 0.5, 0.5, 0.15);
+                p.getWorld().spawnParticle(org.bukkit.Particle.TOTEM_OF_UNDYING, p.getLocation(), 40, 0.5, 0.5, 0.5, 0.15);
             } else {
                 plugin.getGearManager().downgradeGear(toDowngrade);
                 sendCombatMessage(p, org.bukkit.ChatColor.DARK_RED + "☠ При смерти ваше снаряжение пострадало... Один из предметов потерял свой грейд!");
@@ -133,11 +133,11 @@ public class CombatListener implements Listener {
                         e.setDamage(e.getDamage() * multiplier);
                         
                         // Мрачные частицы при получении урона
-                        victim.getWorld().spawnParticle(org.bukkit.Particle.REDSTONE, victim.getLocation().add(0, 1, 0), 15, 0.3, 0.5, 0.3, new org.bukkit.Particle.DustOptions(org.bukkit.Color.fromRGB(80, 0, 0), 1.5f));
+                        victim.getWorld().spawnParticle(org.bukkit.Particle.DUST, victim.getLocation().add(0, 1, 0), 15, 0.3, 0.5, 0.3, new org.bukkit.Particle.DustOptions(org.bukkit.Color.fromRGB(80, 0, 0), 1.5f));
                         
                         // Шанс дебаффа для богатых репутацией игроков
                         if (rep > 1000 && new java.util.Random().nextInt(100) < 15) {
-                            victim.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, 60, 1));
+                            victim.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 60, 1));
                             victim.sendMessage(org.bukkit.ChatColor.RED + "☠ Твоя высокая репутация привлекает Тьму! Монстр ошеломил тебя (Замедление II)!");
                         }
                     }
@@ -202,16 +202,16 @@ public class CombatListener implements Listener {
                     }
                     if (hasEnchant(lore, "Кровавые шипы") && random.nextInt(100) < 30) {
                         attacker.damage(e.getDamage() * 0.3);
-                        attacker.getWorld().spawnParticle(org.bukkit.Particle.REDSTONE, attacker.getLocation().add(0, 1, 0), 10, 0.5, 0.5, 0.5, new org.bukkit.Particle.DustOptions(org.bukkit.Color.RED, 1.5f));
+                        attacker.getWorld().spawnParticle(org.bukkit.Particle.DUST, attacker.getLocation().add(0, 1, 0), 10, 0.5, 0.5, 0.5, new org.bukkit.Particle.DustOptions(org.bukkit.Color.RED, 1.5f));
                     }
                     if (hasEnchant(lore, "Огненная аура") && random.nextInt(100) < 20) {
                         attacker.setFireTicks(80);
                     }
                     // Эгида (Пассивно при лоу ХП)
                     if (hasEnchant(lore, "Эгида")) {
-                        if ((victim.getHealth() / victim.getAttribute(org.bukkit.attribute.Attribute.GENERIC_MAX_HEALTH).getValue()) <= 0.2) {
-                            if (!victim.hasPotionEffect(PotionEffectType.DAMAGE_RESISTANCE)) {
-                                victim.addPotionEffect(new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, 100, 4)); // Почти неуязвимость 5 сек
+                        if ((victim.getHealth() / victim.getAttribute(org.bukkit.attribute.Attribute.MAX_HEALTH).getValue()) <= 0.2) {
+                            if (!victim.hasPotionEffect(PotionEffectType.RESISTANCE)) {
+                                victim.addPotionEffect(new PotionEffect(PotionEffectType.RESISTANCE, 100, 4)); // Почти неуязвимость 5 сек
                                 victim.sendMessage(org.bukkit.ChatColor.AQUA + " Эгида активирована! Вы защищены.");
                             }
                         }
@@ -231,7 +231,7 @@ public class CombatListener implements Listener {
                         if (e.getCause() == EntityDamageByEntityEvent.DamageCause.MAGIC || e.getCause() == EntityDamageByEntityEvent.DamageCause.PROJECTILE) {
                             attacker.damage(e.getDamage());
                             e.setCancelled(true);
-                            victim.getWorld().spawnParticle(org.bukkit.Particle.SPELL_WITCH, victim.getLocation().add(0, 1, 0), 30, 0.5, 0.5, 0.5, 0.1);
+                            victim.getWorld().spawnParticle(org.bukkit.Particle.WITCH, victim.getLocation().add(0, 1, 0), 30, 0.5, 0.5, 0.5, 0.1);
                             return;
                         }
                     }
@@ -240,16 +240,16 @@ public class CombatListener implements Listener {
                     if (hasEnchant(lore, "Связь Душ") && random.nextInt(100) < 10) {
                         double dmg = e.getDamage() * 0.50;
                         attacker.damage(dmg, victim);
-                        victim.setHealth(Math.min(victim.getHealth() + dmg, victim.getAttribute(org.bukkit.attribute.Attribute.GENERIC_MAX_HEALTH).getValue()));
+                        victim.setHealth(Math.min(victim.getHealth() + dmg, victim.getAttribute(org.bukkit.attribute.Attribute.MAX_HEALTH).getValue()));
                         victim.sendMessage(org.bukkit.ChatColor.LIGHT_PURPLE + "🔮 [Связь Душ] Вы вернули " + String.format("%.1f", dmg) + " урона и исцелились!");
-                        victim.getWorld().spawnParticle(org.bukkit.Particle.SPELL_WITCH, victim.getLocation().add(0, 1.0, 0), 25, 0.3, 0.3, 0.3);
+                        victim.getWorld().spawnParticle(org.bukkit.Particle.WITCH, victim.getLocation().add(0, 1.0, 0), 25, 0.3, 0.3, 0.3);
                         attacker.getWorld().spawnParticle(org.bukkit.Particle.DAMAGE_INDICATOR, attacker.getLocation().add(0, 1.0, 0), 10);
                     }
 
                     // stone_skin: 12% chance, reduce damage by 40%, Slowness I to attacker for 3s
                     if (hasEnchant(lore, "Каменная кожа") && random.nextInt(100) < 12) {
                         e.setDamage(e.getDamage() * 0.60);
-                        attacker.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, 60, 0));
+                        attacker.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 60, 0));
                         victim.getWorld().spawnParticle(org.bukkit.Particle.CRIT, victim.getLocation().add(0, 1.0, 0), 15, 0.3, 0.5, 0.3, 0.1);
                         victim.sendMessage(org.bukkit.ChatColor.GRAY + "🛡 [Каменная кожа] Урон снижен на 40%, атакующий замедлен!");
                     }
@@ -282,7 +282,7 @@ public class CombatListener implements Listener {
                     if (isProc(armorProc, "Астральный Барьер", "Щит Сварога", "Оберег") && random.nextInt(100) < 12) {
                         e.setDamage(e.getDamage() * 0.65);
                         victim.addPotionEffect(new PotionEffect(PotionEffectType.ABSORPTION, 80, 1));
-                        victim.getWorld().spawnParticle(org.bukkit.Particle.SPELL_WITCH, victim.getLocation().add(0, 1.0, 0), 35, 0.5, 0.7, 0.5, 0.08);
+                        victim.getWorld().spawnParticle(org.bukkit.Particle.WITCH, victim.getLocation().add(0, 1.0, 0), 35, 0.5, 0.7, 0.5, 0.08);
                         victim.playSound(victim.getLocation(), org.bukkit.Sound.ITEM_SHIELD_BLOCK, 0.8f, 1.2f);
                         victim.sendMessage(org.bukkit.ChatColor.AQUA + "✦ [Астральный Барьер] Удар частично рассеян.");
                     }
@@ -306,7 +306,7 @@ public class CombatListener implements Listener {
 
             // 1. Темный Совет (Танкист) - Дымовая завеса при ХП < 20%
             if (plugin.getGearManager().isWearingSet(victim, "tankist")) {
-                double hpPercent = victim.getHealth() / victim.getAttribute(org.bukkit.attribute.Attribute.GENERIC_MAX_HEALTH).getValue();
+                double hpPercent = victim.getHealth() / victim.getAttribute(org.bukkit.attribute.Attribute.MAX_HEALTH).getValue();
                 if (hpPercent <= 0.20) {
                     long lastSmoke = 0;
                     if (victim.hasMetadata("tankist_smoke_cooldown")) {
@@ -321,14 +321,14 @@ public class CombatListener implements Listener {
                         victim.sendMessage(org.bukkit.ChatColor.DARK_RED + "💨 [Спецагент] Сработала дымовая завеса! Вы получили невидимость и скорость!");
                         victim.playSound(victim.getLocation(), org.bukkit.Sound.ENTITY_FIREWORK_ROCKET_BLAST, 1f, 0.8f);
                         victim.getWorld().spawnParticle(org.bukkit.Particle.CLOUD, victim.getLocation(), 80, 1.0, 0.5, 1.0, 0.1);
-                        victim.getWorld().spawnParticle(org.bukkit.Particle.SMOKE_LARGE, victim.getLocation(), 80, 1.0, 0.5, 1.0, 0.1);
+                        victim.getWorld().spawnParticle(org.bukkit.Particle.LARGE_SMOKE, victim.getLocation(), 80, 1.0, 0.5, 1.0, 0.1);
 
                         // Дебаффы для нападающего и врагов вокруг
                         for (org.bukkit.entity.Entity ent : victim.getNearbyEntities(5, 5, 5)) {
                             if (ent instanceof LivingEntity && ent != victim) {
                                 LivingEntity le = (LivingEntity) ent;
                                 le.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 80, 0));
-                                le.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, 80, 2));
+                                le.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 80, 2));
                             }
                         }
                     }
@@ -337,7 +337,7 @@ public class CombatListener implements Listener {
 
             // 2. Светлая Империя (Богатырь) - Богатырский щит бессмертия при ХП < 15%
             if (plugin.getGearManager().isWearingSet(victim, "bogatyr")) {
-                double hpPercent = victim.getHealth() / victim.getAttribute(org.bukkit.attribute.Attribute.GENERIC_MAX_HEALTH).getValue();
+                double hpPercent = victim.getHealth() / victim.getAttribute(org.bukkit.attribute.Attribute.MAX_HEALTH).getValue();
                 if (hpPercent <= 0.15) {
                     long lastShield = 0;
                     if (victim.hasMetadata("bogatyr_shield_cooldown")) {
@@ -347,10 +347,10 @@ public class CombatListener implements Listener {
                         victim.setMetadata("bogatyr_shield_cooldown", new org.bukkit.metadata.FixedMetadataValue(plugin, System.currentTimeMillis()));
                         
                         e.setCancelled(true);
-                        victim.addPotionEffect(new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, 100, 4)); // Полная неуязвимость на 5 секунд
+                        victim.addPotionEffect(new PotionEffect(PotionEffectType.RESISTANCE, 100, 4)); // Полная неуязвимость на 5 секунд
                         victim.sendMessage(org.bukkit.ChatColor.GOLD + "🛡️ [Богатырский Щит] Ваше здоровье критическое! Пробужден щит бессмертия на 5 секунд!");
                         victim.playSound(victim.getLocation(), org.bukkit.Sound.ITEM_SHIELD_BLOCK, 1.2f, 0.8f);
-                        victim.getWorld().spawnParticle(org.bukkit.Particle.TOTEM, victim.getLocation(), 100, 0.8, 1.0, 0.8, 0.2);
+                        victim.getWorld().spawnParticle(org.bukkit.Particle.TOTEM_OF_UNDYING, victim.getLocation(), 100, 0.8, 1.0, 0.8, 0.2);
                         return;
                     }
                 }
@@ -358,7 +358,7 @@ public class CombatListener implements Listener {
 
             // Костяной Доспех - Щит бессмертия при ХП < 20%
             if (plugin.getGearManager().isWearingSet(victim, "bone_armor")) {
-                double hpPercent = victim.getHealth() / victim.getAttribute(org.bukkit.attribute.Attribute.GENERIC_MAX_HEALTH).getValue();
+                double hpPercent = victim.getHealth() / victim.getAttribute(org.bukkit.attribute.Attribute.MAX_HEALTH).getValue();
                 if (hpPercent <= 0.20) {
                     long lastShield = 0;
                     if (victim.hasMetadata("bone_armor_shield_cooldown")) {
@@ -367,10 +367,10 @@ public class CombatListener implements Listener {
                     if (System.currentTimeMillis() - lastShield >= 90000L) {
                         victim.setMetadata("bone_armor_shield_cooldown", new org.bukkit.metadata.FixedMetadataValue(plugin, System.currentTimeMillis()));
                         e.setCancelled(true);
-                        victim.addPotionEffect(new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, 100, 4));
+                        victim.addPotionEffect(new PotionEffect(PotionEffectType.RESISTANCE, 100, 4));
                         victim.sendMessage(org.bukkit.ChatColor.DARK_PURPLE + "🦴 [Костяной Щит] Ваше здоровье критическое! Доспех пробудил древний щит на 5 секунд!");
                         victim.playSound(victim.getLocation(), org.bukkit.Sound.ITEM_SHIELD_BLOCK, 1.2f, 0.6f);
-                        victim.getWorld().spawnParticle(org.bukkit.Particle.SMOKE_LARGE, victim.getLocation(), 80, 0.8, 1.0, 0.8, 0.2);
+                        victim.getWorld().spawnParticle(org.bukkit.Particle.LARGE_SMOKE, victim.getLocation(), 80, 0.8, 1.0, 0.8, 0.2);
                         return;
                     }
                 }
@@ -389,8 +389,8 @@ public class CombatListener implements Listener {
                     if (armor != null && armor.hasItemMeta() && armor.getItemMeta().hasLore()) {
                         if (hasEnchant(armor.getItemMeta().getLore(), "Второе дыхание")) {
                             e.setCancelled(true);
-                            victim.setHealth(victim.getAttribute(org.bukkit.attribute.Attribute.GENERIC_MAX_HEALTH).getValue() / 2);
-                            victim.getWorld().spawnParticle(org.bukkit.Particle.TOTEM, victim.getLocation(), 100, 1, 1, 1, 0.1);
+                            victim.setHealth(victim.getAttribute(org.bukkit.attribute.Attribute.MAX_HEALTH).getValue() / 2);
+                            victim.getWorld().spawnParticle(org.bukkit.Particle.TOTEM_OF_UNDYING, victim.getLocation(), 100, 1, 1, 1, 0.1);
                             
                             // Защитная механика для сетовой и легендарной экипировки (вместо пропажи - штраф заточки)
                             boolean isSetPiece = plugin.getGearManager().isLegalSetPiece(armor);
@@ -462,14 +462,14 @@ public class CombatListener implements Listener {
                 }
                 if (isProc(weaponProc, "Багровый Резонанс", "Кровь Рода") && random.nextInt(100) < 14) {
                     double heal = Math.min(6.0, Math.max(1.0, e.getFinalDamage() * 0.22));
-                    p.setHealth(Math.min(p.getHealth() + heal, p.getAttribute(org.bukkit.attribute.Attribute.GENERIC_MAX_HEALTH).getValue()));
+                    p.setHealth(Math.min(p.getHealth() + heal, p.getAttribute(org.bukkit.attribute.Attribute.MAX_HEALTH).getValue()));
                     p.getWorld().spawnParticle(org.bukkit.Particle.HEART, p.getLocation().add(0, 1.2, 0), 5, 0.4, 0.4, 0.4, 0.03);
                     sendCombatMessage(p, org.bukkit.ChatColor.RED + "✦ [Багровый Резонанс] Восстановлено " + String.format("%.1f", heal) + " HP.");
                 }
                 if (isProc(weaponProc, "Похищение Жизни", "Вампиризм") && random.nextInt(100) < 16) {
                     double heal = Math.min(4.0, Math.max(1.0, e.getFinalDamage() * 0.18));
-                    p.setHealth(Math.min(p.getHealth() + heal, p.getAttribute(org.bukkit.attribute.Attribute.GENERIC_MAX_HEALTH).getValue()));
-                    target.getWorld().spawnParticle(org.bukkit.Particle.REDSTONE, target.getLocation().add(0, 1.0, 0), 12, 0.25, 0.35, 0.25, new org.bukkit.Particle.DustOptions(org.bukkit.Color.fromRGB(140, 0, 80), 1.2f));
+                    p.setHealth(Math.min(p.getHealth() + heal, p.getAttribute(org.bukkit.attribute.Attribute.MAX_HEALTH).getValue()));
+                    target.getWorld().spawnParticle(org.bukkit.Particle.DUST, target.getLocation().add(0, 1.0, 0), 12, 0.25, 0.35, 0.25, new org.bukkit.Particle.DustOptions(org.bukkit.Color.fromRGB(140, 0, 80), 1.2f));
                 }
                 if (isProc(weaponProc, "Пламенный Контур") && random.nextInt(100) < 12) {
                     target.setFireTicks(Math.max(target.getFireTicks(), 80));
@@ -484,7 +484,7 @@ public class CombatListener implements Listener {
                     
                     if (procs < MAX_PROCS_PER_HIT && hasEnchant(lore, "Вампиризм")) {
                         double heal = e.getFinalDamage() * 0.2;
-                        p.setHealth(Math.min(p.getHealth() + heal, p.getAttribute(org.bukkit.attribute.Attribute.GENERIC_MAX_HEALTH).getValue()));
+                        p.setHealth(Math.min(p.getHealth() + heal, p.getAttribute(org.bukkit.attribute.Attribute.MAX_HEALTH).getValue()));
                         p.getWorld().spawnParticle(org.bukkit.Particle.HEART, p.getLocation().add(0, 1, 0), 3, 0.3, 0.3, 0.3);
                         procs++;
                     }
@@ -503,7 +503,7 @@ public class CombatListener implements Listener {
                         procs++;
                     }
                     if (procs < MAX_PROCS_PER_HIT && hasEnchant(lore, "Окоченение")) {
-                        target.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, 60, 2));
+                        target.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 60, 2));
                         procs++;
                     }
                     if (procs < MAX_PROCS_PER_HIT && hasEnchant(lore, "Мрак") && random.nextInt(100) < 20) {
@@ -524,7 +524,7 @@ public class CombatListener implements Listener {
                         procs++;
                     }
                     if (procs < MAX_PROCS_PER_HIT && hasEnchant(lore, "Берсерк")) {
-                        double missingHp = p.getAttribute(org.bukkit.attribute.Attribute.GENERIC_MAX_HEALTH).getValue() - p.getHealth();
+                        double missingHp = p.getAttribute(org.bukkit.attribute.Attribute.MAX_HEALTH).getValue() - p.getHealth();
                         e.setDamage(e.getDamage() + (missingHp * 0.5)); // +0.5 урона за каждое отсутствующее ХП
                         procs++;
                     }
@@ -542,7 +542,7 @@ public class CombatListener implements Listener {
                     }
                     if (procs < MAX_PROCS_PER_HIT && hasEnchant(lore, "Жнец Душ") && random.nextInt(100) < 5) {
                         if (!(target instanceof org.bukkit.entity.Boss)) {
-                            if ((target.getHealth() / target.getAttribute(org.bukkit.attribute.Attribute.GENERIC_MAX_HEALTH).getValue()) <= 0.15) {
+                            if ((target.getHealth() / target.getAttribute(org.bukkit.attribute.Attribute.MAX_HEALTH).getValue()) <= 0.15) {
                                 target.setHealth(0);
                                 p.getWorld().spawnParticle(org.bukkit.Particle.SOUL, target.getLocation().add(0, 1, 0), 50, 0.5, 0.5, 0.5, 0.1);
                             }
@@ -552,7 +552,7 @@ public class CombatListener implements Listener {
                     
                     if (procs < MAX_PROCS_PER_HIT && hasEnchant(lore, "Критический Удар") && random.nextInt(100) < 15) {
                         e.setDamage(e.getDamage() * 1.35);
-                        p.getWorld().spawnParticle(org.bukkit.Particle.CRIT_MAGIC, target.getLocation(), 20);
+                        p.getWorld().spawnParticle(org.bukkit.Particle.ENCHANTED_HIT, target.getLocation(), 20);
                         procs++;
                     }
                     if (procs < MAX_PROCS_PER_HIT && hasEnchant(lore, "Взрыв Иссушения") && random.nextInt(100) < 10 && checkCooldown(enchantCooldowns, pUid, ENCHANT_COOLDOWN_MS)) {
@@ -582,12 +582,12 @@ public class CombatListener implements Listener {
                     }
                     if (procs < MAX_PROCS_PER_HIT && hasEnchant(lore, "Аура Вампира")) {
                         double heal = e.getFinalDamage() * 0.3;
-                        p.setHealth(Math.min(p.getHealth() + heal, p.getAttribute(org.bukkit.attribute.Attribute.GENERIC_MAX_HEALTH).getValue()));
+                        p.setHealth(Math.min(p.getHealth() + heal, p.getAttribute(org.bukkit.attribute.Attribute.MAX_HEALTH).getValue()));
                         procs++;
                     }
 
                     if (procs < MAX_PROCS_PER_HIT && hasEnchant(lore, "Казнь")) {
-                        if ((target.getHealth() / target.getAttribute(org.bukkit.attribute.Attribute.GENERIC_MAX_HEALTH).getValue()) <= 0.3) {
+                        if ((target.getHealth() / target.getAttribute(org.bukkit.attribute.Attribute.MAX_HEALTH).getValue()) <= 0.3) {
                             e.setDamage(e.getDamage() * 1.25);
                             p.getWorld().spawnParticle(org.bukkit.Particle.CRIT, target.getLocation().add(0, 1, 0), 10, 0.5, 0.5, 0.5);
                         }
@@ -595,7 +595,7 @@ public class CombatListener implements Listener {
                     }
 
                     if (procs < MAX_PROCS_PER_HIT && hasEnchant(lore, "Похищение Жизни")) {
-                        p.setHealth(Math.min(p.getHealth() + 1.0, p.getAttribute(org.bukkit.attribute.Attribute.GENERIC_MAX_HEALTH).getValue()));
+                        p.setHealth(Math.min(p.getHealth() + 1.0, p.getAttribute(org.bukkit.attribute.Attribute.MAX_HEALTH).getValue()));
                         procs++;
                     }
                     if (procs < MAX_PROCS_PER_HIT && hasEnchant(lore, "Огненный Удар")) {
@@ -603,7 +603,7 @@ public class CombatListener implements Listener {
                         procs++;
                     }
                     if (procs < MAX_PROCS_PER_HIT && hasEnchant(lore, "Паралич") && random.nextInt(100) < 10) {
-                        target.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, 40, 5));
+                        target.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 40, 5));
                         target.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 40, 0));
                         sendCombatMessage(p, org.bukkit.ChatColor.YELLOW + " Цель парализована!");
                         procs++;
@@ -621,10 +621,10 @@ public class CombatListener implements Listener {
 
                     // 2. Ледяное Касание (Шанс 15% заморозить на 3 сек)
                     if (procs < MAX_PROCS_PER_HIT && hasEnchant(lore, "Ледяное Касание") && random.nextInt(100) < 15) {
-                        target.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, 60, 9)); // Медлительность X
+                        target.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 60, 9)); // Медлительность X
                         target.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 60, 0));
                         sendCombatMessage(p, org.bukkit.ChatColor.BLUE + "❄️ [Ледяное Касание] Вы заморозили цель на 3 секунды!");
-                        target.getWorld().spawnParticle(org.bukkit.Particle.SNOWBALL, target.getLocation().add(0, 1.0, 0), 30, 0.3, 0.5, 0.3, 0.1);
+                        target.getWorld().spawnParticle(org.bukkit.Particle.ITEM_SNOWBALL, target.getLocation().add(0, 1.0, 0), 30, 0.3, 0.5, 0.3, 0.1);
                         procs++;
                     }
 
@@ -647,11 +647,11 @@ public class CombatListener implements Listener {
                                 enemy.damage(3.0, p);
                                 totalHeal += 1.5;
                                 count++;
-                                enemy.getWorld().spawnParticle(org.bukkit.Particle.REDSTONE, enemy.getLocation().add(0, 1.0, 0), 10, 0.2, 0.2, 0.2, new org.bukkit.Particle.DustOptions(org.bukkit.Color.RED, 1.0f));
+                                enemy.getWorld().spawnParticle(org.bukkit.Particle.DUST, enemy.getLocation().add(0, 1.0, 0), 10, 0.2, 0.2, 0.2, new org.bukkit.Particle.DustOptions(org.bukkit.Color.RED, 1.0f));
                             }
                         }
                         if (count > 0) {
-                            p.setHealth(Math.min(p.getHealth() + totalHeal, p.getAttribute(org.bukkit.attribute.Attribute.GENERIC_MAX_HEALTH).getValue()));
+                            p.setHealth(Math.min(p.getHealth() + totalHeal, p.getAttribute(org.bukkit.attribute.Attribute.MAX_HEALTH).getValue()));
                             sendCombatMessage(p, org.bukkit.ChatColor.DARK_RED + "✨ [Аура Вампиризма] Вы похитили ХП у " + count + " противников в радиусе, восстановив +" + String.format("%.1f", totalHeal) + " HP!");
                             
                             // Рисуем багровый круг вокруг игрока
@@ -660,7 +660,7 @@ public class CombatListener implements Listener {
                                 double angle = i * (2 * Math.PI / 30);
                                 double rx = pLoc.getX() + 4.0 * Math.cos(angle);
                                 double rz = pLoc.getZ() + 4.0 * Math.sin(angle);
-                                pLoc.getWorld().spawnParticle(org.bukkit.Particle.REDSTONE, new org.bukkit.Location(pLoc.getWorld(), rx, pLoc.getY() + 0.1, rz), 1, 0, 0, 0, new org.bukkit.Particle.DustOptions(org.bukkit.Color.fromRGB(150, 0, 0), 2.0f));
+                                pLoc.getWorld().spawnParticle(org.bukkit.Particle.DUST, new org.bukkit.Location(pLoc.getWorld(), rx, pLoc.getY() + 0.1, rz), 1, 0, 0, 0, new org.bukkit.Particle.DustOptions(org.bukkit.Color.fromRGB(150, 0, 0), 2.0f));
                             }
                             p.playSound(p.getLocation(), org.bukkit.Sound.ENTITY_BAT_DEATH, 1.0f, 0.5f);
                         }
@@ -670,7 +670,7 @@ public class CombatListener implements Listener {
                     // soul_drain: 15% chance, heal attacker 2 HP, damage target 3 HP, 8% Wither I 3s
                     if (procs < MAX_PROCS_PER_HIT && hasEnchant(lore, "Вытягивание душ") && random.nextInt(100) < 15) {
                         target.damage(3.0, p);
-                        p.setHealth(Math.min(p.getHealth() + 2.0, p.getAttribute(org.bukkit.attribute.Attribute.GENERIC_MAX_HEALTH).getValue()));
+                        p.setHealth(Math.min(p.getHealth() + 2.0, p.getAttribute(org.bukkit.attribute.Attribute.MAX_HEALTH).getValue()));
                         target.getWorld().spawnParticle(org.bukkit.Particle.SOUL, target.getLocation().add(0, 1.0, 0), 15, 0.3, 0.5, 0.3, 0.05);
                         sendCombatMessage(p, org.bukkit.ChatColor.DARK_PURPLE + "☠ [Вытягивание душ] Вы вытянули жизненную силу из цели!");
                         if (random.nextInt(100) < 8) {
@@ -719,21 +719,21 @@ public class CombatListener implements Listener {
             // Чернобог (иссушающие удары)
             if (plugin.getGearManager().isWearingSet(p, "chernobog") && random.nextInt(100) < 20) {
                 target.addPotionEffect(new PotionEffect(PotionEffectType.WITHER, 100, 1));
-                p.getWorld().spawnParticle(org.bukkit.Particle.SPELL_WITCH, target.getLocation().add(0, 1, 0), 20, 0.3, 0.3, 0.3, 0.05);
+                p.getWorld().spawnParticle(org.bukkit.Particle.WITCH, target.getLocation().add(0, 1, 0), 20, 0.3, 0.3, 0.3, 0.05);
             }
 
             // 1. Кощей (Темные Язычники) - Вампиризм в размере 15% от нанесенного урона
             if (plugin.getGearManager().isWearingSet(p, "koshchey")) {
                 double heal = e.getFinalDamage() * 0.15;
-                p.setHealth(Math.min(p.getHealth() + heal, p.getAttribute(org.bukkit.attribute.Attribute.GENERIC_MAX_HEALTH).getValue()));
+                p.setHealth(Math.min(p.getHealth() + heal, p.getAttribute(org.bukkit.attribute.Attribute.MAX_HEALTH).getValue()));
                 p.getWorld().spawnParticle(org.bukkit.Particle.HEART, p.getLocation().add(0, 1.5, 0), 3, 0.2, 0.2, 0.2);
             }
 
             // Клинок Тени - 15% вампиризм при ударе
             if (plugin.getGearManager().isWearingSet(p, "shadow_blade") && random.nextInt(100) < 15) {
                 double heal = e.getFinalDamage() * 0.15;
-                p.setHealth(Math.min(p.getHealth() + heal, p.getAttribute(org.bukkit.attribute.Attribute.GENERIC_MAX_HEALTH).getValue()));
-                p.getWorld().spawnParticle(org.bukkit.Particle.SPELL_WITCH, p.getLocation().add(0, 1.5, 0), 5, 0.2, 0.2, 0.2);
+                p.setHealth(Math.min(p.getHealth() + heal, p.getAttribute(org.bukkit.attribute.Attribute.MAX_HEALTH).getValue()));
+                p.getWorld().spawnParticle(org.bukkit.Particle.WITCH, p.getLocation().add(0, 1.5, 0), 5, 0.2, 0.2, 0.2);
                 sendCombatMessage(p, org.bukkit.ChatColor.DARK_PURPLE + "🗡️ [Клинок Тени] Вы высосли жизнь из противника!");
             }
 
@@ -753,19 +753,19 @@ public class CombatListener implements Listener {
                     }
                 }
                 target.addPotionEffect(new PotionEffect(PotionEffectType.POISON, 100, 1));
-                target.getWorld().spawnParticle(org.bukkit.Particle.SPELL_MOB, target.getLocation().add(0, 1, 0), 30, 0.5, 0.5, 0.5, 0.05);
+                target.getWorld().spawnParticle(org.bukkit.Particle.ENTITY_EFFECT, target.getLocation().add(0, 1, 0), 30, 0.5, 0.5, 0.5, 0.05);
                 sendCombatMessage(p, org.bukkit.ChatColor.GREEN + "☠️ [Моровой Туман] Ядовитый туман окурал врага!");
             }
 
             // 2. Ясный Сокол (Темная Империя) - Казнь при ХП < 25% (шанс 20%)
             if (plugin.getGearManager().isWearingSet(p, "sokol")) {
-                double maxHp = target.getAttribute(org.bukkit.attribute.Attribute.GENERIC_MAX_HEALTH).getValue();
+                double maxHp = target.getAttribute(org.bukkit.attribute.Attribute.MAX_HEALTH).getValue();
                 if (target.getHealth() / maxHp <= 0.25) {
                     if (random.nextInt(100) < 20) {
                         e.setDamage(Math.max(e.getDamage() * 2.0, 12.0)); // Нерф: мощный, но не гарантированный ваншот
                         sendCombatMessage(p, org.bukkit.ChatColor.RED + "⚔️ [Опричная Казнь] Вы казнили раненого противника!");
                         target.getWorld().spawnParticle(org.bukkit.Particle.CRIT, target.getLocation().add(0, 1, 0), 30, 0.3, 0.5, 0.3, 0.15);
-                        target.getWorld().spawnParticle(org.bukkit.Particle.REDSTONE, target.getLocation().add(0, 1, 0), 20, 0.3, 0.5, 0.3, new org.bukkit.Particle.DustOptions(org.bukkit.Color.RED, 1.5f));
+                        target.getWorld().spawnParticle(org.bukkit.Particle.DUST, target.getLocation().add(0, 1, 0), 20, 0.3, 0.5, 0.3, new org.bukkit.Particle.DustOptions(org.bukkit.Color.RED, 1.5f));
                     }
                 }
             }
@@ -798,9 +798,9 @@ public class CombatListener implements Listener {
 
     private void cleanseNegativeEffects(Player p) {
         for (PotionEffectType type : new PotionEffectType[]{
-                PotionEffectType.SLOW, PotionEffectType.SLOW_DIGGING, PotionEffectType.WEAKNESS,
+                PotionEffectType.SLOWNESS, PotionEffectType.MINING_FATIGUE, PotionEffectType.WEAKNESS,
                 PotionEffectType.POISON, PotionEffectType.WITHER, PotionEffectType.BLINDNESS,
-                PotionEffectType.CONFUSION, PotionEffectType.HUNGER, PotionEffectType.LEVITATION
+                PotionEffectType.NAUSEA, PotionEffectType.HUNGER, PotionEffectType.LEVITATION
         }) {
             p.removePotionEffect(type);
         }

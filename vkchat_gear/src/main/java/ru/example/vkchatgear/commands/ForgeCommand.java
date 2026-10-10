@@ -404,7 +404,7 @@ public class ForgeCommand implements CommandExecutor, Listener, TabCompleter {
             markLegacyIfNeeded(result);
             inv.setItem(20, null); inv.setItem(22, result); inv.setItem(24, null);
             p.playSound(p.getLocation(), Sound.UI_TOAST_CHALLENGE_COMPLETE, 1f, 1f);
-            p.getWorld().spawnParticle(org.bukkit.Particle.ENCHANTMENT_TABLE, p.getLocation().add(0, 1, 0), 70, 0.7, 0.7, 0.7, 0.2);
+            p.getWorld().spawnParticle(org.bukkit.Particle.ENCHANT, p.getLocation().add(0, 1, 0), 70, 0.7, 0.7, 0.7, 0.2);
             announceIfNeeded(p, result, op.targetRarity);
             p.sendMessage(ChatColor.GOLD + "⭐ Успех! Редкость повышена до " + rarityDisplay(op.targetRarity));
             log(p, "FUSION_SUCCESS", itemName(result));
@@ -545,7 +545,7 @@ public class ForgeCommand implements CommandExecutor, Listener, TabCompleter {
         item.setItemMeta((ItemMeta) dmg);
         inv.setItem(CENTER_SLOT, item);
         p.playSound(p.getLocation(), Sound.BLOCK_ANVIL_USE, 1f, 1.25f);
-        p.getWorld().spawnParticle(org.bukkit.Particle.VILLAGER_HAPPY, p.getLocation().add(0, 1, 0), 25, 0.5, 0.5, 0.5, 0.08);
+        p.getWorld().spawnParticle(org.bukkit.Particle.HAPPY_VILLAGER, p.getLocation().add(0, 1, 0), 25, 0.5, 0.5, 0.5, 0.08);
         p.sendMessage(ChatColor.GREEN + "🔧 Предмет полностью отремонтирован за " + op.repCost + " реп. ВК и " + op.materialAmount + "x " + op.materialCost.name() + ".");
         log(p, "REPAIR", itemName(item) + " cost=" + op.repCost + " material=" + op.materialCost + "x" + op.materialAmount);
     }
@@ -611,7 +611,7 @@ public class ForgeCommand implements CommandExecutor, Listener, TabCompleter {
         removeCustomEnchants(item);
         inv.setItem(CENTER_SLOT, item);
         p.playSound(p.getLocation(), Sound.BLOCK_GRINDSTONE_USE, 1f, 0.5f);
-        p.getWorld().spawnParticle(org.bukkit.Particle.SPELL_WITCH, p.getLocation().add(0, 1, 0), 50, 0.5, 0.5, 0.5, 0.1);
+        p.getWorld().spawnParticle(org.bukkit.Particle.WITCH, p.getLocation().add(0, 1, 0), 50, 0.5, 0.5, 0.5, 0.1);
         p.sendMessage(ChatColor.DARK_PURPLE + "💀 Все кастомные чары были удалены с предмета.");
         log(p, "RUNE_CLEANSING", itemName(item));
     }

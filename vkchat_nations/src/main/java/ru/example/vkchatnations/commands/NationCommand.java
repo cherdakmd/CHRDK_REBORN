@@ -264,7 +264,7 @@ public class NationCommand implements CommandExecutor, TabCompleter {
             p.sendMessage(" ");
 
             p.playSound(p.getLocation(), org.bukkit.Sound.ENTITY_WITHER_DEATH, 1f, 1f);
-            p.getWorld().spawnParticle(org.bukkit.Particle.EXPLOSION_HUGE, p.getLocation().add(0, 1, 0), 3);
+            p.getWorld().spawnParticle(org.bukkit.Particle.EXPLOSION_EMITTER, p.getLocation().add(0, 1, 0), 3);
 
             // Открываем меню выбора нации
             plugin.getGuiListener().openNationSelection(p);

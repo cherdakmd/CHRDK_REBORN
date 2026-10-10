@@ -7,7 +7,7 @@
 
 <p align="center">
   <b>RPG-экосистема Minecraft ↔ ВКонтакте</b><br>
-  Purpur 1.20.4 • 13 модулей • 35 обновлений v2.1.0
+  Purpur 26.3 (Minecraft 26.3, Java 25) • 13 модулей • 35 обновлений v2.1.0
 </p>
 
 <p align="center">

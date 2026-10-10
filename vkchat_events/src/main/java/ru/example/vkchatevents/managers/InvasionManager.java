@@ -177,7 +177,7 @@ public class InvasionManager implements Listener {
         mob.setCustomNameVisible(true);
         mob.getPersistentDataContainer().set(voidKey, PersistentDataType.BYTE, (byte) 1);
         mob.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 999999, 1));
-        mob.addPotionEffect(new PotionEffect(PotionEffectType.INCREASE_DAMAGE, 999999, 0));
+        mob.addPotionEffect(new PotionEffect(PotionEffectType.STRENGTH, 999999, 0));
         
         spawnedMobs.add(mob);
     }
@@ -219,7 +219,7 @@ public class InvasionManager implements Listener {
         spawnedMobs.clear();
 
         riftLocation.getWorld().playSound(riftLocation, Sound.ENTITY_WITHER_DEATH, 1.0f, 1.0f);
-        riftLocation.getWorld().spawnParticle(Particle.EXPLOSION_HUGE, riftLocation, 1);
+        riftLocation.getWorld().spawnParticle(Particle.EXPLOSION_EMITTER, riftLocation, 1);
 
         String msg = "Игрок " + killer.getName() + " успешно уничтожил Разлом Бездны и получил ценные награды!";
         for (Player p : Bukkit.getOnlinePlayers()) {

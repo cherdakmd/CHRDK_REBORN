@@ -1,7 +1,7 @@
 name: VKChatNations
 version: "2.0.0"
 main: ru.example.vkchatnations.VKChatNationsPlugin
-api-version: "1.16"
+api-version: "26.3"
 depend: [VKChat]
 commands:
   nation:

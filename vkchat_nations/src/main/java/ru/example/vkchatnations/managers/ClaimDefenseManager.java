@@ -256,7 +256,7 @@ public class ClaimDefenseManager {
 
         if (mob instanceof Zombie || mob instanceof Skeleton) {
             mob.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 6000, 1));
-            mob.addPotionEffect(new PotionEffect(PotionEffectType.INCREASE_DAMAGE, 6000, 0));
+            mob.addPotionEffect(new PotionEffect(PotionEffectType.STRENGTH, 6000, 0));
         }
 
         if (mob instanceof Creeper) {
@@ -301,15 +301,15 @@ public class ClaimDefenseManager {
         boss.setCustomNameVisible(true);
         boss.setMetadata("defense_siege_boss", new FixedMetadataValue(plugin, true));
 
-        AttributeInstance healthAttr = boss.getAttribute(Attribute.GENERIC_MAX_HEALTH);
+        AttributeInstance healthAttr = boss.getAttribute(Attribute.MAX_HEALTH);
         if (healthAttr != null) {
             healthAttr.setBaseValue(getSiegeBossHealth());
             boss.setHealth(getSiegeBossHealth());
         }
 
         boss.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 6000, 1));
-        boss.addPotionEffect(new PotionEffect(PotionEffectType.INCREASE_DAMAGE, 6000, 1));
-        boss.addPotionEffect(new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, 6000, 0));
+        boss.addPotionEffect(new PotionEffect(PotionEffectType.STRENGTH, 6000, 1));
+        boss.addPotionEffect(new PotionEffect(PotionEffectType.RESISTANCE, 6000, 0));
         boss.setRemoveWhenFarAway(false);
 
         for (Player p : nationPlayers) {
@@ -369,7 +369,7 @@ public class ClaimDefenseManager {
         minion.setMetadata("defense_siege_minion", new FixedMetadataValue(plugin, true));
 
         minion.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 6000, 0));
-        minion.addPotionEffect(new PotionEffect(PotionEffectType.INCREASE_DAMAGE, 6000, 0));
+        minion.addPotionEffect(new PotionEffect(PotionEffectType.STRENGTH, 6000, 0));
 
         ItemStack helmet = new ItemStack(Material.LEATHER_HELMET);
         ItemStack chestplate = new ItemStack(Material.LEATHER_CHESTPLATE);

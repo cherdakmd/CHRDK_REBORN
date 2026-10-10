@@ -119,8 +119,8 @@ public class MobsEvents2Manager implements Listener {
         for (World w : Bukkit.getWorlds()) {
             for (LivingEntity boss : w.getEntitiesByClass(LivingEntity.class)) {
                 if (!boss.getPersistentDataContainer().has(raidBossKey, PersistentDataType.INTEGER) && !boss.getPersistentDataContainer().has(threatBossKey, PersistentDataType.INTEGER)) continue;
-                if (boss.getAttribute(Attribute.GENERIC_MAX_HEALTH) == null) continue;
-                double max = boss.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue();
+                if (boss.getAttribute(Attribute.MAX_HEALTH) == null) continue;
+                double max = boss.getAttribute(Attribute.MAX_HEALTH).getValue();
                 double hp = boss.getHealth();
                 int phase = boss.getPersistentDataContainer().getOrDefault(phaseKey, PersistentDataType.INTEGER, 1);
                 int next = hp <= max * 0.33 ? 3 : hp <= max * 0.66 ? 2 : 1;
@@ -137,11 +137,11 @@ public class MobsEvents2Manager implements Listener {
         if (phase == 2) {
             announce("🔥 [РЕЙД] " + name + " входит во 2 фазу: усиление и прислужники!");
             boss.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 20 * 60 * 5, 1));
-            boss.addPotionEffect(new PotionEffect(PotionEffectType.INCREASE_DAMAGE, 20 * 60 * 5, 0));
+            boss.addPotionEffect(new PotionEffect(PotionEffectType.STRENGTH, 20 * 60 * 5, 0));
             spawnAdds(boss.getLocation(), 4);
         } else if (phase == 3) {
             announce("☠ [РЕЙД] " + name + " входит в финальную ярость!");
-            boss.addPotionEffect(new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, 20 * 60 * 5, 1));
+            boss.addPotionEffect(new PotionEffect(PotionEffectType.RESISTANCE, 20 * 60 * 5, 1));
             boss.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, 20 * 20, 1));
             telegraphNova(boss);
         }
@@ -153,12 +153,12 @@ public class MobsEvents2Manager implements Listener {
         if (w == null) return;
         for (int i = 0; i < 36; i++) {
             double a = i * Math.PI * 2 / 36.0;
-            w.spawnParticle(Particle.REDSTONE, c.clone().add(Math.cos(a) * 5, 0.2, Math.sin(a) * 5), 1, new Particle.DustOptions(Color.PURPLE, 1.5f));
+            w.spawnParticle(Particle.DUST, c.clone().add(Math.cos(a) * 5, 0.2, Math.sin(a) * 5), 1, new Particle.DustOptions(Color.PURPLE, 1.5f));
         }
         w.playSound(c, Sound.BLOCK_BEACON_POWER_SELECT, 1.2f, 0.5f);
         Bukkit.getScheduler().runTaskLater(plugin, () -> {
             if (!boss.isValid() || boss.isDead()) return;
-            w.spawnParticle(Particle.EXPLOSION_LARGE, boss.getLocation(), 4, 2, 0.5, 2);
+            w.spawnParticle(Particle.EXPLOSION, boss.getLocation(), 4, 2, 0.5, 2);
             for (Player p : w.getPlayers()) if (p.getLocation().distanceSquared(boss.getLocation()) < 36) p.damage(10.0, boss);
         }, 35L);
     }

@@ -208,7 +208,7 @@ public class SiegeManager {
                 mob.setCustomNameVisible(true);
 
                 // Даем силу и здоровье
-                org.bukkit.attribute.AttributeInstance hp = mob.getAttribute(org.bukkit.attribute.Attribute.GENERIC_MAX_HEALTH);
+                org.bukkit.attribute.AttributeInstance hp = mob.getAttribute(org.bukkit.attribute.Attribute.MAX_HEALTH);
                 if (hp != null) {
                     double mult = isWaveBoss ? 4.0 : 2.5;
                     hp.setBaseValue(hp.getBaseValue() * mult);
@@ -305,7 +305,7 @@ public class SiegeManager {
                     }
 
                     // Красивый след частиц за осадным монстром
-                    world.spawnParticle(org.bukkit.Particle.SMOKE_NORMAL, m.getLocation().add(0, 1, 0), 3, 0.2, 0.2, 0.2, 0.05);
+                    world.spawnParticle(org.bukkit.Particle.SMOKE, m.getLocation().add(0, 1, 0), 3, 0.2, 0.2, 0.2, 0.05);
                 }
             }
 
@@ -316,7 +316,7 @@ public class SiegeManager {
 
                 // Звук и частицы поломки блока
                 world.playSound(siege.blockLoc, Sound.BLOCK_ANVIL_LAND, 1.0f, 0.8f);
-                world.spawnParticle(org.bukkit.Particle.BLOCK_CRACK, siege.blockLoc.clone().add(0.5, 0.5, 0.5), 40, 0.3, 0.3, 0.3, Material.OBSIDIAN.createBlockData());
+                world.spawnParticle(org.bukkit.Particle.BLOCK, siege.blockLoc.clone().add(0.5, 0.5, 0.5), 40, 0.3, 0.3, 0.3, Material.OBSIDIAN.createBlockData());
 
                 VKChatNationsPlugin nationsPlugin = (VKChatNationsPlugin) Bukkit.getPluginManager().getPlugin("VKChatNations");
                 if (nationsPlugin != null) {

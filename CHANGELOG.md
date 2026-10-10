@@ -1,5 +1,19 @@
 # CHANGELOG — VKChat Ultimate / CHRDK REBORN
 
+## Unreleased — Миграция на Minecraft 26.3 (Purpur 26.3)
+
+- Сервер: Minecraft **26.3** (Purpur 26.3, Java **25**). Было: Purpur 1.20.4.
+- Сборка: Paper API `io.papermc.paper:paper-api:26.3.build.+` вместо Spigot API 1.16.5; Java toolchain 25, `options.release = 25`; Gradle wrapper 9.1.0.
+- `plugin.yml` у всех плагинов: `api-version: "26.3"`.
+- Переименованные API-константы (по таблице переименований Paper):
+  - `Attribute.GENERIC_*` → `Attribute.*` (например `MAX_HEALTH`, `ATTACK_DAMAGE`, `MOVEMENT_SPEED`, `ARMOR`, `KNOCKBACK_RESISTANCE`);
+  - `PotionEffectType`: `SLOW`→`SLOWNESS`, `FAST_DIGGING`→`HASTE`, `SLOW_DIGGING`→`MINING_FATIGUE`, `INCREASE_DAMAGE`→`STRENGTH`, `JUMP`→`JUMP_BOOST`, `CONFUSION`→`NAUSEA`, `DAMAGE_RESISTANCE`→`RESISTANCE`;
+  - `Enchantment`: `DAMAGE_ALL`→`SHARPNESS`, `DURABILITY`→`UNBREAKING`, `DIG_SPEED`→`EFFICIENCY`, `LOOT_BONUS_BLOCKS`→`FORTUNE`, `LOOT_BONUS_MOBS`→`LOOTING`, `ARROW_*`→`POWER/PUNCH/FLAME/INFINITY`, `PROTECTION_*`→`PROTECTION/FIRE_PROTECTION/PROJECTILE_PROTECTION`;
+  - `Particle`: `REDSTONE`→`DUST`, `BLOCK_CRACK`/`BLOCK_DUST`→`BLOCK`, `SNOW_SHOVEL`/`SNOWBALL`→`ITEM_SNOWBALL`, `SPELL_WITCH`→`WITCH`, `SMOKE_NORMAL`→`SMOKE`, `TOTEM`→`TOTEM_OF_UNDYING`, `TOWN_AURA`→`MYCELIUM` и другие;
+  - `Material.SCUTE` → `Material.TURTLE_SCUTE`.
+- Новый класс `ru.example.vkchat.util.BukkitNames`: строковые имена эффектов и зачарований из конфигов (`FAST_DIGGING;0`, `DAMAGE_ALL;1` и т.п.) принимаются и в старом, и в новом виде.
+- Внимание: `api-version` 26.3 ставит плагин на новые имена. Старые имена, которые считываются НЕ через `BukkitNames` (например, частицы из конфига), нужно заменить вручную.
+
 ## v2.1.0 — Июнь 2026
 
 ### VKChatGear — Mythical Sets + Ancient Crystal + Max +25

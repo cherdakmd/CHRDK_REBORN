@@ -134,11 +134,11 @@ public class ArtifactListener implements Listener {
                     } else if (buff.equals("NIGHT_VISION")) {
                         p.addPotionEffect(new PotionEffect(PotionEffectType.NIGHT_VISION, 300, 0, false, false));
                     } else if (buff.equals("HASTE")) {
-                        p.addPotionEffect(new PotionEffect(PotionEffectType.FAST_DIGGING, 100, level - 1, false, false));
+                        p.addPotionEffect(new PotionEffect(PotionEffectType.HASTE, 100, level - 1, false, false));
                     } else if (buff.equals("WATER_BREATHING")) {
                         p.addPotionEffect(new PotionEffect(PotionEffectType.WATER_BREATHING, 100, 0, false, false));
                     } else if (buff.equals("JUMP_BOOST")) {
-                        p.addPotionEffect(new PotionEffect(PotionEffectType.JUMP, 100, level - 1, false, false));
+                        p.addPotionEffect(new PotionEffect(PotionEffectType.JUMP_BOOST, 100, level - 1, false, false));
                     } else if (buff.equals("LUCK")) {
                         p.addPotionEffect(new PotionEffect(PotionEffectType.LUCK, 100, level - 1, false, false));
                     } else if (buff.equals("GHOST_WALK")) {
@@ -161,9 +161,9 @@ public class ArtifactListener implements Listener {
                     } else if (buff.equals("HERO_OF_VILLAGE")) {
                         p.addPotionEffect(new PotionEffect(PotionEffectType.HERO_OF_THE_VILLAGE, 100, level - 1, false, false));
                     } else if (buff.equals("STRENGTH_BOOST")) {
-                        p.addPotionEffect(new PotionEffect(PotionEffectType.INCREASE_DAMAGE, 100, level - 1, false, false));
+                        p.addPotionEffect(new PotionEffect(PotionEffectType.STRENGTH, 100, level - 1, false, false));
                     } else if (buff.equals("RESISTANCE")) {
-                        p.addPotionEffect(new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, 100, level - 1, false, false));
+                        p.addPotionEffect(new PotionEffect(PotionEffectType.RESISTANCE, 100, level - 1, false, false));
                     } else if (buff.equals("SATURATION")) {
                         p.addPotionEffect(new PotionEffect(PotionEffectType.SATURATION, 100, 0, false, false));
                     } else if (buff.equals("LUCK_OF_THE_SEA")) {
@@ -171,7 +171,7 @@ public class ArtifactListener implements Listener {
                     } else if (buff.equals("FREEZE_AURA")) {
                         for (org.bukkit.entity.Entity near : p.getNearbyEntities(5, 5, 5)) {
                             if (near instanceof org.bukkit.entity.LivingEntity && !(near instanceof Player)) {
-                                ((org.bukkit.entity.LivingEntity) near).addPotionEffect(new PotionEffect(PotionEffectType.SLOW, 60, level - 1, false, false));
+                                ((org.bukkit.entity.LivingEntity) near).addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 60, level - 1, false, false));
                             }
                         }
                     } else if (buff.equals("WIND_WALKER")) {
@@ -181,7 +181,7 @@ public class ArtifactListener implements Listener {
                     } else if (buff.equals("ENDER_SHIFT")) {
                         hasEnderShift = true;
                     } else if (buff.equals("SOUL_SHIELD")) {
-                        if (p.getHealth() < p.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue() * 0.3) {
+                        if (p.getHealth() < p.getAttribute(Attribute.MAX_HEALTH).getValue() * 0.3) {
                             p.addPotionEffect(new PotionEffect(PotionEffectType.ABSORPTION, 100, 1, false, false));
                         }
                     } else if (buff.equals("FIRE_RESISTANCE_AURA")) {
@@ -195,7 +195,7 @@ public class ArtifactListener implements Listener {
                         // Handled in onPlayerDeath
                     } else if (buff.equals("ABYSSAL_POWER")) {
                         hasAbyssalPower = true;
-                        if (p.getHealth() < p.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue() * 0.3) {
+                        if (p.getHealth() < p.getAttribute(Attribute.MAX_HEALTH).getValue() * 0.3) {
                             p.addPotionEffect(new PotionEffect(PotionEffectType.INVISIBILITY, 100, 0, false, false));
                         }
                     } else if (buff.equals("DRAGON_BLOOD")) {
@@ -223,23 +223,23 @@ public class ArtifactListener implements Listener {
                 }
 
                 if (curse != null && !curse.equals("NONE") && !setAbsorbsCurses) {
-                    if (curse.equals("SLOWNESS")) p.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, 100, 0, false, false));
+                    if (curse.equals("SLOWNESS")) p.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 100, 0, false, false));
                     if (curse.equals("WEAKNESS")) p.addPotionEffect(new PotionEffect(PotionEffectType.WEAKNESS, 100, 0, false, false));
                     if (curse.equals("HUNGER")) p.addPotionEffect(new PotionEffect(PotionEffectType.HUNGER, 100, 1, false, false));
                     if (curse.equals("BLINDNESS")) p.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 100, 0, false, false));
                     if (curse.equals("DECAY")) hasDecay = true;
                     if (curse.equals("NIGHTMARE") && random.nextInt(100) < 1) {
-                        p.addPotionEffect(new PotionEffect(PotionEffectType.CONFUSION, 60, 0, false, false));
+                        p.addPotionEffect(new PotionEffect(PotionEffectType.NAUSEA, 60, 0, false, false));
                     }
                     if (curse.equals("GREED")) {
                         hasGreed = true;
                     }
                     if (curse.equals("CHAOS") && random.nextInt(100) < 10) {
                         PotionEffectType[] chaosEffects = {
-                            PotionEffectType.SPEED, PotionEffectType.SLOW, PotionEffectType.INCREASE_DAMAGE,
+                            PotionEffectType.SPEED, PotionEffectType.SLOWNESS, PotionEffectType.STRENGTH,
                             PotionEffectType.WEAKNESS, PotionEffectType.REGENERATION, PotionEffectType.POISON,
-                            PotionEffectType.FIRE_RESISTANCE, PotionEffectType.JUMP, PotionEffectType.BLINDNESS,
-                            PotionEffectType.NIGHT_VISION, PotionEffectType.DAMAGE_RESISTANCE, PotionEffectType.HUNGER
+                            PotionEffectType.FIRE_RESISTANCE, PotionEffectType.JUMP_BOOST, PotionEffectType.BLINDNESS,
+                            PotionEffectType.NIGHT_VISION, PotionEffectType.RESISTANCE, PotionEffectType.HUNGER
                         };
                         PotionEffectType chosen = chaosEffects[random.nextInt(chaosEffects.length)];
                         p.addPotionEffect(new PotionEffect(chosen, 200, random.nextInt(2), false, false));
@@ -248,7 +248,7 @@ public class ArtifactListener implements Listener {
                     // Сет полностью поглотил проклятие!
                     if (System.currentTimeMillis() % 10000 < 100) {
                         p.sendMessage(org.bukkit.ChatColor.GOLD + "✨ [СИНЕРГИЯ СЕТА] Ваша броня полностью поглотила и нейтрализовала проклятие артефакта: " + curse + "!");
-                        p.getWorld().spawnParticle(org.bukkit.Particle.TOTEM, p.getLocation().add(0, 1.0, 0), 10, 0.3, 0.3, 0.3, 0.1);
+                        p.getWorld().spawnParticle(org.bukkit.Particle.TOTEM_OF_UNDYING, p.getLocation().add(0, 1.0, 0), 10, 0.3, 0.3, 0.3, 0.1);
                     }
                 }
             }
@@ -276,13 +276,13 @@ public class ArtifactListener implements Listener {
             // Артефакты работают из инвентаря постоянно, но больше не перезаписывают baseValue атрибутов.
             // Вместо setBaseValue используем собственные AttributeModifier с фиксированными UUID.
             // Это предотвращает конфликты с Gear, DonatePay, эффектами и другими плагинами.
-            applyManagedModifier(p.getAttribute(Attribute.GENERIC_MAX_HEALTH), ARTIFACT_HEALTH_UUID, "vkchat_artifact_health", hasHealth ? extraHealth * buffMult : 0.0);
-            applyManagedModifier(p.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED), ARTIFACT_SPEED_UUID, "vkchat_artifact_speed", hasSpeed ? speedMult * buffMult : 0.0);
-            applyManagedModifier(p.getAttribute(Attribute.GENERIC_ARMOR), ARTIFACT_ARMOR_UUID, "vkchat_artifact_armor", hasArmor ? extraArmor * buffMult : 0.0);
-            applyManagedModifier(p.getAttribute(Attribute.GENERIC_KNOCKBACK_RESISTANCE), ARTIFACT_KB_UUID, "vkchat_artifact_kb", hasKbResist ? kbResist * buffMult : 0.0);
-            applyManagedModifier(p.getAttribute(Attribute.GENERIC_MAX_HEALTH), ARTIFACT_GREED_HP_UUID, "vkchat_artifact_greed_hp", hasGreed ? -6.0 : 0.0);
-            applyManagedModifier(p.getAttribute(Attribute.GENERIC_MAX_HEALTH), ARTIFACT_DRAGON_HP_UUID, "vkchat_artifact_dragon_hp", hasDragonBlood ? 10.0 : 0.0);
-            AttributeInstance hp = p.getAttribute(Attribute.GENERIC_MAX_HEALTH);
+            applyManagedModifier(p.getAttribute(Attribute.MAX_HEALTH), ARTIFACT_HEALTH_UUID, "vkchat_artifact_health", hasHealth ? extraHealth * buffMult : 0.0);
+            applyManagedModifier(p.getAttribute(Attribute.MOVEMENT_SPEED), ARTIFACT_SPEED_UUID, "vkchat_artifact_speed", hasSpeed ? speedMult * buffMult : 0.0);
+            applyManagedModifier(p.getAttribute(Attribute.ARMOR), ARTIFACT_ARMOR_UUID, "vkchat_artifact_armor", hasArmor ? extraArmor * buffMult : 0.0);
+            applyManagedModifier(p.getAttribute(Attribute.KNOCKBACK_RESISTANCE), ARTIFACT_KB_UUID, "vkchat_artifact_kb", hasKbResist ? kbResist * buffMult : 0.0);
+            applyManagedModifier(p.getAttribute(Attribute.MAX_HEALTH), ARTIFACT_GREED_HP_UUID, "vkchat_artifact_greed_hp", hasGreed ? -6.0 : 0.0);
+            applyManagedModifier(p.getAttribute(Attribute.MAX_HEALTH), ARTIFACT_DRAGON_HP_UUID, "vkchat_artifact_dragon_hp", hasDragonBlood ? 10.0 : 0.0);
+            AttributeInstance hp = p.getAttribute(Attribute.MAX_HEALTH);
             if (hp != null && p.getHealth() > hp.getValue()) p.setHealth(Math.max(1.0, hp.getValue()));
 
             // Сет-бонусы (синергия) при наличии 3 одинаковых артефактов
@@ -292,19 +292,19 @@ public class ArtifactListener implements Listener {
                     hasSynergy = true;
                     String buffType = entry.getKey();
                     if (buffType.equals("SPEED")) {
-                        p.addPotionEffect(new PotionEffect(PotionEffectType.JUMP, 100, 1, false, false));
+                        p.addPotionEffect(new PotionEffect(PotionEffectType.JUMP_BOOST, 100, 1, false, false));
                     } else if (buffType.equals("HEALTH") || buffType.equals("MAX_HEALTH_BOOST")) {
                         p.addPotionEffect(new PotionEffect(PotionEffectType.ABSORPTION, 100, 1, false, false));
                     } else if (buffType.equals("DAMAGE") || buffType.equals("STRENGTH_BOOST")) {
-                        p.addPotionEffect(new PotionEffect(PotionEffectType.INCREASE_DAMAGE, 100, 1, false, false));
+                        p.addPotionEffect(new PotionEffect(PotionEffectType.STRENGTH, 100, 1, false, false));
                     } else if (buffType.equals("REGENERATION")) {
-                        p.addPotionEffect(new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, 100, 0, false, false));
+                        p.addPotionEffect(new PotionEffect(PotionEffectType.RESISTANCE, 100, 0, false, false));
                     } else {
-                        p.addPotionEffect(new PotionEffect(PotionEffectType.FAST_DIGGING, 100, 0, false, false));
+                        p.addPotionEffect(new PotionEffect(PotionEffectType.HASTE, 100, 0, false, false));
                     }
                     
                     // Красивый след частиц синергии вокруг игрока
-                    p.getWorld().spawnParticle(org.bukkit.Particle.SPELL_WITCH, p.getLocation().add(0, 0.5, 0), 3, 0.2, 0.2, 0.2, 0.02);
+                    p.getWorld().spawnParticle(org.bukkit.Particle.WITCH, p.getLocation().add(0, 0.5, 0), 3, 0.2, 0.2, 0.2, 0.02);
                 }
             }
             if (hasSynergy && System.currentTimeMillis() % 4000 < 100) {
@@ -365,7 +365,7 @@ public class ArtifactListener implements Listener {
                 if (growth >= breakAt) {
                     item.setAmount(0);
                     p.sendMessage(org.bukkit.ChatColor.DARK_RED + "☠ Проклятие поглотило артефакт! Он рассыпался в прах!");
-                    p.getWorld().spawnParticle(org.bukkit.Particle.SMOKE_LARGE, p.getLocation().add(0, 1, 0), 20, 0.3, 0.3, 0.3, 0.05);
+                    p.getWorld().spawnParticle(org.bukkit.Particle.LARGE_SMOKE, p.getLocation().add(0, 1, 0), 20, 0.3, 0.3, 0.3, 0.05);
                     p.playSound(p.getLocation(), org.bukkit.Sound.ENTITY_WITHER_DEATH, 0.5f, 1.5f);
                 } else if (growth == warn90) {
                     p.sendMessage(org.bukkit.ChatColor.DARK_RED + "☠ Проклятие почти поглотило артефакт! (90%)");
@@ -533,11 +533,11 @@ public class ArtifactListener implements Listener {
                     e.setDamage(e.getDamage() + level);
                 } else if ("VAMPIRISM".equals(buff)) {
                     double heal = e.getDamage() * (level * 0.1);
-                    p.setHealth(Math.min(p.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue(), p.getHealth() + heal));
+                    p.setHealth(Math.min(p.getAttribute(Attribute.MAX_HEALTH).getValue(), p.getHealth() + heal));
                 } else if ("CRITICAL".equals(buff)) {
                     if (random.nextInt(100) < (level * 5)) {
                         e.setDamage(e.getDamage() * 2);
-                        p.getWorld().spawnParticle(org.bukkit.Particle.CRIT_MAGIC, e.getEntity().getLocation().add(0, 1, 0), 15);
+                        p.getWorld().spawnParticle(org.bukkit.Particle.ENCHANTED_HIT, e.getEntity().getLocation().add(0, 1, 0), 15);
                     }
                 } else if ("WITHER_TOUCH".equals(buff) && e.getEntity() instanceof org.bukkit.entity.LivingEntity) {
                     ((org.bukkit.entity.LivingEntity) e.getEntity()).addPotionEffect(new PotionEffect(PotionEffectType.WITHER, 60, level - 1, false, false));
@@ -554,17 +554,17 @@ public class ArtifactListener implements Listener {
                     e.setDamage(e.getDamage() + (level * 1.5));
                     p.getWorld().spawnParticle(org.bukkit.Particle.CRIT, e.getEntity().getLocation().add(0, 1, 0), 10);
                 } else if ("FROST_BITE".equals(buff) && e.getEntity() instanceof org.bukkit.entity.LivingEntity) {
-                    ((org.bukkit.entity.LivingEntity) e.getEntity()).addPotionEffect(new PotionEffect(PotionEffectType.SLOW, 60, level - 1, false, false));
+                    ((org.bukkit.entity.LivingEntity) e.getEntity()).addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 60, level - 1, false, false));
                 } else if ("BERSERKER".equals(buff)) {
-                    double missingHealth = p.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue() - p.getHealth();
-                    double healthPercent = missingHealth / p.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue();
+                    double missingHealth = p.getAttribute(Attribute.MAX_HEALTH).getValue() - p.getHealth();
+                    double healthPercent = missingHealth / p.getAttribute(Attribute.MAX_HEALTH).getValue();
                     e.setDamage(e.getDamage() * (1.0 + healthPercent * level * 0.2));
                 } else if ("FLAME_TONGUE".equals(buff) && e.getEntity() instanceof org.bukkit.entity.LivingEntity) {
                     ((org.bukkit.entity.LivingEntity) e.getEntity()).setFireTicks(40 + level * 20);
                 } else if ("ECHO_STRIKE".equals(buff)) {
                     if (random.nextInt(100) < (level * 10)) {
                         e.setDamage(e.getDamage() * 2);
-                        p.getWorld().spawnParticle(org.bukkit.Particle.CRIT_MAGIC, e.getEntity().getLocation().add(0, 1, 0), 20);
+                        p.getWorld().spawnParticle(org.bukkit.Particle.ENCHANTED_HIT, e.getEntity().getLocation().add(0, 1, 0), 20);
                         p.getWorld().playSound(p.getLocation(), org.bukkit.Sound.ENTITY_PLAYER_ATTACK_CRIT, 1.0f, 1.2f);
                     }
                 } else if ("LIFESTEAL_AURA".equals(buff)) {
@@ -572,7 +572,7 @@ public class ArtifactListener implements Listener {
                         if (near instanceof Player && near != p) {
                             Player ally = (Player) near;
                             double heal = e.getDamage() * 0.15;
-                            ally.setHealth(Math.min(ally.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue(), ally.getHealth() + heal));
+                            ally.setHealth(Math.min(ally.getAttribute(Attribute.MAX_HEALTH).getValue(), ally.getHealth() + heal));
                         }
                     }
                 } else if ("ABYSSAL_POWER".equals(buff)) {
@@ -625,7 +625,7 @@ public class ArtifactListener implements Listener {
                         double reduction = level * 0.1;
                         e.setDamage(e.getDamage() * (1.0 - reduction));
                     } else if ("IRON_WILL".equals(buff)) {
-                        p.addPotionEffect(new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, 20, level - 1, false, false));
+                        p.addPotionEffect(new PotionEffect(PotionEffectType.RESISTANCE, 20, level - 1, false, false));
                     }
                 }
             }
@@ -650,7 +650,7 @@ public class ArtifactListener implements Listener {
                         ((org.bukkit.entity.LivingEntity) near).damage(2.0 * abLevel, p);
                     }
                 }
-                p.getWorld().spawnParticle(org.bukkit.Particle.EXPLOSION_NORMAL, p.getLocation().add(0, 1, 0), 15, 0.5, 0.5, 0.5, 0.1);
+                p.getWorld().spawnParticle(org.bukkit.Particle.POOF, p.getLocation().add(0, 1, 0), 15, 0.5, 0.5, 0.5, 0.1);
             }
         }
     }
@@ -683,11 +683,11 @@ public class ArtifactListener implements Listener {
                 revivalCooldowns.put(p.getUniqueId(), System.currentTimeMillis());
                 e.setKeepInventory(true);
                 e.getDrops().clear();
-                double maxHp = p.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue();
+                double maxHp = p.getAttribute(Attribute.MAX_HEALTH).getValue();
                 p.setHealth(Math.max(1.0, maxHp * 0.5));
                 p.addPotionEffect(new PotionEffect(PotionEffectType.ABSORPTION, 200, 1, false, false));
                 p.addPotionEffect(new PotionEffect(PotionEffectType.FIRE_RESISTANCE, 200, 0, false, false));
-                p.getWorld().spawnParticle(org.bukkit.Particle.TOTEM, p.getLocation().add(0, 1, 0), 50, 0.5, 0.5, 0.5, 0.2);
+                p.getWorld().spawnParticle(org.bukkit.Particle.TOTEM_OF_UNDYING, p.getLocation().add(0, 1, 0), 50, 0.5, 0.5, 0.5, 0.2);
                 p.getWorld().playSound(p.getLocation(), org.bukkit.Sound.ITEM_TOTEM_USE, 1.0f, 1.0f);
                 p.sendMessage(org.bukkit.ChatColor.GOLD + "✨ Перо Феникса спасло тебя от смерти!");
                 return;
@@ -734,7 +734,7 @@ public class ArtifactListener implements Listener {
         if (hasArtifactBuff(p, "SOUL_DRAIN")) {
             int level = getArtifactBuffLevel(p, "SOUL_DRAIN");
             double heal = level * 2;
-            p.setHealth(Math.min(p.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue(), p.getHealth() + heal));
+            p.setHealth(Math.min(p.getAttribute(Attribute.MAX_HEALTH).getValue(), p.getHealth() + heal));
             p.getWorld().spawnParticle(org.bukkit.Particle.SOUL, e.getEntity().getLocation().add(0, 1, 0), 10, 0.3, 0.3, 0.3, 0.1);
             p.getWorld().playSound(p.getLocation(), org.bukkit.Sound.ENTITY_WITHER_HURT, 0.5f, 1.5f);
         }
@@ -746,7 +746,7 @@ public class ArtifactListener implements Listener {
                         ItemStack bonus = drop.clone();
                         bonus.setAmount(1);
                         e.getDrops().add(bonus);
-                        p.getWorld().spawnParticle(org.bukkit.Particle.VILLAGER_HAPPY, e.getEntity().getLocation().add(0, 1, 0), 10, 0.3, 0.3, 0.3, 0.1);
+                        p.getWorld().spawnParticle(org.bukkit.Particle.HAPPY_VILLAGER, e.getEntity().getLocation().add(0, 1, 0), 10, 0.3, 0.3, 0.3, 0.1);
                         break;
                     }
                 }

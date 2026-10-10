@@ -151,8 +151,8 @@ public class WrathManager implements Listener {
         activeBoss.setCustomNameVisible(true);
         activeBoss.getPersistentDataContainer().set(new NamespacedKey(plugin, "wrath_boss"), PersistentDataType.BYTE, (byte)1);
         
-        if (activeBoss.getAttribute(Attribute.GENERIC_MAX_HEALTH) != null) {
-            activeBoss.getAttribute(Attribute.GENERIC_MAX_HEALTH).setBaseValue(bossHealth);
+        if (activeBoss.getAttribute(Attribute.MAX_HEALTH) != null) {
+            activeBoss.getAttribute(Attribute.MAX_HEALTH).setBaseValue(bossHealth);
             activeBoss.setHealth(bossHealth);
         }
         
@@ -229,7 +229,7 @@ public class WrathManager implements Listener {
                         }
 
                         p.sendMessage(ChatColor.RED + "🌧️ Кислотный дождь разъедает вашу плоть и портит броню! Срочно под крышу!");
-                        p.getWorld().spawnParticle(org.bukkit.Particle.DRIP_WATER, p.getLocation().add(0, 1.5, 0), 10, 0.5, 0.5, 0.5);
+                        p.getWorld().spawnParticle(org.bukkit.Particle.DRIPPING_WATER, p.getLocation().add(0, 1.5, 0), 10, 0.5, 0.5, 0.5);
                     }
                 }
             }, 0L, 60L); // Каждые 3 секунды
@@ -251,8 +251,8 @@ public class WrathManager implements Listener {
 
                 for (Player p : Bukkit.getOnlinePlayers()) {
                     if (!shouldAffectPlayer(p)) continue;
-                    p.addPotionEffect(new PotionEffect(PotionEffectType.CONFUSION, 120, 1));
-                    p.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, 120, 2));
+                    p.addPotionEffect(new PotionEffect(PotionEffectType.NAUSEA, 120, 1));
+                    p.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 120, 2));
                     p.playSound(p.getLocation(), org.bukkit.Sound.BLOCK_GRAVEL_BREAK, 1f, 0.5f);
                     p.playSound(p.getLocation(), org.bukkit.Sound.ENTITY_GENERIC_EXPLODE, 0.5f, 0.5f);
 
@@ -262,7 +262,7 @@ public class WrathManager implements Listener {
                         if (below.getType() != Material.AIR && below.getType() != Material.BEDROCK && below.getType() != Material.BARRIER) {
                             if (!isLocationClaimed(below.getLocation())) {
                                 below.setType(Material.AIR);
-                                p.getWorld().spawnParticle(org.bukkit.Particle.BLOCK_CRACK, below.getLocation().add(0.5, 0.5, 0.5), 50, 0.5, 0.5, 0.5, below.getType().createBlockData());
+                                p.getWorld().spawnParticle(org.bukkit.Particle.BLOCK, below.getLocation().add(0.5, 0.5, 0.5), 50, 0.5, 0.5, 0.5, below.getType().createBlockData());
                                 p.sendMessage(ChatColor.RED + "☠ Земля треснула и провалилась прямо под вами!");
                             }
                         }
@@ -283,7 +283,7 @@ public class WrathManager implements Listener {
                                         Block b = targetLoc.getBlock();
                                         if (b.getType() != Material.AIR && b.getType() != Material.BEDROCK && b.getType() != Material.BARRIER) {
                                             b.setType(Material.AIR);
-                                            b.getWorld().spawnParticle(org.bukkit.Particle.BLOCK_CRACK, b.getLocation().add(0.5, 0.5, 0.5), 20, 0.3, 0.3, 0.3, b.getType().createBlockData());
+                                            b.getWorld().spawnParticle(org.bukkit.Particle.BLOCK, b.getLocation().add(0.5, 0.5, 0.5), 20, 0.3, 0.3, 0.3, b.getType().createBlockData());
                                         }
                                     }
                                 }
@@ -403,12 +403,12 @@ public class WrathManager implements Listener {
                         }
 
                         if (!nearHeat && pLoc.getBlock().getY() >= world.getHighestBlockYAt(pLoc)) {
-                            p.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, 80, 1));
+                            p.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 80, 1));
                             p.addPotionEffect(new PotionEffect(PotionEffectType.WEAKNESS, 80, 0));
                             p.damage(1.0); // Урон от обморожения
                             
                             p.sendMessage(ChatColor.BLUE + "❄️ Вы замерзаете! Найдите источник тепла (костер, факел, лаву)!");
-                            p.getWorld().spawnParticle(org.bukkit.Particle.SNOWBALL, pLoc.add(0, 1.5, 0), 15, 0.5, 0.5, 0.5);
+                            p.getWorld().spawnParticle(org.bukkit.Particle.ITEM_SNOWBALL, pLoc.add(0, 1.5, 0), 15, 0.5, 0.5, 0.5);
                         } else if (nearHeat) {
                             p.getWorld().spawnParticle(org.bukkit.Particle.FLAME, pLoc.add(0, 0.1, 0), 3, 0.2, 0.1, 0.2, 0.01);
                         }
@@ -496,7 +496,7 @@ public class WrathManager implements Listener {
                 for (Player p : Bukkit.getOnlinePlayers()) {
                     p.addPotionEffect(new PotionEffect(PotionEffectType.LUCK, 120, 1));
                     p.addPotionEffect(new PotionEffect(PotionEffectType.HERO_OF_THE_VILLAGE, 120, 0));
-                    p.getWorld().spawnParticle(org.bukkit.Particle.VILLAGER_HAPPY, p.getLocation().add(0, 1.5, 0), 5, 0.5, 0.5, 0.5);
+                    p.getWorld().spawnParticle(org.bukkit.Particle.HAPPY_VILLAGER, p.getLocation().add(0, 1.5, 0), 5, 0.5, 0.5, 0.5);
                 }
             }, 0L, 40L); // Каждые 2 секунды
 
@@ -523,10 +523,10 @@ public class WrathManager implements Listener {
                     p.removePotionEffect(PotionEffectType.POISON);
                     p.removePotionEffect(PotionEffectType.WITHER);
                     p.removePotionEffect(PotionEffectType.BLINDNESS);
-                    p.removePotionEffect(PotionEffectType.SLOW);
+                    p.removePotionEffect(PotionEffectType.SLOWNESS);
                     p.removePotionEffect(PotionEffectType.WEAKNESS);
                     p.removePotionEffect(PotionEffectType.UNLUCK);
-                    p.removePotionEffect(PotionEffectType.CONFUSION);
+                    p.removePotionEffect(PotionEffectType.NAUSEA);
 
                     p.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, 120, 0));
                     p.addPotionEffect(new PotionEffect(PotionEffectType.SATURATION, 120, 0));
@@ -568,7 +568,7 @@ public class WrathManager implements Listener {
                             
                             if (!isLocationClaimed(starStrike)) {
                                 // 1. Эффект падения звезды
-                                world.spawnParticle(org.bukkit.Particle.EXPLOSION_HUGE, starStrike, 3);
+                                world.spawnParticle(org.bukkit.Particle.EXPLOSION_EMITTER, starStrike, 3);
                                 world.playSound(starStrike, org.bukkit.Sound.ENTITY_LIGHTNING_BOLT_THUNDER, 1.0f, 1.5f);
                                 
                                 // 2. Создаем ХАРДКОРНЫЙ воронку/кратер радиусом 4 блока!
@@ -660,7 +660,7 @@ public class WrathManager implements Listener {
                             // 3. Эффект извержения гейзера (водный столб)
                             for (int h = 0; h < 8; h++) {
                                 Location particleLoc = geyserLoc.clone().add(0, h, 0);
-                                world.spawnParticle(org.bukkit.Particle.WATER_SPLASH, particleLoc, 40, 0.5, 0.5, 0.5, 0.2);
+                                world.spawnParticle(org.bukkit.Particle.SPLASH, particleLoc, 40, 0.5, 0.5, 0.5, 0.2);
                                 world.spawnParticle(org.bukkit.Particle.CLOUD, particleLoc, 10, 0.3, 0.3, 0.3, 0.05);
                             }
                             world.playSound(geyserLoc, org.bukkit.Sound.ENTITY_PLAYER_SPLASH_HIGH_SPEED, 1.5f, 0.5f);
@@ -709,7 +709,7 @@ public class WrathManager implements Listener {
                     mob.setCustomName(ChatColor.RED + "Кровавый охотник");
                     mob.setCustomNameVisible(true);
                     mob.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 20 * 60, 1));
-                    mob.addPotionEffect(new PotionEffect(PotionEffectType.INCREASE_DAMAGE, 20 * 60, 0));
+                    mob.addPotionEffect(new PotionEffect(PotionEffectType.STRENGTH, 20 * 60, 0));
                     mob.getPersistentDataContainer().set(new NamespacedKey(plugin, "blood_moon_mob"), PersistentDataType.BYTE, (byte) 1);
                     p.playSound(p.getLocation(), org.bukkit.Sound.ENTITY_WOLF_GROWL, 0.8f, 0.7f);
                 }
@@ -739,7 +739,7 @@ public class WrathManager implements Listener {
             chest.getInventory().addItem(new ItemStack(Material.DIAMOND, 12 + random.nextInt(13)));
             chest.getInventory().addItem(new ItemStack(Material.EXPERIENCE_BOTTLE, 24 + random.nextInt(25)));
             if (random.nextBoolean()) chest.getInventory().addItem(new ItemStack(Material.NETHERITE_SCRAP, 1 + random.nextInt(3)));
-            world.spawnParticle(org.bukkit.Particle.FIREWORKS_SPARK, chestLoc.clone().add(0.5, 1.5, 0.5), 80, 1.2, 1.2, 1.2, 0.08);
+            world.spawnParticle(org.bukkit.Particle.FIREWORK, chestLoc.clone().add(0.5, 1.5, 0.5), 80, 1.2, 1.2, 1.2, 0.08);
             world.playSound(chestLoc, org.bukkit.Sound.ENTITY_FIREWORK_ROCKET_BLAST, 2.0f, 0.9f);
             stopCataclysm();
 
@@ -762,7 +762,7 @@ public class WrathManager implements Listener {
                             p.sendMessage(ChatColor.RED + "⏰ Столкновение со станцией через " + count + " сек!");
                             p.playSound(p.getLocation(), org.bukkit.Sound.BLOCK_NOTE_BLOCK_PLING, 1.0f, 1.5f);
                             // Искры в небе
-                            p.getWorld().spawnParticle(org.bukkit.Particle.FIREWORKS_SPARK, p.getLocation().add(0, 10, 0), 20, 5.0, 2.0, 5.0, 0.1);
+                            p.getWorld().spawnParticle(org.bukkit.Particle.FIREWORK, p.getLocation().add(0, 10, 0), 20, 5.0, 2.0, 5.0, 0.1);
                         }
                         count--;
                     } else {
@@ -784,7 +784,7 @@ public class WrathManager implements Listener {
                         }
 
                         // Взрыв и звук
-                        world.spawnParticle(org.bukkit.Particle.EXPLOSION_HUGE, spawnLoc, 5);
+                        world.spawnParticle(org.bukkit.Particle.EXPLOSION_EMITTER, spawnLoc, 5);
                         world.playSound(spawnLoc, org.bukkit.Sound.ENTITY_GENERIC_EXPLODE, 3.0f, 0.5f);
                         world.playSound(spawnLoc, org.bukkit.Sound.ENTITY_LIGHTNING_BOLT_THUNDER, 2.0f, 0.8f);
 
@@ -863,7 +863,7 @@ public class WrathManager implements Listener {
                             droid.getEquipment().setHelmet(new ItemStack(Material.IRON_HELMET));
                             droid.getEquipment().setChestplate(new ItemStack(Material.IRON_CHESTPLATE));
                             droid.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 12000, 1));
-                            droid.addPotionEffect(new PotionEffect(PotionEffectType.INCREASE_DAMAGE, 12000, 0));
+                            droid.addPotionEffect(new PotionEffect(PotionEffectType.STRENGTH, 12000, 0));
                         }
 
                         // Объявление
@@ -902,7 +902,7 @@ public class WrathManager implements Listener {
 
                     // Плотный туман: слепота и тошнота
                     p.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 80, 0));
-                    p.addPotionEffect(new PotionEffect(PotionEffectType.CONFUSION, 80, 1));
+                    p.addPotionEffect(new PotionEffect(PotionEffectType.NAUSEA, 80, 1));
 
                     // Спавн теней рядом с игроками
                     if (random.nextInt(100) < spawnChance) {
@@ -915,12 +915,12 @@ public class WrathManager implements Listener {
                             shadow.setCustomNameVisible(true);
                             shadow.setGlowing(true);
                             shadow.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, dur * 20, 2));
-                            shadow.addPotionEffect(new PotionEffect(PotionEffectType.INCREASE_DAMAGE, dur * 20, 1));
+                            shadow.addPotionEffect(new PotionEffect(PotionEffectType.STRENGTH, dur * 20, 1));
                             shadow.getPersistentDataContainer().set(new NamespacedKey(plugin, "blood_moon_mob"), PersistentDataType.BYTE, (byte) 1);
                         }
                     }
 
-                    p.getWorld().spawnParticle(org.bukkit.Particle.SMOKE_NORMAL, p.getLocation().add(0, 1, 0), 20, 1.5, 0.5, 1.5, 0.02);
+                    p.getWorld().spawnParticle(org.bukkit.Particle.SMOKE, p.getLocation().add(0, 1, 0), 20, 1.5, 0.5, 1.5, 0.02);
                 }
             }, 0L, tick);
 
@@ -961,7 +961,7 @@ public class WrathManager implements Listener {
                     }
 
                     // Электрические частицы
-                    p.getWorld().spawnParticle(org.bukkit.Particle.FIREWORKS_SPARK, p.getLocation().add(0, 2, 0), 10, 1.0, 1.0, 1.0, 0.1);
+                    p.getWorld().spawnParticle(org.bukkit.Particle.FIREWORK, p.getLocation().add(0, 2, 0), 10, 1.0, 1.0, 1.0, 0.1);
 
                     // Ускоряем мобов рядом с игроком
                     for (org.bukkit.entity.Entity ent : world.getNearbyEntities(p.getLocation(), 64, 32, 64)) {
@@ -1000,13 +1000,13 @@ public class WrathManager implements Listener {
                             launchForce,
                             (random.nextDouble() - 0.5) * 1.0
                         ));
-                        p.addPotionEffect(new PotionEffect(PotionEffectType.CONFUSION, 60, 1));
+                        p.addPotionEffect(new PotionEffect(PotionEffectType.NAUSEA, 60, 1));
                         p.sendMessage(ChatColor.AQUA + "🌀 Гравитация захватила вас! Вы летите вверх!");
                     }
 
                     // Гравитационные частицы
                     p.getWorld().spawnParticle(org.bukkit.Particle.PORTAL, p.getLocation().add(0, 0.5, 0), 15, 1.0, 0.5, 1.0, 0.3);
-                    p.getWorld().spawnParticle(org.bukkit.Particle.ENCHANTMENT_TABLE, p.getLocation().add(0, 2, 0), 10, 0.8, 0.3, 0.8, 0.1);
+                    p.getWorld().spawnParticle(org.bukkit.Particle.ENCHANT, p.getLocation().add(0, 2, 0), 10, 0.8, 0.3, 0.8, 0.1);
 
                     // Подбрасываем мобов рядом с игроком
                     for (org.bukkit.entity.Entity ent : world.getNearbyEntities(p.getLocation(), 48, 24, 48)) {

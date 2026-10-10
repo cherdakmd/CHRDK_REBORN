@@ -272,7 +272,7 @@ public class RuneListener implements Listener {
                     plugin.getGearManager().updateGearUpgradeLevel(current, newLvl);
                     
                     p.playSound(p.getLocation(), org.bukkit.Sound.BLOCK_ANVIL_USE, 1f, 1.5f);
-                    p.getWorld().spawnParticle(org.bukkit.Particle.VILLAGER_HAPPY, p.getLocation().add(0, 1, 0), 30, 0.5, 0.5, 0.5, 0.1);
+                    p.getWorld().spawnParticle(org.bukkit.Particle.HAPPY_VILLAGER, p.getLocation().add(0, 1, 0), 30, 0.5, 0.5, 0.5, 0.1);
                     p.sendMessage(ChatColor.GREEN + "✨ Успех! Предмет успешно заточен на +" + newLvl + "!");
                     plugin.getGearManager().awakenMilestoneEnchant(current, p, newLvl);
                 } else {
@@ -297,7 +297,7 @@ public class RuneListener implements Listener {
 
                     if (savedByScroll) {
                         p.playSound(p.getLocation(), org.bukkit.Sound.ENTITY_SHULKER_TELEPORT, 1f, 1.2f);
-                        p.getWorld().spawnParticle(org.bukkit.Particle.TOTEM, p.getLocation().add(0, 1, 0), 30, 0.5, 0.5, 0.5, 0.1);
+                        p.getWorld().spawnParticle(org.bukkit.Particle.TOTEM_OF_UNDYING, p.getLocation().add(0, 1, 0), 30, 0.5, 0.5, 0.5, 0.1);
                         p.sendMessage(ChatColor.LIGHT_PURPLE + "🛡️ [Свиток Сохранения] Заточка не удалась, но свиток спас ваш предмет от снижения уровня заточки!");
                         return;
                     }
@@ -348,7 +348,7 @@ public class RuneListener implements Listener {
                     
                     plugin.getGearManager().updateGearUpgradeLevel(current, newLvl);
                     p.playSound(p.getLocation(), org.bukkit.Sound.BLOCK_ANVIL_LAND, 1f, 0.7f);
-                    p.getWorld().spawnParticle(org.bukkit.Particle.SMOKE_NORMAL, p.getLocation().add(0, 1, 0), 20, 0.5, 0.5, 0.5, 0.05);
+                    p.getWorld().spawnParticle(org.bukkit.Particle.SMOKE, p.getLocation().add(0, 1, 0), 20, 0.5, 0.5, 0.5, 0.05);
                     p.sendMessage(ChatColor.RED + "❌ Неудача! " + penaltyMsg);
                 }
                 return;

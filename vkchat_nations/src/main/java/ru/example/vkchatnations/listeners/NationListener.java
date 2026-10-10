@@ -53,10 +53,10 @@ public class NationListener implements Listener {
                 long endTime = plugin.getNationManager().getFestivalEndTime(nation);
                 if (endTime > 0) {
                     if (System.currentTimeMillis() < endTime) {
-                        p.addPotionEffect(new PotionEffect(PotionEffectType.FAST_DIGGING, 100, 0, true, false, false));
+                        p.addPotionEffect(new PotionEffect(PotionEffectType.HASTE, 100, 0, true, false, false));
                         p.addPotionEffect(new PotionEffect(PotionEffectType.LUCK, 100, 0, true, false, false));
                         // Красивые праздничные частички
-                        p.getWorld().spawnParticle(org.bukkit.Particle.VILLAGER_HAPPY, p.getLocation().add(0, 2.1, 0), 2, 0.1, 0.1, 0.1, 0.01);
+                        p.getWorld().spawnParticle(org.bukkit.Particle.HAPPY_VILLAGER, p.getLocation().add(0, 2.1, 0), 2, 0.1, 0.1, 0.1, 0.01);
                     } else {
                         plugin.getNationManager().setFestivalEndTime(nation, 0L); // Удаляем истекший
                     }
@@ -81,7 +81,7 @@ public class NationListener implements Listener {
                         String[] parts = b.split(";");
                         if (parts.length == 2) {
                             try {
-                                org.bukkit.potion.PotionEffectType type = org.bukkit.potion.PotionEffectType.getByName(parts[0]);
+                                org.bukkit.potion.PotionEffectType type = ru.example.vkchat.util.BukkitNames.potionEffect(parts[0]);
                                 int lvl = Integer.parseInt(parts[1]);
                                 if (type != null) {
                                     p.addPotionEffect(new org.bukkit.potion.PotionEffect(type, 100, lvl - 1, true, false, false));
@@ -106,7 +106,7 @@ public class NationListener implements Listener {
                     }
                     if (nearbyCitizens > 0) {
                         int amp = Math.min(2, nearbyCitizens - 1);
-                        p.addPotionEffect(new PotionEffect(PotionEffectType.FAST_DIGGING, 100, amp, true, false));
+                        p.addPotionEffect(new PotionEffect(PotionEffectType.HASTE, 100, amp, true, false));
                     }
                 }
 
@@ -129,7 +129,7 @@ public class NationListener implements Listener {
                     for (org.bukkit.entity.Entity ent : p.getNearbyEntities(8, 8, 8)) {
                         if (ent instanceof org.bukkit.entity.Monster) {
                             LivingEntity le = (LivingEntity) ent;
-                            le.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, 100, 0, true, false));
+                            le.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 100, 0, true, false));
                             le.addPotionEffect(new PotionEffect(PotionEffectType.WEAKNESS, 100, 0, true, false));
                         }
                     }
@@ -174,7 +174,7 @@ public class NationListener implements Listener {
 
                 // 11. Стальная Воля (iron_skin)
                 if (plugin.getNationManager().hasMutation(p, "iron_skin")) {
-                    p.addPotionEffect(new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, 100, 0, true, false, false));
+                    p.addPotionEffect(new PotionEffect(PotionEffectType.RESISTANCE, 100, 0, true, false, false));
                 }
             }
         }, 40L, 40L);
@@ -386,7 +386,7 @@ public class NationListener implements Listener {
                 if (Math.random() < 0.20) {
                     p.getWorld().dropItemNaturally(b.getLocation(), new ItemStack(type, 1));
                     p.sendMessage(ChatColor.GOLD + "⛏️ [Стахановец] Двойной дроп руды!");
-                    p.getWorld().spawnParticle(org.bukkit.Particle.VILLAGER_HAPPY, b.getLocation().add(0.5, 0.5, 0.5), 10);
+                    p.getWorld().spawnParticle(org.bukkit.Particle.HAPPY_VILLAGER, b.getLocation().add(0.5, 0.5, 0.5), 10);
                 }
             }
         }
@@ -509,7 +509,7 @@ public class NationListener implements Listener {
                 String pNation = plugin.getNationManager().getPlayerNation(p);
                 for (Player ally : Bukkit.getOnlinePlayers()) {
                     if (pNation != null && pNation.equals(plugin.getNationManager().getPlayerNation(ally)) && p.getLocation().distance(ally.getLocation()) <= 8) {
-                        ally.addPotionEffect(new PotionEffect(PotionEffectType.INCREASE_DAMAGE, 600, 0));
+                        ally.addPotionEffect(new PotionEffect(PotionEffectType.STRENGTH, 600, 0));
                         ally.sendMessage(ChatColor.GREEN + "✊ Вы вдохновлены Манифестом Труда соотечественника! Сила I на 30 секунд!");
                     }
                 }
@@ -523,7 +523,7 @@ public class NationListener implements Listener {
                     return;
                 }
                 setCooldown(p, "soviet_crystal", now);
-                p.addPotionEffect(new PotionEffect(PotionEffectType.FAST_DIGGING, 1200, 1));
+                p.addPotionEffect(new PotionEffect(PotionEffectType.HASTE, 1200, 1));
                 p.sendMessage(ChatColor.GOLD + "⚙️ Сила Кристалла напитала ваши руки! Спешка II на 1 минуту!");
                 p.playSound(p.getLocation(), Sound.BLOCK_ANVIL_USE, 1f, 1.5f);
                 p.getWorld().spawnParticle(org.bukkit.Particle.CRIT, p.getLocation(), 20, 0.5, 1.0, 0.5);
@@ -542,7 +542,7 @@ public class NationListener implements Listener {
                 p.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 600, 1));
                 p.sendMessage(ChatColor.DARK_RED + "🧪 Вы ввели Сыворотку Скрытности! Невидимость и Скорость II на 30 секунд.");
                 p.playSound(p.getLocation(), Sound.ENTITY_GENERIC_DRINK, 1f, 1f);
-                p.getWorld().spawnParticle(org.bukkit.Particle.SMOKE_NORMAL, p.getLocation(), 30, 0.5, 1.0, 0.5);
+                p.getWorld().spawnParticle(org.bukkit.Particle.SMOKE, p.getLocation(), 30, 0.5, 1.0, 0.5);
                 break;
             }
             case "pagan_staff": {
@@ -553,7 +553,7 @@ public class NationListener implements Listener {
                     return;
                 }
                 setCooldown(p, "pagan_staff", now);
-                double max = p.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue();
+                double max = p.getAttribute(Attribute.MAX_HEALTH).getValue();
                 p.setHealth(Math.min(p.getHealth() + 4.0, max));
                 p.sendMessage(ChatColor.GREEN + "🌿 Дыхание леса исцелило вас на 4 HP (2 сердца)!");
                 p.playSound(p.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1f, 1f);
@@ -584,12 +584,12 @@ public class NationListener implements Listener {
                 }
                 setCooldown(p, "pagan_brew", now);
                 consumeOneItem(p, item);
-                double max = p.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue();
+                double max = p.getAttribute(Attribute.MAX_HEALTH).getValue();
                 p.setHealth(Math.min(p.getHealth() + 10.0, max));
                 p.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, 300, 1));
                 p.sendMessage(ChatColor.GREEN + "🏺 Вы выпили Отвар Лешего! Восстановлено 10 HP и получена Регенерация II.");
                 p.playSound(p.getLocation(), Sound.ENTITY_GENERIC_DRINK, 1f, 1f);
-                p.getWorld().spawnParticle(org.bukkit.Particle.VILLAGER_HAPPY, p.getLocation().add(0, 1.0, 0), 20, 0.5, 0.5, 0.5);
+                p.getWorld().spawnParticle(org.bukkit.Particle.HAPPY_VILLAGER, p.getLocation().add(0, 1.0, 0), 20, 0.5, 0.5, 0.5);
                 break;
             }
             case "pagan_idol": {
@@ -626,7 +626,7 @@ public class NationListener implements Listener {
                 }
                 setCooldown(p, "pagan_infusion", now);
                 consumeOneItem(p, item);
-                p.addPotionEffect(new PotionEffect(PotionEffectType.INCREASE_DAMAGE, 300, 1));
+                p.addPotionEffect(new PotionEffect(PotionEffectType.STRENGTH, 300, 1));
                 p.addPotionEffect(new PotionEffect(PotionEffectType.WITHER, 100, 0));
                 p.sendMessage(ChatColor.DARK_RED + "🩸 Вы выпили Настойку Кровавого Безумия! Дарована Сила II на 15 сек ценой увядания.");
                 p.playSound(p.getLocation(), Sound.ENTITY_GENERIC_DRINK, 1f, 0.8f);
@@ -643,11 +643,11 @@ public class NationListener implements Listener {
                 setCooldown(p, "imperial_scepter", now);
                 p.sendMessage(ChatColor.GOLD + "👑 Во имя Царя! Царский Скипетр накладывает опеку монарха!");
                 p.playSound(p.getLocation(), Sound.BLOCK_BEACON_AMBIENT, 1.5f, 1f);
-                p.getWorld().spawnParticle(org.bukkit.Particle.TOTEM, p.getLocation(), 30, 1.0, 1.0, 1.0);
+                p.getWorld().spawnParticle(org.bukkit.Particle.TOTEM_OF_UNDYING, p.getLocation(), 30, 1.0, 1.0, 1.0);
                 String pNation = plugin.getNationManager().getPlayerNation(p);
                 for (Player ally : Bukkit.getOnlinePlayers()) {
                     if (pNation != null && pNation.equals(plugin.getNationManager().getPlayerNation(ally)) && p.getLocation().distance(ally.getLocation()) <= 8) {
-                        ally.addPotionEffect(new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, 200, 1));
+                        ally.addPotionEffect(new PotionEffect(PotionEffectType.RESISTANCE, 200, 1));
                         ally.sendMessage(ChatColor.GREEN + "🛡️ Вы защищены щитом Монарха соотечественника! Сопротивление II на 10 секунд!");
                     }
                 }
@@ -671,11 +671,11 @@ public class NationListener implements Listener {
                 }
                 setCooldown(p, "imperial_cup", now);
                 consumeOneItem(p, item);
-                p.addPotionEffect(new PotionEffect(PotionEffectType.INCREASE_DAMAGE, 200, 2));
-                p.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, 100, 0));
+                p.addPotionEffect(new PotionEffect(PotionEffectType.STRENGTH, 200, 2));
+                p.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 100, 0));
                 p.sendMessage(ChatColor.DARK_RED + "🍷 Вы осушили Кубок Грозного! Пробужден Царский Гнев (Сила III) на 10 секунд!");
                 p.playSound(p.getLocation(), Sound.ENTITY_GENERIC_DRINK, 1f, 0.7f);
-                p.getWorld().spawnParticle(org.bukkit.Particle.SPELL_WITCH, p.getLocation().add(0, 1.0, 0), 25, 0.4, 0.4, 0.4);
+                p.getWorld().spawnParticle(org.bukkit.Particle.WITCH, p.getLocation().add(0, 1.0, 0), 25, 0.4, 0.4, 0.4);
                 break;
             }
         }
@@ -702,7 +702,7 @@ public class NationListener implements Listener {
                 }
                 setCooldown(p, "imperial_shackles", now);
                 
-                victim.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, 60, 4));
+                victim.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 60, 4));
                 p.sendMessage(ChatColor.DARK_RED + "⛓️ Вы заковали " + victim.getName() + " в Кандалы Тайного Сыска на 3 секунды!");
                 if (victim instanceof Player) {
                     ((Player) victim).sendMessage(ChatColor.RED + "⛓️ Вас заковали в кандалы опричника! Вы обездвижены!");
@@ -767,7 +767,7 @@ public class NationListener implements Listener {
                         if (Math.random() < 0.2) {
                             attacker.sendMessage(ChatColor.RED + "☠️ [БЕЗУМИЕ КРОВЯНОЙ ЛУНЫ] Проклятие затмило ваш разум! Без защитного шлема нации вы ранили своего соотечественника!");
                             attacker.playSound(attacker.getLocation(), Sound.ENTITY_ENDER_DRAGON_GROWL, 0.5f, 1.5f);
-                            attacker.getWorld().spawnParticle(org.bukkit.Particle.REDSTONE, attacker.getLocation().add(0, 1, 0), 10, new org.bukkit.Particle.DustOptions(org.bukkit.Color.RED, 1.5f));
+                            attacker.getWorld().spawnParticle(org.bukkit.Particle.DUST, attacker.getLocation().add(0, 1, 0), 10, new org.bukkit.Particle.DustOptions(org.bukkit.Color.RED, 1.5f));
                         }
                         return; // Не отменяем событие, урон проходит!
                     }
@@ -797,7 +797,7 @@ public class NationListener implements Listener {
                     if (Math.random() < 0.25) {
                         target.addPotionEffect(new PotionEffect(PotionEffectType.POISON, 80, 1));
                         p.sendMessage(ChatColor.RED + "🗡️ [Кровотечение] Рана сабли кровоточит!");
-                        target.getWorld().spawnParticle(org.bukkit.Particle.REDSTONE, target.getLocation().add(0, 1.0, 0), 10, 0.2, 0.2, 0.2, new org.bukkit.Particle.DustOptions(org.bukkit.Color.RED, 1.0f));
+                        target.getWorld().spawnParticle(org.bukkit.Particle.DUST, target.getLocation().add(0, 1.0, 0), 10, 0.2, 0.2, 0.2, new org.bukkit.Particle.DustOptions(org.bukkit.Color.RED, 1.0f));
                     }
                 }
             }
@@ -808,7 +808,7 @@ public class NationListener implements Listener {
             }
 
             if (plugin.getNationManager().hasMutation(p, "blood_rage")) {
-                double hpPercent = p.getHealth() / p.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue();
+                double hpPercent = p.getHealth() / p.getAttribute(Attribute.MAX_HEALTH).getValue();
                 if (hpPercent <= 0.30) {
                     e.setDamage(e.getDamage() * 1.30);
                 }
@@ -881,11 +881,11 @@ public class NationListener implements Listener {
             }
 
             if (plugin.getNationManager().hasMutation(victim, "bogatyr_resolve") && victim.isBlocking()) {
-                victim.addPotionEffect(new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, 40, 1));
+                victim.addPotionEffect(new PotionEffect(PotionEffectType.RESISTANCE, 40, 1));
             }
 
             if (plugin.getNationManager().hasMutation(victim, "sacred_shield")) {
-                double hpPercent = victim.getHealth() / victim.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue();
+                double hpPercent = victim.getHealth() / victim.getAttribute(Attribute.MAX_HEALTH).getValue();
                 if (hpPercent <= 0.15) {
                     long lastShield = 0;
                     if (victim.hasMetadata("sacred_shield_time")) {
@@ -893,9 +893,9 @@ public class NationListener implements Listener {
                     }
                     if (System.currentTimeMillis() - lastShield >= 120000L) {
                         victim.setMetadata("sacred_shield_time", new org.bukkit.metadata.FixedMetadataValue(plugin, System.currentTimeMillis()));
-                        victim.addPotionEffect(new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, 60, 4));
+                        victim.addPotionEffect(new PotionEffect(PotionEffectType.RESISTANCE, 60, 4));
                         victim.sendMessage(ChatColor.GREEN + "✨ [Оберег Руси] Сработал священный оберег! Вы неуязвимы на 3 секунды!");
-                        victim.getWorld().spawnParticle(org.bukkit.Particle.TOTEM, victim.getLocation(), 50, 0.5, 0.5, 0.5, 0.1);
+                        victim.getWorld().spawnParticle(org.bukkit.Particle.TOTEM_OF_UNDYING, victim.getLocation(), 50, 0.5, 0.5, 0.5, 0.1);
                     }
                 }
             }
@@ -909,7 +909,7 @@ public class NationListener implements Listener {
             }
 
             // [НОВОЕ] Царское Терпение (imperial_patience) -10% урона при полном здоровье
-            if (plugin.getNationManager().hasMutation(victim, "imperial_patience") && victim.getHealth() >= victim.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue() - 0.5) {
+            if (plugin.getNationManager().hasMutation(victim, "imperial_patience") && victim.getHealth() >= victim.getAttribute(Attribute.MAX_HEALTH).getValue() - 0.5) {
                 e.setDamage(e.getDamage() * 0.90);
             }
         }
@@ -943,17 +943,17 @@ public class NationListener implements Listener {
                 new NamespacedKey(plugin, "national_item"), PersistentDataType.STRING
             );
             if ("pagan_sickle".equals(natId)) {
-                killer.setHealth(Math.min(killer.getHealth() + 1.0, killer.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue()));
+                killer.setHealth(Math.min(killer.getHealth() + 1.0, killer.getAttribute(Attribute.MAX_HEALTH).getValue()));
                 killer.sendMessage(ChatColor.GREEN + "🌾 [Жатва] Ритуальный серп восстановил вам 1 HP!");
                 killer.getWorld().spawnParticle(org.bukkit.Particle.HEART, killer.getLocation().add(0, 1.0, 0), 2, 0.2, 0.2, 0.2);
             }
         }
 
         if (plugin.getNationManager().hasMutation(killer, "vampiric_claws")) {
-            double maxHp = e.getEntity().getAttribute(Attribute.GENERIC_MAX_HEALTH) != null 
-                ? e.getEntity().getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue() : 20.0;
+            double maxHp = e.getEntity().getAttribute(Attribute.MAX_HEALTH) != null 
+                ? e.getEntity().getAttribute(Attribute.MAX_HEALTH).getValue() : 20.0;
             double heal = maxHp * 0.10;
-            killer.setHealth(Math.min(killer.getHealth() + heal, killer.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue()));
+            killer.setHealth(Math.min(killer.getHealth() + heal, killer.getAttribute(Attribute.MAX_HEALTH).getValue()));
             killer.sendMessage(ChatColor.GREEN + "🩸 [Жертвенные Когти] Восстановлено +" + String.format("%.1f", heal) + " HP!");
             killer.getWorld().spawnParticle(org.bukkit.Particle.HEART, killer.getLocation().add(0, 1.5, 0), 3, 0.3, 0.3, 0.3);
         }
@@ -991,7 +991,7 @@ public class NationListener implements Listener {
                         if (ageable.getAge() < ageable.getMaximumAge() && Math.random() < 0.45) {
                             ageable.setAge(ageable.getMaximumAge());
                             b.setBlockData(ageable);
-                            b.getWorld().spawnParticle(org.bukkit.Particle.VILLAGER_HAPPY, b.getLocation().add(0.5, 0.5, 0.5), 15, 0.3, 0.3, 0.3, 0.05);
+                            b.getWorld().spawnParticle(org.bukkit.Particle.HAPPY_VILLAGER, b.getLocation().add(0.5, 0.5, 0.5), 15, 0.3, 0.3, 0.3, 0.05);
                             e.getPlayer().playSound(b.getLocation(), org.bukkit.Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1f, 1.2f);
                         }
                     }
@@ -1006,7 +1006,7 @@ public class NationListener implements Listener {
                         if (ageable.getAge() < ageable.getMaximumAge()) {
                             ageable.setAge(ageable.getMaximumAge());
                             b.setBlockData(ageable);
-                            b.getWorld().spawnParticle(org.bukkit.Particle.VILLAGER_HAPPY, b.getLocation().add(0.5, 0.5, 0.5), 10);
+                            b.getWorld().spawnParticle(org.bukkit.Particle.HAPPY_VILLAGER, b.getLocation().add(0.5, 0.5, 0.5), 10);
                             e.getPlayer().playSound(b.getLocation(), org.bukkit.Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1f, 1f);
                         }
                     }
@@ -1021,7 +1021,7 @@ public class NationListener implements Listener {
         if (plugin.getNationManager().hasMutation(p, "herbal_healing")) {
             Material type = e.getItem().getType();
             if (type == Material.APPLE || type == Material.SWEET_BERRIES) {
-                p.setHealth(Math.min(p.getHealth() + 4.0, p.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue()));
+                p.setHealth(Math.min(p.getHealth() + 4.0, p.getAttribute(Attribute.MAX_HEALTH).getValue()));
                 p.sendMessage(ChatColor.GREEN + "🍎 [Целебные Травы] Восстановлено +4 HP!");
                 p.getWorld().spawnParticle(org.bukkit.Particle.HEART, p.getLocation().add(0, 1.5, 0), 2, 0.2, 0.2, 0.2);
             }

@@ -836,7 +836,7 @@ public class VKChatDonatePayPlugin extends JavaPlugin implements CommandExecutor
         for (String line : getConfig().getStringList("donor-statuses.levels." + status + ".effects.potion-effects")) {
             try {
                 String[] parts = line.split(";");
-                PotionEffectType type = PotionEffectType.getByName(parts[0].trim().toUpperCase(Locale.ROOT));
+                PotionEffectType type = ru.example.vkchat.util.BukkitNames.potionEffect(parts[0]);
                 int amp = parts.length > 1 ? Integer.parseInt(parts[1].trim()) : 0;
                 if (type != null) p.addPotionEffect(new PotionEffect(type, 500, amp, true, false, false));
             } catch (Exception ignored) {}

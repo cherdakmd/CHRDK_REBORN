@@ -1,7 +1,7 @@
 name: VKChatMobs
 version: 2.1.0
 main: ru.example.vkchatmobs.VKChatMobsPlugin
-api-version: "1.16"
+api-version: "26.3"
 depend: [VKChat, VKChatGear, VKChatArtifacts, VKChatNations]
 commands:
   mobs:

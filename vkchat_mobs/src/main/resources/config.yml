@@ -48,7 +48,7 @@ elements:
     name: "Земля"
     color: "§6"
     damage-bonus: 0.12
-    particle: BLOCK_DUST
+    particle: BLOCK
     effects:
       slowness-duration-ticks: 80
       resistance-duration-ticks: 100

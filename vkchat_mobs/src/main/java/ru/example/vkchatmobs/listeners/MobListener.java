@@ -121,7 +121,7 @@ public class MobListener implements Listener {
                         if (mob.getPersistentDataContainer().has(rankKey, PersistentDataType.INTEGER)) {
                             int rank = mob.getPersistentDataContainer().get(rankKey, PersistentDataType.INTEGER);
                             if (rank >= minRank) {
-                                double maxHp = mob.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue();
+                                double maxHp = mob.getAttribute(Attribute.MAX_HEALTH).getValue();
                                 double nextHp = Math.min(maxHp, mob.getHealth() + healAmount);
                                 if (nextHp > mob.getHealth()) {
                                     mob.setHealth(nextHp);
@@ -151,7 +151,7 @@ public class MobListener implements Listener {
 
                     if (isMini && !isSuper) {
                         // Зеленая пыльца вокруг мини-боссов
-                        world.spawnParticle(Particle.VILLAGER_HAPPY, mob.getLocation().add(0, 1, 0), 4, 0.4, 0.5, 0.4, 0.02);
+                        world.spawnParticle(Particle.HAPPY_VILLAGER, mob.getLocation().add(0, 1, 0), 4, 0.4, 0.5, 0.4, 0.02);
                     }
 
                     if (isSuper) {
@@ -162,15 +162,15 @@ public class MobListener implements Listener {
 
                         // 1. АУРЫ И ЧАСТИЦЫ СУПЕР-БОССОВ
                         if (bossType.equals("warlord")) {
-                            world.spawnParticle(Particle.REDSTONE, mob.getLocation().add(0, 0.2, 0), 8, 0.5, 0.2, 0.5, 0.01, new Particle.DustOptions(org.bukkit.Color.RED, 1.5f));
+                            world.spawnParticle(Particle.DUST, mob.getLocation().add(0, 0.2, 0), 8, 0.5, 0.2, 0.5, 0.01, new Particle.DustOptions(org.bukkit.Color.RED, 1.5f));
                         } else if (bossType.equals("storm")) {
                             world.spawnParticle(Particle.SOUL_FIRE_FLAME, mob.getLocation().add(0, 0.1, 0), 5, 0.4, 0.2, 0.4, 0.02);
-                            world.spawnParticle(Particle.CRIT_MAGIC, mob.getLocation().add(0, 1.2, 0), 4, 0.3, 0.4, 0.3, 0.02);
+                            world.spawnParticle(Particle.ENCHANTED_HIT, mob.getLocation().add(0, 1.2, 0), 4, 0.3, 0.4, 0.3, 0.02);
                         } else if (bossType.equals("alchemist")) {
-                            world.spawnParticle(Particle.SPELL_WITCH, mob.getLocation().add(0, 0.5, 0), 6, 0.5, 0.5, 0.5, 0.02);
+                            world.spawnParticle(Particle.WITCH, mob.getLocation().add(0, 0.5, 0), 6, 0.5, 0.5, 0.5, 0.02);
                         } else if (bossType.equals("void_walker")) {
                             world.spawnParticle(Particle.REVERSE_PORTAL, mob.getLocation().add(0, 0.3, 0), 10, 0.6, 0.3, 0.6, 0.02);
-                            world.spawnParticle(Particle.SPELL_MOB, mob.getLocation().add(0, 1.0, 0), 4, 0.4, 0.4, 0.4, 0.01);
+                            world.spawnParticle(Particle.ENTITY_EFFECT, mob.getLocation().add(0, 1.0, 0), 4, 0.4, 0.4, 0.4, 0.01);
                         }
 
                         // 2. АКТИВНЫЕ СПОСОБНОСТИ (СПЕЛЛЫ) В БОЮ
@@ -224,7 +224,7 @@ public class MobListener implements Listener {
                                         // Притягиваем игрока
                                         Vector dir = mob.getLocation().toVector().subtract(p.getLocation().toVector()).normalize().multiply(0.45);
                                         p.setVelocity(dir);
-                                        p.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, 80, 1));
+                                        p.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 80, 1));
                                         p.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 60, 0));
                                         p.sendMessage("§b💥 Вас затянуло в грозовой шторм Повелителя Бури!");
                                     }
@@ -239,7 +239,7 @@ public class MobListener implements Listener {
                                 Player target = nearbyPlayers.get(random.nextInt(nearbyPlayers.size()));
                                 Bukkit.broadcastMessage("§d[Проклятый Алхимик] ПОПРОБУЙТЕ МОЙ НОВЫЙ ЯДОВИТЫЙ РЕАГЕНТ!");
                                 world.playSound(target.getLocation(), Sound.ENTITY_SPLASH_POTION_BREAK, 1.5f, 0.8f);
-                                world.spawnParticle(Particle.SPELL_WITCH, target.getLocation(), 50, 2.0, 0.5, 2.0, 0.1);
+                                world.spawnParticle(Particle.WITCH, target.getLocation(), 50, 2.0, 0.5, 2.0, 0.1);
 
                                 for (Player p : nearbyPlayers) {
                                     if (p.getLocation().distance(target.getLocation()) <= 5.0) {
@@ -250,11 +250,11 @@ public class MobListener implements Listener {
                                 }
 
                                 // 2. Самолечение босса (5% здоровья)
-                                double maxHp = mob.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue();
+                                double maxHp = mob.getAttribute(Attribute.MAX_HEALTH).getValue();
                                 double heal = maxHp * 0.05;
                                 mob.setHealth(Math.min(maxHp, mob.getHealth() + heal));
                                 world.playSound(mob.getLocation(), Sound.ENTITY_WITCH_DRINK, 1.2f, 1.0f);
-                                world.spawnParticle(Particle.SPELL_INSTANT, mob.getLocation().add(0, 1, 0), 20, 0.5, 0.8, 0.5, 0.05);
+                                world.spawnParticle(Particle.INSTANT_EFFECT, mob.getLocation().add(0, 1, 0), 20, 0.5, 0.8, 0.5, 0.05);
                                 updateNameplate(mob);
                             }
                         } else if (bossType.equals("void_walker")) {
@@ -313,7 +313,7 @@ public class MobListener implements Listener {
                                             LivingEntity em = (LivingEntity) enderman;
                                             em.setCustomName("§5Слуга Бездны");
                                             em.setCustomNameVisible(false);
-                                            AttributeInstance emHp = em.getAttribute(Attribute.GENERIC_MAX_HEALTH);
+                                            AttributeInstance emHp = em.getAttribute(Attribute.MAX_HEALTH);
                                             if (emHp != null) {
                                                 emHp.setBaseValue(20.0);
                                                 em.setHealth(20.0);
@@ -433,7 +433,7 @@ public class MobListener implements Listener {
 
         // Применяем характеристики
         if (plugin.getConfig().getBoolean("scaling.health", true)) {
-            AttributeInstance hp = mob.getAttribute(Attribute.GENERIC_MAX_HEALTH);
+            AttributeInstance hp = mob.getAttribute(Attribute.MAX_HEALTH);
             if (hp != null) {
                 double newHp = hp.getBaseValue() * multiplier;
                 hp.setBaseValue(newHp);
@@ -442,7 +442,7 @@ public class MobListener implements Listener {
         }
 
         if (plugin.getConfig().getBoolean("scaling.damage", true)) {
-            AttributeInstance dmg = mob.getAttribute(Attribute.GENERIC_ATTACK_DAMAGE);
+            AttributeInstance dmg = mob.getAttribute(Attribute.ATTACK_DAMAGE);
             if (dmg != null) {
                 double newDmg = dmg.getBaseValue() * multiplier;
                 dmg.setBaseValue(newDmg);
@@ -450,7 +450,7 @@ public class MobListener implements Listener {
         }
 
         if (plugin.getConfig().getBoolean("scaling.speed", false)) {
-            AttributeInstance speed = mob.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED);
+            AttributeInstance speed = mob.getAttribute(Attribute.MOVEMENT_SPEED);
             if (speed != null) {
                 double newSpeed = speed.getBaseValue() + (speed.getBaseValue() * (multiplier * 0.05));
                 speed.setBaseValue(newSpeed);
@@ -488,12 +488,12 @@ public class MobListener implements Listener {
         mob.getPersistentDataContainer().set(diffKey, PersistentDataType.DOUBLE, 5.0);
         mob.setGlowing(true);
 
-        AttributeInstance hpAttr = mob.getAttribute(Attribute.GENERIC_MAX_HEALTH);
+        AttributeInstance hpAttr = mob.getAttribute(Attribute.MAX_HEALTH);
         if (hpAttr != null) {
             hpAttr.setBaseValue(hpVal);
             mob.setHealth(hpVal);
         }
-        AttributeInstance dmgAttr = mob.getAttribute(Attribute.GENERIC_ATTACK_DAMAGE);
+        AttributeInstance dmgAttr = mob.getAttribute(Attribute.ATTACK_DAMAGE);
         if (dmgAttr != null) {
             dmgAttr.setBaseValue(15.0);
         }
@@ -520,7 +520,7 @@ public class MobListener implements Listener {
         if (!mob.getPersistentDataContainer().has(rankKey, PersistentDataType.INTEGER)) return;
         
         int rank = mob.getPersistentDataContainer().get(rankKey, PersistentDataType.INTEGER);
-        double maxHp = mob.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue();
+        double maxHp = mob.getAttribute(Attribute.MAX_HEALTH).getValue();
         double currentHp = mob.getHealth();
         
         String color = org.bukkit.ChatColor.GREEN.toString();
@@ -594,7 +594,7 @@ public class MobListener implements Listener {
 
         // --- [НОВОЕ] ОБРАБОТКА СМЕНЫ ФАЗ СУПЕР-БОССОВ (ПРИ < 50% HP) ---
         if (mob.getPersistentDataContainer().has(isSuperBossKey, PersistentDataType.INTEGER)) {
-            double maxHp = mob.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue();
+            double maxHp = mob.getAttribute(Attribute.MAX_HEALTH).getValue();
             double nextHp = mob.getHealth() - e.getFinalDamage();
             int phase = mob.getPersistentDataContainer().getOrDefault(bossPhaseKey, PersistentDataType.INTEGER, 1);
 
@@ -607,9 +607,9 @@ public class MobListener implements Listener {
                 if (bossType.equals("warlord")) {
                     Bukkit.broadcastMessage("§c[Древний Воевода] МОЯ КРОВЬ КИПИТ! ПОЗНАЙТЕ ИСТИННУЮ ЯРОСТЬ КЛИНКА!");
                     mob.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 12000, 1)); // 10 минут
-                    mob.addPotionEffect(new PotionEffect(PotionEffectType.INCREASE_DAMAGE, 12000, 0));
+                    mob.addPotionEffect(new PotionEffect(PotionEffectType.STRENGTH, 12000, 0));
                     mob.getWorld().playSound(mob.getLocation(), Sound.ENTITY_ENDER_DRAGON_GROWL, 2.0f, 0.6f);
-                    mob.getWorld().spawnParticle(Particle.REDSTONE, mob.getLocation(), 100, 1.0, 1.0, 1.0, 0.1, new Particle.DustOptions(org.bukkit.Color.RED, 2.0f));
+                    mob.getWorld().spawnParticle(Particle.DUST, mob.getLocation(), 100, 1.0, 1.0, 1.0, 0.1, new Particle.DustOptions(org.bukkit.Color.RED, 2.0f));
                 } else if (bossType.equals("storm")) {
                     Bukkit.broadcastMessage("§b[Повелитель Бури] ГРОЗА ПОГЛОТИТ ВАС! ПРЕКЛОНИТЕ КОЛЕНИ ПЕРЕД СТИХИЕЙ!");
                     mob.getWorld().playSound(mob.getLocation(), Sound.ENTITY_LIGHTNING_BOLT_THUNDER, 2.0f, 0.8f);
@@ -619,11 +619,11 @@ public class MobListener implements Listener {
                 } else if (bossType.equals("alchemist")) {
                     Bukkit.broadcastMessage("§d[Проклятый Алхимик] ХА-ХА-ХА! МОИ СМЕРТЕЛЬНЫЕ РЕАГЕНТЫ ГОТОВЫ К РАСПЫЛЕНИЮ!");
                     mob.getWorld().playSound(mob.getLocation(), Sound.ENTITY_WITCH_CELEBRATE, 2.0f, 0.9f);
-                    mob.getWorld().spawnParticle(Particle.SPELL_WITCH, mob.getLocation(), 100, 1.5, 1.5, 1.5, 0.1);
+                    mob.getWorld().spawnParticle(Particle.WITCH, mob.getLocation(), 100, 1.5, 1.5, 1.5, 0.1);
                 } else if (bossType.equals("void_walker")) {
                     Bukkit.broadcastMessage("§5[Странник Бездны] БЕЗДНА ОТКРЫВАЕТСЯ! ПРОСТРАНСТВО РАЗРЫВАЕТСЯ!");
                     mob.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 12000, 1));
-                    mob.addPotionEffect(new PotionEffect(PotionEffectType.INCREASE_DAMAGE, 12000, 1));
+                    mob.addPotionEffect(new PotionEffect(PotionEffectType.STRENGTH, 12000, 1));
                     mob.getWorld().playSound(mob.getLocation(), Sound.ENTITY_ENDER_DRAGON_GROWL, 2.0f, 0.4f);
                     mob.getWorld().spawnParticle(Particle.REVERSE_PORTAL, mob.getLocation(), 150, 2.0, 2.0, 2.0, 0.1);
                     mob.getWorld().spawnParticle(Particle.DRAGON_BREATH, mob.getLocation(), 100, 1.5, 1.5, 1.5, 0.05);
@@ -689,7 +689,7 @@ public class MobListener implements Listener {
                 int chance = plugin.getConfig().getInt("abilities.web_weaver.chance", 15);
                 if (random.nextInt(100) < chance) {
                     int duration = plugin.getConfig().getInt("abilities.web_weaver.slowness-duration-seconds", 5);
-                    player.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.SLOW, duration * 20, 2));
+                    player.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.SLOWNESS, duration * 20, 2));
                     player.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.BLINDNESS, 40, 1));
                     
                     // Спавним паутину под ногами
@@ -709,7 +709,7 @@ public class MobListener implements Listener {
 
         // 3. [НОВОЕ] Ядовитый Взрыв (Poison Burst, Ранг >= 6, шанс 15%)
         if (rank >= 6 && random.nextInt(100) < 15) {
-            player.getWorld().spawnParticle(Particle.SPELL_WITCH, player.getLocation(), 40, 1.0, 0.5, 1.0, 0.1);
+            player.getWorld().spawnParticle(Particle.WITCH, player.getLocation(), 40, 1.0, 0.5, 1.0, 0.1);
             player.getWorld().playSound(player.getLocation(), org.bukkit.Sound.ENTITY_WITCH_THROW, 1f, 0.8f);
             
             for (org.bukkit.entity.Entity near : player.getNearbyEntities(4, 4, 4)) {
@@ -768,7 +768,7 @@ public class MobListener implements Listener {
                                     ((org.bukkit.entity.Zombie) minion).setBaby(true);
                                 }
                                 
-                                AttributeInstance mHp = minion.getAttribute(Attribute.GENERIC_MAX_HEALTH);
+                                AttributeInstance mHp = minion.getAttribute(Attribute.MAX_HEALTH);
                                 if (mHp != null) {
                                     mHp.setBaseValue(10.0);
                                     minion.setHealth(10.0);
@@ -776,7 +776,7 @@ public class MobListener implements Listener {
                             }
                         }
                         
-                        mob.getWorld().spawnParticle(Particle.EXPLOSION_LARGE, mob.getLocation(), 3);
+                        mob.getWorld().spawnParticle(Particle.EXPLOSION, mob.getLocation(), 3);
                         mob.getWorld().playSound(mob.getLocation(), org.bukkit.Sound.ENTITY_EVOKER_PREPARE_SUMMON, 1.0f, 1.0f);
                         
                         for (org.bukkit.entity.Entity near : mob.getNearbyEntities(10, 10, 10)) {
@@ -1066,7 +1066,7 @@ public class MobListener implements Listener {
                 }
             }
             
-            mob.getWorld().spawnParticle(Particle.TOTEM, mob.getLocation(), 30);
+            mob.getWorld().spawnParticle(Particle.TOTEM_OF_UNDYING, mob.getLocation(), 30);
             mob.getWorld().playSound(mob.getLocation(), org.bukkit.Sound.UI_TOAST_CHALLENGE_COMPLETE, 1.0f, 0.8f);
             
             for (org.bukkit.entity.Entity near : mob.getNearbyEntities(15, 15, 15)) {
@@ -1136,7 +1136,7 @@ public class MobListener implements Listener {
             ItemStack rolled = rollRandomArtifactItem();
             safeGiveItem(p, rolled);
             p.sendMessage("§b✨ Вы получили древний артефакт/свиток: " + (rolled.getItemMeta() != null ? rolled.getItemMeta().getDisplayName() : rolled.getType().name()));
-            p.getWorld().spawnParticle(Particle.SPELL_WITCH, p.getLocation().add(0, 1, 0), 30, 0.5, 0.5, 0.5, 0.1);
+            p.getWorld().spawnParticle(Particle.WITCH, p.getLocation().add(0, 1, 0), 30, 0.5, 0.5, 0.5, 0.1);
         }
     }
 

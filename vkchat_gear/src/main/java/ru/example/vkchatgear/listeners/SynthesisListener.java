@@ -111,7 +111,7 @@ public class SynthesisListener implements Listener {
                 hand.setAmount(hand.getAmount() - 1);
                 p.getInventory().setItem(sacrificeSlot, null); // Уничтожаем жертву
                 
-                p.getWorld().spawnParticle(org.bukkit.Particle.ENCHANTMENT_TABLE, p.getLocation().add(0, 1, 0), 100, 0.5, 0.5, 0.5, 0.1);
+                p.getWorld().spawnParticle(org.bukkit.Particle.ENCHANT, p.getLocation().add(0, 1, 0), 100, 0.5, 0.5, 0.5, 0.1);
                 p.playSound(p.getLocation(), org.bukkit.Sound.BLOCK_ENCHANTMENT_TABLE_USE, 1f, 1f);
                 p.sendMessage(ChatColor.LIGHT_PURPLE + "✨ Синтез прошел успешно! Предмет-основа впитал силу жертвы!");
             } else {

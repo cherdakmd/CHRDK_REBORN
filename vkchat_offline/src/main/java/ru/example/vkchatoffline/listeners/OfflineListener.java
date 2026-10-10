@@ -351,7 +351,7 @@ public class OfflineListener implements Listener {
                 
                 // Enchantments (Protection)
                 if (piece.hasItemMeta()) {
-                    int protLevel = piece.getEnchantmentLevel(org.bukkit.enchantments.Enchantment.PROTECTION_ENVIRONMENTAL);
+                    int protLevel = piece.getEnchantmentLevel(org.bukkit.enchantments.Enchantment.PROTECTION);
                     defense += protLevel; // Add 1 point per Protection level
                 }
             }
@@ -365,7 +365,7 @@ public class OfflineListener implements Listener {
             
             // Sharpness enchantment
             if (weapon.hasItemMeta()) {
-                int sharpLevel = weapon.getEnchantmentLevel(org.bukkit.enchantments.Enchantment.DAMAGE_ALL);
+                int sharpLevel = weapon.getEnchantmentLevel(org.bukkit.enchantments.Enchantment.SHARPNESS);
                 damage += sharpLevel; // Add 1 point per Sharpness level
             }
         }

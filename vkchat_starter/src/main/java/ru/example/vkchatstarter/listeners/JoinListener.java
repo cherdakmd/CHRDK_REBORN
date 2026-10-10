@@ -44,7 +44,7 @@ public class JoinListener implements Listener {
         // === 1. ЗАЩИТА НОВОГО ИГРОКА ===
         int protectionSeconds = plugin.getConfig().getInt("settings.join-protection-seconds", 30);
         if (protectionSeconds > 0) {
-            p.addPotionEffect(new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, protectionSeconds * 20, 10, false, false));
+            p.addPotionEffect(new PotionEffect(PotionEffectType.RESISTANCE, protectionSeconds * 20, 10, false, false));
             p.addPotionEffect(new PotionEffect(PotionEffectType.FIRE_RESISTANCE, protectionSeconds * 20, 0, false, false));
             p.sendMessage(ChatColor.GREEN + "🛡 Ты защищён на " + protectionSeconds + " секунд!");
         }
@@ -151,7 +151,7 @@ public class JoinListener implements Listener {
                         String[] parts = ench.split(";");
                         if (parts.length == 2) {
                             try {
-                                org.bukkit.enchantments.Enchantment e = org.bukkit.enchantments.Enchantment.getByName(parts[0].toUpperCase());
+                                org.bukkit.enchantments.Enchantment e = ru.example.vkchat.util.BukkitNames.enchantment(parts[0]);
                                 if (e != null) meta.addEnchant(e, Integer.parseInt(parts[1]), true);
                             } catch (Exception ignored) {}
                         }

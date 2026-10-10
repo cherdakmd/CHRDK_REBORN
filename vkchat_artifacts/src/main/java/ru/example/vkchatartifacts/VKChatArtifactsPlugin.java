@@ -173,7 +173,7 @@ public class VKChatArtifactsPlugin extends JavaPlugin {
                 net.md_5.bungee.api.chat.TextComponent.fromLegacyText(coordMsg));
 
         // Эффекты
-        target.getWorld().spawnParticle(Particle.ENCHANTMENT_TABLE, safeLoc.clone().add(0.5, 1.5, 0.5), 100, 0.5, 0.5, 0.5, 0.1);
+        target.getWorld().spawnParticle(Particle.ENCHANT, safeLoc.clone().add(0.5, 1.5, 0.5), 100, 0.5, 0.5, 0.5, 0.1);
         target.getWorld().spawnParticle(Particle.PORTAL, safeLoc.clone().add(0.5, 1, 0.5), 60, 0.3, 0.5, 0.3, 0.1);
         target.playSound(safeLoc, Sound.ENTITY_PLAYER_LEVELUP, 1.0f, 1.0f);
         target.playSound(safeLoc, Sound.BLOCK_ENDER_CHEST_OPEN, 1.0f, 0.8f);
@@ -251,7 +251,7 @@ public class VKChatArtifactsPlugin extends JavaPlugin {
                 Location loc = entry.getKey();
                 if (loc.getBlock().getType() == Material.CHEST) {
                     loc.getBlock().setType(Material.AIR);
-                    loc.getWorld().spawnParticle(Particle.SMOKE_NORMAL, loc.clone().add(0.5, 0.5, 0.5), 20, 0.3, 0.3, 0.3, 0.05);
+                    loc.getWorld().spawnParticle(Particle.SMOKE, loc.clone().add(0.5, 0.5, 0.5), 20, 0.3, 0.3, 0.3, 0.05);
                 }
                 it.remove();
             }

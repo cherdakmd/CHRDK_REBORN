@@ -115,13 +115,13 @@ public class HardcoreMobManager implements Listener {
         mob.setGlowing(true);
 
         double scale = calculateScale(mob, tier);
-        AttributeInstance hp = mob.getAttribute(Attribute.GENERIC_MAX_HEALTH);
+        AttributeInstance hp = mob.getAttribute(Attribute.MAX_HEALTH);
         if (hp != null) {
             double base = tier.equals("world") ? 900 : tier.equals("raid") ? 450 : tier.equals("mini") ? 180 : 70;
             hp.setBaseValue(base * scale);
             mob.setHealth(hp.getBaseValue());
         }
-        AttributeInstance dmg = mob.getAttribute(Attribute.GENERIC_ATTACK_DAMAGE);
+        AttributeInstance dmg = mob.getAttribute(Attribute.ATTACK_DAMAGE);
         if (dmg != null) {
             double base = dmg.getBaseValue();
             if (tier.equals("world")) base = Math.max(base, 14);
@@ -129,10 +129,10 @@ public class HardcoreMobManager implements Listener {
             else if (tier.equals("mini")) base = Math.max(base, 7);
             dmg.setBaseValue(base * Math.min(3.5, scale));
         }
-        if (archetype.equals("tank")) mob.addPotionEffect(new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, Integer.MAX_VALUE, 0, true, false));
+        if (archetype.equals("tank")) mob.addPotionEffect(new PotionEffect(PotionEffectType.RESISTANCE, Integer.MAX_VALUE, 0, true, false));
         if (archetype.equals("assassin")) mob.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, Integer.MAX_VALUE, 1, true, false));
         if (archetype.equals("shaman")) mob.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, Integer.MAX_VALUE, 0, true, false));
-        if (archetype.equals("paladin")) mob.addPotionEffect(new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, Integer.MAX_VALUE, 0, true, false));
+        if (archetype.equals("paladin")) mob.addPotionEffect(new PotionEffect(PotionEffectType.RESISTANCE, Integer.MAX_VALUE, 0, true, false));
         if (archetype.equals("ranger")) mob.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, Integer.MAX_VALUE, 0, true, false));
 
         mob.setCustomName(formatName(tier, archetype, element, mob));
@@ -198,27 +198,27 @@ public class HardcoreMobManager implements Listener {
         if (archetype.equals("hunter")) dmg += 2;
         if (archetype.equals("tank")) p.setVelocity(p.getLocation().toVector().subtract(mob.getLocation().toVector()).normalize().multiply(1.0).setY(0.35));
         if (archetype.equals("necromancer")) spawnMinion(mob);
-        if (archetype.equals("shaman")) mob.setHealth(Math.min(mob.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue(), mob.getHealth() + 8));
+        if (archetype.equals("shaman")) mob.setHealth(Math.min(mob.getAttribute(Attribute.MAX_HEALTH).getValue(), mob.getHealth() + 8));
         if (archetype.equals("hunter")) {
-            p.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, 60, 2));
+            p.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 60, 2));
             p.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 40, 0));
-            p.getWorld().spawnParticle(Particle.SMOKE_LARGE, p.getLocation().add(0, 0.1, 0), 30, 1.0, 0.1, 1.0, 0.02);
+            p.getWorld().spawnParticle(Particle.LARGE_SMOKE, p.getLocation().add(0, 0.1, 0), 30, 1.0, 0.1, 1.0, 0.02);
         }
         if (archetype.equals("warlord")) {
-            p.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, 100, 1));
+            p.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 100, 1));
             p.addPotionEffect(new PotionEffect(PotionEffectType.WEAKNESS, 80, 0));
             dmg += 2;
         }
         if (archetype.equals("berserker")) {
-            double healthPercent = mob.getHealth() / mob.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue();
+            double healthPercent = mob.getHealth() / mob.getAttribute(Attribute.MAX_HEALTH).getValue();
             double bonus = (1.0 - healthPercent) * 10;
             dmg += bonus;
-            p.getWorld().spawnParticle(Particle.REDSTONE, p.getLocation().add(0, 1, 0), 20, 0.5, 0.5, 0.5, 0.02, new Particle.DustOptions(org.bukkit.Color.RED, 1.0f));
+            p.getWorld().spawnParticle(Particle.DUST, p.getLocation().add(0, 1, 0), 20, 0.5, 0.5, 0.5, 0.02, new Particle.DustOptions(org.bukkit.Color.RED, 1.0f));
         }
         if (archetype.equals("paladin")) {
             for (LivingEntity near : mob.getWorld().getNearbyEntities(mob.getLocation(), 10, 10, 10, e -> e instanceof Monster).stream().map(e -> (LivingEntity) e).collect(java.util.stream.Collectors.toList())) {
                 if (!near.equals(mob)) {
-                    double maxHp = near.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue();
+                    double maxHp = near.getAttribute(Attribute.MAX_HEALTH).getValue();
                     near.setHealth(Math.min(maxHp, near.getHealth() + 5));
                 }
             }
@@ -237,7 +237,7 @@ public class HardcoreMobManager implements Listener {
         if (archetype.equals("alchemist")) {
             p.addPotionEffect(new PotionEffect(PotionEffectType.POISON, 100, 1));
             p.addPotionEffect(new PotionEffect(PotionEffectType.WEAKNESS, 80, 0));
-            p.getWorld().spawnParticle(Particle.SPELL_WITCH, p.getLocation().add(0, 1, 0), 20, 0.5, 0.5, 0.5, 0.1);
+            p.getWorld().spawnParticle(Particle.WITCH, p.getLocation().add(0, 1, 0), 20, 0.5, 0.5, 0.5, 0.1);
             dmg += 2;
         }
         if (archetype.equals("summoner")) {
@@ -247,26 +247,26 @@ public class HardcoreMobManager implements Listener {
                 minion.setCustomNameVisible(true);
                 minion.getPersistentDataContainer().set(eliteKey, PersistentDataType.INTEGER, 1);
             }
-            p.getWorld().spawnParticle(Particle.SPELL_MOB, mob.getLocation().add(0, 1, 0), 30, 1.0, 0.5, 1.0, 0.1);
+            p.getWorld().spawnParticle(Particle.ENTITY_EFFECT, mob.getLocation().add(0, 1, 0), 30, 1.0, 0.5, 1.0, 0.1);
         }
         if (archetype.equals("guardian")) {
             for (LivingEntity near : mob.getWorld().getNearbyEntities(mob.getLocation(), 8, 8, 8, e -> e instanceof Monster).stream().map(e -> (LivingEntity) e).collect(java.util.stream.Collectors.toList())) {
                 if (!near.equals(mob)) {
-                    near.addPotionEffect(new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, 100, 1));
+                    near.addPotionEffect(new PotionEffect(PotionEffectType.RESISTANCE, 100, 1));
                 }
             }
-            mob.addPotionEffect(new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, 100, 2));
-            p.getWorld().spawnParticle(Particle.VILLAGER_ANGRY, mob.getLocation().add(0, 2, 0), 10, 1.0, 0.5, 1.0, 0);
+            mob.addPotionEffect(new PotionEffect(PotionEffectType.RESISTANCE, 100, 2));
+            p.getWorld().spawnParticle(Particle.ANGRY_VILLAGER, mob.getLocation().add(0, 2, 0), 10, 1.0, 0.5, 1.0, 0);
         }
         p.damage(dmg, mob);
         switch (element) {
             case "fire": p.setFireTicks(100); break;
-            case "frost": p.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, 100, 2)); break;
+            case "frost": p.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 100, 2)); break;
             case "poison": p.addPotionEffect(new PotionEffect(PotionEffectType.POISON, 100, 1)); break;
             case "storm": p.getWorld().strikeLightningEffect(p.getLocation()); p.setVelocity(new Vector(0, 0.8, 0)); break;
             case "dark": p.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 80, 0)); p.addPotionEffect(new PotionEffect(PotionEffectType.WITHER, 60, 0)); break;
             case "light":
-                p.addPotionEffect(new PotionEffect(PotionEffectType.CONFUSION, 40, 0));
+                p.addPotionEffect(new PotionEffect(PotionEffectType.NAUSEA, 40, 0));
                 p.getWorld().spawnParticle(Particle.END_ROD, p.getLocation().add(0, 1, 0), 20, 0.5, 0.5, 0.5, 0.05);
                 if (mob.getType() == EntityType.ZOMBIE || mob.getType() == EntityType.SKELETON || mob.getType() == EntityType.WITHER_SKELETON) {
                     mob.damage(8.0, p);
@@ -274,21 +274,21 @@ public class HardcoreMobManager implements Listener {
                 break;
             case "void":
                 p.teleport(p.getLocation().add(random.nextDouble() * 6 - 3, 0, random.nextDouble() * 6 - 3));
-                p.addPotionEffect(new PotionEffect(PotionEffectType.CONFUSION, 60, 1));
+                p.addPotionEffect(new PotionEffect(PotionEffectType.NAUSEA, 60, 1));
                 p.getWorld().spawnParticle(Particle.PORTAL, p.getLocation().add(0, 1, 0), 40, 0.5, 0.5, 0.5, 0.1);
                 break;
             case "nature":
                 mob.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, 100, 1));
                 p.addPotionEffect(new PotionEffect(PotionEffectType.POISON, 120, 1));
-                p.getWorld().spawnParticle(Particle.BLOCK_CRACK, p.getLocation().add(0, 0.5, 0), 30, 0.5, 0.5, 0.5, 0.02, org.bukkit.Material.OAK_LEAVES.createBlockData());
+                p.getWorld().spawnParticle(Particle.BLOCK, p.getLocation().add(0, 0.5, 0), 30, 0.5, 0.5, 0.5, 0.02, org.bukkit.Material.OAK_LEAVES.createBlockData());
                 break;
             case "ice":
-                p.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, 60, 3));
-                p.getWorld().spawnParticle(Particle.SNOW_SHOVEL, p.getLocation().add(0, 1, 0), 30, 0.5, 0.5, 0.5, 0.02);
+                p.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 60, 3));
+                p.getWorld().spawnParticle(Particle.ITEM_SNOWBALL, p.getLocation().add(0, 1, 0), 30, 0.5, 0.5, 0.5, 0.02);
                 break;
             case "blood":
                 p.addPotionEffect(new PotionEffect(PotionEffectType.WITHER, 80, 1));
-                p.getWorld().spawnParticle(Particle.BLOCK_DUST, p.getLocation().add(0, 0.5, 0), 30, 0.5, 0.5, 0.5, 0.02, org.bukkit.Material.REDSTONE_BLOCK.createBlockData());
+                p.getWorld().spawnParticle(Particle.BLOCK, p.getLocation().add(0, 0.5, 0), 30, 0.5, 0.5, 0.5, 0.02, org.bukkit.Material.REDSTONE_BLOCK.createBlockData());
                 break;
             case "wind":
                 p.setVelocity(p.getLocation().toVector().subtract(mob.getLocation().toVector()).normalize().multiply(1.5).setY(0.4));
@@ -296,9 +296,9 @@ public class HardcoreMobManager implements Listener {
                 p.getWorld().spawnParticle(Particle.CLOUD, p.getLocation().add(0, 1, 0), 25, 0.5, 0.5, 0.5, 0.1);
                 break;
             case "earth":
-                p.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, 80, 1));
-                mob.addPotionEffect(new PotionEffect(PotionEffectType.DAMAGE_RESISTANCE, 100, 0));
-                p.getWorld().spawnParticle(Particle.BLOCK_DUST, p.getLocation().add(0, 0.5, 0), 40, 0.5, 0.5, 0.5, 0.02, org.bukkit.Material.DIRT.createBlockData());
+                p.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 80, 1));
+                mob.addPotionEffect(new PotionEffect(PotionEffectType.RESISTANCE, 100, 0));
+                p.getWorld().spawnParticle(Particle.BLOCK, p.getLocation().add(0, 0.5, 0), 40, 0.5, 0.5, 0.5, 0.02, org.bukkit.Material.DIRT.createBlockData());
                 break;
             case "crystal":
                 if (random.nextInt(100) < 20) {
@@ -453,7 +453,7 @@ public class HardcoreMobManager implements Listener {
     }
 
     private String strip(String s) { return ChatColor.stripColor(s == null ? "" : s); }
-    private Particle particleFor(String e) { if (e.equals("fire")) return Particle.FLAME; if (e.equals("frost")) return Particle.SNOWBALL; if (e.equals("poison")) return Particle.SPELL_WITCH; if (e.equals("storm")) return Particle.CRIT_MAGIC; if (e.equals("light")) return Particle.END_ROD; if (e.equals("ice")) return Particle.SNOW_SHOVEL; if (e.equals("blood")) return Particle.BLOCK_DUST; return Particle.SMOKE_NORMAL; }
+    private Particle particleFor(String e) { if (e.equals("fire")) return Particle.FLAME; if (e.equals("frost")) return Particle.ITEM_SNOWBALL; if (e.equals("poison")) return Particle.WITCH; if (e.equals("storm")) return Particle.ENCHANTED_HIT; if (e.equals("light")) return Particle.END_ROD; if (e.equals("ice")) return Particle.ITEM_SNOWBALL; if (e.equals("blood")) return Particle.BLOCK; return Particle.SMOKE; }
     private String abilityName(String a, String e) { return archetypeName(a) + " / " + elementName(e); }
     private String formatName(String tier, String a, String e, LivingEntity mob) { return ChatColor.translateAlternateColorCodes('&', tierColor(tier) + "[" + tier.toUpperCase() + "] &f" + archetypeName(a) + " " + elementName(e)); }
     private String tierColor(String t) { if (t.equals("world")) return "&5&l"; if (t.equals("raid")) return "&4&l"; if (t.equals("mini")) return "&c&l"; return "&6"; }

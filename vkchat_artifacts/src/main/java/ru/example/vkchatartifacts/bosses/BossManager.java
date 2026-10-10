@@ -97,16 +97,16 @@ public class BossManager extends BukkitRunnable implements Listener {
                 activeBoss.setCustomNameVisible(true);
                 activeBoss.setRemoveWhenFarAway(false);
                 
-                AttributeInstance hp = activeBoss.getAttribute(Attribute.GENERIC_MAX_HEALTH);
+                AttributeInstance hp = activeBoss.getAttribute(Attribute.MAX_HEALTH);
                 if (hp != null) {
                     hp.setBaseValue(bossConfig.getDouble("health", 1000.0));
                     activeBoss.setHealth(bossConfig.getDouble("health", 1000.0));
                 }
                 
-                AttributeInstance dmg = activeBoss.getAttribute(Attribute.GENERIC_ATTACK_DAMAGE);
+                AttributeInstance dmg = activeBoss.getAttribute(Attribute.ATTACK_DAMAGE);
                 if (dmg != null) dmg.setBaseValue(bossConfig.getDouble("damage", 15.0));
 
-                AttributeInstance speed = activeBoss.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED);
+                AttributeInstance speed = activeBoss.getAttribute(Attribute.MOVEMENT_SPEED);
                 if (speed != null) speed.setBaseValue(bossConfig.getDouble("speed", 0.3));
 
                 if (!bossConfig.getBoolean("aggressive", true)) {
@@ -187,7 +187,7 @@ public class BossManager extends BukkitRunnable implements Listener {
                     skull.setVelocity(p.getLocation().toVector().subtract(activeBoss.getLocation().toVector()).normalize().multiply(1.5));
                     break;
                 case "FREEZE":
-                    p.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, 100, 4));
+                    p.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 100, 4));
                     p.sendMessage(ChatColor.AQUA + "Ты заморожен!");
                     break;
                 case "FIRE_RING":

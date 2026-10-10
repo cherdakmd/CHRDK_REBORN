@@ -297,7 +297,7 @@ public class SalvageCommand implements CommandExecutor, Listener, TabCompleter {
         p.getWorld().spawnParticle(org.bukkit.Particle.LAVA, p.getLocation().add(0, 1, 0), 20, 0.4, 0.4, 0.4, 0.05);
 
         if (isCrit) {
-            p.getWorld().spawnParticle(org.bukkit.Particle.FIREWORKS_SPARK, p.getLocation().add(0, 1, 0), 60, 0.6, 0.6, 0.6, 0.15);
+            p.getWorld().spawnParticle(org.bukkit.Particle.FIREWORK, p.getLocation().add(0, 1, 0), 60, 0.6, 0.6, 0.6, 0.15);
             p.playSound(p.getLocation(), Sound.ENTITY_FIREWORK_ROCKET_BLAST, 1.2f, 1.2f);
             p.sendMessage(ChatColor.GOLD + "🌟 [КРИТИЧЕСКИЙ РАЗБОР] Награды за всю партию удвоены!");
         }

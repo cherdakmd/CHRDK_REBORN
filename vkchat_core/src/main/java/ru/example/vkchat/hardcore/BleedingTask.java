@@ -9,6 +9,7 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import ru.example.vkchat.VKChatPlugin;
+import ru.example.vkchat.util.BukkitNames;
 
 public class BleedingTask extends BukkitRunnable {
     private final VKChatPlugin plugin;
@@ -22,10 +23,10 @@ public class BleedingTask extends BukkitRunnable {
         if (!plugin.getConfigManager().getHardcoreConfig().getBoolean("hardcore.bleeding.enabled", true)) return;
         
         double threshold = plugin.getConfigManager().getHardcoreConfig().getDouble("hardcore.bleeding.threshold-hp", 6.0);
-        String effectName = plugin.getConfigManager().getHardcoreConfig().getString("hardcore.bleeding.effect", "SLOW");
+        String effectName = plugin.getConfigManager().getHardcoreConfig().getString("hardcore.bleeding.effect", "SLOWNESS");
         int effectLevel = plugin.getConfigManager().getHardcoreConfig().getInt("hardcore.bleeding.effect-level", 1);
         
-        PotionEffectType type = PotionEffectType.getByName(effectName);
+        PotionEffectType type = BukkitNames.potionEffect(effectName);
         
         for (Player p : Bukkit.getOnlinePlayers()) {
             if (p.getHealth() <= threshold && !p.isDead()) {
@@ -37,7 +38,7 @@ public class BleedingTask extends BukkitRunnable {
                 // Спавним частицы крови (редстоун) под ногами
                 Location loc = p.getLocation().add(0, 0.1, 0);
                 Particle.DustOptions dustOptions = new Particle.DustOptions(org.bukkit.Color.RED, 1.5F);
-                p.getWorld().spawnParticle(Particle.REDSTONE, loc, 3, 0.2, 0.1, 0.2, 0, dustOptions);
+                p.getWorld().spawnParticle(Particle.DUST, loc, 3, 0.2, 0.1, 0.2, 0, dustOptions);
             }
         }
     }
